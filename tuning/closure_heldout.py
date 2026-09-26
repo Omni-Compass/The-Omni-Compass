@@ -16,7 +16,7 @@ from tuning.speed_search import gauges
 from tuning.league import COMPETITORS, VESSELS, LOWER, HIGHER, losses
 
 SL = dict(rho0=0.7, rho_min=0.7, kI=0.0, kE=0.0)
-SEEDS = list(range(700201, 700231))
+SEEDS = list(range(700301, 700331))   # fresh held-out set (700201-700230 was spent on the pre-tone settings)
 SRC = next(p for p in ("tuning/CLOSURE_FINAL_DEV.json", "tuning/CLOSURE_SEARCH2_DEV.json", "tuning/CLOSURE_SEARCH_DEV.json") if (ROOT / p).exists())
 SET = {v: {"closure": d["closure"], "direct": d["direct"], "speed": d.get("speed", SL)} for v, d in json.load(open(ROOT / SRC)).items() if not v.startswith("_")}
 
