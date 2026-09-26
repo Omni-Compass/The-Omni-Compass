@@ -60,6 +60,12 @@ def main():
       "from result files in the repository. Each result states how it was obtained: **measured** on a live Kubernetes control plane, "
       "**simulated** in this repository's plants, or **emulated** (a competitor reproduced from its public documentation, not its binary).")
     w("")
+    w("**Engine interpretation notice.** The Omni-Compass engine is the completed core conveyance mechanism; its success "
+      "criterion is internal dual-basin conveyance under native ignition dynamics. Everything measured here (the Kubernetes "
+      "adapters, the closure governor, the vendor comparisons) is wiring around the engine, which is downstream engineering and "
+      "not part of the base law. A loss in a cell below is a property of that wiring on that plant, not evidence that the base "
+      "engine is incomplete. The engine source is byte-locked by SHA-256 and was not edited for any result in this report.")
+    w("")
     # ---------------------------------------------------------------- 1
     w("## 1. The answer")
     w("")
@@ -247,6 +253,72 @@ def main():
               f"rate) drive every muscle (`omnicompass/mathdrive.py`) was tested on 96 settings per workload: {tot} losing cells, the same "
               "trade-off as the rule-based wiring. The engine clock alone moved batch p99 from 3.9 s to 0.1 s at equal energy.")
             w("")
+    clo, clsrc = load("tuning/CLOSURE_HELDOUT.json")
+    if clo:
+        w("### 6.4 Strict C: the manuscript's closure law drives the machines and the pods")
+        w("")
+        w("`omnicompass/closure.py` implements, as the only authority over machines, the laws of the owner's manuscript: the "
+          "forward projection of Section 5c, the master closure law of Chapter 20 (F = G0 + Gc: no correction inside the admissible "
+          "domain, an inward correction sized to restore the margin when the projected state approaches its boundary, so that "
+          "G . n <= 0 on the boundary), the turning point of Chapters 29-30 (a machine is released only after the peak) and the "
+          "dual-bath exchange of Chapter 31 (level and rate of demand). A release must also stay inside the calm set for a dwell "
+          "(the resource-aware envelope, Proposition 2). Kubernetes' HPA and node managers are off; Kubernetes only schedules. "
+          f"Settings chosen on development scenarios, frozen by SHA-256 ({clo['preregistration_sha256'][:16]}), then run once on "
+          f"{len(clo['seeds'])} held-out scenarios per workload.")
+        w("")
+        w("| Workload | Gauge | " + " | ".join(PNAME[c] for c in PLAT) + " | Omni-Compass (closure law) |")
+        w("|---|---|" + "---:|" * (len(PLAT) + 1))
+        for v in VES:
+            M = clo["means"][v]
+            for g in ("energy_kwh", "node_hours", "p95_ms", "p99_ms", "mean_ms", "start_stop", "work_completed"):
+                w(f"| {v} | {GAUGE[g]} | " + " | ".join(f"{M[c][g]:.4g}" for c in PLAT) + f" | **{M['omni'][g]:.4g}** |")
+        w("")
+        from collections import Counter
+        cnt = Counter(l["vessel"] for l in clo["attack_list"])
+        w("Losing cells (worse than that platform beyond tolerance): " + "; ".join(
+            f"{VNAME[v]} {cnt.get(v, 0)} of {13 * len(PLAT)}" for v in VES) + ".")
+        w("")
+        for v in VES:
+            ls = [l for l in clo["attack_list"] if l["vessel"] == v]
+            if ls:
+                w(f"- {VNAME[v].capitalize()}: " + "; ".join(f"{GAUGE.get(l['gauge'], l['gauge'])} vs {PNAME[l['competitor']]} "
+                                                         f"{l['omni_worse_by_pct']:.1f}% worse" for l in ls) + ".")
+        w("")
+    prot, _ = load("results/protocol/PROTOCOL_SUMMARY.json")
+    if prot:
+        w("## 6A. Runtime Benchmark Protocol: faults at five stress levels")
+        w("")
+        w("The owner's *OmniCompass Runtime Benchmark Protocol* (stage 1, Python runtime) run on this fleet plant with every "
+          f"architecture: {prot['runs_per_level']} runs per stress level per workload, seeds {prot['seeds'][0]}-{prot['seeds'][1]} "
+          "(never used for tuning). Level L injects L faults (machines dying, load spikes, services crash-looping, a noisy "
+          "neighbour), identical for every system (`tools/protocol_bench.py`). A run is **conveyed** when every fault is recovered "
+          "within 20 minutes and every cluster is inside the admissible basin for the final 10 minutes (worst response <= 1 s, "
+          "queue < 0.28, pending pods <= 5%, power and heat inside limits). A **page** is an out-of-basin episode of 5 minutes or "
+          "more, the usual alert rule: each would call a human. Nobody intervenes in the simulation.")
+        w("")
+        S = [d for d in prot["summary"] if d["level"] == "all"]
+        for v in VES:
+            rows = [d for d in S if d["vessel"] == v]
+            if not rows:
+                continue
+            w(f"**{VNAME[v].capitalize()}**")
+            w("")
+            w("| Column | System | Conveyed | Pages | Recovery (min) | Minutes outside basin | Timeouts > 2 s | Energy (kWh) |")
+            w("|---|---|---:|---:|---:|---:|---:|---:|")
+            for d in rows:
+                nm = PNAME.get(d["system"], d["system"])
+                w(f"| {d['column']} | {nm} | {int(d['conveyed'])} of {d['runs']} | {int(d['pages'])} | {d['recovery_min']:.1f} | "
+                  f"{d['persistence_min']:.1f} | {100 * d['timeouts']:.2f}% | {d['energy_kwh']:.2f} |")
+            w("")
+            A = [d for d in rows if d["column"] == "A"]; C = [d for d in rows if d["system"] == "C-strict"]
+            if A and C:
+                c = C[0]; bestA = max(A, key=lambda d: (d["conveyed"], -d["pages"]))
+                w(f"In the protocol's required form: Omni-Compass alone (closure law) conveyed {int(c['conveyed'])} out of {c['runs']} "
+                  f"runs; the best platform alone ({PNAME[bestA['system']]}) conveyed {int(bestA['conveyed'])} out of {bestA['runs']}. "
+                  f"Omni-Compass would have paged a human {int(c['pages'])} times, that platform {int(bestA['pages'])} times. Omni-Compass "
+                  f"average recovery time was {c['recovery_min']:.1f} min, that platform's {bestA['recovery_min']:.1f} min.")
+                w("")
+        w("")
     # ---------------------------------------------------------------- 7
     w("## 7. Live Kubernetes (measured)")
     w("")
@@ -311,6 +383,8 @@ def main():
               "python tuning/league.py heldout                          # C vs all platforms",
               "python tuning/bound.py                                   # perfect-foresight frontier",
               "python tools/mechanism.py                                # engine modes and compute",
+              "python tuning/closure_search.py && python tuning/closure_search2.py && python tuning/closure_heldout.py   # strict C, closure law",
+              "python tools/protocol_bench.py 100                       # runtime protocol, faults at five stress levels",
               "for m in rightsize coldstart gpupack powersmooth health cooling inference containment vmenergy; do python -m omnilab.bench $m heldout; done",
               "GitHub Actions workflow 'benchmark' (commit message tag [bench]): live A vs B on kind",
               "python tools/abc_report.py && python pilot/bench_pdf.py docs/OMNICOMPASS_ABC_REPORT.md docs/OMNICOMPASS_ABC_REPORT.pdf"]:

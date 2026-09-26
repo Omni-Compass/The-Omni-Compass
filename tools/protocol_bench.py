@@ -4,7 +4,7 @@ Same scenarios, same faults, every architecture:
   A  each platform alone        k8s_hpa70_ca, openshift, gke_optimize, aks_nap, turbonomic, cast_ai, spot_ocean
   B  Omni-Compass on top of it  omniB:<platform> with the frozen per-platform settings (tuning/B_SETTINGS_PER_PLATFORM.json)
   C  Omni-Compass alone         C-hpa: the held-out C league pick (HPA kept);  C-strict: the closure law, HPA replaced
-                                (settings: tuning/CLOSURE_SEARCH_DEV.json when present, else ClosureLaw() defaults)
+                                (settings: tuning/CLOSURE_SEARCH2_DEV.json, else CLOSURE_SEARCH_DEV.json, else defaults)
 
 Stress levels 1-5 (protocol section 6). Level L injects L fault events, times drawn uniformly in [120, 1200) ticks, each
 one of (drawn with the seed, identical for every arm):
@@ -48,8 +48,8 @@ KINDS = ["node_crash", "load_spike", "service_crash", "cpu_pressure"]
 B_SET = json.load(open(ROOT / "tuning/B_SETTINGS_PER_PLATFORM.json"))
 C_PICK = json.load(open(ROOT / "tuning/LEAGUE_HELDOUT.json"))["omni_per_vessel"]
 CANDS = candidates()
-_cs = ROOT / "tuning/CLOSURE_SEARCH_DEV.json"
-CLOSURE = json.load(open(_cs)) if _cs.exists() else {}
+_cs = [ROOT / "tuning/CLOSURE_SEARCH2_DEV.json", ROOT / "tuning/CLOSURE_SEARCH_DEV.json"]
+CLOSURE = next((json.load(open(p)) for p in _cs if p.exists()), {})
 SL = dict(rho0=0.7, rho_min=0.7, kI=0.0, kE=0.0)
 
 
