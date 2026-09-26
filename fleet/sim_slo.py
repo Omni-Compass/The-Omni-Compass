@@ -1,0 +1,215 @@
+"""Fleet simulation with a response-time gauge and a response-time nerve (speed-first mode).
+
+fleet/sim.py is frozen by results/fleet/PREREGISTRATION.json and has no response-time gauge: its scoring checks that
+work finishes and backlog stays small, but never how long a request waits. This module runs the same plant, the same
+HPA, Cluster Autoscaler and Karpenter-lite, the same boot delay and power model, and adds:
+
+  response time   per workload and tick, R = S + Wq + W_backlog, where
+                  S = S0 / cap                        service time (a power cap slows the CPU)
+                  Wq = S * u^(sqrt(2(c+1)) - 1) / (c (1 - u))   queueing delay, Sakasegawa's M/M/c approximation,
+                                                      c = scheduled pods, u = demand / scheduled capacity (<= 0.99)
+                  W_backlog = backlog / capacity * TICK      time to drain work already waiting
+                  S0 = 100 ms. Gauges: demand-weighted p95, p99 and mean over every (tick, workload).
+                  Job vessels (batch, gpu) have no request queue: R = S + W_backlog (job wait).
+  latency nerve   (omni arms, when lat_gain > 0) the governor's queue observation becomes
+                  max(queue, lat_gain * max(0, R_recent / (slo_mult * S0) - 1)), R_recent = worst demand-weighted
+                  response time over the ticks since the last decision. The engine equations are unchanged.
+
+Arm names and behaviour are those of fleet/sim.py; k8s_hpa50_ca (HPA target 0.5) is added because 50% is the
+target of the live lab workload. With lat_gain = 0 and the frozen fleet law, omni_fleet here reproduces the
+frozen omni_fleet trace (checked by tests/test_sim_slo.py).
+"""
+from __future__ import annotations
+
+import copy, hashlib, math, sys
+from pathlib import Path
+from types import SimpleNamespace
+from typing import Dict
+
+import numpy as np
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from fleet.harness import TICK, STEPS, Scenario, hpa_step
+from fleet.sim import ALLOC, OMNI_EVERY, _resize, _cluster_autoscaler, _karpenter
+from omnicompass.adapter import Governor, AllocationLaw, mode_law, OBSERVE, AUTOPILOT
+from omnicompass.shield import enforce, ShieldLimits
+from omnicompass.speed import SpeedGovernor, SpeedLaw
+
+S0_MS = 100.0
+
+
+def hpa_target(arm):
+    return {"k8s_hpa50_ca": 0.5, "k8s_hpa60_ca": 0.6, "k8s_hpa80_ca": 0.8}.get(arm, 0.7)
+
+
+def response_ms(w, d, capw, cap, frac):
+    s = S0_MS / max(cap, 1e-9)
+    drain = (w.backlog / max(capw, 1e-9)) * TICK * 1000.0 if w.backlog > 1e-12 else 0.0
+    if not w.hpa:
+        return s + drain
+    c = max(1.0, w.replicas * frac)
+    u = min(0.99, d / max(capw, 1e-9))
+    wq = s * u ** (math.sqrt(2.0 * (c + 1.0)) - 1.0) / (c * (1.0 - u)) if u > 0 else 0.0
+    return s + wq + drain
+
+
+def wpct(vals, wts, q):
+    v = np.asarray(vals); wt = np.asarray(wts)
+    if wt.sum() <= 0:
+        return float(np.percentile(v, q)) if len(v) else 0.0
+    o = np.argsort(v); v, wt = v[o], wt[o]
+    cw = np.cumsum(wt) / wt.sum()
+    return float(v[min(len(v) - 1, np.searchsorted(cw, q / 100.0))])
+
+
+def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every: int = OMNI_EVERY,
+        lat_gain: float = 0.0, slo_mult: float = 2.0, speed_law: SpeedLaw = None) -> Dict:
+    scn = copy.deepcopy(scn0)
+    speed = arm == "omni_speed"
+    single = arm.startswith("omni_fleet") or arm.startswith("omni_single") or speed
+    uses_gov = arm.startswith("omni")
+    glaw = governor_law if governor_law is not None else (mode_law("fleet", AllocationLaw()) if single else AllocationLaw())
+    if single and governor_law is None and not speed:
+        omni_every = 4
+    lim = ShieldLimits(power_limit=1e9) if single else ShieldLimits()
+    govs = [Governor(law=glaw) for _ in scn.clusters] if uses_gov and not speed else []
+    for g in govs:
+        g.set_mode(AUTOPILOT if single or arm == "omni_target" else OBSERVE)
+    if speed:
+        govs = [SpeedGovernor(speed_law or SpeedLaw()) for _ in scn.clusters]
+    targets = [hpa_target(arm)] * len(scn.clusters)
+    energy = dem = done = 0.0
+    viol_q = viol_p = viol_h = healthy = 0
+    starts = stops = rev = 0
+    last_dir = [0] * len(scn.clusters)
+    node_ticks = 0
+    pod_changes = 0
+    cap_moves = 0
+    R_all, W_all = [], []
+    r_recent = [0.0] * len(scn.clusters)
+    trace = []
+    for t in range(STEPS):
+        site_power = 0.0
+        stress_q = []
+        for ci, c in enumerate(scn.clusters):
+            p = c.pool
+            p.booting = [b - 1 for b in p.booting]
+            p.nodes += sum(1 for b in p.booting if b <= 0)
+            p.booting = [b for b in p.booting if b > 0]
+            alloc = p.nodes * p.cores * ALLOC
+            reqs = 0.0
+            for w in c.workloads:
+                w.req_now = w.replicas * w.request if w.hpa else w.demand[t] + w.backlog
+                reqs += w.req_now
+            frac = min(1.0, alloc / reqs) if reqs > 0 else 1.0
+            used = cap_rate = 0.0
+            rs, ws = [], []
+            for w in c.workloads:
+                d = w.demand[t]
+                capw = w.req_now * frac * p.cap
+                srv = min(d + w.backlog, capw)
+                w.backlog = d + w.backlog - srv
+                dem += d; done += srv; used += srv; cap_rate += max(capw, 1e-9)
+                w.metric_next = min(1.0, srv / max(w.replicas * w.request, 1e-9)) if w.hpa else 0.0
+                if d > 0:
+                    r = response_ms(w, d, capw, p.cap, frac)
+                    rs.append(r); ws.append(d)
+            R_all += rs; W_all += ws
+            rc = float(np.average(rs, weights=ws)) if ws else S0_MS
+            r_recent[ci] = max(r_recent[ci], rc)
+            c.pending = max(0.0, reqs - alloc)
+            c.reqs, c.alloc, c.used = reqs, alloc, used
+            util = min(1.0, used / max(alloc, 1e-9))
+            kw = (p.nodes * p.cap * (p.idle_kw + p.dyn_kw * util) + len(p.booting) * p.idle_kw
+                  + p.parked * p.idle_kw * p.park_frac) * scn.pue
+            c.kw = kw
+            site_power += kw
+            node_ticks += p.nodes + len(p.booting)
+            c.q = min(2.0, sum(w.backlog for w in c.workloads) / max(cap_rate * 8.0, 1e-9))
+            stress_q.append(c.q)
+        pstress = site_power / scn.site_limit_kw
+        for c in scn.clusters:
+            c.pool.thermal = 0.97 * c.pool.thermal + 0.03 * (0.30 + 0.65 * min(1.4, pstress))
+        energy += site_power * TICK / 3600.0
+        qmax = max(stress_q); th = max(c.pool.thermal for c in scn.clusters)
+        viol_q += qmax > 0.35; viol_p += pstress > 1.05; viol_h += th > 1.03
+        healthy += (qmax < 0.28 and pstress <= 1.02 and th < 0.96)
+        for c in scn.clusters:
+            for w in c.workloads:
+                w.metric = w.metric_next
+        if uses_gov and t % omni_every == 0:
+            for ci, (c, g) in enumerate(zip(scn.clusters, govs)):
+                load = min(2.0, c.used / max(c.alloc * c.pool.cap, 1e-9)) if c.alloc > 0 else 2.0
+                q = c.q
+                if lat_gain > 0:
+                    q = max(q, min(2.0, lat_gain * max(0.0, r_recent[ci] / (slo_mult * S0_MS) - 1.0)))
+                r_recent[ci] = 0.0
+                obs = {"queue_ratio": q, "load_ratio": load, "power_stress": pstress, "thermal": c.pool.thermal,
+                       "network_stress": 0.0, "drift_ratio": 0.0, "stale": 0.0, "security_block": 0.0}
+                if speed:
+                    p = c.pool
+                    n = p.nodes + len(p.booting)
+                    g.g.current_cap = p.cap
+                    rho, tgt, capn = g.step(obs, n, c.reqs, p.cores * ALLOC)
+                    targets[ci] = min(0.95, max(0.4, rho))
+                    tgt = max(p.min_nodes, min(p.max_nodes, tgt))
+                    if tgt != n:
+                        _resize(c, tgt, park=not p.power_off)
+                    if abs(capn - p.cap) > 1e-9:
+                        p.cap = capn; cap_moves += 1
+                    continue
+                g.current_cap = c.pool.cap
+                g.nodes = c.pool.nodes + len(c.pool.booting)
+                d = g.step(obs, 0)
+                if not g.has_authority:
+                    continue
+                targets[ci] = min(0.95, max(0.5, float(d["demand"])))
+                if single:
+                    p = c.pool
+                    n = p.nodes + len(p.booting)
+                    fit = int(math.ceil(c.reqs / (p.cores * ALLOC))) if c.reqs > 0 else p.min_nodes
+                    tgt = max(p.min_nodes, min(p.max_nodes, max(n + int(d["node_delta"]), fit)))
+                    acts = []
+                    if tgt != n:
+                        acts.append({"action": "nodes", "target": tgt, "direction": 1 if tgt > n else -1})
+                    if abs(d["power_cap"] - p.cap) > 1e-9:
+                        acts.append({"action": "power_cap", "target": d["power_cap"], "direction": -1 if d["power_cap"] < p.cap else 1})
+                    cfg = SimpleNamespace(minimum_nodes=p.min_nodes, maximum_nodes=p.max_nodes)
+                    acts, _ = enforce(acts, {"actual_nodes": n, "power_cap": p.cap}, obs, cfg, lim)
+                    for a in acts:
+                        if a["action"] == "nodes":
+                            _resize(c, int(a["target"]), park=(arm == "omni_fleet_park" or not p.power_off))
+                        elif a["action"] == "power_cap":
+                            p.cap = float(a["target"]); cap_moves += 1
+        for ci, c in enumerate(scn.clusters):
+            for w in c.workloads:
+                if w.hpa:
+                    before = w.replicas
+                    hpa_step(w, targets[ci])
+                    pod_changes += abs(w.replicas - before)
+            n_before = c.pool.nodes + len(c.pool.booting)
+            parked_before = c.pool.parked
+            if not single:
+                if arm == "k8s_hpa70_karpenter":
+                    _karpenter(c, t)
+                else:
+                    _cluster_autoscaler(c)
+            n_after = c.pool.nodes + len(c.pool.booting)
+            dn = n_after - n_before + (c.pool.parked - parked_before)
+            if single and hasattr(c, "_single_dn"):
+                dn += c._single_dn; c._single_dn = 0
+            c._park_moves = 0
+            starts += max(0, dn); stops += max(0, -dn)
+            if dn:
+                dr = 1 if dn > 0 else -1
+                rev += int(last_dir[ci] != 0 and dr != last_dir[ci]); last_dir[ci] = dr
+        if t % 40 == 0:
+            trace.append(tuple((c.pool.nodes, len(c.pool.booting), round(c.pool.cap, 9), tuple(w.replicas for w in c.workloads)) for c in scn.clusters))
+    return {"vessel": scn.vessel, "seed": scn.seed, "arm": arm, "energy_kwh": energy, "work_completed": done / max(dem, 1e-9),
+            "time_healthy": healthy / STEPS, "violation_backlog": viol_q / STEPS, "violation_power": viol_p / STEPS,
+            "violation_heat": viol_h / STEPS, "machines_started": starts, "machines_stopped": stops,
+            "node_reversals": rev, "node_hours": node_ticks * TICK / 3600.0, "pod_changes": pod_changes,
+            "cap_moves": cap_moves, "p95_ms": wpct(R_all, W_all, 95), "p99_ms": wpct(R_all, W_all, 99),
+            "mean_ms": float(np.average(R_all, weights=W_all)) if W_all else S0_MS,
+            "trace_hash": hashlib.sha256(repr(trace).encode()).hexdigest()[:16]}
