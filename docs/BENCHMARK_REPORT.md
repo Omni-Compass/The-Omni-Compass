@@ -1,6 +1,6 @@
 # Omni-Compass: Kubernetes alone, Kubernetes + Omni-Compass, and Omni-Compass direct
 
-Benchmark report, 26 September 2026. Repository: Omni-Compass/The-Omni-Compass-Control-Core-Engine (private), branch claude/kubernetes-clusters-docker-stack-gp26ve. Every number below is produced by code in that repository and can be regenerated; section 18 gives the commands. Each result states whether it was **measured on a live Kubernetes control plane** or **computed in simulation**.
+Benchmark report, 26 September 2026. Repository: Omni-Compass/The-Omni-Compass-Control-Core-Engine (private), branch claude/kubernetes-clusters-docker-stack-gp26ve. Every number below is produced by code in that repository and can be regenerated; section 21 gives the commands. Each result states whether it was **measured on a live Kubernetes control plane** or **computed in simulation**.
 
 ## 1. Summary
 
@@ -12,7 +12,7 @@ Omni-Compass is a single control engine that senses the whole compute stack and 
 
 **Main result (pre-registered, 1,000 held-out scenarios, simulation).** Against Kubernetes alone, B used -28% energy and C -23%; time healthy rose from 79% to 91% (B) and 90% (C); recovery time fell from 58 to 17 and 28 minutes; contradictory commands, pages and human interventions went to zero in both; safety-rule violations fell from 9.5 to 2.7 (B) and 0.0 (C). Of 28 gauges, B is significantly better on 20 and worse on 5; C is better on 16 and worse on 10.
 
-**Live Kubernetes result (measured).** Two identical Kubernetes clusters (1 control plane + 6 workers) ran the same load at the same time, one without Omni-Compass and one with it. With Omni-Compass: worker nodes in service 6.0 to 3.2; utilisation of the workers in service 0.068 to 0.116. **Energy:** with the parked workers kept on standby, powered and ready (100 W each, the same as idle), energy was 219 vs 218 Wh (-0.46%): parking alone saves essentially nothing; energy per unit of work +8% (not significant; 872 to 944 Wh per core-hour, from minute averages). The -43% first reported for this run holds only if parked workers are powered off. Waiting pods and HPA shortfall were not significantly different. The kill switch restored the original HPA target (50) and all 6 workers. **With every live muscle switched on (section 7.2) the application got slower: p95 response time 486 to 802 ms, energy per unit of work +46% (significant).** The cause was a missing response-time afferent; the fix is wired and the live re-run is in progress.
+**Live Kubernetes result (measured).** Two identical Kubernetes clusters (1 control plane + 6 workers) ran the same load at the same time, one without Omni-Compass and one with it. With Omni-Compass: worker nodes in service 6.0 to 3.2; utilisation of the workers in service 0.068 to 0.116. **Energy:** with the parked workers kept on standby, powered and ready (100 W each, the same as idle), energy was 219 vs 218 Wh (-0.46%): parking alone saves essentially nothing; energy per unit of work +8% (not significant; 872 to 944 Wh per core-hour, from minute averages). The -43% first reported for this run holds only if parked workers are powered off. Waiting pods and HPA shortfall were not significantly different. The kill switch restored the original HPA target (50) and all 6 workers. **With every live muscle switched on (section 7.2) the application got slower: p95 response time 486 to 802 ms, energy per unit of work +46% (significant).** The causes were found and fixed across runs 2-4 (section 7.4): response time went from +65% to a tie at p95.
 
 **Where Omni-Compass costs something.** In the pre-registered study both B and C keep more node-hours powered than Kubernetes alone and start and stop machines more often (more wear), and move the power cap more; C also lets more work wait in the queue and flips scale direction more often. In that study the energy saving comes from power capping and load shaping, not from switching machines off. On the live cluster the saving came from switching machines off. Other limits: the small-cluster release band (section 11); power and heat on the live cluster are modelled, not metered.
 
@@ -229,6 +229,16 @@ Actions: hpa target writes 1, node pool resizes 3, power cap pod resizes 7, roll
 | live-kind-full, run 36205869009 | 1 control plane + 3 workers | node pool never resized: 3 of 3 every minute at about 8% utilisation, because the fleet law needs more than 3 nodes of slack; kill switch restored target and workers |
 | live-kind-full, run 36207925928 | 1 control plane + 6 workers; sequential baseline then full engine | nodes in service 6 to 5 to 4 to 3; node-hours in service per core-hour -38.2%, utilisation +63.7% (significant); the reported kWh per core-hour -35.8% counted parked workers as powered off; with parked workers on standby the saving largely disappears; kill switch restored target 50 and 6 of 6 workers |
 
+### 7.4 Live runs after the first all-muscle run
+
+| Run | Change tested | Validity | Result |
+|---|---|---|---|
+| 36214629046 (2026-09-26 03:23-03:48 UTC), commit c182a63 | latency afferent (p95 over 500 ms SLO as queue pressure) and power-cap usage reflex | valid | p95 481 to 600 (+24.6% worse); p99 596 to 777 (+30.3% worse); energy 222 to 219 (-1.5%) |
+| 36216647786 (2026-09-26 04:02-04:28 UTC), commit 052b705 | SLO reflex; eviction receipt fixed | INVALID as a test of the engine | p95 479 to 320 (-33.2%); p99 583 to 420 (-28.0%); energy 224 to 220 (-1.7%) |
+| 36218637030 (2026-09-26 04:42-05:08 UTC), commit 47d0353 | controller fail-safe; benchmark prints controller log and rejects early stops | PARTIAL | p95 491 to 492 (+0.3% (tie)); p99 645 to 683 (+5.8% worse); energy 223 to 221 (-1.1%) |
+
+Run 3 is recorded as invalid: a refused Kubernetes call stopped the controller after 3 of 20 decisions and the cluster held Omni's last settings with no engine running. The fix is a fail-safe: a failed decision is skipped; three in a row restore native settings and stop the controller. In run 4 the fail-safe did exactly that at minute 16, and the audit showed why: the least-privilege role allowed writing a pod's CPU limit but not reading it first, which kubectl does. In runs 3 and 4 no power cap was ever applied. Over run 4's 16 governed minutes node-hours per unit of work fell 24% and utilisation rose 36% (both significant); median response time -10%, p95 a tie, p99 +6% (not significant). The permission is fixed (with a receipt) and a run in which the fail-safe fires is now rejected; the re-run is in progress.
+
 ## 8. Engineering verification
 
 `python verify.py` runs 89 checks (0 failures in the recorded log `results/VERIFY_LOG.txt`), including:
@@ -348,7 +358,47 @@ Two law variants were tuned on the development seeds only (1000, 2000; `tuning/S
 
 Worse gauges: B_frozen 5, B_wear 4, C_frozen 10, C_throughput 5.
 
-## 14. Every negative, its cause and its status
+## 14. Response time: can one mode beat Kubernetes on every gauge? (simulation, development seeds)
+
+The fleet-mode constants that drove the live runs were selected (before this work) by a rule that scored energy, finished work and backlog, but never waiting time. A response-time gauge was added to the fleet plant (fleet/sim_slo.py: M/M/c queueing delay per workload plus backlog drain; the frozen trace is reproduced exactly). Measured with it, fleet mode cut energy 31% on web services while p95 response time went from 132 ms to about 20 s. That is where the live slowdown came from: its HPA target floor (rho_min = 76.9%) packs pods too hot for latency-sensitive services.
+
+A speed-first law (omnicompass/speed.py; the engine equations unchanged) separates the two jobs the frozen law gave one number: pods run at a latency-safe target while machines are sized to what the pods request. 400 configurations were searched against HPA 70% + Cluster Autoscaler with the rule that no gauge may be worse in any development scenario. None passed, for three measured reasons: (1) several gauges are already at their physical floor (100% work done, zero violations, batch p95 = pure service time), so a tie is the best any controller can do; (2) on the GPU vessel demand exceeds the hardware, so every arm is saturated; (3) energy, response time and machine churn trade two-of-three, because the autoscaler's idle slack is both where the energy is and what absorbs the 90-second boot delay. Examples, mean change vs Kubernetes: fleet mode energy -31% with far worse response time; speed #176 energy -1%, p99 -41%, churn 3.6x; speed #159 p99 -48%, churn -27%, energy +16%. Source: tuning/SPEED_FINDINGS_2026-09-26.md.
+
+## 15. Named products: OpenShift, Google GKE, Azure AKS, IBM Turbonomic (simulation, development seeds)
+
+Each product is emulated from its documented behaviour on the same fleet plant (not the vendors' binaries): OpenShift's documented ClusterAutoscaler example (threshold 0.4, unneeded 5 min, delay after add 10 min); GKE optimize-utilization (MostAllocated packing, more aggressive scale-down; declared as threshold 0.65, 2 min, because Google publishes no numbers); AKS node auto-provisioning (Karpenter, WhenEmptyOrUnderutilized, consolidateAfter 0 s); Turbonomic (container requests resized every 10 min to p99 per-pod usage, its default aggressiveness; nodes suspended toward 0.7 packing). Means over web services, 4 development seeds:
+
+| Gauge (web) | Kubernetes (GKE balanced) | OpenShift | GKE optimize | AKS NAP | Turbonomic | Omni fleet mode | Omni speed #159 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| energy (kWh) | 12.19 | 12.53 | 10.4 | 9.779 | 10.08 | 8.392 | 15.9 |
+| p95 (ms) | 131.6 | 131.6 | 132.2 | 132.7 | 125.1 | 2.034e+04 | 112.3 |
+| p99 (ms) | 3,095 | 2,815 | 3,947 | 4,295 | 4.94e+04 | 7.634e+04 | 129.8 |
+| machine starts+stops | 10.5 | 8.5 | 14.75 | 19 | 11.5 | 13.25 | 6.75 |
+| scale reversals | 1.5 | 0.75 | 3.5 | 6 | 1.5 | 4.25 | 1 |
+
+Every product sits on the same energy / response-time / churn triangle; none wins all three. Karpenter-style consolidation (AKS NAP) saves about 20% energy with a worse p99 tail and about twice the machine churn; Turbonomic's p99 resizing interacts with the HPA and inflates the tail; OpenShift's documented settings sit close to upstream. Omni's speed mode leads on response time and churn at an energy cost; its fleet mode leads on energy at a large response-time cost.
+
+## 16. The problem-map muscles: all nine built and tested on held-out data (simulation)
+
+Each open row of the industry problem map (section 18) is now a muscle in omnilab/, with the strongest native tool as opponent, Omni-Compass, and Omni-Compass with its engine equations not evolved (to show what the equations themselves add). Constants were chosen on development seeds 1-8, every file was frozen by SHA-256 (results/muscles/PREREGISTRATION.json), then 30 held-out seeds were run once. Verdicts from a paired bootstrap 95% interval.
+
+| Muscle (map row) | Strongest native opponent | Omni better | Omni worse | Tie / not significant |
+|---|---|---|---|---|
+| Right-sizing, HPA+VPA conflict (1, 2) | hpa_vpa | cpu core hours -3%; mem gib hours -11%; p99 ms -99%; replica reversals -84%; slo breach min -57% | p95 ms +15%; oom kills +531% | work done |
+| Cold start (5) | keda | p95 ms -75%; p99 ms -58%; delayed 1s pct -71%; instance hours -8% | cold starts +736% | - |
+| GPU packing (6) | binpack | energy kwh -2%; idle gpu hours powered -20% | wait mean min +16%; migrations 0 to 6.07 | wait p95 min, frag blocked min, jobs done |
+| Training power swings (7) | floor_safe | energy overhead pct -9%; throughput loss pct -44%; swing 1s mw -6% | max ramp mw s +127% | ramp violation s |
+| GPU failures and stragglers (8) | detect | goodput pct +10%; lost gpu hours -20%; restarts -29%; straggler node hours -99% | - | checkpoint overhead pct |
+| Cooling (10) | reset | pue -2%; cooling mwh -13%; inlet violation min -73% | - | max inlet c |
+| LLM inference, KV cache (12) | keda | ttft p95 s -18%; slo breach pct -58%; gpu hours -19%; preemptions -56% | - | ttft p50 s, tpot p95 ms |
+| Runaway AI agents (13) | static | rogue overspend usd -96%; time to contain min -99%; peak subagents -59% | false stops +357%; honest work pct -7% | forbidden executed |
+| Energy attribution in VMs (11) | ratio | attr error pct -37%; worst vm error pct -34% | - | total error pct |
+
+Each entry is the plain change of Omni-Compass against the opponent (for example p99 -99% means the slow tail is 99% shorter; goodput +10% means 10% more useful training time). Worse entries are real costs, not rounding: right-sizing trades a slightly slower typical response (p95 +15%, both far under the 500 ms target) and a few more memory kills for a 99% shorter tail; cold start keeps fewer idle instances than KEDA's 5-minute cooldown, so more requests meet a cold start, but users wait far less because KEDA polls every 30 s; GPU packing powers idle GPUs off sooner and jobs wait a few seconds longer; containment throttles honest agents in their legitimate bursts (about 7% of their work) and stops about two honest agents a day, against a 96% cut in runaway spend and containment in minutes instead of hours. Against the other native arms (the default tools most teams run) the wins are larger; every comparison is in results/muscles/*_HELDOUT.json.
+
+**What the engine itself contributes.** Across the nine muscles the full engine and the engine-not-evolved arm differ by 1.0 percentage points on average per gauge. The mapping from engine state to action carries most of each result; the evolved dynamics mainly smooth. In power smoothing an arm where the bath equation (7) alone sets the site's draw, with no ramp rule, cut the steepest ramp 63% but did not hold the grid's limit: the human sets the boundary, the engine operates inside it.
+
+## 17. Every negative, its cause and its status
 
 | Negative | Where | Status | Cause | What would fix it |
 |---|---|---|---|---|
@@ -359,31 +409,39 @@ Worse gauges: B_frozen 5, B_wear 4, C_frozen 10, C_throughput 5.
 | Power-cap movement | B and C | inherent | moving the cap is how capping saves energy; freezing it removed most of the saving (tested: -28% to -2%/-7%) | none needed: electronic setting, no physical wear; reported |
 | CPU frequency saving 3.5% | device plant | physical ceiling | the native Linux governor already follows demand | value is in heat (-67%) and in combining with power caps |
 | GPU node on/off saving 3% | fleet plant | superseded | training nodes cannot be switched off | the GPU power-limit muscle (15-19%) |
-| Live response time +65% (p95) and energy per unit of work +46% with every muscle | live kind, run 36213152881 | fix wired, live re-run running | no response-time afferent; engine read idle nodes while app pods were busy; cap held at the law floor | latency afferent (p95 over SLO as queue pressure) and cap reflex (never below pod usage x 1.3) |
+| Live response time +65% (p95) and energy per unit of work +46% with every muscle | live kind, run 36213152881 | reduced to p95 +25% (run 2), tie in run 4 | no response-time afferent; cap held at the law floor; HPA target floor 76.9% | latency afferent, cap reflex, SLO reflex; speed-first law (section 14) |
+| Fleet mode p95 20 s vs 132 ms on web services | fleet plant with response-time gauge | cause found; speed-first law built | fleet constants were selected without a response-time gauge; HPA target floor 76.9% | choose the mode per service: speed-first where latency matters |
+| No mode better than Kubernetes on every gauge in every scenario | fleet plant, 400 configurations | not achievable as posed | gauges at physical floors; hardware-bound GPU vessel; energy / response time / churn trade two-of-three | anticipation (pre-adding machines before the daily rise) is the one untested mechanism that could break the trade |
+| Controller stopped after one refused call; power cap never applied under least privilege | live runs 3 and 4 | fixed | one exception ended the loop; the role lacked get on pods/resize | fail-safe restore after 3 failures; permission and receipt added; runs with a fail-safe rejected |
+| Right-sizing p95 +15%, more memory kills than VPA | omnilab rightsize, held-out | open, small | Omni sizes CPU closer to demand; VPA's 8-hour p90 memory keeps more slack | larger memory margin (costs memory-hours) |
+| More cold starts than KEDA | omnilab coldstart, held-out | trade-off | shorter keep-alive than KEDA's 5-minute cooldown | longer keep-alive where cold starts matter more than instance-hours |
+| GPU jobs wait +16% (seconds) vs Volcano binpack | omnilab gpupack, held-out | trade-off | idle GPUs powered off sooner | longer power-off delay |
+| Honest agents throttled (-7% work) and ~2 false stops a day vs static caps | omnilab containment, held-out | trade-off | throttling on the engine's integrated need catches legitimate bursts | per-agent declared burst budgets; human approval before stop |
+| Engine dynamics add little beyond the mapping | all nine muscles | reported | the mapping from state to action carries the effect | wire the engine's control effort (equation 2) directly as the actuator command and test it |
 | Live energy with parked servers on standby ~0% | live kind | open | parked servers still draw standby power | live power cap and CPU/GPU muscles; sleep states where hardware allows |
 | Small clusters (<= 3 workers) never release | live kind | open | fleet law release band of 3 nodes | pool-size-aware release band (law change) |
 | Pages in the 24-scenario replica | control-plane replica | open | longer queue triggers the page rule | same as queue |
 
-## 15. The industry problem map: what Omni-Compass is aimed at
+## 18. The industry problem map: what Omni-Compass is aimed at
 
 One engine; the vessel (the plant it sits on) is the only thing that changes. Industry figures are approximate, from the public sources named, and are context, not results of this report. Status: **live** = measured on a real Kubernetes control plane; **sim** = demonstrated in this repository's simulations; **open** = mapped, connector not built.
 
 | Problem | Scale in the industry (approximate, source) | Best software today | Omni-Compass vessel and muscles | Gauge that shows it | Status |
 |---|---|---|---|---|---|
 | Data-centre electricity growth | about 415 TWh in 2024, about 1.5% of world electricity, projected near 945 TWh by 2030 (IEA, Energy and AI, 2025) | Karpenter, Cluster Autoscaler, CAST AI, Spot Ocean; Kepler for metering | compute vessel: nodes, HPA, power cap | energy, node-hours, idle node-hours | sim; live only where parked nodes can sleep or power off |
-| Idle and over-provisioned capacity | Kubernetes clusters commonly run near 10-15% average CPU utilisation (CAST AI and Datadog industry reports); roughly a quarter to a third of cloud spend reported as waste (Flexera State of the Cloud) | VPA, Goldilocks, StormForge, Kubecost/OpenCost | compute vessel: nodes, HPA; memory (open) | utilisation, node-hours per core-hour | live + sim |
-| Controllers fighting each other | documented conflicts, e.g. HPA and VPA on the same CPU metric (Kubernetes documentation advises against it) | none: each tool decides alone | single authority over all muscles | contradictory commands, scale reversals | sim |
+| Idle and over-provisioned capacity | Kubernetes clusters commonly run near 10-15% average CPU utilisation (CAST AI and Datadog industry reports); roughly a quarter to a third of cloud spend reported as waste (Flexera State of the Cloud) | VPA, Goldilocks, StormForge, Kubecost/OpenCost | compute vessel: nodes, HPA; requests and memory (omnilab/rightsize.py) | utilisation, node-hours per core-hour, core- and GiB-hours | live + sim |
+| Controllers fighting each other | documented conflicts, e.g. HPA and VPA on the same CPU metric (Kubernetes documentation advises against it) | none: each tool decides alone | single authority over replicas and requests | contradictory commands, scale reversals, OOM kills | sim, held-out (section 16) |
 | Outages and slow recovery | most significant outages cost over $100,000 (Uptime Institute annual outage analysis) | Argo Rollouts, Flagger, SRE runbooks, AIOps (Dynatrace, Datadog) | compute vessel + deployments (partial) | time healthy, recovery time, SLA breaches | sim |
 | On-call load and alert fatigue | widely reported burnout in SRE surveys | PagerDuty, alert tuning | all muscles: act before the page | pages, human interventions | sim |
-| Heat and cooling limits | cooling is a large share of facility energy; average PUE about 1.5 (Uptime Institute survey) | DCIM (Schneider EcoStruxure), DeepMind cooling AI (reported about 40% less cooling energy) | heat (sensed), cooling plant (open) | time over heat limit, thermal travel | sim |
+| Heat and cooling limits | cooling is a large share of facility energy; average PUE about 1.5 (Uptime Institute survey) | DCIM (Schneider EcoStruxure), DeepMind cooling AI (reported about 40% less cooling energy) | heat (sensed), cooling plant (omnilab/cooling.py) | PUE, cooling energy, inlet violations | sim, held-out (section 16) |
 | Site power and grid-connection limits | multi-year waits for new grid connections are widely reported | Meta Dynamo power capping, Intel RAPL | power cap (wired), batteries and demand response (open) | peak power, time over power limit | sim |
 | GPU energy and power limits | GPU fleets widely reported well below full utilisation; H100 TDP 700 W | NVIDIA DCGM and MIG, Run:ai, Kueue; manual MaxQ power limits | GPU power-limit muscle (hardware connector) | energy per unit of work, response time, heat | sim, calibrated to MLPerf metered H100 data: -15% to -19% energy, +0.6-0.8% response time |
-| Batch deadlines and fair sharing |  | Kueue, Volcano, Slurm | batch queue muscle (open) | missed deadlines, queue wait | open |
+| Batch deadlines and fair sharing |  | Kueue, Volcano, Slurm | batch muscle (live: admit held jobs); GPU packing (omnilab/gpupack.py) | queue wait, fragmentation | live wired + sim, held-out |
 | Hardware wear | power cycling and churn shorten component life | none as a governed objective | nodes: start/stop cycles and reversals | machines started and stopped, round trips | mixed: better in the 24-scenario study, worse in the held-out study; tuning target |
 | Carbon reporting and reduction | regulatory disclosure is expanding | Google carbon-aware computing, Kepler | carbon-aware placement (open) | kWh and CO2 per unit of work | sim (modelled) |
-| Runaway AI agents and spend |  | per-tool quotas and permissions | agent containment vessel (open) | caps hit, kills, spend | open |
+| Runaway AI agents and spend | ~$10,000 overnight examples (Dark Reading) | per-tool quotas and permissions | agent containment muscle (omnilab/containment.py) | rogue spend, time to contain, false stops | sim, held-out (section 16) |
 
-## 16. What comes next
+## 19. What comes next
 
 - Live architecture C: park HPA, VPA, Cluster Autoscaler and Karpenter; Omni-Compass sets replicas, resources, placement, priorities and quotas directly; Kubernetes keeps execution and reflexes (restarts, rescheduling); the kill switch wakes the parked controllers.
 - Live opponent at full strength: Karpenter (kwok provider) and Cluster Autoscaler in architecture A.
@@ -391,7 +449,7 @@ One engine; the vessel (the plant it sits on) is the only thing that changes. In
 - More muscles two-way: CPU power states, memory, batch queues, network, security, then GPU and cooling on hardware.
 - Metered power on physical machines.
 
-## 17. Questions and answers
+## 20. Questions and answers
 
 **Does Omni-Compass replace Kubernetes?** No. Kubernetes keeps running containers, placing pods, restarting failures and networking. Omni-Compass replaces the separate decision loops (how many replicas, how many nodes, what power) with one authority. In architecture C Kubernetes becomes one muscle.
 
@@ -403,7 +461,11 @@ One engine; the vessel (the plant it sits on) is the only thing that changes. In
 
 **Why does it save energy?** In the pre-registered stack study mainly by power capping and load shaping (fewer minutes over the power limit, lower peak), while keeping slightly more machines on. On the live cluster it took machines out of service (6 to 3 workers) and packed replicas more densely; that saves energy only if the parked machines sleep or power off. With parked machines on standby the live saving was about zero, so live savings must come from power caps and CPU power states.
 
-**Does it slow applications down?** In architecture B the queue is shorter than Kubernetes alone; in C it is longer. Live, response-time measurement is not yet in the capture; pending pods and HPA shortfall were not significantly different.
+**Does it slow applications down?** It can, in the energy-first fleet mode: its HPA target floor packs pods too hot for latency-sensitive services (section 14). Live, the first all-muscle run was slower (p95 +65%); after the fixes run 4 was a tie at p95 and 10% faster at the median. For latency-sensitive services the speed-first mode is the right setting.
+
+**Can Omni-Compass control AI agents?** It controls what an agent can touch, spend and do, and how fast; not what the model thinks. In the containment muscle (section 16) it cut runaway spend 96% and contained runaways in minutes instead of hours, with a least-privilege identity that blocks forbidden actions outright; the cost is some throttling of honest agents' bursts.
+
+**Does the engine hold everything in its basin by itself?** Not against an outside limit it is not told. The bath equation alone smoothed training power ramps 63% but did not keep them under the grid's limit; with the human-set limit as the boundary it held it with zero violations. The human sets the boundaries; the engine operates inside them.
 
 **Is this tuned to the test?** Parameters were selected on development seeds and frozen with hashes before the held-out seeds were run; verify.py fails if any frozen file changes.
 
@@ -415,11 +477,11 @@ One engine; the vessel (the plant it sits on) is the only thing that changes. In
 
 **Who owns it and how can it be used?** The Omni-Compass LLC. Free for evaluation, research and non-commercial use; commercial use requires a paid licence; protected by copyright and by patents and patent applications (see LICENSE and NOTICE).
 
-**What is not claimed?** Superiority over upstream Karpenter or Cluster Autoscaler live, metered savings on physical hardware, GPU or facility control, and anything about AI value alignment.
+**What is not claimed?** Superiority over upstream Karpenter or Cluster Autoscaler live, metered savings on physical hardware, GPU or facility control on real hardware, the vendor products' own binaries (they are emulated from documentation), and anything about AI value alignment.
 
-**How do I check it myself?** Run the commands in section 18; the live runs are GitHub Actions workflows in the repository.
+**How do I check it myself?** Run the commands in section 21; the live runs are GitHub Actions workflows in the repository.
 
-## 18. Reproduce
+## 21. Reproduce
 
 ```
 pip install -r requirements.txt
@@ -431,7 +493,7 @@ GitHub Actions: benchmark (live side by side), live-kind-full, live-kind
 python tools/full_report.py ... && python pilot/bench_pdf.py docs/BENCHMARK_REPORT.md docs/BENCHMARK_REPORT.pdf
 ```
 
-## 19. Glossary
+## 22. Glossary
 
 - **HPA**: Horizontal Pod Autoscaler: Kubernetes controller that sets replica counts from CPU utilisation versus a target.
 - **Cluster Autoscaler, Karpenter**: Kubernetes add-ons that add and remove nodes.
