@@ -331,6 +331,41 @@ def main():
                   f"average recovery time was {c['recovery_min']:.1f} min, that platform's {bestA['recovery_min']:.1f} min.")
                 w("")
         w("")
+    bt, _ = load("tuning/B_TONE_HELDOUT.json"); bf, _ = load("tuning/B_FIX.json"); sl, _ = load("tuning/SITE_LEAGUE.json")
+    if bt:
+        w("## 6B. Second generation (held-out, settings frozen by SHA-256 before each run)")
+        w("")
+        w("**B with muscle tone and consolidation** (`tuning/b_tone.py`, held-out seeds 700401-700430): machines a platform powers "
+          "off are parked instead (alive, low power, instant wake), with a reserve sized by the law; Omni consolidates on top only where "
+          "that loses nothing. Losing cells: " + str(sum(r["losing_cells"] for r in bt.values())) + " of 364.")
+        if bf:
+            w("")
+            w("**B fix for the remaining pairs** (`tuning/b_fix.py`, 30 development seeds, held-out 700701-700730): " + "; ".join(
+                f"{k.replace('|', ' on ')}: {len(v['losses'])} losing cells" for k, v in bf["heldout"].items()) + ".")
+        if sl:
+            w("")
+            w("**Whole body at four-cluster sites** (`tuning/site_league.py`, held-out 701001-701030): traffic shift between a site's "
+              "clusters (a cluster short of room runs its overflow on another cluster's powered spare cores, +5 ms per shifted request; "
+              "assumes replicated services) and, for C, the closure law on the site total with one warm reserve.")
+            w("")
+            w("| Platform | B losing cells | C losing cells | C energy | C slowest responses | C average |")
+            w("|---|---:|---:|---:|---:|---:|")
+            for c in PLAT:
+                g = sl["C"][c]["gains_pct"]
+                w(f"| {PNAME[c]} | {len(sl['B'][c]['losses'])} | {len(sl['C'][c]['losses'])} | {g.get('energy_kwh', 0):+.0f}% | "
+                  f"{g.get('p99_ms', 0):+.0f}% | {g.get('mean_ms', 0):+.0f}% |")
+            w("")
+            w("C gains are Omni against that platform (positive = Omni better).")
+        w("")
+    lvl = ROOT / "results/live/LIVE_LEVERS_1.txt"
+    if lvl.exists():
+        w("## 6C. Live levers on real Kubernetes (measured)")
+        w("")
+        w("```")
+        for line in lvl.read_text().splitlines():
+            w(line)
+        w("```")
+        w("")
     # ---------------------------------------------------------------- 7
     w("## 7. Live Kubernetes (measured)")
     w("")
