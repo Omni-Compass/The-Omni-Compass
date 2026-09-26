@@ -1,0 +1,85 @@
+# Least-privilege identity for Omni-Compass on the kind benchmark cluster (pattern adopted from the ChatGPT-built
+# harness, extended to every live muscle). Omni-Compass runs as this service account through scripts/kubectl_omni.sh;
+# kind_bench.sh proves with `kubectl auth can-i` what it can and cannot do (rbac_omni.txt) before the run.
+apiVersion: v1
+kind: Namespace
+metadata: {name: omni-compass}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: omni-compass, namespace: omni-compass}
+---
+# Afferent (pull): read-only, cluster-wide.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata: {name: omni-compass-sense}
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "pods"]
+    verbs: ["get", "list"]
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["nodes", "pods"]
+    verbs: ["get", "list"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "daemonsets"]
+    verbs: ["get", "list"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list"]
+---
+# Node muscle (push): cordon/uncordon and drain by eviction. No node delete, no pod delete.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata: {name: omni-compass-nodes}
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["patch"]
+  - apiGroups: [""]
+    resources: ["pods/eviction"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata: {name: omni-compass-sense}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: omni-compass-sense}
+subjects: [{kind: ServiceAccount, name: omni-compass, namespace: omni-compass}]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata: {name: omni-compass-nodes}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: omni-compass-nodes}
+subjects: [{kind: ServiceAccount, name: omni-compass, namespace: omni-compass}]
+---
+# Application muscles (push), namespace "default" only, named objects where Kubernetes allows it.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: omni-compass-app, namespace: default}
+rules:
+  - apiGroups: ["autoscaling"]            # HPA muscle: the one demo HPA
+    resources: ["horizontalpodautoscalers"]
+    resourceNames: ["php-apache"]
+    verbs: ["get", "patch", "update"]
+  - apiGroups: ["apps"]                   # rollout muscle and power-cap record: the one demo deployment
+    resources: ["deployments"]
+    resourceNames: ["php-apache"]
+    verbs: ["get", "patch", "update"]
+  - apiGroups: [""]                       # power-cap muscle: in-place pod resize only (no pod create/delete)
+    resources: ["pods/resize"]
+    verbs: ["patch"]
+  - apiGroups: [""]                       # security afferent: the one hold ConfigMap, read-only
+    resources: ["configmaps"]
+    resourceNames: ["omni-security"]
+    verbs: ["get"]
+  - apiGroups: ["batch"]                  # batch muscle: admit held jobs
+    resources: ["jobs"]
+    verbs: ["patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: omni-compass-app, namespace: default}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: omni-compass-app}
+subjects: [{kind: ServiceAccount, name: omni-compass, namespace: omni-compass}]

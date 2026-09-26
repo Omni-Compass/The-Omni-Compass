@@ -11,6 +11,10 @@
 # Both arms: a real response-time probe times HTTP requests to php-apache every 5 s (latency.csv).
 # Load schedule: the load-generator replica count steps through LOAD_STEPS, each step DURATION/steps seconds,
 # identical in both arms. Results in $OUT_DIR: capture.csv (every 15 s), nodes timeline, Omni audit (omni arm).
+# Evidence discipline (adopted from the ChatGPT-built harness, extended to every muscle): pinned, SHA-256-checked
+# metrics-server; preflight record of tool versions; clean-cluster check; Omni-Compass runs as a least-privilege service
+# account (deploy/kind/rbac-omni.yaml) with `kubectl auth can-i` receipts for what it can and cannot do; the run fails if
+# Omni made no write or if the kill switch leaves any record behind; SHA256SUMS.txt fingerprints every output file.
 set -euo pipefail
 ARM="${ARM:?set ARM=native or ARM=omni}"
 OUT_DIR="${OUT_DIR:-bench_$ARM}"; DURATION="${DURATION:-1200}"; WARMUP="${WARMUP:-120}"
@@ -20,7 +24,21 @@ mkdir -p "$OUT_DIR"
 WORKERS=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' --no-headers | wc -l)
 SITE_LIMIT_W=$(( WORKERS * (IDLE_W + DYN_W) ))
 
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+METRICS_SERVER_VERSION="${METRICS_SERVER_VERSION:-v0.9.0}"
+METRICS_SERVER_SHA256="${METRICS_SERVER_SHA256:-1cec29a5267809306a2c6ec74a3e449abbb705b4a8beed0c8a1963910f72c79b}"
+server_minor=$(kubectl version -o json | jq -r '.serverVersion.minor' | tr -cd '0-9')
+[ -n "$server_minor" ] && [ "$server_minor" -ge 34 ] || { echo "metrics-server $METRICS_SERVER_VERSION needs Kubernetes 1.34+ (minor=$server_minor)"; exit 1; }
+{
+  echo "date_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"; echo "arm=$ARM"; echo "git_commit=$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+  echo "docker=$(docker --version 2>/dev/null || echo n/a)"; echo "kind=$(kind version 2>/dev/null || echo n/a)"
+  echo "kubectl=$(kubectl version --client=true -o json | jq -r '.clientVersion.gitVersion')"
+  kubectl version -o json | jq -r '"server=" + .serverVersion.gitVersion'; echo "python=$(python --version 2>&1)"
+  echo "metrics_server=$METRICS_SERVER_VERSION sha256=$METRICS_SERVER_SHA256"; echo "workers=$WORKERS"
+} | tee "$OUT_DIR/preflight.txt"
+curl -fsSL "https://github.com/kubernetes-sigs/metrics-server/releases/download/${METRICS_SERVER_VERSION}/components.yaml" -o "$OUT_DIR/metrics-server-components.yaml"
+actual_sha=$(sha256sum "$OUT_DIR/metrics-server-components.yaml" | cut -d' ' -f1)
+[ "$actual_sha" = "$METRICS_SERVER_SHA256" ] || { echo "metrics-server manifest SHA-256 mismatch: $actual_sha"; exit 1; }
+kubectl apply -f "$OUT_DIR/metrics-server-components.yaml"
 kubectl -n kube-system patch deployment metrics-server --type=json \
   -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
 pin='{"spec":{"template":{"spec":{"nodeSelector":{"node-role.kubernetes.io/control-plane":""},"tolerations":[{"key":"node-role.kubernetes.io/control-plane","operator":"Exists","effect":"NoSchedule"}]}}}}'
@@ -34,6 +52,38 @@ kubectl create configmap omni-security --from-literal=hold=false --dry-run=clien
 kubectl apply -f deploy/kind/loadgen.yaml
 kubectl rollout status deployment/load-generator --timeout=300s
 for i in $(seq 1 30); do kubectl top nodes >/dev/null 2>&1 && break; sleep 10; done
+hpa_count=$(kubectl get hpa -A -o json | jq '.items | length')
+[ "$hpa_count" = "1" ] || { echo "expected exactly one HPA, found $hpa_count"; exit 1; }
+foreign=$(kubectl get pods -A -o json | jq '[.items[] | select(.metadata.namespace | IN("kube-system","local-path-storage","default","omni-compass") | not)] | length')
+[ "$foreign" = "0" ] || { echo "cluster contains non-harness pods"; exit 1; }
+if [ "$ARM" = "omni" ]; then
+  kubectl apply -f deploy/kind/rbac-omni.yaml
+  SA="system:serviceaccount:omni-compass:omni-compass"
+  can() { kubectl auth can-i "$@" --as="$SA"; }
+  {
+    echo "== can (each muscle's push)"
+    echo "patch hpa/php-apache (hpa): $(can patch hpa/php-apache -n default)"
+    echo "patch nodes (node pool: cordon/uncordon): $(can patch nodes)"
+    echo "create pods/eviction (node pool: drain): $(can create pods/eviction -n default)"
+    echo "patch pods/resize (power cap, in place): $(can patch pods --subresource=resize -n default)"
+    echo "patch deployment/php-apache (rollout guard, cap record): $(can patch deployment/php-apache -n default)"
+    echo "get configmap/omni-security (security afferent): $(can get configmap/omni-security -n default)"
+    echo "== cannot"
+    echo "delete nodes: $(can delete nodes)"
+    echo "create pods: $(can create pods -n default)"
+    echo "delete pods: $(can delete pods -n default)"
+    echo "delete deployments: $(can delete deployments -n default)"
+    echo "patch deployment/load-generator: $(can patch deployment/load-generator -n default)"
+    echo "patch deployments in kube-system: $(can patch deployments -n kube-system)"
+    echo "patch hpa in kube-system: $(can patch hpa -n kube-system)"
+    echo "get secrets (any namespace): $(can get secrets -A)"
+    echo "create namespaces: $(can create namespaces)"
+    echo "patch configmap/omni-security: $(can patch configmap/omni-security -n default)"
+  } | tee "$OUT_DIR/rbac_omni.txt"
+  ! sed -n '/== can/,/== cannot/p' "$OUT_DIR/rbac_omni.txt" | grep -q ": no$" || { echo "Omni identity is missing a permission it needs"; exit 1; }
+  ! sed -n '/== cannot/,$p' "$OUT_DIR/rbac_omni.txt" | grep -q ": yes$" || { echo "Omni identity has a permission it must not have"; exit 1; }
+  export KUBECTL="$(pwd)/scripts/kubectl_omni.sh"
+fi
 echo "== warm-up ${WARMUP}s (both arms)"; sleep "$WARMUP"
 
 read -r -a steps <<< "$LOAD_STEPS"
@@ -52,7 +102,7 @@ probe_pid=$!
 omni_pid=""
 if [ "$ARM" = "omni" ]; then
   echo "== ARM omni: Omni-Compass driving HPA target + node pool + power sensing"
-  python -m omni_controller.controller --mode nodepool --active-nodes-only --interval 60 --floor-interval 15 \
+  python -m omni_controller.controller --kubectl "$KUBECTL" --mode nodepool --active-nodes-only --interval 60 --floor-interval 15 \
     --iterations $(( DURATION / 60 )) --min-nodes 1 --max-nodes "$WORKERS" --max-node-step 1 \
     --node-scale-cmd "bash scripts/kind_nodepool.sh {n}" --node-restore-cmd "bash scripts/kind_nodepool.sh $WORKERS" \
     --power-cmd "bash scripts/kind_power.sh" --site-limit-w "$SITE_LIMIT_W" \
@@ -75,7 +125,10 @@ kubectl get hpa php-apache -o json > "$OUT_DIR/hpa_end.json"
 if [ "$ARM" = "omni" ]; then
   echo "== kill switch"
   touch "$OUT_DIR/kill"
-  python -m omni_controller.controller --mode nodepool --active-nodes-only --iterations 1 \
+  omni_writes=$(grep -c '"write"' "$OUT_DIR/audit.jsonl" || true)
+  echo "omni writes during the run: $omni_writes" | tee "$OUT_DIR/omni_writes.txt"
+  [ "$omni_writes" -gt 0 ] || { echo "Omni made no write, so the kill switch would prove nothing"; exit 1; }
+  python -m omni_controller.controller --kubectl "$KUBECTL" --mode nodepool --active-nodes-only --iterations 1 \
     --cap-deployments default/php-apache --rollout-guard default/php-apache \
     --node-restore-cmd "bash scripts/kind_nodepool.sh $WORKERS" --audit "$OUT_DIR/audit_kill.jsonl" --kill-file "$OUT_DIR/kill"
   cpu_limit=$(kubectl get pods -l run=php-apache -o jsonpath='{range .items[*]}{.spec.containers[0].resources.limits.cpu}{"\n"}{end}' | sort -u | tr '\n' ' ' | sed 's/ $//')
@@ -83,6 +136,9 @@ if [ "$ARM" = "omni" ]; then
   restored=$(kubectl get hpa php-apache -o jsonpath='{.spec.metrics[0].resource.target.averageUtilization}')
   back=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' -o json | jq '[.items[] | select(.spec.unschedulable != true)] | length')
   { echo "restored target: $restored"; echo "workers in service: $back of $WORKERS"; } | tee "$OUT_DIR/kill_switch.txt"
-  test "$restored" = "50" && test "$back" = "$WORKERS" && test "$cpu_limit" = "500m"
+  leftover=$(kubectl get hpa php-apache -o json | jq -r '.metadata.annotations // {} | keys[] | select(startswith("omnicompass.io/"))'; kubectl get deployment php-apache -o json | jq -r '.metadata.annotations // {} | keys[] | select(startswith("omnicompass.io/"))')
+  echo "Omni records left after kill: ${leftover:-none}" | tee -a "$OUT_DIR/kill_switch.txt"
+  test "$restored" = "50" && test "$back" = "$WORKERS" && test "$cpu_limit" = "500m" && test -z "$leftover"
 fi
 echo "rows captured: $(( $(wc -l < "$OUT_DIR/capture.csv") - 1 ))"
+( cd "$OUT_DIR" && sha256sum $(ls -1 | grep -v '^SHA256SUMS.txt$') > SHA256SUMS.txt )

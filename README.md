@@ -60,6 +60,12 @@ mode, kill-switch restore check, then a scored comparison.
 Results appear on each run's summary page and as an artifact. Locally (Docker Desktop): `docker compose up --build`
 runs `live-kind`; results land in `lab_results/run_<date>/`.
 
+Evidence discipline in `benchmark` (pattern from the ChatGPT-built pilot harness, extended to every muscle): pinned,
+SHA-256-checked metrics-server; preflight record; clean-cluster check; Omni-Compass runs as a least-privilege service
+account (`deploy/kind/rbac-omni.yaml`, via `scripts/kubectl_omni.sh`) with `kubectl auth can-i` receipts
+(`rbac_omni.txt`); the run fails if Omni made no write or the kill switch leaves a record; `SHA256SUMS.txt` over every
+output file.
+
 Full-engine run (`scripts/kind_full.sh`): baseline on all workers with Omni observing (must write nothing), then
 Omni drives the wired muscles, then the kill switch must restore the HPA target and return every worker to service.
 Limits: a parked kind worker is a cordoned, drained container, counted as off; power is a declared model
