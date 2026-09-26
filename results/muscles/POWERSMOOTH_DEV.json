@@ -1,0 +1,370 @@
+{
+ "muscle": "powersmooth",
+ "seeds": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8
+ ],
+ "means": {
+  "native_none": {
+   "ramp_violation_s": 156.3125,
+   "max_ramp_mw_s": 193.68369546908497,
+   "energy_overhead_pct": 0.0,
+   "throughput_loss_pct": 0.0,
+   "swing_1s_mw": 9.021615706201251
+  },
+  "native_floor_safe": {
+   "ramp_violation_s": 0.0,
+   "max_ramp_mw_s": 1.7587726325848552,
+   "energy_overhead_pct": 16.086095858860347,
+   "throughput_loss_pct": 1.1877859872606646,
+   "swing_1s_mw": 0.6768115849132408
+  },
+  "native_floor_nominal": {
+   "ramp_violation_s": 917.475,
+   "max_ramp_mw_s": 4.396931581462125,
+   "energy_overhead_pct": 13.837995009455922,
+   "throughput_loss_pct": 2.7040907505094416,
+   "swing_1s_mw": 1.6851661866040748
+  },
+  "omni": {
+   "ramp_violation_s": 0.0,
+   "max_ramp_mw_s": 3.994350886110838,
+   "energy_overhead_pct": 14.559633858469931,
+   "throughput_loss_pct": 0.7425188351318528,
+   "swing_1s_mw": 0.7056041812608815
+  },
+  "omni_no_engine": {
+   "ramp_violation_s": 0.0,
+   "max_ramp_mw_s": 4.010977319148554,
+   "energy_overhead_pct": 14.562618193990314,
+   "throughput_loss_pct": 0.7433122414721038,
+   "swing_1s_mw": 0.7044577480333356
+  }
+ },
+ "vs": {
+  "native_none": {
+   "omni": {
+    "ramp_violation_s": {
+     "native": 156.3125,
+     "omni": 0.0,
+     "better_by": 1.0,
+     "ci95": [
+      -181.125625,
+      -130.26218749999998
+     ],
+     "verdict": "better"
+    },
+    "max_ramp_mw_s": {
+     "native": 193.68369546908497,
+     "omni": 3.994350886110838,
+     "better_by": 0.9793769378654363,
+     "ci95": [
+      -210.9841172277979,
+      -168.15753828426332
+     ],
+     "verdict": "better"
+    },
+    "energy_overhead_pct": {
+     "native": 0.0,
+     "omni": 14.559633858469931,
+     "better_by": -1.0,
+     "ci95": [
+      10.760220286403426,
+      18.296161361279598
+     ],
+     "verdict": "worse"
+    },
+    "throughput_loss_pct": {
+     "native": 0.0,
+     "omni": 0.7425188351318528,
+     "better_by": -1.0,
+     "ci95": [
+      0.4430537190253844,
+      1.07753551517486
+     ],
+     "verdict": "worse"
+    },
+    "swing_1s_mw": {
+     "native": 9.021615706201251,
+     "omni": 0.7056041812608815,
+     "better_by": 0.9217873821896597,
+     "ci95": [
+      -10.049248059904633,
+      -6.682143140050565
+     ],
+     "verdict": "better"
+    }
+   },
+   "omni_no_engine": {
+    "ramp_violation_s": {
+     "native": 156.3125,
+     "omni": 0.0,
+     "better_by": 1.0,
+     "ci95": [
+      -181.125625,
+      -130.26218749999998
+     ],
+     "verdict": "better"
+    },
+    "max_ramp_mw_s": {
+     "native": 193.68369546908497,
+     "omni": 4.010977319148554,
+     "better_by": 0.9792910946404945,
+     "ci95": [
+      -211.00869141547295,
+      -168.15993402319833
+     ],
+     "verdict": "better"
+    },
+    "energy_overhead_pct": {
+     "native": 0.0,
+     "omni": 14.562618193990314,
+     "better_by": -1.0,
+     "ci95": [
+      10.763249735635162,
+      18.300671761808584
+     ],
+     "verdict": "worse"
+    },
+    "throughput_loss_pct": {
+     "native": 0.0,
+     "omni": 0.7433122414721038,
+     "better_by": -1.0,
+     "ci95": [
+      0.44326227303701654,
+      1.0782830450181031
+     ],
+     "verdict": "worse"
+    },
+    "swing_1s_mw": {
+     "native": 9.021615706201251,
+     "omni": 0.7044577480333356,
+     "better_by": 0.9219144584545861,
+     "ci95": [
+      -10.050935718657007,
+      -6.683235371244677
+     ],
+     "verdict": "better"
+    }
+   }
+  },
+  "native_floor_safe": {
+   "omni": {
+    "ramp_violation_s": {
+     "native": 0.0,
+     "omni": 0.0,
+     "better_by": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "verdict": "tie"
+    },
+    "max_ramp_mw_s": {
+     "native": 1.7587726325848552,
+     "omni": 3.994350886110838,
+     "better_by": -1.2711013419855015,
+     "ci95": [
+      1.7352976653051768,
+      2.695828027031995
+     ],
+     "verdict": "worse"
+    },
+    "energy_overhead_pct": {
+     "native": 16.086095858860347,
+     "omni": 14.559633858469931,
+     "better_by": 0.09489325525494914,
+     "ci95": [
+      -1.7621970130226803,
+      -1.3293200352241177
+     ],
+     "verdict": "better"
+    },
+    "throughput_loss_pct": {
+     "native": 1.1877859872606646,
+     "omni": 0.7425188351318528,
+     "better_by": 0.3748715314917216,
+     "ci95": [
+      -0.8506415959407296,
+      -0.11075287172341869
+     ],
+     "verdict": "better"
+    },
+    "swing_1s_mw": {
+     "native": 0.6768115849132408,
+     "omni": 0.7056041812608815,
+     "better_by": -0.0425415240954122,
+     "ci95": [
+      -0.005097370443158806,
+      0.05810141275246047
+     ],
+     "verdict": "not significant"
+    }
+   },
+   "omni_no_engine": {
+    "ramp_violation_s": {
+     "native": 0.0,
+     "omni": 0.0,
+     "better_by": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "verdict": "tie"
+    },
+    "max_ramp_mw_s": {
+     "native": 1.7587726325848552,
+     "omni": 4.010977319148554,
+     "better_by": -1.2805547714565302,
+     "ci95": [
+      1.7455979553403558,
+      2.719766805639559
+     ],
+     "verdict": "worse"
+    },
+    "energy_overhead_pct": {
+     "native": 16.086095858860347,
+     "omni": 14.562618193990314,
+     "better_by": 0.09470773258079829,
+     "ci95": [
+      -1.7598255023068734,
+      -1.3257675156045101
+     ],
+     "verdict": "better"
+    },
+    "throughput_loss_pct": {
+     "native": 1.1877859872606646,
+     "omni": 0.7433122414721038,
+     "better_by": 0.3742035607050979,
+     "ci95": [
+      -0.8500977223201144,
+      -0.10900114147690015
+     ],
+     "verdict": "better"
+    },
+    "swing_1s_mw": {
+     "native": 0.6768115849132408,
+     "omni": 0.7044577480333356,
+     "better_by": -0.04084765056679509,
+     "ci95": [
+      -0.006768129889322343,
+      0.057198703511023394
+     ],
+     "verdict": "not significant"
+    }
+   }
+  },
+  "native_floor_nominal": {
+   "omni": {
+    "ramp_violation_s": {
+     "native": 917.475,
+     "omni": 0.0,
+     "better_by": 1.0,
+     "ci95": [
+      -1155.28,
+      -688.9290625
+     ],
+     "verdict": "better"
+    },
+    "max_ramp_mw_s": {
+     "native": 4.396931581462125,
+     "omni": 3.994350886110838,
+     "better_by": 0.09155946320579675,
+     "ci95": [
+      -0.49893771217567146,
+      -0.3003859707285412
+     ],
+     "verdict": "better"
+    },
+    "energy_overhead_pct": {
+     "native": 13.837995009455922,
+     "omni": 14.559633858469931,
+     "better_by": -0.05214909013342555,
+     "ci95": [
+      0.18136776352846504,
+      1.3439407344546275
+     ],
+     "verdict": "worse"
+    },
+    "throughput_loss_pct": {
+     "native": 2.7040907505094416,
+     "omni": 0.7425188351318528,
+     "better_by": 0.7254090547841396,
+     "ci95": [
+      -3.4899581019488344,
+      -0.7183531344287222
+     ],
+     "verdict": "better"
+    },
+    "swing_1s_mw": {
+     "native": 1.6851661866040748,
+     "omni": 0.7056041812608815,
+     "better_by": 0.581285105961682,
+     "ci95": [
+      -1.383922804920317,
+      -0.594804807107388
+     ],
+     "verdict": "better"
+    }
+   },
+   "omni_no_engine": {
+    "ramp_violation_s": {
+     "native": 917.475,
+     "omni": 0.0,
+     "better_by": 1.0,
+     "ci95": [
+      -1155.28,
+      -688.9290625
+     ],
+     "verdict": "better"
+    },
+    "max_ramp_mw_s": {
+     "native": 4.396931581462125,
+     "omni": 4.010977319148554,
+     "better_by": 0.08777809141738527,
+     "ci95": [
+      -0.4654702862533372,
+      -0.297452818521422
+     ],
+     "verdict": "better"
+    },
+    "energy_overhead_pct": {
+     "native": 13.837995009455922,
+     "omni": 14.562618193990314,
+     "better_by": -0.052364752555499224,
+     "ci95": [
+      0.18333791934903595,
+      1.3476015019482197
+     ],
+     "verdict": "worse"
+    },
+    "throughput_loss_pct": {
+     "native": 2.7040907505094416,
+     "omni": 0.7433122414721038,
+     "better_by": 0.7251156451269003,
+     "ci95": [
+      -3.489280742971574,
+      -0.7169810692340717
+     ],
+     "verdict": "better"
+    },
+    "swing_1s_mw": {
+     "native": 1.6851661866040748,
+     "omni": 0.7044577480333356,
+     "better_by": 0.5819654146675292,
+     "ci95": [
+      -1.3861871328483455,
+      -0.5952573534555365
+     ],
+     "verdict": "better"
+    }
+   }
+  }
+ }
+}
