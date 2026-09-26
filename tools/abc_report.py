@@ -92,6 +92,18 @@ def main():
           "some platform is better (section 6). Part of that gap is not closable by any controller: a perfect controller that knows the "
           "future cannot have both the tightest packer's machine-hours and the laziest autoscaler's machine churn (section 6.2).")
         w("")
+    clo1, _ = load("tuning/CLOSURE_HELDOUT.json")
+    if clo1:
+        M = clo1["means"]
+        def pc(v, g):
+            k, o = M[v]["k8s_hpa70_ca"][g], M[v]["omni"][g]
+            return (k - o) / abs(k) * 100
+        w(f"**C with the manuscript's closure law and muscle tone (held-out, {len(clo1['seeds'])} unseen scenarios per workload, "
+          f"settings frozen first):** {len(clo1['attack_list'])} of {13 * 7 * 4} cells where some platform is better. Against "
+          "Kubernetes alone: " + "; ".join(f"{VNAME[v]} energy {pc(v, 'energy_kwh'):+.0f}%, slowest responses (p99) "
+          f"{pc(v, 'p99_ms'):+.0f}%, average response {pc(v, 'mean_ms'):+.0f}%" for v in VES) + " (positive = better; "
+          "section 6.4).")
+        w("")
     lv6, _ = load("results/live/LIVE_ALLMUSCLE_6.json")
     if lv6:
         g = {r[0]: r for r in lv6["gauges"]}
