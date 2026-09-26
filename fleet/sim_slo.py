@@ -22,6 +22,7 @@ frozen omni_fleet trace (checked by tests/test_sim_slo.py).
 from __future__ import annotations
 
 import copy, hashlib, math, sys
+from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict
@@ -141,6 +142,46 @@ def _turbo_nodes(c, t):
             p.parked += 1
 
 
+@dataclass(frozen=True)
+class BLaw:
+    """Architecture B (Omni-Compass on top of a platform). The platform's own controllers run unchanged; Omni-Compass
+    intervenes only in two ways, each gated by the engine:
+      veto   a node removal the platform just made is undone while requests are rising (trend over `lag` ticks above
+             `rise`) or the engine has not converged (push > push_hold) or unrelieved need I_U > need_hold: a removal
+             that would be reversed within the boot delay costs a stop, a start, a boot and pending pods
+      early  one node is added ahead when the requests projected `lead` ticks ahead exceed allocatable capacity and no
+             node is booting: the node the platform would add after pods go pending, added before they do
+    Pods, HPA targets and everything else stay the platform's."""
+    lag: int = 8
+    rise: float = 0.02
+    push_hold: float = 9.0
+    need_hold: float = 9.0
+    lead: int = 6
+    early: bool = True
+
+
+def _omni_on_top(c, before, g, L):
+    import math as _m
+    p = c.pool
+    h = getattr(c, "_rh", []); h.append(c.reqs); c._rh = h[-64:]
+    trend = (h[-1] - h[-1 - L.lag]) / max(h[-1 - L.lag], 1e-9) if len(h) > L.lag else 0.0
+    veto = early = 0
+    n0, parked0, boot0 = before
+    removed = (n0 + len(boot0)) - (p.nodes + len(p.booting))
+    if removed > 0 and (trend > L.rise or g.last_push > L.push_hold or g.x.I_U > L.need_hold):
+        p.nodes, p.parked, p.booting = n0, parked0, list(boot0)
+        veto = 1
+    if L.early and not p.booting and len(h) > L.lag:
+        slope = (h[-1] - h[-1 - L.lag]) / L.lag
+        if slope > 0 and h[-1] + slope * L.lead > p.nodes * p.cores * ALLOC and p.nodes + p.parked < p.max_nodes:
+            if p.parked:
+                p.parked -= 1; p.nodes += 1
+            else:
+                p.booting.append(6)
+            early = 1
+    return veto, early
+
+
 def hpa_target(arm):
     return {"k8s_hpa50_ca": 0.5, "k8s_hpa60_ca": 0.6, "k8s_hpa80_ca": 0.8}.get(arm, 0.7)
 
@@ -166,12 +207,15 @@ def wpct(vals, wts, q):
 
 
 def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every: int = OMNI_EVERY,
-        lat_gain: float = 0.0, slo_mult: float = 2.0, speed_law: SpeedLaw = None, math_law: MathLaw = None) -> Dict:
+        lat_gain: float = 0.0, slo_mult: float = 2.0, speed_law: SpeedLaw = None, math_law: MathLaw = None, b_law: "BLaw" = None) -> Dict:
     scn = copy.deepcopy(scn0)
+    on_top = arm.startswith("omniB:")          # architecture B: a platform runs, Omni-Compass governs on top of it
+    base = arm.split(":", 1)[1] if on_top else arm
     mathd = arm == "omni_math"
     speed = arm == "omni_speed" or mathd
     single = arm.startswith("omni_fleet") or arm.startswith("omni_single") or speed
     uses_gov = arm.startswith("omni")
+    B = b_law or BLaw()
     glaw = governor_law if governor_law is not None else (mode_law("fleet", AllocationLaw()) if single else AllocationLaw())
     if single and governor_law is None and not speed:
         omni_every = 4
@@ -179,9 +223,10 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
     govs = [Governor(law=glaw) for _ in scn.clusters] if uses_gov and not speed else []
     for g in govs:
         g.set_mode(AUTOPILOT if single or arm == "omni_target" else OBSERVE)
+    b_veto = b_early = 0
     if speed:
         govs = [MathDrive(math_law or MathLaw()) if mathd else SpeedGovernor(speed_law or SpeedLaw()) for _ in scn.clusters]
-    targets = [hpa_target(arm)] * len(scn.clusters)
+    targets = [hpa_target(base)] * len(scn.clusters)
     energy = dem = done = 0.0
     viol_q = viol_p = viol_h = healthy = 0
     starts = stops = rev = 0
@@ -301,15 +346,16 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             n_before = c.pool.nodes + len(c.pool.booting)
             parked_before = c.pool.parked
             if not single:
-                if arm in ("k8s_hpa70_karpenter", "aks_nap"):
+                pb = (c.pool.nodes, c.pool.parked, list(c.pool.booting))
+                if base in ("k8s_hpa70_karpenter", "aks_nap"):
                     _karpenter(c, t)
-                elif arm in CA_PROFILES:
-                    _ca_profile(c, *CA_PROFILES[arm])
-                elif arm == "cast_ai":
+                elif base in CA_PROFILES:
+                    _ca_profile(c, *CA_PROFILES[base])
+                elif base == "cast_ai":
                     _cast_ai(c, t)
-                elif arm == "spot_ocean":
+                elif base == "spot_ocean":
                     _spot_ocean(c, t)
-                elif arm == "turbonomic":
+                elif base == "turbonomic":
                     _turbo_nodes(c, t)
                     if t % 40 == 39:
                         for w in c.workloads:
@@ -318,6 +364,9 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                                 w.request = float(min(w.request * 1.5, max(w.request * 0.5, want)))
                 else:
                     _cluster_autoscaler(c)
+                if on_top:
+                    v, e = _omni_on_top(c, pb, govs[ci], B)
+                    b_veto += v; b_early += e
             n_after = c.pool.nodes + len(c.pool.booting)
             dn = n_after - n_before + (c.pool.parked - parked_before)
             if single and hasattr(c, "_single_dn"):
@@ -333,6 +382,6 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             "time_healthy": healthy / STEPS, "violation_backlog": viol_q / STEPS, "violation_power": viol_p / STEPS,
             "violation_heat": viol_h / STEPS, "machines_started": starts, "machines_stopped": stops,
             "node_reversals": rev, "node_hours": node_ticks * TICK / 3600.0, "pod_changes": pod_changes,
-            "cap_moves": cap_moves, "p95_ms": wpct(R_all, W_all, 95), "p99_ms": wpct(R_all, W_all, 99),
+            "cap_moves": cap_moves, "b_vetoes": b_veto, "b_early_adds": b_early, "p95_ms": wpct(R_all, W_all, 95), "p99_ms": wpct(R_all, W_all, 99),
             "mean_ms": float(np.average(R_all, weights=W_all)) if W_all else S0_MS,
             "trace_hash": hashlib.sha256(repr(trace).encode()).hexdigest()[:16]}
