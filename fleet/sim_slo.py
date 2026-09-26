@@ -199,6 +199,11 @@ class BLaw:
     f_rho_min: float = 0.8      # the engine lowers f_rho toward this as need (I_U) and energy stress (E) rise
     flip_guard: int = 0         # veto a removal within this many ticks of the platform's last addition (0 = off)
     confirm: int = 1            # early add only after the rise has been seen this many consecutive ticks
+    tone: bool = False          # muscle tone: a machine the platform powers off is parked instead (alive, low power, the
+                                # platform's next scale-up wakes it at once); parked machines beyond the reserve the law
+                                # expects within tone_H are powered off
+    tone_H: int = 960
+    tone_rho: float = 0.95
 
 
 def _omni_on_top(c, before, g, L):
@@ -217,6 +222,14 @@ def _omni_on_top(c, before, g, L):
     if removed > 0 and ((L.veto and (trend > L.rise or g.last_push > L.push_hold or g.x.I_U > L.need_hold)) or recent):
         p.nodes, p.parked, p.booting = n0, parked0, list(boot0)
         veto = 1
+    if L.tone:
+        th = getattr(c, "_th", []); th.append(c.reqs); c._th = th[-L.tone_H:]
+        off_run = max(0, n0 - p.nodes) if not veto else 0
+        if off_run and p.power_off and p.parked <= parked0:
+            p.parked += off_run
+        keep = max(0, int(_m.ceil(max(c._th) / (L.tone_rho * p.cores * ALLOC) - 1e-9)) - (p.nodes + len(p.booting)))
+        if p.parked > keep:
+            p.parked = keep
     if L.pack > 0 and not p.booting and p.nodes > p.min_nodes and getattr(c, "_calm", 0) >= L.pack_calm \
             and c.reqs <= L.pack * (p.nodes - 1) * p.cores * ALLOC and g.last_push <= 0.05:
         p.nodes -= 1
