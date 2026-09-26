@@ -1,7 +1,10 @@
 """Device plant: CPU frequency (DVFS) and GPU power-limit muscles, three architectures, 24 scenarios.
 
-THEORETICAL SIMULATION. Device physics use standard first-order models with declared constants; replace them with
-measured curves (RAPL, nvidia-smi) when the hardware connectors in omni_controller/muscles.py run on real machines.
+SIMULATION. CPU physics use a standard first-order model with declared constants. The GPU performance-vs-power-limit
+exponent gamma is fitted to real metered hardware: MLPerf Inference v4.0 NVIDIA DGX-H100 MaxQ vs MaxP
+(results/hardware/CALIBRATION_MLPERF.json, Apache 2.0); the median, least favourable and most favourable fits are all
+run. Replace with measured curves (RAPL, nvidia-smi) when the hardware connectors in omni_controller/muscles.py run on
+owned machines.
 
 Physics (per device, one step = 60 s)
   CPU   power = P_idle + P_dyn * u * f^3          (dynamic power ~ C V^2 f with V ~ f)
@@ -14,7 +17,8 @@ Physics (per device, one step = 60 s)
 Architectures (the only difference between arms is who sets f or L)
   A  native      CPU: schedutil-style governor f = min(1, 1.25 u_needed); GPU: power limit = TDP (vendor default)
   B  on top      the native governor runs, Omni-Compass sets a ceiling: f = min(native f, cap); L = cap x TDP
-  C  direct      Omni-Compass sets the device directly every decision: f = cap (floor f_min); L = cap x TDP
+  C  direct      Omni-Compass replaces the native governor. CPU: f = min(cap, want / rho*), rho* the engine's target
+                 utilisation (its demand output), floor f_min; GPU: L = cap x TDP (floor f_min)
   S  reference   a fixed manual cap at 70% (f or L), no Omni-Compass: what an operator could do by hand
 Omni-Compass = the shipped Governor (fleet law); its power_cap output is the cap.
 """
@@ -42,10 +46,14 @@ class Vessel:
     f_min: float = 0.4   # lowest clock or power-limit fraction the device allows
 
 
+_CAL = json.loads((ROOT / "results/hardware/CALIBRATION_MLPERF.json").read_text())
 VESSELS = {
     "cpu_web": Vessel("cpu_web", 100, 120.0, 400.0, 0.0, "cpu"),
-    "gpu_training": Vessel("gpu_training", 64, 60.0, 700.0, 0.45, "gpu", 0.5),   # H100-class TDP 700 W
-    "gpu_inference": Vessel("gpu_inference", 64, 60.0, 700.0, 0.35, "gpu", 0.5),
+    # H100-class GPUs, TDP 700 W; gamma measured from MLPerf v4.0 MaxQ vs MaxP (results/hardware/CALIBRATION_MLPERF.json).
+    # Floor 300 W / 700 W = 0.43, the lowest limit NVIDIA used for MaxQ.
+    "gpu_mlperf_median": Vessel("gpu_mlperf_median", 64, 60.0, 700.0, _CAL["gamma_median"], "gpu", 300 / 700),
+    "gpu_mlperf_least_favourable": Vessel("gpu_mlperf_least_favourable", 64, 60.0, 700.0, _CAL["gamma_max"], "gpu", 300 / 700),
+    "gpu_mlperf_most_favourable": Vessel("gpu_mlperf_most_favourable", 64, 60.0, 700.0, _CAL["gamma_min"], "gpu", 300 / 700),
 }
 FAMILIES = ["steady", "diurnal", "spike", "flash_crowd", "slow_ramp", "lull", "burst_train", "mixed"]
 
@@ -84,7 +92,7 @@ def run(v, family, seed, arm, steps=360):
     g = Governor(law=mode_law("fleet")); g.set_mode(AUTOPILOT); g.nodes = v.devices
     site = v.devices * v.p_max
     backlog = energy = work = peak = 0.0
-    thermal, cap = 0.32, 1.0
+    thermal, cap, rho = 0.32, 1.0, 0.8
     slo = heat_v = power_v = 0
     lat = []
     settings = []
@@ -99,7 +107,11 @@ def run(v, family, seed, arm, steps=360):
         elif arm == "S":
             s = max(v.f_min, min(native, 0.7))            # static manual cap at 70% (common operator practice)
         elif arm == "B":
-            s = min(native, max(v.f_min, cap))
+            s = native if backlog > 0.05 * dem[i] else min(native, max(v.f_min, cap))   # release on backlog
+        elif backlog > 0.05 * dem[i]:
+            s = 1.0                                       # release on backlog (the engine's guard_queue rule)
+        elif v.kind == "cpu":
+            s = min(max(v.f_min, cap), max(v.f_min, min(1.0, want / max(rho, 1e-3))))
         else:
             s = max(v.f_min, cap)
         pw1, capf = device(v, s, 1.0)
@@ -124,7 +136,7 @@ def run(v, family, seed, arm, steps=360):
                    "security_block": 0.0}
             g.current_cap = cap
             d = g.step(obs, 0)
-            cap = float(d["power_cap"])
+            cap = float(d["power_cap"]); rho = float(d["demand"])
     lat = np.array(lat)
     return {"energy_kwh": energy, "work": work, "kwh_per_work": energy / max(work, 1e-9), "peak_kw": peak / 1000.0,
             "slo_breach_min": float(slo), "p95_latency_x": float(np.percentile(lat, 95)), "mean_latency_x": float(lat.mean()),

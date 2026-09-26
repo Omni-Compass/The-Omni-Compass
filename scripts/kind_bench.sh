@@ -5,7 +5,9 @@
 #   ARM=native  Omni-Compass is not started at all. Kubernetes (HPA, scheduler) runs alone on all workers.
 #   ARM=omni    Omni-Compass runs in nodepool mode with every live muscle: HPA target, node pool (cordon/drain/uncordon),
 #               power cap (CPU limit of php-apache, enforced by the kernel), heat (harness law on live power), security
-#               (ConfigMap hold), rollout guard. Parked workers count at standby power (STANDBY_W, default = idle).
+#               (ConfigMap hold), rollout guard, and the latency afferent: 95th-percentile response time over SLO_MS
+#               (declared before the run, default 500 ms) enters the engine as queue pressure. The power cap never goes
+#               below pod usage x 1.3. Parked workers count at standby power (STANDBY_W, default = idle).
 # Both arms: a real response-time probe times HTTP requests to php-apache every 5 s (latency.csv).
 # Load schedule: the load-generator replica count steps through LOAD_STEPS, each step DURATION/steps seconds,
 # identical in both arms. Results in $OUT_DIR: capture.csv (every 15 s), nodes timeline, Omni audit (omni arm).
@@ -55,7 +57,7 @@ if [ "$ARM" = "omni" ]; then
     --node-scale-cmd "bash scripts/kind_nodepool.sh {n}" --node-restore-cmd "bash scripts/kind_nodepool.sh $WORKERS" \
     --power-cmd "bash scripts/kind_power.sh" --site-limit-w "$SITE_LIMIT_W" \
     --cap-deployments default/php-apache --thermal-model --security-configmap default/omni-security \
-    --rollout-guard default/php-apache \
+    --rollout-guard default/php-apache --latency-file "$OUT_DIR/latency.csv" --slo-ms "${SLO_MS:-500}" \
     --audit "$OUT_DIR/audit.jsonl" --kill-file "$OUT_DIR/kill" > "$OUT_DIR/controller.log" 2>&1 &
   omni_pid=$!
 else

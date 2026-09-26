@@ -163,7 +163,10 @@ class Controller:
                 power_stress = 0.0
         obs = {"queue_ratio": min(2.0, s["pending"] / max(1, repl)), "load_ratio": min(2.0, s["used_m"] / max(1.0, self.rec_n * per_node)),
                "power_stress": power_stress, "thermal": 0.0, "network_stress": 0.0, "drift_ratio": 0.0, "stale": 0.0, "security_block": 0.0}
-        obs.update(self.m.sense(power_stress))
+        extra = self.m.sense(power_stress)
+        lp = extra.pop("latency_pressure", 0.0); p95 = extra.pop("latency_p95_ms", None)
+        obs.update(extra)
+        obs["queue_ratio"] = min(2.0, max(obs["queue_ratio"], lp))
         self.g.nodes = self.rec_n; self.g.current_cap = 1.0
         d = self.g.step(obs, 0)
         floor = max(int(math.ceil(s["req_m"] * (1.0 + self.a.headroom) / per_node)) if s["req_m"] > 0 else self.a.min_nodes, int(math.ceil(s["used_m"] / per_node)))
@@ -174,7 +177,8 @@ class Controller:
                                        "power_cap": round(float(d["power_cap"]), 3), "change_permitted": bool(d["change_permitted"]),
                                        "rollback_authorized": bool(d["rollback_authorized"]),
                                        "thermal": round(obs["thermal"], 3), "security_block": obs["security_block"],
-                                       "power_stress": round(power_stress, 3)}, "mode": self.a.mode})
+                                       "power_stress": round(power_stress, 3), "latency_p95_ms": p95,
+                                       "queue_ratio": round(obs["queue_ratio"], 3)}, "mode": self.a.mode})
         if self.a.mode in ("target", "nodepool"):
             want = int(round(rho * 100))
             for h in s["hpas"]:

@@ -1,0 +1,145 @@
+{
+ "run": "36213152881 (2026-09-26 02:54-03:19 UTC)",
+ "muscles": "HPA target, node pool, power cap (in-place pod CPU limits), heat (harness law on live power), security hold, rollout guard",
+ "gauges": [
+  [
+   "Worker nodes in service, mean",
+   "6.00",
+   "3.20",
+   "-46.7%"
+  ],
+  [
+   "Node-hours",
+   "2.01",
+   "1.07",
+   "-46.8%"
+  ],
+  [
+   "Power (W), mean, standby counted",
+   "664",
+   "643",
+   "-3.2%"
+  ],
+  [
+   "Power (W), peak",
+   "720",
+   "664",
+   "-7.7%"
+  ],
+  [
+   "Energy (Wh), standby counted",
+   "222",
+   "215",
+   "-3.4%"
+  ],
+  [
+   "CPU used (cores), mean",
+   "0.908",
+   "0.593",
+   "-34.6%"
+  ],
+  [
+   "Utilisation",
+   "0.076",
+   "0.093",
+   "+22.6%"
+  ],
+  [
+   "Energy per core-hour (Wh)",
+   "731",
+   "1,083",
+   "+48.1% worse"
+  ],
+  [
+   "Pending pods, pod-minutes",
+   "1.70",
+   "0",
+   "-100%"
+  ],
+  [
+   "HPA replicas, mean",
+   "9.09",
+   "5.00",
+   "-45.0%"
+  ],
+  [
+   "HPA replicas, peak",
+   "10",
+   "5",
+   "-50.0%"
+  ],
+  [
+   "Requests timed",
+   "955",
+   "850",
+   "-11.0%"
+  ],
+  [
+   "Response time (ms), mean",
+   "260",
+   "415",
+   "+59.7% worse"
+  ],
+  [
+   "Response time (ms), median",
+   "230",
+   "320",
+   "+39.2% worse"
+  ],
+  [
+   "Response time (ms), 95th percentile",
+   "486",
+   "802",
+   "+64.8% worse"
+  ],
+  [
+   "Response time (ms), 99th percentile",
+   "675",
+   "1,113",
+   "+64.7% worse"
+  ],
+  [
+   "Failed requests (%)",
+   "0",
+   "0",
+   "0"
+  ]
+ ],
+ "significance": [
+  [
+   "kWh per core-hour",
+   "0.7596",
+   "1.1107",
+   "+46.2%",
+   "[+0.1901, +0.5099]",
+   "worse"
+  ],
+  [
+   "Node-hours per core-hour",
+   "6.8941",
+   "5.6440",
+   "-18.1%",
+   "[-2.7717, +0.4577]",
+   "not significant"
+  ],
+  [
+   "Utilisation",
+   "0.0766",
+   "0.0964",
+   "+25.8%",
+   "[-0.0016, +0.0394]",
+   "not significant"
+  ]
+ ],
+ "actions": {
+  "hpa_target_writes": 1,
+  "node_pool_resizes": 3,
+  "power_cap_pod_resizes": 7,
+  "rollout_actions": 0,
+  "power_cap_per_minute": "0.695 every minute (the law floor)",
+  "hpa_target": "77%",
+  "nodes": "5 4 3 then 3"
+ },
+ "kill_switch": "restored target 50; workers 6 of 6; pod CPU limits restored",
+ "diagnosis": "The engine saw the cluster as idle (node utilisation about 7%) and had no response-time signal, so it capped the app pods at the law floor and packed replicas to a 77% target (5 instead of 10). The app pods were busy, so responses slowed. Fix wired: latency afferent (p95 over a declared 500 ms SLO enters as queue pressure) and a power-cap reflex (never below pod usage x 1.3); re-run pending."
+}

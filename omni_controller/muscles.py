@@ -11,6 +11,8 @@ the muscle back, and tags every write with its muscle name in the audit log.
               undo a rollout that has exceeded its progress deadline when the governor authorises rollback
   batch       push: admit (unsuspend) held batch Jobs, one per decision, only when change is permitted and there is load
               and power headroom; running Jobs are never suspended
+  latency     pull: 95th-percentile response time over the last --latency-window-s from --latency-file (CSV written by
+              scripts/latency_probe.py); pressure max(0, p95 / --slo-ms - 1) enters the engine as queue pressure
   cpu_pstate  hardware connector. pull: --rapl-cmd prints package watts (e.g. from /sys/class/powercap/intel-rapl);
               push: --cpufreq-cmd with {khz}, the frequency ceiling = max frequency x power cap (e.g. writing
               scaling_max_freq, or `cpupower frequency-set -u {khz}kHz`); kill runs it with the maximum frequency
@@ -22,7 +24,7 @@ the muscle back, and tags every write with its muscle name in the audit log.
 """
 from __future__ import annotations
 
-import json, shlex, subprocess
+import csv, json, math, shlex, subprocess, time
 import re
 
 CPU_ANN = "omnicompass.io/original-cpu-limit"
@@ -61,6 +63,12 @@ class Muscles:
                 o["thermal"] = max(o.get("thermal", 0.0), min(1.35, t / max(1.0, self.a.gpu_temp_limit)))
             except ValueError:
                 pass
+        lf = getattr(self.a, "latency_file", "")
+        if lf and getattr(self.a, "slo_ms", 0):
+            p95 = latency_p95(lf, self.a.latency_window_s)
+            if p95 == p95:
+                o["latency_p95_ms"] = p95
+                o["latency_pressure"] = max(0.0, p95 / self.a.slo_ms - 1.0)
         cm = getattr(self.a, "security_configmap", "")
         if cm:
             ns, name = ref(cm)
@@ -100,6 +108,14 @@ class Muscles:
         return [p for p in self.k.get("get", "pods", "-n", ns, "-l", sel, "-o", "json")["items"]
                 if p["status"].get("phase") == "Running"]
 
+    def _pod_usage(self, dep, ns):
+        sel = ",".join(f"{k}={v}" for k, v in dep["spec"]["selector"]["matchLabels"].items())
+        try:
+            out = self.k.get("top", "pods", "-n", ns, "-l", sel, "--no-headers")
+        except Exception:
+            return []
+        return [milli(line.split()[1]) for line in str(out).strip().splitlines() if line.strip()]
+
     def _resize(self, pod, ns, value, why):
         self.k.write(["patch", "pod", pod["metadata"]["name"], "-n", ns, "--subresource", "resize", "--type=json", "-p",
                       json.dumps([{"op": "replace", "path": "/spec/containers/0/resources/limits/cpu", "value": value}])], why)
@@ -118,6 +134,10 @@ class Muscles:
             base = milli(ann.get(CPU_ANN, tmpl))
             req = milli(c0.get("resources", {}).get("requests", {}).get("cpu", "0"))
             want = int(max(req, round(base * max(self.a.cap_min, min(1.0, cap)) / 10.0) * 10))
+            # reflex: never cap a pod below what it is using plus headroom (as the node muscle never goes below requests)
+            use = self._pod_usage(dep, ns)
+            if use:
+                want = int(min(base, max(want, math.ceil(max(use) * (1.0 + self.a.cap_headroom) / 10.0) * 10)))
             if CPU_ANN not in ann:
                 self.k.write(["annotate", "deployment", name, "-n", ns, f"{CPU_ANN}={int(base)}m"], "power_cap: record original CPU limit")
             for pod in self._pods(dep, ns):
@@ -196,10 +216,30 @@ class Muscles:
                 self.k.write(["annotate", "deployment", name, "-n", ns, f"{PAUSE_ANN}-"], "kill switch: clear pause record")
 
 
+def latency_p95(path, window_s):
+    """95th-percentile response time (ms) of successful requests in the last window_s seconds of the probe CSV."""
+    try:
+        rows = list(csv.DictReader(open(path)))
+    except OSError:
+        return float("nan")
+    if not rows:
+        return float("nan")
+    t_end = float(rows[-1]["elapsed_seconds"])
+    ms = sorted(float(r["latency_ms"]) for r in rows if r.get("ok") == "1" and float(r["elapsed_seconds"]) >= t_end - window_s)
+    fails = sum(1 for r in rows if r.get("ok") != "1" and float(r["elapsed_seconds"]) >= t_end - window_s)
+    if fails and not ms:
+        return 1e9
+    return ms[min(len(ms) - 1, int(0.95 * len(ms)))] if ms else float("nan")
+
+
 def add_args(ap):
     ap.add_argument("--cap-deployments", default="", help="ns/name[,ns/name]: power_cap muscle scales their CPU limit")
     ap.add_argument("--cap-min", type=float, default=0.65, help="lowest power cap applied (shield floor)")
     ap.add_argument("--cap-min-change-m", type=int, default=20, help="smallest CPU-limit change written, millicores")
+    ap.add_argument("--cap-headroom", type=float, default=0.3, help="power cap never below pod CPU usage x (1 + headroom)")
+    ap.add_argument("--latency-file", default="", help="probe CSV (elapsed_seconds,latency_ms,ok) for the latency afferent")
+    ap.add_argument("--slo-ms", type=float, default=0.0, help="95th-percentile response-time target, ms")
+    ap.add_argument("--latency-window-s", type=float, default=60.0)
     ap.add_argument("--thermal-model", action="store_true", help="heat muscle: thermal state from the harness heat law")
     ap.add_argument("--security-configmap", default="", help="ns/name of a ConfigMap whose key 'hold' signals a security hold")
     ap.add_argument("--rollout-guard", default="", help="ns/name[,ns/name]: rollout muscle pauses, resumes, undoes")

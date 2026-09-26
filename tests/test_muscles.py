@@ -90,6 +90,18 @@ def main():
     th = Muscles(None, SimpleNamespace(thermal_model=True), None)
     x = th.sense(1.0)["thermal"]; assert abs(x - (0.86 * 0.32 + 0.14 * (0.34 + 0.62))) < 1e-12
 
+    # reflex: the cap never goes below pod usage x 1.3 (usage 300m -> at least 390m, base 500m)
+    s = load(p); s["pod_usage"] = "300m"; Path(p).write_text(json.dumps(s))
+    m.push({"power_cap": 0.3, "change_permitted": True, "rollback_authorized": False}, obs)
+    assert cpu(p) == "390m", cpu(p)
+    m.restore(); assert cpu(p) == "500m"
+    # latency afferent: p95 over the SLO becomes queue pressure
+    from omni_controller.muscles import latency_p95
+    lf = Path(t) / "lat.csv"; lf.write_text("elapsed_seconds,latency_ms,ok\n" + "".join(f"{i},{100 + i},1\n" for i in range(100)))
+    assert latency_p95(str(lf), 60) == 196.0, latency_p95(str(lf), 60)
+    a5 = args(t, latency_file=str(lf), slo_ms=100.0, latency_window_s=60.0, thermal_model=False, security_configmap="")
+    o5 = Muscles(Kube(FAKE, audit=lambda r: r), a5, lambda r: r).sense(0.5)
+    assert abs(o5["latency_pressure"] - 0.96) < 1e-9, o5
     t3 = tempfile.mkdtemp(); p3 = state(t3)
     c = Controller(args(t3, mode="observe", interval=0))
     for _ in range(3): c.step()

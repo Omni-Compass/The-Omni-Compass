@@ -1,0 +1,73 @@
+{
+ "source": "MLCommons MLPerf Inference v4.0, closed division, NVIDIA DGX-H100 (8x H100-SXM-80GB): configurations DGX-H100_H100-SXM-80GBx8_TRT (MaxP) and _MaxQ, Offline scenario; power limits from closed/NVIDIA/configs/*/Offline/__init__.py (applied with nvidia-smi -pl); MaxQ system power metered by a Yokogawa WT333E through SPEC PTDaemon. License: Apache 2.0.",
+ "fit": "capacity = (L / TDP)^gamma; gamma = ln(MaxQ throughput / MaxP throughput) / ln(L / 700 W)",
+ "caveat": "MaxQ submissions may also change batch size and other settings, so the ratio is the whole MaxQ configuration, not the power limit alone; inference workloads only.",
+ "points": [
+  {
+   "model": "resnet50",
+   "maxq_power_limit_w": 300,
+   "tdp_w": 700,
+   "maxp_throughput": 703770.0,
+   "maxq_throughput": 473737.0,
+   "perf_ratio": 0.6731,
+   "gamma": 0.4671
+  },
+  {
+   "model": "3d-unet-99",
+   "maxq_power_limit_w": 300,
+   "tdp_w": 700,
+   "maxp_throughput": 51.5205,
+   "maxq_throughput": 38.2089,
+   "perf_ratio": 0.7416,
+   "gamma": 0.3528
+  },
+  {
+   "model": "gptj-99",
+   "maxq_power_limit_w": 350,
+   "tdp_w": 700,
+   "maxp_throughput": 239.895,
+   "maxq_throughput": 178.896,
+   "perf_ratio": 0.7457,
+   "gamma": 0.4233
+  },
+  {
+   "model": "retinanet",
+   "maxq_power_limit_w": 350,
+   "tdp_w": 700,
+   "maxp_throughput": 14194.4,
+   "maxq_throughput": 10105.9,
+   "perf_ratio": 0.712,
+   "gamma": 0.4901
+  },
+  {
+   "model": "stable-diffusion-xl",
+   "maxq_power_limit_w": 350,
+   "tdp_w": 700,
+   "maxp_throughput": 13.1263,
+   "maxq_throughput": 9.64827,
+   "perf_ratio": 0.735,
+   "gamma": 0.4441
+  },
+  {
+   "model": "bert-99",
+   "maxq_power_limit_w": 400,
+   "tdp_w": 700,
+   "maxp_throughput": 70116.2,
+   "maxq_throughput": 53726.9,
+   "perf_ratio": 0.7663,
+   "gamma": 0.4758
+  },
+  {
+   "model": "bert-99.9",
+   "maxq_power_limit_w": 450,
+   "tdp_w": 700,
+   "maxp_throughput": 62182.5,
+   "maxq_throughput": 50998.9,
+   "perf_ratio": 0.8201,
+   "gamma": 0.4487
+  }
+ ],
+ "gamma_min": 0.3528,
+ "gamma_median": 0.4487,
+ "gamma_max": 0.4901
+}

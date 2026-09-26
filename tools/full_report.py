@@ -179,7 +179,7 @@ def main():
     w("")
     w("Benchmark report, 26 September 2026. Repository: Omni-Compass/The-Omni-Compass-Control-Core-Engine (private), branch "
       "claude/kubernetes-clusters-docker-stack-gp26ve. Every number below is produced by code in that repository and can be "
-      "regenerated; section 15 gives the commands. Each result states whether it was **measured on a live Kubernetes control plane** "
+      "regenerated; section 18 gives the commands. Each result states whether it was **measured on a live Kubernetes control plane** "
       "or **computed in simulation**.")
     w("")
     w("## 1. Summary")
@@ -248,10 +248,14 @@ def main():
     w("")
     w("### 2.2 The nervous system (muscles)")
     w("Each muscle has five parts: afferent (pull: sense), the shared engine, efferent (push: act), reflex (the shield checks every push) "
-      "and kill (hand the muscle back to its own controller). Status in this repository: **wired** (sense and push executed): nodes, "
-      "HPA, power cap; **sensed** (pull only): heat, network, security; **open** (registered, no plant yet): GPU, CPU power states, "
-      "memory, storage, batch queues, cooling, grid, training, inference, agent containment and the rest of the 52-muscle domain map "
-      "(`docs/DOMAIN_MAP.md`). AI value alignment is explicitly not an Omni-Compass muscle.")
+      "and kill (hand the muscle back to its own controller). Status in this repository: **wired live on Kubernetes** (sense and "
+      "push executed through kubectl, each with shield and kill): nodes, HPA target, power cap (in-place CPU limits, enforced by "
+      "the kernel), security hold, deployment rollouts (pause, resume, undo), batch queue (admit held Jobs); **sensed**: heat "
+      "(harness heat law on live power, or GPU temperature), network; **hardware connectors** (built and tested with fake "
+      "hardware, off on CI machines): CPU power states (RAPL read, cpufreq ceiling) and GPU (nvidia-smi power and temperature "
+      "read, power limit); **open** (registered, no plant yet): memory, storage, cooling, grid, training, inference, agent "
+      "containment and the rest of the 52-muscle domain map (`docs/DOMAIN_MAP.md`). AI value alignment is explicitly not an "
+      "Omni-Compass muscle. Code: `omni_controller/controller.py`, `omni_controller/muscles.py`, `omnicompass/nervous.py`.")
     w("")
     w("### 2.3 The shield and the kill switch")
     w("Before any action the shield (`omnicompass/shield.py`) enforces invariants I1 to I5: no expansion during a security block, node "
@@ -279,7 +283,7 @@ def main():
       "`omni_fleet`: Omni is the node-pool authority, Cluster Autoscaler off | simulation on recorded traces |")
     w("| Live kind cluster, side by side | native: HPA only, 6 workers always on, Omni not running | Omni on top: sets the HPA target "
       "and is the sole node-pool authority (cordon, drain, uncordon); Kubernetes' scheduler, kubelet and HPA still execute | "
-      "not yet built live (section 13) | **live** |")
+      "not yet built live (section 16) | **live** |")
     w("")
     w("## 4. Method and why the comparison is fair")
     w("")
@@ -416,7 +420,10 @@ def main():
               ("Better than Karpenter-lite on energy", "Simulation", "sections 6, and PlanetLab fleet plant"),
               ("Better than upstream Karpenter or Cluster Autoscaler binaries, live", "Not yet tested", "section 12"),
               ("Metered energy savings on physical servers", "Not yet tested", "power is modelled"),
-              ("GPU, cooling, grid, and the other open muscles", "Not claimed", "no plant or connector yet"),
+              ("GPU power-limit muscle saves 15-19% energy with <1% slower responses", "Simulation calibrated to metered H100 data (MLPerf)", "section 12"),
+              ("CPU frequency muscle", "Simulation (uncalibrated): about -3.5% energy, -67% heat", "section 12"),
+              ("Tuned laws remove wear and node-hour negatives (C-throughput)", "Pre-registered amendment, new held-out data", "section 13"),
+              ("Cooling, grid, memory, storage and the other open muscles", "Not claimed", "no plant or connector yet"),
               ("Makes AI models aligned or trustworthy", "Not claimed", "value alignment is outside Omni-Compass")]:
         w("| " + " | ".join(r) + " |")
     w("")
@@ -430,7 +437,7 @@ def main():
               "standby, parking reduces nodes in service but not energy; live energy savings then have to come from power caps, CPU "
               "power states and heat control, which are not yet wired live.",
               "The live native arm had no node autoscaler, so its node pool was always full; the fair live opponent is Karpenter or "
-              "Cluster Autoscaler (section 13).",
+              "Cluster Autoscaler (section 16).",
               "The live significance for energy per core-hour with standby power is computed from minute averages (10 two-minute "
               "blocks), not from the 15-second capture.",
               "The fleet law releases a node only when the pool has more than three nodes of slack; a three-worker pool cannot scale "
@@ -441,7 +448,79 @@ def main():
               "this run length."]:
         w(f"- {s}")
     w("")
-    w("## 12. The industry problem map: what Omni-Compass is aimed at")
+    # ---------------- device plant (GPU power limit, CPU frequency) ----------------
+    hw = json.loads((ROOT / "results/hardware/SUMMARY.json").read_text()); cal = json.loads((ROOT / "results/hardware/CALIBRATION_MLPERF.json").read_text())
+    w("## 12. GPU and CPU muscles: device plant calibrated to metered hardware (simulation)")
+    w("")
+    w("The GPU power-limit and CPU frequency muscles cannot be actuated on CI machines (no GPU; the hypervisor hides RAPL and "
+      "cpufreq). Their connectors are built (section 2.2) and this plant shows what they do. **GPU calibration:** the "
+      "performance-versus-power-limit exponent is fitted to MLPerf Inference v4.0 results for an NVIDIA DGX-H100 (8 x H100-SXM, "
+      "700 W TDP), MaxQ (power-limited with `nvidia-smi -pl`, the same command the Omni-Compass GPU connector sends) versus "
+      "MaxP, system power metered by a Yokogawa WT333E; Apache 2.0. Fitted exponent " + f"{cal['gamma_min']:.3f} to {cal['gamma_max']:.3f} (median {cal['gamma_median']:.3f}); "
+      "all three are run. **CPU:** a standard first-order model (dynamic power ~ frequency cubed) against a schedutil-style "
+      "governor; not calibrated to metered data yet. **S** is a fixed manual 70% cap, what an operator could do by hand. "
+      "24 scenarios, 8 load families; * = paired 95% interval excludes zero.")
+    w("")
+    w("| Vessel | Gauge | A. Native | S. Fixed 70% cap | B. + Omni-Compass | C. Omni-Compass direct |")
+    w("|---|---|---:|---:|---:|---:|")
+    labels = [("energy_kwh", "Energy (kWh)"), ("kwh_per_work", "Energy per unit of work"), ("p95_latency_x", "95th-pct response time (x baseline)"),
+              ("slo_breach_min", "Minutes over service target"), ("heat_over_min", "Minutes over heat limit"), ("peak_kw", "Peak power (kW)"),
+              ("power_over_min", "Minutes near full power")]
+    for vn, v in hw["vessels"].items():
+        m = v["means"]
+        for k, lab in labels:
+            a = m["A"][k]
+            cell = lambda arm: f"{m[arm][k]:.3f} ({pct(a, m[arm][k])}{'*' if v['paired_vs_A'][arm][k]['significant'] else ''})"
+            w(f"| {vn} | {lab} | {a:.3f} | {cell('S')} | {cell('B')} | {cell('C')} |")
+    w("")
+    w("**Reading:** on GPUs Omni-Compass saves 15-19% energy across the measured range with response time 0.6-0.8% slower; a "
+      "fixed cap saves about the same energy but slows responses 30-63% and misses the service target. On CPUs the native "
+      "governor already tracks demand, so frequency control alone saves about 3.5%; its main effect is heat (-67%). CPU "
+      "frequency control is below the 10% bar and is a physical ceiling of that muscle, not a tuning gap.")
+    w("")
+    # ---------------- amendment ----------------
+    am = json.loads((ROOT / "tuning/HELDOUT_AMENDMENT.json").read_text())
+    w("## 13. Amendment: tuned laws, frozen, then tested on new held-out data (simulation)")
+    w("")
+    w("Two law variants were tuned on the development seeds only (1000, 2000; `tuning/SEARCH*.json`), frozen with SHA-256 hashes "
+      "in `tuning/PREREGISTRATION_AMENDMENT_2026-09-26.json` and pushed (commit b79d1dd, 03:17 UTC) before a single run on new "
+      "held-out seeds 731001 and 731002 (2 x 500 scenarios). The frozen engine files are unchanged; the original pre-registered "
+      "result (section 5) stays the primary result. B-wear: node release held longer. C-throughput: Omni-Compass direct under "
+      "the throughput law with a wider release band and engine-gated cap. + better, ! worse (both seeds agree), blank not significant.")
+    w("")
+    names = ["B_frozen", "B_wear", "C_frozen", "C_throughput"]
+    w("| Gauge | A. Kubernetes alone | " + " | ".join(names) + " |")
+    w("|---|---:|" + "---:|" * len(names))
+    A0 = am["means"]["A_k8s"]
+    for k in A0:
+        cells = []
+        for n in names:
+            vv = am["means"][n][k]; vd = am["paired"][n][k]["verdict"]
+            cells.append(f"{vv:.3f} ({pct(A0[k], vv)}){' +' if vd == 'better' else ' !' if vd == 'worse' else ''}")
+        w(f"| {k} | {A0[k]:.3f} | " + " | ".join(cells) + " |")
+    w("")
+    w("Worse gauges: " + ", ".join(f"{n} {sum(v['verdict'] == 'worse' for v in am['paired'][n].values())}" for n in names) + ".")
+    w("")
+    # ---------------- every negative ----------------
+    w("## 14. Every negative, its cause and its status")
+    w("")
+    w("| Negative | Where | Status | Cause | What would fix it |")
+    w("|---|---|---|---|---|")
+    for r in [
+        ("Node start/stop cycles (wear)", "B, pre-registered", "reduced (+65% to +34%), not removed", "node release thresholds are fixed numbers", "hybrid: Kubernetes serves the queue, Omni releases nodes with the C-throughput law (removed wear there: -50%)"),
+        ("Node start/stop, round trips, reversals", "C, pre-registered", "fixed in C-throughput (new held-out)", "power-protect law released nodes too eagerly", "adopted in C-throughput"),
+        ("Node-hours and idle node-hours", "B and C, pre-registered", "fixed in C-throughput (-10%, -23%); not in B", "power capping trades lower watts for more servers on", "hybrid as above; node-aware cap"),
+        ("Queue / backlog / availability -0.3%", "C (both variants)", "UNRESOLVED", "not the replica law and not the sizing constants (both tested); likely the delayed observation or direct-mode proposals", "trace one scenario step by step; candidate: feed the queue into the engine without the extra delay"),
+        ("Power-cap movement", "B and C", "inherent", "moving the cap is how capping saves energy; freezing it removed most of the saving (tested: -28% to -2%/-7%)", "none needed: electronic setting, no physical wear; reported"),
+        ("CPU frequency saving 3.5%", "device plant", "physical ceiling", "the native Linux governor already follows demand", "value is in heat (-67%) and in combining with power caps"),
+        ("GPU node on/off saving 3%", "fleet plant", "superseded", "training nodes cannot be switched off", "the GPU power-limit muscle (15-19%)"),
+        ("Live energy with parked servers on standby ~0%", "live kind", "open", "parked servers still draw standby power", "live power cap and CPU/GPU muscles; sleep states where hardware allows"),
+        ("Small clusters (<= 3 workers) never release", "live kind", "open", "fleet law release band of 3 nodes", "pool-size-aware release band (law change)"),
+        ("Pages in the 24-scenario replica", "control-plane replica", "open", "longer queue triggers the page rule", "same as queue"),
+    ]:
+        w("| " + " | ".join(r) + " |")
+    w("")
+    w("## 15. The industry problem map: what Omni-Compass is aimed at")
     w("")
     w("One engine; the vessel (the plant it sits on) is the only thing that changes. Industry figures are approximate, from the "
       "public sources named, and are context, not results of this report. Status: **live** = measured on a real Kubernetes control "
@@ -464,8 +543,8 @@ def main():
          "DCIM (Schneider EcoStruxure), DeepMind cooling AI (reported about 40% less cooling energy)", "heat (sensed), cooling plant (open)", "time over heat limit, thermal travel", "sim"),
         ("Site power and grid-connection limits", "multi-year waits for new grid connections are widely reported", "Meta Dynamo power capping, Intel RAPL",
          "power cap (wired), batteries and demand response (open)", "peak power, time over power limit", "sim"),
-        ("GPU scarcity and low GPU utilisation", "GPU fleets widely reported well below full utilisation", "NVIDIA DCGM and MIG, Run:ai, Kueue",
-         "GPU vessel (open)", "GPU utilisation, energy per job", "open"),
+        ("GPU energy and power limits", "GPU fleets widely reported well below full utilisation; H100 TDP 700 W", "NVIDIA DCGM and MIG, Run:ai, Kueue; manual MaxQ power limits",
+         "GPU power-limit muscle (hardware connector)", "energy per unit of work, response time, heat", "sim, calibrated to MLPerf metered H100 data: -15% to -19% energy, +0.6-0.8% response time"),
         ("Batch deadlines and fair sharing", "", "Kueue, Volcano, Slurm", "batch queue muscle (open)", "missed deadlines, queue wait", "open"),
         ("Hardware wear", "power cycling and churn shorten component life", "none as a governed objective", "nodes: start/stop cycles and reversals",
          "machines started and stopped, round trips", "mixed: better in the 24-scenario study, worse in the held-out study; tuning target"),
@@ -474,7 +553,7 @@ def main():
     ]:
         w("| " + " | ".join(r) + " |")
     w("")
-    w("## 13. What comes next")
+    w("## 16. What comes next")
     w("")
     for s in ["Live architecture C: park HPA, VPA, Cluster Autoscaler and Karpenter; Omni-Compass sets replicas, resources, "
               "placement, priorities and quotas directly; Kubernetes keeps execution and reflexes (restarts, rescheduling); the kill "
@@ -485,7 +564,7 @@ def main():
               "Metered power on physical machines."]:
         w(f"- {s}")
     w("")
-    w("## 14. Questions and answers")
+    w("## 17. Questions and answers")
     w("")
     qa = [
         ("Does Omni-Compass replace Kubernetes?", "No. Kubernetes keeps running containers, placing pods, restarting failures and "
@@ -516,12 +595,12 @@ def main():
          "use requires a paid licence; protected by copyright and by patents and patent applications (see LICENSE and NOTICE)."),
         ("What is not claimed?", "Superiority over upstream Karpenter or Cluster Autoscaler live, metered savings on physical hardware, "
          "GPU or facility control, and anything about AI value alignment."),
-        ("How do I check it myself?", "Run the commands in section 15; the live runs are GitHub Actions workflows in the repository."),
+        ("How do I check it myself?", "Run the commands in section 18; the live runs are GitHub Actions workflows in the repository."),
     ]
     for q, ans in qa:
         w(f"**{q}** {ans}")
         w("")
-    w("## 15. Reproduce")
+    w("## 18. Reproduce")
     w("")
     w("```")
     for c in ["pip install -r requirements.txt",
@@ -534,7 +613,7 @@ def main():
         w(c)
     w("```")
     w("")
-    w("## 16. Glossary")
+    w("## 19. Glossary")
     w("")
     for t, d in [("HPA", "Horizontal Pod Autoscaler: Kubernetes controller that sets replica counts from CPU utilisation versus a target."),
                  ("Cluster Autoscaler, Karpenter", "Kubernetes add-ons that add and remove nodes."),
