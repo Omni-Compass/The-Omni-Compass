@@ -2,7 +2,9 @@
 the closure law's levers are searched for an operating point with no losing cell against that incumbent (13 gauges,
 league loss rule): warm-reserve horizon tone_H, pod target rho*, exact M/M/c staffing wq, packing boundary rho_max,
 release band delta_rel. Development seeds choose; the chosen points are frozen by SHA-256 and run once on fresh held-out
-seeds 700501-700530. Usage: python tuning/c_vs_incumbent.py dev | heldout"""
+seeds 700501-700530. Second round (--wide): selection on 30 development seeds (101-130) to stop over-fitting to 10, batch
+also tries a safer packing boundary; held-out on fresh seeds 700601-700630.
+Usage: python tuning/c_vs_incumbent.py dev | heldout [--wide]"""
 import hashlib, itertools, json, sys
 from multiprocessing import Pool
 from pathlib import Path
@@ -17,7 +19,9 @@ from tuning.speed_search import gauges
 from tuning.league import COMPETITORS, SEEDS, VESSELS, losses
 
 F = {k: v for k, v in json.load(open(ROOT / "tuning/CLOSURE_FINAL_DEV.json")).items() if not k.startswith("_")}
-HELD = list(range(700501, 700531))
+WIDE = "--wide" in sys.argv
+HELD = list(range(700601, 700631)) if WIDE else list(range(700501, 700531))
+TAG = "_WIDE" if WIDE else ""
 
 
 def variants(v):
@@ -25,7 +29,7 @@ def variants(v):
         return [dict(tone_H=th, rho=r, wq=wq, rho_max=rm) for th, r, wq, rm in
                 itertools.product([24, 96, 960], [0.7, 0.75, 0.8], [-1.0, 0.05, 0.1], [0.97, 0.99])]
     return [dict(tone_H=th, rho_max=rm, delta_rel=dr, H_add=ha) for th, rm, dr, ha in
-            itertools.product([0, 24, 96, 960], [0.97, 0.99], [0.08, 0.15], [6, 12])]
+            itertools.product([0, 24, 96, 960], [0.93, 0.95, 0.97, 0.99] if WIDE else [0.97, 0.99], [0.08, 0.15], [6, 12])]
 
 
 def law(v, x):
@@ -61,7 +65,7 @@ def _ho(a):
 
 
 if __name__ == "__main__" and sys.argv[1] == "dev":
-    seeds = SEEDS["dev"]
+    seeds = list(range(101, 131)) if WIDE else SEEDS["dev"]
     with Pool(4) as p:
         res = p.map(_dev, [(v, s) for v in VESSELS for s in seeds], chunksize=1)
     A = {k: a for k, a, _ in res}; O = {k: o for k, _, o in res}
@@ -79,11 +83,11 @@ if __name__ == "__main__" and sys.argv[1] == "dev":
             out[v][c] = {"var": best[1], "losing_cells": best[0][0], "losses": best[2]}
             print(v, c, "losing cells", best[0][0], best[1],
                   [(l["gauge"], round(l["omni_worse_by_pct"], 1)) for l in best[2]], flush=True)
-    (ROOT / "tuning/C_VS_INCUMBENT_DEV.json").write_text(json.dumps(out, indent=1))
+    (ROOT / f"tuning/C_VS_INCUMBENT{TAG}_DEV.json").write_text(json.dumps(out, indent=1))
 elif __name__ == "__main__":
-    dev = json.load(open(ROOT / "tuning/C_VS_INCUMBENT_DEV.json"))
+    dev = json.load(open(ROOT / f"tuning/C_VS_INCUMBENT{TAG}_DEV.json"))
     pick = {v: {c: dev[v][c]["var"] for c in COMPETITORS} for v in VESSELS}
-    (ROOT / "tuning/C_VS_INCUMBENT_PREREGISTRATION.json").write_text(json.dumps(
+    (ROOT / f"tuning/C_VS_INCUMBENT{TAG}_PREREGISTRATION.json").write_text(json.dumps(
         {"picks": pick, "sha256": hashlib.sha256(json.dumps(pick, sort_keys=True).encode()).hexdigest(),
          "base_settings": "tuning/CLOSURE_FINAL_DEV.json", "heldout_seeds": HELD}, indent=1))
     with Pool(4) as p:
@@ -100,5 +104,5 @@ elif __name__ == "__main__":
                                       "omni": float(np.mean([O[(v, s)][c][g] for s in HELD]))}
                                   for g in ("energy_kwh", "node_hours", "p95_ms", "p99_ms", "mean_ms", "start_stop", "work_completed")}
             print(v, c, "losing cells", len(L), [(l["gauge"], round(l["omni_worse_by_pct"], 1)) for l in L], flush=True)
-    (ROOT / "tuning/C_VS_INCUMBENT_HELDOUT.json").write_text(json.dumps(out, indent=1))
+    (ROOT / f"tuning/C_VS_INCUMBENT{TAG}_HELDOUT.json").write_text(json.dumps(out, indent=1))
     print("TOTAL", sum(len(x) for v in out["cells"].values() for x in v.values()), "of", 13 * 7 * 4)
