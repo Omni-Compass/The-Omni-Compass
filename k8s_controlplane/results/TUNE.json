@@ -1,0 +1,154 @@
+{
+  "baseline": {
+    "availability": 1.0,
+    "energy_kwh": 168.86950827066903,
+    "peak_power_kw": 36.54848473448857,
+    "time_healthy": 0.9342881944444444,
+    "violation_backlog": 0.0,
+    "violation_power": 0.05295138888888889,
+    "violation_heat": 0.04869791666666666,
+    "sla_physical": 0.03388310185185185,
+    "recovered": 1.0,
+    "recovery_minutes": 1.8395833333333331,
+    "machines_started": 25.75,
+    "machines_stopped": 17.125,
+    "scale_reversals": 2.0,
+    "pages": 0.0,
+    "mean_queue": 0.09541639355410547,
+    "final_nodes": 28.625,
+    "final_replicas": 228.25,
+    "invariant_violations": 0.0,
+    "invariant_violations_ex_power": 0.0,
+    "shield_hits": 0.0,
+    "contradictions": 0.0
+  },
+  "rows": [
+    {
+      "tag": "target_default",
+      "arm": "omni_target_hpa70_ca",
+      "law": {},
+      "energy": 161.2112924872066,
+      "health": 0.9377604166666667,
+      "avail": 0.9999999999999999,
+      "starts": 27.0,
+      "stops": 24.0,
+      "recover_min": 1.5583333333333331,
+      "energy_gain": 0.04534990278521811
+    },
+    {
+      "tag": "gate_default",
+      "arm": "omni_target_gate_hpa70_ca",
+      "law": {},
+      "energy": 152.666307434352,
+      "health": 0.9391493055555555,
+      "avail": 0.9999999999999999,
+      "starts": 29.0,
+      "stops": 27.375,
+      "recover_min": 1.4020833333333336,
+      "energy_gain": 0.09595101568215647
+    },
+    {
+      "tag": "gate_rho95",
+      "arm": "omni_target_gate_hpa70_ca",
+      "law": {
+        "rho0": 0.95
+      },
+      "energy": 149.88849282824762,
+      "health": 0.9394097222222222,
+      "avail": 1.0,
+      "starts": 27.75,
+      "stops": 26.875,
+      "recover_min": 1.3708333333333336,
+      "energy_gain": 0.11240048980303818
+    },
+    {
+      "tag": "gate_rho98",
+      "arm": "omni_target_gate_hpa70_ca",
+      "law": {
+        "rho0": 0.98
+      },
+      "energy": 147.70906498861802,
+      "health": 0.9401909722222223,
+      "avail": 0.9999999999999999,
+      "starts": 26.25,
+      "stops": 26.0,
+      "recover_min": 1.2770833333333333,
+      "energy_gain": 0.12530647775757375
+    },
+    {
+      "tag": "gate_rho95_kE",
+      "arm": "omni_target_gate_hpa70_ca",
+      "law": {
+        "rho0": 0.95,
+        "kE": 0.45
+      },
+      "energy": 151.9244631189183,
+      "health": 0.9391493055555555,
+      "avail": 0.9999999999999999,
+      "starts": 28.625,
+      "stops": 27.625,
+      "recover_min": 1.4020833333333336,
+      "energy_gain": 0.10034401903149204
+    },
+    {
+      "tag": "target_rho95",
+      "arm": "omni_target_hpa70_ca",
+      "law": {
+        "rho0": 0.95
+      },
+      "energy": 158.39828311220703,
+      "health": 0.9378472222222223,
+      "avail": 1.0,
+      "starts": 26.125,
+      "stops": 23.875,
+      "recover_min": 1.5583333333333331,
+      "energy_gain": 0.06200779090135333
+    },
+    {
+      "tag": "target_rho98",
+      "arm": "omni_target_hpa70_ca",
+      "law": {
+        "rho0": 0.98
+      },
+      "energy": 156.56941832054036,
+      "health": 0.9384548611111111,
+      "avail": 0.9999999999999999,
+      "starts": 25.75,
+      "stops": 24.0,
+      "recover_min": 1.5583333333333331,
+      "energy_gain": 0.07283783837644464
+    },
+    {
+      "tag": "target_rho95_kE",
+      "arm": "omni_target_hpa70_ca",
+      "law": {
+        "rho0": 0.95,
+        "kE": 0.5,
+        "kI": 0.35
+      },
+      "energy": 160.75908923332514,
+      "health": 0.937673611111111,
+      "avail": 0.9999999999999999,
+      "starts": 26.625,
+      "stops": 24.0,
+      "recover_min": 1.5270833333333336,
+      "energy_gain": 0.04802772934202115
+    },
+    {
+      "tag": "gate_rho93_kEhi",
+      "arm": "omni_target_gate_hpa70_ca",
+      "law": {
+        "rho0": 0.93,
+        "kE": 0.55,
+        "kI": 0.3
+      },
+      "energy": 153.77911706665657,
+      "health": 0.9385416666666666,
+      "avail": 1.0,
+      "starts": 28.5,
+      "stops": 27.0,
+      "recover_min": 1.4645833333333331,
+      "energy_gain": 0.0893612550812023
+    }
+  ]
+}

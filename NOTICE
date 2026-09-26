@@ -1,0 +1,20 @@
+Omni-Compass
+Copyright (c) 2026 Omni-Compass LLC
+
+This distribution includes a six-state control engine, a C++20 twin, Python
+governors and shields, and simulation harnesses for documented Kubernetes
+HPA / Cluster Autoscaler / metrics-server behaviour.
+
+This is not the upstream Kubernetes, Cluster Autoscaler, or Karpenter
+binaries. Results in this repository are simulation and recorded-trace
+replays unless a file explicitly says otherwise.
+
+Trademarks: Omni-Compass and related logos are trademarks of
+Omni-Compass LLC. Kubernetes is a trademark of The Linux Foundation.
+This project is not affiliated with CNCF, Google, Amazon, or Microsoft.
+
+Patent and copyright filings are the company's. This NOTICE is not a
+filing receipt and does not list application numbers.
+
+Commercial / SaaS contact: rights@omni-compass.example
+(replace before public release)

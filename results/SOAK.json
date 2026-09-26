@@ -1,0 +1,72 @@
+{
+  "power_protect": {
+    "mode": "power_protect",
+    "rss_kb_at_25_50_75_100pct": [
+      3852,
+      3852,
+      3852,
+      3852
+    ],
+    "decisions": 100000000,
+    "nonfinite_or_out_of_range": 0,
+    "rss_kb_start": 3532,
+    "rss_kb_end": 3988,
+    "ns_per_decision": 2553.2,
+    "years_at_5min_interval": 950.6,
+    "E": [
+      0.013382,
+      1.02622
+    ],
+    "U": [
+      0.45248,
+      1.017146
+    ],
+    "I_U": [
+      0.287179,
+      1.65911
+    ],
+    "S": [
+      -0.007592,
+      1.134486
+    ],
+    "B": [
+      0.067196,
+      1.462559
+    ]
+  },
+  "throughput": {
+    "mode": "throughput",
+    "rss_kb_at_25_50_75_100pct": [
+      3916,
+      3916,
+      3916,
+      3916
+    ],
+    "decisions": 100000000,
+    "nonfinite_or_out_of_range": 0,
+    "rss_kb_start": 3596,
+    "rss_kb_end": 3988,
+    "ns_per_decision": 2484.0,
+    "years_at_5min_interval": 950.6,
+    "E": [
+      0.013382,
+      1.02622
+    ],
+    "U": [
+      0.45248,
+      1.017146
+    ],
+    "I_U": [
+      0.287179,
+      1.65911
+    ],
+    "S": [
+      -0.007592,
+      1.134486
+    ],
+    "B": [
+      0.067196,
+      1.462559
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "hpa70_ca": {
+    "energy_kwh": 168.83256184496662,
+    "time_healthy": 0.9298900462962963,
+    "availability": 1.0,
+    "recovery_minutes": 1.867361111111111,
+    "machines_started": 21.458333333333332,
+    "machines_stopped": 12.875,
+    "violation_backlog": 0.0
+  },
+  "omni_target_hpa70_ca": {
+    "energy_kwh": 160.48878843224293,
+    "time_healthy": 0.9295428240740741,
+    "availability": 1.0,
+    "recovery_minutes": 3.909027777777778,
+    "machines_started": 23.416666666666668,
+    "machines_stopped": 21.5,
+    "violation_backlog": 0.0017650462962962965
+  },
+  "omni_target_gate_hpa70_ca": {
+    "energy_kwh": 154.10180835478548,
+    "time_healthy": 0.93203125,
+    "availability": 1.0,
+    "recovery_minutes": 3.054861111111111,
+    "machines_started": 26.416666666666668,
+    "machines_stopped": 24.833333333333332,
+    "violation_backlog": 0.0019097222222222222
+  }
+}

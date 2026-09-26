@@ -1,0 +1,11 @@
+#include "omnicompass/core.hpp"
+#include <fstream>
+#include <iomanip>
+#include <sstream>
+#include <stdexcept>
+#include <unordered_map>
+namespace omnicompass {
+static std::vector<std::string> split(const std::string&s){std::vector<std::string>v;std::stringstream ss(s);std::string x;while(std::getline(ss,x,',')){if(!x.empty() && x.back()=='\r')x.pop_back();v.push_back(x);}return v;}
+std::vector<InputCase> read_inputs(const std::string&path){std::ifstream f(path);if(!f)throw std::runtime_error("cannot open "+path);std::string line;if(!std::getline(f,line))throw std::runtime_error("empty csv");auto h=split(line);std::unordered_map<std::string,size_t>idx;for(size_t i=0;i<h.size();++i)idx[h[i]]=i;auto d=[&](const std::vector<std::string>&r,const char*n){return std::stod(r.at(idx.at(n)));};std::vector<InputCase>out;while(std::getline(f,line)){if(line.empty())continue;auto r=split(line);InputCase x{};x.run_id=int(d(r,"run_id"));x.initial={d(r,"E0"),d(r,"U0"),d(r,"I0"),d(r,"S0"),d(r,"B0"),d(r,"Bdot0")};x.p={d(r,"alpha"),d(r,"beta_int"),d(r,"beta_ext"),d(r,"k"),d(r,"sigma_1"),d(r,"delta"),d(r,"gamma_1"),d(r,"gamma_c"),d(r,"lambda_0"),d(r,"lambda_1"),d(r,"lambda_2"),d(r,"c"),d(r,"E_max"),d(r,"omega_B"),d(r,"Q_B"),d(r,"alpha_s"),d(r,"beta_s"),d(r,"mu"),d(r,"alpha_E"),d(r,"alpha_U"),d(r,"lambda_I"),d(r,"lambda_U")};out.push_back(x);}return out;}
+void write_results(const std::string&path,const std::vector<Result>&rows){std::ofstream f(path);if(!f)throw std::runtime_error("cannot write "+path);f<<"run_id,E,U,I_U,S,B,B_dot,target_sign,born,convey,convey_start,convey_confirm,cert,cert_start,cert_complete,max_streak,actuator_abs_integral,actuator_sq_integral,actuator_peak,actuator_saturated_periods";for(int i=0;i<=20;++i)f<<",U_"<<i;f<<"\n";f<<std::setprecision(17);for(auto&r:rows){f<<r.run_id<<','<<r.final.E<<','<<r.final.U<<','<<r.final.I_U<<','<<r.final.S<<','<<r.final.B<<','<<r.final.B_dot<<','<<r.target_sign<<','<<r.born<<','<<r.convey<<','<<r.convey_start<<','<<r.convey_confirm<<','<<r.cert<<','<<r.cert_start<<','<<r.cert_complete<<','<<r.max_streak<<','<<r.actuator_abs_integral<<','<<r.actuator_sq_integral<<','<<r.actuator_peak<<','<<r.actuator_saturated_periods;for(double u:r.U_hist)f<<','<<u;f<<'\n';}}
+}

@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+"""Fake kubectl: serves and mutates a JSON cluster state (FAKE_KUBE_STATE); logs every mutating call to FAKE_KUBE_LOG."""
+import json, os, sys
+st_path, log_path = os.environ["FAKE_KUBE_STATE"], os.environ["FAKE_KUBE_LOG"]
+st = json.load(open(st_path)); a = sys.argv[1:]
+def save(): json.dump(st, open(st_path, "w"))
+def log(): open(log_path, "a").write(json.dumps(a) + "\n")
+if a[:2] == ["get", "nodes"]: print(json.dumps({"items": st["nodes"]}))
+elif a[:2] == ["get", "pods"]: print(json.dumps({"items": st["pods"]}))
+elif a[:2] == ["get", "hpa"]: print(json.dumps({"items": st["hpas"]}))
+elif a[:2] == ["top", "nodes"]: print("\n".join(f"{n['metadata']['name']} {st['used_per_node']} 10% 1Gi 5%" for n in st["nodes"]))
+elif a[:2] == ["patch", "hpa"]:
+    log(); name = a[2]; ops = json.loads(a[a.index("-p") + 1])
+    for h in st["hpas"]:
+        if h["metadata"]["name"] == name:
+            for op in ops:
+                idx = int(op["path"].split("/")[3]); h["spec"]["metrics"][idx]["resource"]["target"]["averageUtilization"] = op["value"]
+    save()
+elif a[:2] == ["annotate", "hpa"]:
+    log(); name, kv = a[2], a[-1]
+    for h in st["hpas"]:
+        if h["metadata"]["name"] == name:
+            ann = h["metadata"].setdefault("annotations", {})
+            if kv.endswith("-"): ann.pop(kv[:-1], None)
+            else: k, v = kv.split("=", 1); ann[k] = v
+    save()
+else:
+    sys.exit(f"fake kubectl: unsupported {a}")

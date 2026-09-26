@@ -1,0 +1,83 @@
+{
+  "controlled": {
+    "convey5": 500,
+    "cert10": 500,
+    "runs": 500,
+    "actuator_peak": 13.933823446649214,
+    "saturated_microsteps": 0,
+    "convey_confirm_step_counts": {
+      "4": 53,
+      "5": 134,
+      "6": 313
+    }
+  },
+  "wrong_target": {
+    "convey5": 500,
+    "cert10": 500,
+    "runs": 500,
+    "actuator_peak": 25.0,
+    "saturated_microsteps": 5,
+    "convey_confirm_step_counts": {
+      "6": 139,
+      "7": 361
+    }
+  },
+  "uncontrolled": {
+    "convey5": 476,
+    "cert10": 427,
+    "runs": 500,
+    "actuator_peak": 0.0,
+    "saturated_microsteps": 0,
+    "convey_confirm_step_counts": {
+      "4": 39,
+      "5": 32,
+      "6": 37,
+      "7": 45,
+      "8": 62,
+      "9": 60,
+      "10": 47,
+      "11": 30,
+      "12": 29,
+      "13": 24,
+      "14": 14,
+      "15": 11,
+      "16": 12,
+      "17": 14,
+      "18": 10,
+      "19": 6,
+      "20": 4
+    }
+  },
+  "controlled_mu0": {
+    "convey5": 500,
+    "cert10": 500,
+    "runs": 500,
+    "actuator_peak": 14.305580976520819,
+    "saturated_microsteps": 0,
+    "convey_confirm_step_counts": {
+      "4": 53,
+      "5": 139,
+      "6": 308
+    }
+  },
+  "first_order_prediction_of_convey_step": {
+    "matched": 492,
+    "runs": 500
+  },
+  "s_admissibility": {
+    "pass": 500,
+    "runs": 500,
+    "min_margin": 0.19083825086727102
+  },
+  "bath_residual_rms": {
+    "median": 0.004914779573719708,
+    "max": 0.07652880333701817,
+    "runs": 100
+  },
+  "rk4_refinement_run0": {
+    "0.02": 0.0010214065289440022,
+    "0.01": 0.000489536468643692,
+    "0.005": 0.0002274268974846727,
+    "0.0025": 9.725602558674495e-05
+  }
+}

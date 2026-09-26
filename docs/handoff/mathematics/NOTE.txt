@@ -1,0 +1,3 @@
+Removed from the laptop kit to keep the download small (nothing needed for the run):
+- OmniCompass_Mathematical_Closed_Structure.pdf (25 MB) - you already have it; it is also in OmniCompass_HANDOFF.zip.
+- OmniCompass.zip - already unpacked as the OmniCompass/ folder next to this one.

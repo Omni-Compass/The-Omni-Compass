@@ -1,0 +1,17 @@
+# Omni-Compass controller. Starts in observe mode. Kill switch: kubectl -n omni-compass exec deploy/omni-compass -- touch /tmp/omni.kill
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: omni-compass, namespace: omni-compass}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: omni-compass}}
+  template:
+    metadata: {labels: {app: omni-compass}}
+    spec:
+      serviceAccountName: omni-compass
+      containers:
+        - name: controller
+          image: omni-compass:local
+          args: ["--mode", "observe", "--interval", "60", "--audit", "/var/log/omni/audit.jsonl"]
+          volumeMounts: [{name: audit, mountPath: /var/log/omni}]
+      volumes: [{name: audit, emptyDir: {}}]
