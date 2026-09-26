@@ -98,6 +98,7 @@ class Controller:
         self.changed = {}
         self.nodes_restored = False
         self.m = Muscles(self.k, a, self.audit)
+        self.lp_hist = []
 
     def audit(self, rec):
         rec = {"time": time.time(), **rec}
@@ -167,6 +168,12 @@ class Controller:
         lp = extra.pop("latency_pressure", 0.0); p95 = extra.pop("latency_p95_ms", None)
         obs.update(extra)
         obs["queue_ratio"] = min(2.0, max(obs["queue_ratio"], lp))
+        # SLO reflex: while the response-time target is breached, and for --slo-clear decisions after, Omni-Compass may
+        # not pack replicas tighter than the workload's own HPA target and may not cap power (no energy at service's cost)
+        self.lp_hist.append(lp)
+        guarded = bool(getattr(self.a, "latency_file", "")) and getattr(self.a, "slo_ms", 0)
+        n_clear = getattr(self.a, "slo_clear", 3)
+        obs["slo_clean"] = (not guarded) or (len(self.lp_hist) >= n_clear and all(x == 0.0 for x in self.lp_hist[-n_clear:]))
         self.g.nodes = self.rec_n; self.g.current_cap = 1.0
         d = self.g.step(obs, 0)
         floor = max(int(math.ceil(s["req_m"] * (1.0 + self.a.headroom) / per_node)) if s["req_m"] > 0 else self.a.min_nodes, int(math.ceil(s["used_m"] / per_node)))
@@ -178,19 +185,25 @@ class Controller:
                                        "rollback_authorized": bool(d["rollback_authorized"]),
                                        "thermal": round(obs["thermal"], 3), "security_block": obs["security_block"],
                                        "power_stress": round(power_stress, 3), "latency_p95_ms": p95,
-                                       "queue_ratio": round(obs["queue_ratio"], 3)}, "mode": self.a.mode})
+                                       "queue_ratio": round(obs["queue_ratio"], 3), "slo_clean": obs["slo_clean"]}, "mode": self.a.mode})
         if self.a.mode in ("target", "nodepool"):
             want = int(round(rho * 100))
             for h in s["hpas"]:
                 idx, cur = cpu_target(h)
-                if cur is None or abs(cur - want) < self.a.min_target_change:
+                if cur is None:
                     continue
                 ns, name = h["metadata"]["namespace"], h["metadata"]["name"]
+                orig = int(h["metadata"].get("annotations", {}).get(ANNOTATION, cur))
+                want_h = want if obs["slo_clean"] else min(want, orig)
+                if abs(cur - want_h) < self.a.min_target_change and not (not obs["slo_clean"] and cur > orig):
+                    continue
+                if cur == want_h:
+                    continue
                 self.changed.setdefault((ns, name), int(h["metadata"].get("annotations", {}).get(ANNOTATION, cur)))
                 self.k.write(["annotate", "hpa", name, "-n", ns, "--overwrite", f"{ANNOTATION}={self.changed[(ns, name)]}"], "record original target")
                 self.k.write(["patch", "hpa", name, "-n", ns, "--type=json", "-p",
-                              json.dumps([{"op": "replace", "path": f"/spec/metrics/{idx}/resource/target/averageUtilization", "value": want}])],
-                             f"HPA target to rho* = {want}%")
+                              json.dumps([{"op": "replace", "path": f"/spec/metrics/{idx}/resource/target/averageUtilization", "value": want_h}])],
+                             f"HPA target to rho* = {want_h}%" + ("" if obs["slo_clean"] else " (SLO reflex: not tighter than native)"))
             self.m.push(d, obs)
         if self.a.mode == "nodepool" and self.a.node_scale_cmd and rec_n != n:
             cfg = SimpleNamespace(minimum_nodes=self.a.min_nodes, maximum_nodes=self.a.max_nodes)

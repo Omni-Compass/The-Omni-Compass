@@ -64,7 +64,7 @@ if [ "$ARM" = "omni" ]; then
     echo "== can (each muscle's push)"
     echo "patch hpa/php-apache (hpa): $(can patch hpa/php-apache -n default)"
     echo "patch nodes (node pool: cordon/uncordon): $(can patch nodes)"
-    echo "create pods/eviction (node pool: drain): $(can create pods/eviction -n default)"
+    echo "create pods/eviction (node pool: drain): $(can create pods --subresource=eviction -n default)"
     echo "patch pods/resize (power cap, in place): $(can patch pods --subresource=resize -n default)"
     echo "patch deployment/php-apache (rollout guard, cap record): $(can patch deployment/php-apache -n default)"
     echo "get configmap/omni-security (security afferent): $(can get configmap/omni-security -n default)"

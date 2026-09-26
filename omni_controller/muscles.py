@@ -123,6 +123,8 @@ class Muscles:
     def _power_cap(self, cap, obs):
         """In-place pod resize (no restart): each running pod's CPU limit = base limit x cap; the kernel's CFS quota
         enforces it. The deployment template is not changed, so no rollout is triggered."""
+        if not obs.get("slo_clean", True):
+            cap = 1.0  # SLO reflex: no power capping while service is (or was just) over its response-time target
         for target in filter(None, getattr(self.a, "cap_deployments", "").split(",")):
             ns, name = ref(target)
             dep = self.k.get("get", "deployment", name, "-n", ns, "-o", "json")
@@ -149,7 +151,7 @@ class Muscles:
                 self._resize(pod, ns, f"{want}m", f"power_cap: pod CPU limit to {want}m in place (cap {cap:.3f})")
 
     def _hardware(self, cap, obs):
-        cap = max(self.a.cap_min, min(1.0, cap))
+        cap = 1.0 if not obs.get("slo_clean", True) else max(self.a.cap_min, min(1.0, cap))
         if obs.get("security_block", 0.0) > 0.5:
             cap = min(cap, getattr(self, "_last_cap", 1.0))  # shield I1: no expansion during a security hold
         if abs(cap - getattr(self, "_last_cap", 1.0)) < 0.02:
@@ -240,6 +242,7 @@ def add_args(ap):
     ap.add_argument("--latency-file", default="", help="probe CSV (elapsed_seconds,latency_ms,ok) for the latency afferent")
     ap.add_argument("--slo-ms", type=float, default=0.0, help="95th-percentile response-time target, ms")
     ap.add_argument("--latency-window-s", type=float, default=60.0)
+    ap.add_argument("--slo-clear", type=int, default=3, help="decisions the SLO must stay met before densifying or capping again")
     ap.add_argument("--thermal-model", action="store_true", help="heat muscle: thermal state from the harness heat law")
     ap.add_argument("--security-configmap", default="", help="ns/name of a ConfigMap whose key 'hold' signals a security hold")
     ap.add_argument("--rollout-guard", default="", help="ns/name[,ns/name]: rollout muscle pauses, resumes, undoes")
