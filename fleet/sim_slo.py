@@ -214,6 +214,9 @@ class BLaw:
                                 # expects within tone_H are powered off
     tone_H: int = 960
     tone_rho: float = 0.95
+    shift: bool = False         # traffic shift between the site's clusters (multi-cluster sites): a cluster whose pods do
+                                # not fit runs the overflow on another cluster's already-powered spare cores, so the
+                                # platform sees fewer pending pods and adds fewer machines
 
 
 def _omni_on_top(c, before, g, L):
@@ -266,6 +269,35 @@ def _omni_on_top(c, before, g, L):
     return veto, early
 
 
+SHIFT_MS = 5.0   # added response time of requests served in another cluster at the same site
+
+
+def _site_closure(scn, cl, L, push):
+    """Whole body: the closure law on the site total (one forecast, one reserve for all clusters). Machines are added
+    to the cluster with the largest shortfall and released from the one with the largest surplus; traffic shift covers
+    the difference between a cluster's own machines and its own requests."""
+    cs = scn.clusters; c = cs[0].pool.cores * ALLOC
+    n = [x.pool.nodes + len(x.pool.booting) for x in cs]
+    N = sum(n)
+    tgt = cl.decide(N, c, push, sum(x.pool.min_nodes for x in cs), sum(x.pool.max_nodes for x in cs))
+    while tgt > N:
+        i = max(range(len(cs)), key=lambda k: (cs[k].reqs - n[k] * c) if n[k] < cs[k].pool.max_nodes else -1e18)
+        if n[i] >= cs[i].pool.max_nodes:
+            break
+        _resize(cs[i], n[i] + 1, park=True); n[i] += 1; N += 1
+    while tgt < N:
+        i = max(range(len(cs)), key=lambda k: (n[k] * c - cs[k].reqs) if n[k] > cs[k].pool.min_nodes else -1e18)
+        if n[i] <= cs[i].pool.min_nodes:
+            break
+        _resize(cs[i], n[i] - 1, park=L.tone or not cs[i].pool.power_off); n[i] -= 1; N -= 1
+    if L.tone:
+        keep = max(0, cl.reserve(c) - N)
+        tot = sum(x.pool.parked for x in cs)
+        while tot > keep:
+            j = max(range(len(cs)), key=lambda k: cs[k].pool.parked)
+            cs[j].pool.parked -= 1; cs[j]._single_dn = getattr(cs[j], "_single_dn", 0) - 1; tot -= 1
+
+
 def hpa_target(arm):
     return {"k8s_hpa50_ca": 0.5, "k8s_hpa60_ca": 0.6, "k8s_hpa80_ca": 0.8}.get(arm, 0.7)
 
@@ -305,9 +337,12 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
     speed = arm == "omni_speed" or mathd or direct or closure
     CL = closure_law or ClosureLaw()
     cl_nodes = [ClosureNodes(CL) for _ in scn.clusters] if closure else []
+    site = closure and CL.site and len(scn.clusters) > 1   # whole body: one law for the site, traffic shift between clusters
+    cl_site = ClosureNodes(CL) if site else None
     single = arm.startswith("omni_fleet") or arm.startswith("omni_single") or speed
     uses_gov = arm.startswith("omni")
     B = b_law or BLaw()
+    shift = site or (on_top and B.shift and len(scn.clusters) > 1)
     glaw = governor_law if governor_law is not None else (mode_law("fleet", AllocationLaw()) if single else AllocationLaw())
     if single and governor_law is None and not speed:
         omni_every = 4
@@ -336,12 +371,28 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
         site_power = 0.0
         stress_q = []
         tick_r = 0.0; tick_pend = 0.0; tick_dem = tick_srv = 0.0
+        if shift:
+            # traffic shift: a cluster whose pods do not fit runs the overflow on another cluster's spare allocatable
+            # cores (machines already powered); the lent share is split in proportion to spare and to need
+            own = []
+            for c in scn.clusters:
+                p = c.pool
+                ready = p.nodes + sum(1 for b in p.booting if b - 1 <= 0)
+                rq = sum(w.replicas * w.request if w.hpa else w.demand[t] + w.backlog for w in c.workloads)
+                own.append((ready * p.cores * ALLOC, rq))
+            spare = [max(0.0, a - r) for a, r in own]; need = [max(0.0, r - a) for a, r in own]
+            lend = min(sum(spare), sum(need))
+            for c, sp, nd in zip(scn.clusters, spare, need):
+                c._borrow = nd * lend / sum(need) if lend > 0 else 0.0
+                c._lent = sp * lend / sum(spare) if lend > 0 else 0.0
         for ci, c in enumerate(scn.clusters):
             p = c.pool
             p.booting = [b - 1 for b in p.booting]
             p.nodes += sum(1 for b in p.booting if b <= 0)
             p.booting = [b for b in p.booting if b > 0]
             alloc = p.nodes * p.cores * ALLOC
+            if shift:
+                alloc = alloc + c._borrow - c._lent
             reqs = 0.0
             for w in c.workloads:
                 w.req_now = w.replicas * w.request if w.hpa else w.demand[t] + w.backlog
@@ -370,6 +421,8 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                     w.use_hist = getattr(w, "use_hist", []) + [srv / max(1, w.replicas)]
                 if d > 0:
                     r = response_ms(w, d, capw, p.cap, frac, f)
+                    if shift and c._borrow > 0:
+                        r += SHIFT_MS * min(1.0, c._borrow / max(reqs, 1e-9))   # cross-cluster hop for the shifted share
                     rs.append(r); ws.append(d)
             R_all += rs; W_all += ws
             rc = float(np.average(rs, weights=ws)) if ws else S0_MS
@@ -383,7 +436,11 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             if closure:
                 cl_nodes[ci].observe(reqs)
             util = min(1.0, used / max(alloc, 1e-9))
-            if dvfs:
+            if shift and not dvfs:
+                # own machines' idle power; dynamic power follows the work wherever it runs (identical pools)
+                kw = (p.nodes * p.cap * p.idle_kw + p.cap * p.dyn_kw * used / (p.cores * ALLOC) + len(p.booting) * p.idle_kw
+                      + p.parked * p.idle_kw * p.park_frac) * scn.pue
+            elif dvfs:
                 # idle power does not scale with frequency; dynamic power of a core busy b at frequency f is ~ b f^3,
                 # i.e. (work served) x f^2 per core-unit of work
                 kw = (p.nodes * p.idle_kw + p.dyn_kw / (p.cores * ALLOC) * dyn_sum + len(p.booting) * p.idle_kw
@@ -396,6 +453,8 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             node_ticks += p.nodes + len(p.booting)
             c.q = min(2.0, sum(w.backlog for w in c.workloads) / max(cap_rate * 8.0, 1e-9))
             stress_q.append(c.q)
+        if site:
+            cl_site.observe(sum(c.reqs for c in scn.clusters))
         if REC is not None:
             REC.append([c.reqs for c in scn.clusters])
         pstress = site_power / scn.site_limit_kw
@@ -411,6 +470,8 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             for w in c.workloads:
                 w.metric = w.metric_next
         if uses_gov and t % omni_every == 0:
+            if site:
+                _site_closure(scn, cl_site, CL, max(g.g.last_push for g in govs))
             for ci, (c, g) in enumerate(zip(scn.clusters, govs)):
                 load = min(2.0, c.used / max(c.alloc * c.pool.cap, 1e-9)) if c.alloc > 0 else 2.0
                 q = c.q
@@ -428,6 +489,9 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                         g.g.current_cap = p.cap
                         rho, tgt, capn = g.step(obs, n, c.reqs, p.cores * ALLOC)
                     targets[ci] = min(0.95, max(0.4, rho))
+                    if site:
+                        p.cap = 1.0
+                        continue
                     if closure:
                         tgt = cl_nodes[ci].decide(n, p.cores * ALLOC, g.g.last_push, p.min_nodes, p.max_nodes)
                         capn = 1.0

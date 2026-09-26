@@ -45,6 +45,8 @@ class ClosureLaw:
                                # the band is wide where demand is noisy, tight where it is calm)
     tone: bool = False         # muscle tone: release = park (alive, low power, instant wake), not power-off; parked
                                # machines beyond the reserve needed within tone_H are powered off
+    site: bool = False         # whole body (multi-cluster sites): the law runs on the site total, one warm reserve for
+                               # the site, and traffic shift lets a cluster use another's already-powered machines
     tone_H: int = 960          # reserve horizon (ticks): the largest demand seen over this window sets the warm reserve
     dwell: int = 0             # release only after this many consecutive calm decisions (resource-aware envelope,
                                # Proposition 2: no release outside the calm set; 0 = no dwell requirement)
