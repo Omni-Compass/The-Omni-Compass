@@ -1,0 +1,626 @@
+{
+ "B_frozen": {
+  "energy_kwh": {
+   "k8s": 169.4388961339103,
+   "cand": 122.28904753088618,
+   "rel": -0.2782705133168528,
+   "worse": false
+  },
+  "node_start_stop": {
+   "k8s": 6.575,
+   "cand": 10.375,
+   "rel": 0.5779467680608364,
+   "worse": true
+  },
+  "machine_round_trips": {
+   "k8s": 1.15625,
+   "cand": 1.7375,
+   "rel": 0.5027027027027028,
+   "worse": true
+  },
+  "scale_reversals": {
+   "k8s": 2.225,
+   "cand": 1.825,
+   "rel": -0.17977528089887646,
+   "worse": false
+  },
+  "node_hours": {
+   "k8s": 138.58437500000008,
+   "cand": 142.98958333333331,
+   "rel": 0.03178719342157608,
+   "worse": true
+  },
+  "idle_node_hours": {
+   "k8s": 49.2,
+   "cand": 54.645833333333336,
+   "rel": 0.11068766937669375,
+   "worse": true
+  },
+  "mean_queue": {
+   "k8s": 423.005412174247,
+   "cand": 245.00140871847898,
+   "rel": -0.42080786281392424,
+   "worse": false
+  },
+  "p95_queue": {
+   "k8s": 1315.215119786607,
+   "cand": 936.341498760419,
+   "rel": -0.28806969698436863,
+   "worse": false
+  },
+  "violation_backlog": {
+   "k8s": 0.033680555555555554,
+   "cand": 0.01597222222222222,
+   "rel": -0.5257731958762887,
+   "worse": false
+  },
+  "recovery_minutes": {
+   "k8s": 62.9375,
+   "cand": 16.5,
+   "rel": -0.7378351539225422,
+   "worse": false
+  },
+  "power_cap_travel": {
+   "k8s": 0.23945899802490794,
+   "cand": 0.8975756104199799,
+   "rel": 2.7483478082816344,
+   "worse": true
+  },
+  "invariant_violations": {
+   "k8s": 9.8875,
+   "cand": 2.8875,
+   "rel": -0.7079646017699115,
+   "worse": false
+  },
+  "sla_violation_total": {
+   "k8s": 0.1684027777777778,
+   "cand": 0.08177083333333332,
+   "rel": -0.5144329896907217,
+   "worse": false
+  },
+  "pages": {
+   "k8s": 0.75,
+   "cand": 0.0,
+   "rel": -1.0,
+   "worse": false
+  },
+  "time_healthy": {
+   "k8s": 0.7902777777777777,
+   "cand": 0.9053819444444443,
+   "rel": 0.14565026362038652,
+   "worse": false
+  },
+  "availability": {
+   "k8s": 0.9996449731033581,
+   "cand": 0.9999864865181671,
+   "rel": 0.00034163470431789513,
+   "worse": false
+  },
+  "recovered": {
+   "k8s": 0.9,
+   "cand": 1.0,
+   "rel": 0.11111111111111108,
+   "worse": false
+  }
+ },
+ "B_tuned": {
+  "energy_kwh": {
+   "k8s": 169.4388961339103,
+   "cand": 123.17649003439797,
+   "rel": -0.2730329762237733,
+   "worse": false
+  },
+  "node_start_stop": {
+   "k8s": 6.575,
+   "cand": 8.5125,
+   "rel": 0.29467680608365004,
+   "worse": true
+  },
+  "machine_round_trips": {
+   "k8s": 1.15625,
+   "cand": 0.825,
+   "rel": -0.2864864864864865,
+   "worse": false
+  },
+  "scale_reversals": {
+   "k8s": 2.225,
+   "cand": 1.8,
+   "rel": -0.1910112359550562,
+   "worse": false
+  },
+  "node_hours": {
+   "k8s": 138.58437500000008,
+   "cand": 146.20624999999995,
+   "rel": 0.05499808329762912,
+   "worse": true
+  },
+  "idle_node_hours": {
+   "k8s": 49.2,
+   "cand": 57.8625,
+   "rel": 0.1760670731707316,
+   "worse": true
+  },
+  "mean_queue": {
+   "k8s": 423.005412174247,
+   "cand": 245.00284112972037,
+   "rel": -0.4208044765422593,
+   "worse": false
+  },
+  "p95_queue": {
+   "k8s": 1315.215119786607,
+   "cand": 936.341498760419,
+   "rel": -0.28806969698436863,
+   "worse": false
+  },
+  "violation_backlog": {
+   "k8s": 0.033680555555555554,
+   "cand": 0.01597222222222222,
+   "rel": -0.5257731958762887,
+   "worse": false
+  },
+  "recovery_minutes": {
+   "k8s": 62.9375,
+   "cand": 16.5,
+   "rel": -0.7378351539225422,
+   "worse": false
+  },
+  "power_cap_travel": {
+   "k8s": 0.23945899802490794,
+   "cand": 0.897572989039906,
+   "rel": 2.748336861187996,
+   "worse": true
+  },
+  "invariant_violations": {
+   "k8s": 9.8875,
+   "cand": 2.8875,
+   "rel": -0.7079646017699115,
+   "worse": false
+  },
+  "sla_violation_total": {
+   "k8s": 0.1684027777777778,
+   "cand": 0.08177083333333332,
+   "rel": -0.5144329896907217,
+   "worse": false
+  },
+  "pages": {
+   "k8s": 0.75,
+   "cand": 0.0,
+   "rel": -1.0,
+   "worse": false
+  },
+  "time_healthy": {
+   "k8s": 0.7902777777777777,
+   "cand": 0.9053819444444443,
+   "rel": 0.14565026362038652,
+   "worse": false
+  },
+  "availability": {
+   "k8s": 0.9996449731033581,
+   "cand": 0.9999853811665533,
+   "rel": 0.0003405289601351746,
+   "worse": false
+  },
+  "recovered": {
+   "k8s": 0.9,
+   "cand": 1.0,
+   "rel": 0.11111111111111108,
+   "worse": false
+  }
+ },
+ "C_thr_tuned": {
+  "energy_kwh": {
+   "k8s": 169.4388961339103,
+   "cand": 121.87638626222406,
+   "rel": -0.2807059710427812,
+   "worse": false
+  },
+  "node_start_stop": {
+   "k8s": 6.575,
+   "cand": 3.1875,
+   "rel": -0.5152091254752852,
+   "worse": false
+  },
+  "machine_round_trips": {
+   "k8s": 1.15625,
+   "cand": 0.8625,
+   "rel": -0.254054054054054,
+   "worse": false
+  },
+  "scale_reversals": {
+   "k8s": 2.225,
+   "cand": 1.825,
+   "rel": -0.17977528089887646,
+   "worse": false
+  },
+  "node_hours": {
+   "k8s": 138.58437500000008,
+   "cand": 122.43333333333331,
+   "rel": -0.11654302057260613,
+   "worse": false
+  },
+  "idle_node_hours": {
+   "k8s": 49.2,
+   "cand": 36.49583333333332,
+   "rel": -0.25821476964769674,
+   "worse": false
+  },
+  "mean_queue": {
+   "k8s": 423.005412174247,
+   "cand": 1037.1344641699222,
+   "rel": 1.4518231547890914,
+   "worse": true
+  },
+  "p95_queue": {
+   "k8s": 1315.215119786607,
+   "cand": 2794.3713314291754,
+   "rel": 1.1246496404957396,
+   "worse": true
+  },
+  "violation_backlog": {
+   "k8s": 0.033680555555555554,
+   "cand": 0.0765625,
+   "rel": 1.2731958762886602,
+   "worse": true
+  },
+  "recovery_minutes": {
+   "k8s": 62.9375,
+   "cand": 37.375,
+   "rel": -0.40615690168818275,
+   "worse": false
+  },
+  "power_cap_travel": {
+   "k8s": 0.23945899802490794,
+   "cand": 0.684608723331397,
+   "rel": 1.8589809903914558,
+   "worse": true
+  },
+  "invariant_violations": {
+   "k8s": 9.8875,
+   "cand": 0.0,
+   "rel": -1.0,
+   "worse": false
+  },
+  "sla_violation_total": {
+   "k8s": 0.1684027777777778,
+   "cand": 0.14027777777777778,
+   "rel": -0.16701030927835056,
+   "worse": false
+  },
+  "pages": {
+   "k8s": 0.75,
+   "cand": 0.0,
+   "rel": -1.0,
+   "worse": false
+  },
+  "time_healthy": {
+   "k8s": 0.7902777777777777,
+   "cand": 0.8475694444444445,
+   "rel": 0.07249560632688938,
+   "worse": false
+  },
+  "availability": {
+   "k8s": 0.9996449731033581,
+   "cand": 0.9977585151162531,
+   "rel": -0.00188712796829111,
+   "worse": false
+  },
+  "recovered": {
+   "k8s": 0.9,
+   "cand": 0.9625,
+   "rel": 0.06944444444444445,
+   "worse": false
+  }
+ },
+ "B_frozen_v2": {
+  "energy_kwh": {
+   "k8s": 169.4388961339103,
+   "cand": 158.1603706109774,
+   "rel": -0.06656396955052934,
+   "worse": false
+  },
+  "node_start_stop": {
+   "k8s": 6.575,
+   "cand": 11.1625,
+   "rel": 0.6977186311787071,
+   "worse": true
+  },
+  "machine_round_trips": {
+   "k8s": 1.15625,
+   "cand": 1.8375,
+   "rel": 0.5891891891891892,
+   "worse": true
+  },
+  "scale_reversals": {
+   "k8s": 2.225,
+   "cand": 2.0875,
+   "rel": -0.06179775280898884,
+   "worse": false
+  },
+  "node_hours": {
+   "k8s": 138.58437500000008,
+   "cand": 151.73958333333331,
+   "rel": 0.09492562443156545,
+   "worse": true
+  },
+  "idle_node_hours": {
+   "k8s": 49.2,
+   "cand": 63.2125,
+   "rel": 0.28480691056910556,
+   "worse": true
+  },
+  "mean_queue": {
+   "k8s": 423.005412174247,
+   "cand": 198.50776152053373,
+   "rel": -0.5307205160799143,
+   "worse": false
+  },
+  "p95_queue": {
+   "k8s": 1315.215119786607,
+   "cand": 724.5081418401637,
+   "rel": -0.44913335397351967,
+   "worse": false
+  },
+  "violation_backlog": {
+   "k8s": 0.033680555555555554,
+   "cand": 0.012152777777777778,
+   "rel": -0.6391752577319588,
+   "worse": false
+  },
+  "recovery_minutes": {
+   "k8s": 62.9375,
+   "cand": 44.9375,
+   "rel": -0.28599801390268126,
+   "worse": false
+  },
+  "power_cap_travel": {
+   "k8s": 0.23945899802490794,
+   "cand": 0.3737069860300611,
+   "rel": 0.5606303756068878,
+   "worse": true
+  },
+  "invariant_violations": {
+   "k8s": 9.8875,
+   "cand": 4.3875,
+   "rel": -0.5562579013906447,
+   "worse": false
+  },
+  "sla_violation_total": {
+   "k8s": 0.1684027777777778,
+   "cand": 0.17534722222222224,
+   "rel": 0.04123711340206187,
+   "worse": true
+  },
+  "pages": {
+   "k8s": 0.75,
+   "cand": 0.0,
+   "rel": -1.0,
+   "worse": false
+  },
+  "time_healthy": {
+   "k8s": 0.7902777777777777,
+   "cand": 0.7897569444444443,
+   "rel": -0.0006590509666081874,
+   "worse": false
+  },
+  "availability": {
+   "k8s": 0.9996449731033581,
+   "cand": 0.9999908346795205,
+   "rel": 0.0003459844099337992,
+   "worse": false
+  },
+  "recovered": {
+   "k8s": 0.9,
+   "cand": 1.0,
+   "rel": 0.11111111111111108,
+   "worse": false
+  }
+ },
+ "B_tuned_v2": {
+  "energy_kwh": {
+   "k8s": 169.4388961339103,
+   "cand": 158.7362095310126,
+   "rel": -0.06316546464301322,
+   "worse": false
+  },
+  "node_start_stop": {
+   "k8s": 6.575,
+   "cand": 9.5,
+   "rel": 0.4448669201520912,
+   "worse": true
+  },
+  "machine_round_trips": {
+   "k8s": 1.15625,
+   "cand": 0.8375,
+   "rel": -0.27567567567567564,
+   "worse": false
+  },
+  "scale_reversals": {
+   "k8s": 2.225,
+   "cand": 1.8125,
+   "rel": -0.18539325842696633,
+   "worse": false
+  },
+  "node_hours": {
+   "k8s": 138.58437500000008,
+   "cand": 153.83958333333337,
+   "rel": 0.11007884787396326,
+   "worse": true
+  },
+  "idle_node_hours": {
+   "k8s": 49.2,
+   "cand": 65.3125,
+   "rel": 0.3274898373983739,
+   "worse": true
+  },
+  "mean_queue": {
+   "k8s": 423.005412174247,
+   "cand": 198.50150496592377,
+   "rel": -0.5307353067999144,
+   "worse": false
+  },
+  "p95_queue": {
+   "k8s": 1315.215119786607,
+   "cand": 724.5081418401637,
+   "rel": -0.44913335397351967,
+   "worse": false
+  },
+  "violation_backlog": {
+   "k8s": 0.033680555555555554,
+   "cand": 0.012152777777777778,
+   "rel": -0.6391752577319588,
+   "worse": false
+  },
+  "recovery_minutes": {
+   "k8s": 62.9375,
+   "cand": 44.9375,
+   "rel": -0.28599801390268126,
+   "worse": false
+  },
+  "power_cap_travel": {
+   "k8s": 0.23945899802490794,
+   "cand": 0.3732922112427878,
+   "rel": 0.5588982427962838,
+   "worse": true
+  },
+  "invariant_violations": {
+   "k8s": 9.8875,
+   "cand": 4.3875,
+   "rel": -0.5562579013906447,
+   "worse": false
+  },
+  "sla_violation_total": {
+   "k8s": 0.1684027777777778,
+   "cand": 0.17534722222222224,
+   "rel": 0.04123711340206187,
+   "worse": true
+  },
+  "pages": {
+   "k8s": 0.75,
+   "cand": 0.0,
+   "rel": -1.0,
+   "worse": false
+  },
+  "time_healthy": {
+   "k8s": 0.7902777777777777,
+   "cand": 0.7897569444444443,
+   "rel": -0.0006590509666081874,
+   "worse": false
+  },
+  "availability": {
+   "k8s": 0.9996449731033581,
+   "cand": 0.9999879635508713,
+   "rel": 0.00034311226159461437,
+   "worse": false
+  },
+  "recovered": {
+   "k8s": 0.9,
+   "cand": 1.0,
+   "rel": 0.11111111111111108,
+   "worse": false
+  }
+ },
+ "C_thr_tuned_v2": {
+  "energy_kwh": {
+   "k8s": 169.4388961339103,
+   "cand": 166.56527264208444,
+   "rel": -0.016959644788731368,
+   "worse": false
+  },
+  "node_start_stop": {
+   "k8s": 6.575,
+   "cand": 12.15,
+   "rel": 0.8479087452471483,
+   "worse": true
+  },
+  "machine_round_trips": {
+   "k8s": 1.15625,
+   "cand": 1.6625,
+   "rel": 0.4378378378378379,
+   "worse": true
+  },
+  "scale_reversals": {
+   "k8s": 2.225,
+   "cand": 36.6375,
+   "rel": 15.46629213483146,
+   "worse": true
+  },
+  "node_hours": {
+   "k8s": 138.58437500000008,
+   "cand": 169.68645833333335,
+   "rel": 0.22442705632098317,
+   "worse": true
+  },
+  "idle_node_hours": {
+   "k8s": 49.2,
+   "cand": 82.83020833333333,
+   "rel": 0.6835408197831977,
+   "worse": true
+  },
+  "mean_queue": {
+   "k8s": 423.005412174247,
+   "cand": 1034.3010853739202,
+   "rel": 1.4451249454649164,
+   "worse": true
+  },
+  "p95_queue": {
+   "k8s": 1315.215119786607,
+   "cand": 2576.112547331473,
+   "rel": 0.9587005263058761,
+   "worse": true
+  },
+  "violation_backlog": {
+   "k8s": 0.033680555555555554,
+   "cand": 0.06371527777777777,
+   "rel": 0.8917525773195876,
+   "worse": true
+  },
+  "recovery_minutes": {
+   "k8s": 62.9375,
+   "cand": 54.25,
+   "rel": -0.13803376365441908,
+   "worse": false
+  },
+  "power_cap_travel": {
+   "k8s": 0.23945899802490794,
+   "cand": 0.4543746988006466,
+   "rel": 0.8975052203024072,
+   "worse": true
+  },
+  "invariant_violations": {
+   "k8s": 9.8875,
+   "cand": 0.0,
+   "rel": -1.0,
+   "worse": false
+  },
+  "sla_violation_total": {
+   "k8s": 0.1684027777777778,
+   "cand": 0.16979166666666667,
+   "rel": 0.008247422680412342,
+   "worse": false
+  },
+  "pages": {
+   "k8s": 0.75,
+   "cand": 0.0,
+   "rel": -1.0,
+   "worse": false
+  },
+  "time_healthy": {
+   "k8s": 0.7902777777777777,
+   "cand": 0.7805555555555557,
+   "rel": -0.01230228471001739,
+   "worse": true
+  },
+  "availability": {
+   "k8s": 0.9996449731033581,
+   "cand": 0.997052262885399,
+   "rel": -0.0025936310267334933,
+   "worse": true
+  },
+  "recovered": {
+   "k8s": 0.9,
+   "cand": 0.95,
+   "rel": 0.05555555555555548,
+   "worse": false
+  }
+ }
+}
