@@ -1,7 +1,8 @@
 name: benchmark
 # Native vs Omni-Compass on identical six-worker kind clusters, run side by side on two machines at the same time:
 # one arm with Omni-Compass not running, one with Omni-Compass driving. The compare job writes BENCHMARK.md
-# (every gauge side by side, minute-by-minute timeline, significance) to the run summary and the "benchmark" artifact.
+# and BENCHMARK.pdf (every gauge side by side, minute-by-minute timeline, significance) to the run summary and the
+# "benchmark" artifact.
 # Started by hand (Actions -> benchmark -> Run workflow) or by a pushed commit whose message contains [bench].
 on:
   workflow_dispatch:
@@ -46,6 +47,7 @@ jobs:
       - run: >
           python pilot/bench_report.py --native bench-native/capture.csv --omni bench-omni/capture.csv
           --audit bench-omni/audit.jsonl --kill bench-omni/kill_switch.txt --out BENCHMARK.md
+      - run: python pilot/bench_pdf.py BENCHMARK.md BENCHMARK.pdf
       - run: cat BENCHMARK.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with: {name: benchmark, path: "BENCHMARK.*"}
