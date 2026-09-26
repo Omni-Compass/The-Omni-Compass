@@ -1,0 +1,196 @@
+{
+ "picks": {
+  "web": {
+   "k8s_hpa70_ca": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": true,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "openshift": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": true,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "gke_optimize": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "aks_nap": {
+    "tone_H": 0,
+    "rho": 0.75,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "turbonomic": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "cast_ai": {
+    "tone_H": 0,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "spot_ocean": {
+    "tone_H": 0,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   }
+  },
+  "multi": {
+   "k8s_hpa70_ca": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": true,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "openshift": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": true,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "gke_optimize": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "aks_nap": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "turbonomic": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "cast_ai": {
+    "tone_H": 0,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 40,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "spot_ocean": {
+    "tone_H": 0,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   }
+  }
+ },
+ "sha256": "5a32010aef4f8758ee69aef6f7f8d141ccaf9b8a6f79b1e5254c291fc2008ee6",
+ "base_settings": "tuning/CLOSURE_FINAL_DEV.json",
+ "heldout_seeds": [
+  700801,
+  700802,
+  700803,
+  700804,
+  700805,
+  700806,
+  700807,
+  700808,
+  700809,
+  700810,
+  700811,
+  700812,
+  700813,
+  700814,
+  700815,
+  700816,
+  700817,
+  700818,
+  700819,
+  700820,
+  700821,
+  700822,
+  700823,
+  700824,
+  700825,
+  700826,
+  700827,
+  700828,
+  700829,
+  700830
+ ]
+}

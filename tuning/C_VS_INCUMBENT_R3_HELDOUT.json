@@ -1,0 +1,754 @@
+{
+ "seeds": [
+  700801,
+  700802,
+  700803,
+  700804,
+  700805,
+  700806,
+  700807,
+  700808,
+  700809,
+  700810,
+  700811,
+  700812,
+  700813,
+  700814,
+  700815,
+  700816,
+  700817,
+  700818,
+  700819,
+  700820,
+  700821,
+  700822,
+  700823,
+  700824,
+  700825,
+  700826,
+  700827,
+  700828,
+  700829,
+  700830
+ ],
+ "picks": {
+  "web": {
+   "k8s_hpa70_ca": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": true,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "openshift": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": true,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "gke_optimize": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "aks_nap": {
+    "tone_H": 0,
+    "rho": 0.75,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "turbonomic": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "cast_ai": {
+    "tone_H": 0,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "spot_ocean": {
+    "tone_H": 0,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   }
+  },
+  "multi": {
+   "k8s_hpa70_ca": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": true,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "openshift": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": true,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "gke_optimize": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "aks_nap": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "turbonomic": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "cast_ai": {
+    "tone_H": 0,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 40,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "spot_ocean": {
+    "tone_H": 0,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   }
+  }
+ },
+ "cells": {
+  "web": {
+   "k8s_hpa70_ca": [
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "start_stop",
+     "competitor_value": 9.366666666666667,
+     "omni_value": 10.866666666666667,
+     "omni_worse_by_pct": 16.01423487544484
+    }
+   ],
+   "openshift": [
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "start_stop",
+     "competitor_value": 7.8,
+     "omni_value": 11.033333333333333,
+     "omni_worse_by_pct": 41.452991452991455
+    }
+   ],
+   "gke_optimize": [
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 11.023055373524574,
+     "omni_value": 11.184847040191244,
+     "omni_worse_by_pct": 1.4677569982571523
+    }
+   ],
+   "aks_nap": [
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "p95_ms",
+     "competitor_value": 127.73814235436063,
+     "omni_value": 133.11192766467988,
+     "omni_worse_by_pct": 4.206876044440749
+    },
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "start_stop",
+     "competitor_value": 19.566666666666666,
+     "omni_value": 20.766666666666666,
+     "omni_worse_by_pct": 6.132879045996593
+    }
+   ],
+   "turbonomic": [
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "p95_ms",
+     "competitor_value": 118.43508288485195,
+     "omni_value": 123.70059431157446,
+     "omni_worse_by_pct": 4.445905130865556
+    }
+   ],
+   "cast_ai": [
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 10.267055373524576,
+     "omni_value": 10.363522040191242,
+     "omni_worse_by_pct": 0.9395748163141399
+    },
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "node_hours",
+     "competitor_value": 23.363472222222224,
+     "omni_value": 23.765416666666667,
+     "omni_worse_by_pct": 1.7203968683307869
+    }
+   ],
+   "spot_ocean": []
+  },
+  "multi": {
+   "k8s_hpa70_ca": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "start_stop",
+     "competitor_value": 39.03333333333333,
+     "omni_value": 44.86666666666667,
+     "omni_worse_by_pct": 14.944491887275833
+    }
+   ],
+   "openshift": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "start_stop",
+     "competitor_value": 30.233333333333334,
+     "omni_value": 44.63333333333333,
+     "omni_worse_by_pct": 47.62954796030871
+    },
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "node_reversals",
+     "competitor_value": 2.7,
+     "omni_value": 4.666666666666667,
+     "omni_worse_by_pct": 72.83950617283949
+    }
+   ],
+   "gke_optimize": [],
+   "aks_nap": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 41.73803809580109,
+     "omni_value": 42.386556916538936,
+     "omni_worse_by_pct": 1.5537836715020346
+    }
+   ],
+   "turbonomic": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "p95_ms",
+     "competitor_value": 117.78496349987273,
+     "omni_value": 123.989239604106,
+     "omni_worse_by_pct": 5.267460225718867
+    }
+   ],
+   "cast_ai": [],
+   "spot_ocean": []
+  }
+ },
+ "means": {
+  "web": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": {
+     "incumbent": 13.386155373524577,
+     "omni": 11.57021370685791
+    },
+    "node_hours": {
+     "incumbent": 36.359722222222224,
+     "omni": 27.13361111111111
+    },
+    "p95_ms": {
+     "incumbent": 126.14724949495215,
+     "omni": 123.39846469366115
+    },
+    "p99_ms": {
+     "incumbent": 2944.3374372965104,
+     "omni": 196.56718526514587
+    },
+    "mean_ms": {
+     "incumbent": 259.5552192356827,
+     "omni": 156.52466334510802
+    },
+    "start_stop": {
+     "incumbent": 9.366666666666667,
+     "omni": 10.866666666666667
+    },
+    "work_completed": {
+     "incumbent": 0.9999922441716662,
+     "omni": 0.9999922441716663
+    }
+   },
+   "openshift": {
+    "energy_kwh": {
+     "incumbent": 13.978888706857905,
+     "omni": 11.203013706857906
+    },
+    "node_hours": {
+     "incumbent": 38.82944444444445,
+     "omni": 25.39041666666667
+    },
+    "p95_ms": {
+     "incumbent": 125.96495542294419,
+     "omni": 123.60981022494653
+    },
+    "p99_ms": {
+     "incumbent": 2599.277599806926,
+     "omni": 201.7928127371655
+    },
+    "mean_ms": {
+     "incumbent": 254.7703266714622,
+     "omni": 158.07303290533025
+    },
+    "start_stop": {
+     "incumbent": 7.8,
+     "omni": 11.033333333333333
+    },
+    "work_completed": {
+     "incumbent": 0.9999922441716662,
+     "omni": 0.9999922441716662
+    }
+   },
+   "gke_optimize": {
+    "energy_kwh": {
+     "incumbent": 11.023055373524574,
+     "omni": 11.184847040191244
+    },
+    "node_hours": {
+     "incumbent": 26.513472222222223,
+     "omni": 25.52791666666667
+    },
+    "p95_ms": {
+     "incumbent": 127.47631362485119,
+     "omni": 123.45589391173048
+    },
+    "p99_ms": {
+     "incumbent": 6197.621899781962,
+     "omni": 196.89978734389916
+    },
+    "mean_ms": {
+     "incumbent": 320.0832446136165,
+     "omni": 156.56969404204463
+    },
+    "start_stop": {
+     "incumbent": 16.4,
+     "omni": 11.6
+    },
+    "work_completed": {
+     "incumbent": 0.9999922441716662,
+     "omni": 0.9999922441716663
+    }
+   },
+   "aks_nap": {
+    "energy_kwh": {
+     "incumbent": 10.510922040191243,
+     "omni": 10.512255373524575
+    },
+    "node_hours": {
+     "incumbent": 24.379583333333336,
+     "omni": 24.385138888888886
+    },
+    "p95_ms": {
+     "incumbent": 127.73814235436063,
+     "omni": 133.11192766467988
+    },
+    "p99_ms": {
+     "incumbent": 6181.250594124696,
+     "omni": 930.7001879246585
+    },
+    "mean_ms": {
+     "incumbent": 322.36001583863316,
+     "omni": 173.6035900365311
+    },
+    "start_stop": {
+     "incumbent": 19.566666666666666,
+     "omni": 20.766666666666666
+    },
+    "work_completed": {
+     "incumbent": 0.9999922441716662,
+     "omni": 0.9999922441716663
+    }
+   },
+   "turbonomic": {
+    "energy_kwh": {
+     "incumbent": 10.98724399383607,
+     "omni": 10.803022040191241
+    },
+    "node_hours": {
+     "incumbent": 26.364305555555553,
+     "omni": 23.731388888888887
+    },
+    "p95_ms": {
+     "incumbent": 118.43508288485195,
+     "omni": 123.70059431157446
+    },
+    "p99_ms": {
+     "incumbent": 6951.773994145623,
+     "omni": 202.4705852970745
+    },
+    "mean_ms": {
+     "incumbent": 367.0655193756069,
+     "omni": 158.1752399101175
+    },
+    "start_stop": {
+     "incumbent": 13.1,
+     "omni": 11.933333333333334
+    },
+    "work_completed": {
+     "incumbent": 0.9999901397168997,
+     "omni": 0.9999922441716662
+    }
+   },
+   "cast_ai": {
+    "energy_kwh": {
+     "incumbent": 10.267055373524576,
+     "omni": 10.363522040191242
+    },
+    "node_hours": {
+     "incumbent": 23.363472222222224,
+     "omni": 23.765416666666667
+    },
+    "p95_ms": {
+     "incumbent": 128.38682653865075,
+     "omni": 124.4497356641827
+    },
+    "p99_ms": {
+     "incumbent": 6840.141582858643,
+     "omni": 1363.7603681542485
+    },
+    "mean_ms": {
+     "incumbent": 340.3128077604286,
+     "omni": 173.82057979072138
+    },
+    "start_stop": {
+     "incumbent": 25.266666666666666,
+     "omni": 24.8
+    },
+    "work_completed": {
+     "incumbent": 0.9999922441716663,
+     "omni": 0.9999922441716662
+    }
+   },
+   "spot_ocean": {
+    "energy_kwh": {
+     "incumbent": 10.494222040191241,
+     "omni": 10.363522040191242
+    },
+    "node_hours": {
+     "incumbent": 24.310000000000006,
+     "omni": 23.765416666666667
+    },
+    "p95_ms": {
+     "incumbent": 127.82821508716322,
+     "omni": 124.4497356641827
+    },
+    "p99_ms": {
+     "incumbent": 6300.614018496052,
+     "omni": 1363.7603681542485
+    },
+    "mean_ms": {
+     "incumbent": 329.6648443635171,
+     "omni": 173.82057979072138
+    },
+    "start_stop": {
+     "incumbent": 26.866666666666667,
+     "omni": 24.8
+    },
+    "work_completed": {
+     "incumbent": 0.9999922441716662,
+     "omni": 0.9999922441716662
+    }
+   }
+  },
+  "multi": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": {
+     "incumbent": 53.17997142913441,
+     "omni": 45.488423583205595
+    },
+    "node_hours": {
+     "incumbent": 143.7208333333333,
+     "omni": 104.50666666666667
+    },
+    "p95_ms": {
+     "incumbent": 124.51521118745751,
+     "omni": 123.95784315890661
+    },
+    "p99_ms": {
+     "incumbent": 540.2931320518687,
+     "omni": 159.96460206898652
+    },
+    "mean_ms": {
+     "incumbent": 235.2003959767398,
+     "omni": 168.08565389914622
+    },
+    "start_stop": {
+     "incumbent": 39.03333333333333,
+     "omni": 44.86666666666667
+    },
+    "work_completed": {
+     "incumbent": 0.999993442434158,
+     "omni": 0.999995749096851
+    }
+   },
+   "openshift": {
+    "energy_kwh": {
+     "incumbent": 55.46687142913443,
+     "omni": 44.109881916538924
+    },
+    "node_hours": {
+     "incumbent": 153.24958333333328,
+     "omni": 98.66777777777777
+    },
+    "p95_ms": {
+     "incumbent": 124.31252228401996,
+     "omni": 124.16363080233246
+    },
+    "p99_ms": {
+     "incumbent": 389.1827168579877,
+     "omni": 162.53618045156128
+    },
+    "mean_ms": {
+     "incumbent": 231.1745113698673,
+     "omni": 173.36265050781464
+    },
+    "start_stop": {
+     "incumbent": 30.233333333333334,
+     "omni": 44.63333333333333
+    },
+    "work_completed": {
+     "incumbent": 0.999993442434158,
+     "omni": 0.9999957490968511
+    }
+   },
+   "gke_optimize": {
+    "energy_kwh": {
+     "incumbent": 43.92447142913442,
+     "omni": 43.84452358320561
+    },
+    "node_hours": {
+     "incumbent": 105.15624999999999,
+     "omni": 97.66736111111112
+    },
+    "p95_ms": {
+     "incumbent": 125.33373116134125,
+     "omni": 123.989239604106
+    },
+    "p99_ms": {
+     "incumbent": 2370.618400656261,
+     "omni": 160.70633766653336
+    },
+    "mean_ms": {
+     "incumbent": 275.71750076981465,
+     "omni": 168.5886498815299
+    },
+    "start_stop": {
+     "incumbent": 67.2,
+     "omni": 47.833333333333336
+    },
+    "work_completed": {
+     "incumbent": 0.999993442434158,
+     "omni": 0.9999957490968511
+    }
+   },
+   "aks_nap": {
+    "energy_kwh": {
+     "incumbent": 41.73803809580109,
+     "omni": 42.386556916538936
+    },
+    "node_hours": {
+     "incumbent": 96.0461111111111,
+     "omni": 91.50791666666666
+    },
+    "p95_ms": {
+     "incumbent": 125.65262720168471,
+     "omni": 124.22491936448232
+    },
+    "p99_ms": {
+     "incumbent": 3164.020581369231,
+     "omni": 165.07052288170678
+    },
+    "mean_ms": {
+     "incumbent": 293.70077917716696,
+     "omni": 173.99974468752148
+    },
+    "start_stop": {
+     "incumbent": 79.1,
+     "omni": 47.5
+    },
+    "work_completed": {
+     "incumbent": 0.999993442434158,
+     "omni": 0.9999957490968511
+    }
+   },
+   "turbonomic": {
+    "energy_kwh": {
+     "incumbent": 43.76095952335678,
+     "omni": 43.84452358320561
+    },
+    "node_hours": {
+     "incumbent": 104.47680555555556,
+     "omni": 97.66736111111112
+    },
+    "p95_ms": {
+     "incumbent": 117.78496349987273,
+     "omni": 123.989239604106
+    },
+    "p99_ms": {
+     "incumbent": 11272.92953836717,
+     "omni": 160.70633766653336
+    },
+    "mean_ms": {
+     "incumbent": 544.1141557062631,
+     "omni": 168.5886498815299
+    },
+    "start_stop": {
+     "incumbent": 52.96666666666667,
+     "omni": 47.833333333333336
+    },
+    "work_completed": {
+     "incumbent": 0.9999701428908908,
+     "omni": 0.9999957490968511
+    }
+   },
+   "cast_ai": {
+    "energy_kwh": {
+     "incumbent": 41.13327142913442,
+     "omni": 40.66004858320561
+    },
+    "node_hours": {
+     "incumbent": 93.52624999999999,
+     "omni": 91.55430555555557
+    },
+    "p95_ms": {
+     "incumbent": 126.1213131096698,
+     "omni": 125.19689562106579
+    },
+    "p99_ms": {
+     "incumbent": 3980.592018385291,
+     "omni": 665.0025026230209
+    },
+    "mean_ms": {
+     "incumbent": 311.79437080400754,
+     "omni": 190.79711169688537
+    },
+    "start_stop": {
+     "incumbent": 98.46666666666667,
+     "omni": 99.96666666666667
+    },
+    "work_completed": {
+     "incumbent": 0.9999934424341581,
+     "omni": 0.9999957490968511
+    }
+   },
+   "spot_ocean": {
+    "energy_kwh": {
+     "incumbent": 41.8417714291344,
+     "omni": 40.65384858320562
+    },
+    "node_hours": {
+     "incumbent": 96.47833333333334,
+     "omni": 91.52847222222223
+    },
+    "p95_ms": {
+     "incumbent": 125.63284414948878,
+     "omni": 125.19890787654847
+    },
+    "p99_ms": {
+     "incumbent": 2863.8749217988307,
+     "omni": 665.0043333976944
+    },
+    "mean_ms": {
+     "incumbent": 284.9383619888901,
+     "omni": 190.80423219705386
+    },
+    "start_stop": {
+     "incumbent": 106.6,
+     "omni": 100.43333333333334
+    },
+    "work_completed": {
+     "incumbent": 0.999993442434158,
+     "omni": 0.9999957490968511
+    }
+   }
+  }
+ }
+}
