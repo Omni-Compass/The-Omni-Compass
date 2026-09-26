@@ -1,0 +1,411 @@
+{
+ "web": {
+  "setting": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false
+  },
+  "losing_cells": 0,
+  "losses": [],
+  "gains_pct": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "openshift": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "gke_optimize": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "aks_nap": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "turbonomic": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "violation_backlog": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "cast_ai": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "spot_ocean": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   }
+  }
+ },
+ "multi": {
+  "setting": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false
+  },
+  "losing_cells": 0,
+  "losses": [],
+  "gains_pct": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "openshift": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "gke_optimize": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "aks_nap": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "turbonomic": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "violation_backlog": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "cast_ai": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "spot_ocean": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   }
+  }
+ },
+ "batch": {
+  "setting": {
+   "lag": 16,
+   "rise": 0.02,
+   "lead": 6,
+   "early": true,
+   "veto": true
+  },
+  "losing_cells": 1,
+  "losses": [
+   {
+    "vessel": "batch",
+    "competitor": "aks_nap",
+    "gauge": "node_hours",
+    "competitor_value": 83.59861111111111,
+    "omni_value": 84.03708333333333,
+    "omni_worse_by_pct": 0.5244970178265865
+   }
+  ],
+  "gains_pct": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": 0.2508295122434754,
+    "p95_ms": 0.0,
+    "p99_ms": 71.87858630432801,
+    "mean_ms": 18.074995996685463,
+    "start_stop": 17.68867924528302,
+    "node_reversals": 89.65517241379311,
+    "node_hours": 0.5886056813485172,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "openshift": {
+    "energy_kwh": 0.3809349731026168,
+    "p95_ms": 0.0,
+    "p99_ms": 73.42324505163337,
+    "mean_ms": 20.057336108012652,
+    "start_stop": 21.633554083885205,
+    "node_reversals": 80.0,
+    "node_hours": 0.8924940873822753,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "gke_optimize": {
+    "energy_kwh": 0.41791525529751616,
+    "p95_ms": 0.0,
+    "p99_ms": 75.56569308567104,
+    "mean_ms": 26.138315913906073,
+    "start_stop": 21.561771561771565,
+    "node_reversals": 3.0927835051546415,
+    "node_hours": 1.017945654359838,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "aks_nap": {
+    "energy_kwh": -0.20167703914624036,
+    "p95_ms": 85.83672877078457,
+    "p99_ms": 45.75174863472686,
+    "mean_ms": 34.15677661878897,
+    "violation_backlog": 54.545454545454554,
+    "start_stop": 17.265143271672116,
+    "node_reversals": 3.51123595505619,
+    "node_hours": -0.5244970178265786,
+    "work_completed": 0.0013065931051866623,
+    "time_healthy": 0.04401612380112815
+   },
+   "turbonomic": {
+    "energy_kwh": 0.33695388996541836,
+    "p95_ms": 2.145922746781298,
+    "p99_ms": 69.1350808924577,
+    "mean_ms": 28.466039485739014,
+    "start_stop": 20.248328557784145,
+    "node_reversals": 32.35294117647059,
+    "node_hours": 0.8288119259917454,
+    "work_completed": 0.0,
+    "time_healthy": 0.004629843974266194
+   },
+   "cast_ai": {
+    "energy_kwh": 0.03034835814258344,
+    "p95_ms": 25.313872808628357,
+    "p99_ms": 14.786829665171577,
+    "mean_ms": 20.553928995953488,
+    "violation_backlog": 88.23529411764706,
+    "start_stop": 8.799999999999995,
+    "node_reversals": -0.8980115458627225,
+    "node_hours": 0.07893161814710267,
+    "work_completed": 0.0002957945584879825,
+    "time_healthy": 0.04400592921993647
+   },
+   "spot_ocean": {
+    "energy_kwh": -0.18733048829316432,
+    "p95_ms": 21.832833237724355,
+    "p99_ms": 12.907162909250527,
+    "mean_ms": 10.36122015685587,
+    "violation_backlog": 100.0,
+    "start_stop": 11.02670349907919,
+    "node_reversals": 12.71701388888889,
+    "node_hours": -0.49125926123964214,
+    "work_completed": 0.0,
+    "time_healthy": 0.023153507756421315
+   }
+  }
+ },
+ "gpu": {
+  "setting": {
+   "lag": 16,
+   "rise": 0.0,
+   "lead": 3,
+   "early": true,
+   "veto": false
+  },
+  "losing_cells": 0,
+  "losses": [],
+  "gains_pct": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": 0.01183205563977825,
+    "p95_ms": -0.039142862641481965,
+    "p99_ms": -0.04968420236256936,
+    "mean_ms": -0.03907825235038623,
+    "violation_backlog": -0.13785972772703176,
+    "violation_power": 0.037155728948966835,
+    "violation_heat": 0.08171269815327968,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.040419270454877705,
+    "work_completed": -0.003962728930074466,
+    "time_healthy": -0.055376560612151245
+   },
+   "openshift": {
+    "energy_kwh": 0.10838366642922645,
+    "p95_ms": 0.018589009394950617,
+    "p99_ms": 0.019074880411098713,
+    "mean_ms": 0.024198521827154755,
+    "violation_backlog": -0.14642549526271367,
+    "violation_power": -1.573623079805158,
+    "violation_heat": 0.021747403903658057,
+    "start_stop": 3.321033210332111,
+    "node_reversals": 6.666666666666672,
+    "node_hours": 0.47822889619233666,
+    "work_completed": -0.0008163598348242681,
+    "time_healthy": -0.09117617262688894
+   },
+   "gke_optimize": {
+    "energy_kwh": -0.01615708556825173,
+    "p95_ms": 0.025258755580966182,
+    "p99_ms": 0.025273343059927844,
+    "mean_ms": 0.026985373597248806,
+    "violation_backlog": 0.06823027718549808,
+    "violation_power": 0.0,
+    "violation_heat": -0.016517095193514676,
+    "start_stop": -0.18198362147407637,
+    "node_reversals": -0.8695652173913012,
+    "node_hours": -0.07464860972985442,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "aks_nap": {
+    "energy_kwh": -0.00910219492131802,
+    "p95_ms": 0.01463125339769858,
+    "p99_ms": 0.015400357972763666,
+    "mean_ms": 0.004525881112144494,
+    "violation_backlog": 0.05032290530907437,
+    "violation_power": 0.0,
+    "violation_heat": 0.02797828884784949,
+    "start_stop": -0.05307855626327794,
+    "node_reversals": -0.7499999999999973,
+    "node_hours": -0.044497565569249414,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "turbonomic": {
+    "energy_kwh": -0.022563140216006076,
+    "p95_ms": 0.01661915543407101,
+    "p99_ms": 0.017249859882717128,
+    "mean_ms": 0.006132264984499811,
+    "violation_backlog": 0.08571918395337531,
+    "violation_power": 0.009225092250938698,
+    "violation_heat": -0.0055087313391690455,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": -0.10594392100663937,
+    "work_completed": 0.0,
+    "time_healthy": 0.030412083734608637
+   },
+   "cast_ai": {
+    "energy_kwh": -0.005503919277026185,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": -0.01138498320714245,
+    "start_stop": -0.29455081001471073,
+    "node_reversals": -1.3015184381778695,
+    "node_hours": -0.026888183935858935,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "spot_ocean": {
+    "energy_kwh": -0.006840996812752944,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "violation_backlog": 0.0,
+    "violation_power": -0.03925802335852219,
+    "violation_heat": -0.0056436593487045475,
+    "start_stop": -0.2791996277338138,
+    "node_reversals": -1.330376940133033,
+    "node_hours": -0.033702933461535856,
+    "work_completed": 0.0,
+    "time_healthy": -0.03826835685242599
+   }
+  }
+ }
+}
