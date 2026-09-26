@@ -66,6 +66,7 @@ if [ "$ARM" = "omni" ]; then
     echo "patch nodes (node pool: cordon/uncordon): $(can patch nodes)"
     echo "create pods/eviction (node pool: drain): $(can create pods --subresource=eviction -n default)"
     echo "patch pods/resize (power cap, in place): $(can patch pods --subresource=resize -n default)"
+    echo "get pods/resize (power cap reads before it writes): $(can get pods --subresource=resize -n default)"
     echo "patch deployment/php-apache (rollout guard, cap record): $(can patch deployment/php-apache -n default)"
     echo "get configmap/omni-security (security afferent): $(can get configmap/omni-security -n default)"
     echo "== cannot"
@@ -150,4 +151,5 @@ if [ "$ARM" = "omni" ]; then
   echo "-- controller.log (last 40 lines)"; tail -n 40 "$OUT_DIR/controller.log" || true
   echo "-- audit errors (last 10)"; grep '"error"\|"failsafe"' "$OUT_DIR/audit.jsonl" | tail -n 10 || true
   [ $(( decisions * 10 )) -ge $(( expected * 8 )) ] || { echo "INVALID RUN: the controller stopped early"; exit 1; }
+  ! grep -q '"failsafe"' "$OUT_DIR/audit.jsonl" || { echo "INVALID RUN: the fail-safe handed control back to native"; exit 1; }
 fi

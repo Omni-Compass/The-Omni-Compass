@@ -67,9 +67,9 @@ rules:
     resources: ["deployments"]
     resourceNames: ["php-apache"]
     verbs: ["get", "patch", "update"]
-  - apiGroups: [""]                       # power-cap muscle: in-place pod resize only (no pod create/delete)
-    resources: ["pods/resize"]
-    verbs: ["patch"]
+  - apiGroups: [""]                       # power-cap muscle: in-place pod resize only (no pod create/delete);
+    resources: ["pods/resize"]            # kubectl reads the subresource before patching it
+    verbs: ["get", "patch"]
   - apiGroups: [""]                       # security afferent: the one hold ConfigMap, read-only
     resources: ["configmaps"]
     resourceNames: ["omni-security"]
