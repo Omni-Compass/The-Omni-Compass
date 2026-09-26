@@ -1,0 +1,338 @@
+{
+ "web": {
+  "k8s_hpa70_ca": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 240,
+   "tone_rho": 0.95,
+   "pack": 0.0
+  },
+  "openshift": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 960,
+   "tone_rho": 0.99,
+   "pack": 0.0
+  },
+  "gke_optimize": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 960,
+   "tone_rho": 0.95,
+   "pack": 0.8
+  },
+  "aks_nap": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 24,
+   "tone_rho": 0.95,
+   "pack": 0.0
+  },
+  "turbonomic": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 96,
+   "tone_rho": 0.95,
+   "pack": 0.0
+  },
+  "cast_ai": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 24,
+   "tone_rho": 0.95,
+   "pack": 0.95
+  },
+  "spot_ocean": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 96,
+   "tone_rho": 0.99,
+   "pack": 0.9
+  }
+ },
+ "multi": {
+  "k8s_hpa70_ca": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 240,
+   "tone_rho": 0.95,
+   "pack": 0.0
+  },
+  "openshift": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 960,
+   "tone_rho": 0.95,
+   "pack": 0.0
+  },
+  "gke_optimize": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 960,
+   "tone_rho": 0.95,
+   "pack": 0.8
+  },
+  "aks_nap": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 960,
+   "tone_rho": 0.95,
+   "pack": 0.95
+  },
+  "turbonomic": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 96,
+   "tone_rho": 0.95,
+   "pack": 0.0
+  },
+  "cast_ai": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  },
+  "spot_ocean": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 24,
+   "tone_rho": 0.99,
+   "pack": 0.8
+  }
+ },
+ "batch": {
+  "k8s_hpa70_ca": {
+   "lag": 16,
+   "rise": 0.0,
+   "lead": 12,
+   "early": true,
+   "veto": true,
+   "tone": true,
+   "tone_H": 960,
+   "tone_rho": 0.95,
+   "pack": 0.0
+  },
+  "openshift": {
+   "lag": 16,
+   "rise": 0.0,
+   "lead": 12,
+   "early": true,
+   "veto": true
+  },
+  "gke_optimize": {
+   "lag": 8,
+   "rise": 0.0,
+   "lead": 6,
+   "early": true,
+   "veto": true,
+   "tone": true,
+   "tone_H": 960,
+   "tone_rho": 0.95,
+   "pack": 0.0
+  },
+  "aks_nap": {
+   "lag": 16,
+   "rise": 0.0,
+   "lead": 3,
+   "early": true,
+   "veto": true,
+   "tone": true,
+   "tone_H": 960,
+   "tone_rho": 0.95,
+   "pack": 0.95
+  },
+  "turbonomic": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 6,
+   "early": true,
+   "veto": true,
+   "tone": true,
+   "tone_H": 240,
+   "tone_rho": 0.99,
+   "pack": 0.0
+  },
+  "cast_ai": {
+   "lag": 16,
+   "rise": 0.0,
+   "lead": 12,
+   "early": true,
+   "veto": true,
+   "tone": true,
+   "tone_H": 240,
+   "tone_rho": 0.95,
+   "pack": 0.0
+  },
+  "spot_ocean": {
+   "lag": 16,
+   "rise": 0.05,
+   "lead": 3,
+   "early": true,
+   "veto": true,
+   "tone": true,
+   "tone_H": 24,
+   "tone_rho": 0.95,
+   "pack": 0.95
+  }
+ },
+ "gpu": {
+  "k8s_hpa70_ca": {
+   "lag": 8,
+   "rise": 0.0,
+   "lead": 3,
+   "early": true,
+   "veto": true,
+   "tone": true,
+   "tone_H": 960,
+   "tone_rho": 0.95,
+   "pack": 0.0
+  },
+  "openshift": {
+   "lag": 16,
+   "rise": 0.0,
+   "lead": 3,
+   "early": true,
+   "veto": false,
+   "tone": true,
+   "tone_H": 960,
+   "tone_rho": 0.95,
+   "pack": 0.0
+  },
+  "gke_optimize": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "tone": true,
+   "tone_H": 240,
+   "tone_rho": 0.95,
+   "pack": 0.0
+  },
+  "aks_nap": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "tone": true,
+   "tone_H": 960,
+   "tone_rho": 0.95,
+   "pack": 0.95
+  },
+  "turbonomic": {
+   "lag": 8,
+   "rise": 0.0,
+   "lead": 3,
+   "early": true,
+   "veto": false,
+   "tone": true,
+   "tone_H": 96,
+   "tone_rho": 0.95,
+   "pack": 0.0
+  },
+  "cast_ai": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "tone": true,
+   "tone_H": 960,
+   "tone_rho": 0.95,
+   "pack": 0.95
+  },
+  "spot_ocean": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "tone": true,
+   "tone_H": 96,
+   "tone_rho": 0.95,
+   "pack": 0.95
+  }
+ }
+}
