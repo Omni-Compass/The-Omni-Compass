@@ -1,0 +1,48 @@
+# Objects for the live lever proof (scripts/kind_levers.sh): a deployment that is idle until work waits (coldstart), the
+# queue it would read, a checkpointed training Job Omni may pause (batch pace), and an agent namespace whose pods burn CPU
+# (containment). php-apache from demo.yaml is the rightsize target.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: idle-worker}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: idle-worker}}
+  template:
+    metadata: {labels: {app: idle-worker}}
+    spec:
+      containers:
+        - {name: w, image: registry.k8s.io/pause:3.10, resources: {requests: {cpu: 50m}, limits: {cpu: 100m}}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: omni-work}
+data: {queue: "0"}
+---
+apiVersion: batch/v1
+kind: Job
+metadata: {name: train-a, labels: {omnicompass.io/pausable: "true"}}
+spec:
+  backoffLimit: 100
+  template:
+    metadata: {labels: {app: train-a}}
+    spec:
+      restartPolicy: Never
+      containers:
+        - {name: t, image: busybox:1.36, command: ["sh", "-c", "sleep 3600"], resources: {requests: {cpu: 50m}, limits: {cpu: 100m}}}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: agents}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: agent, namespace: agents}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: agent}}
+  template:
+    metadata: {labels: {app: agent}}
+    spec:
+      containers:
+        - {name: a, image: busybox:1.36, command: ["sh", "-c", "while true; do :; done"],
+           resources: {requests: {cpu: 100m}, limits: {cpu: 400m}}}

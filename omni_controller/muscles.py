@@ -20,6 +20,21 @@ the muscle back, and tags every write with its muscle name in the audit log.
               --query-gpu=power.draw,temperature.gpu --format=csv,noheader,nounits`); GPU temperature / --gpu-temp-limit
               feeds the heat sense; push: --gpu-power-cmd with {w}, the power limit = max limit x power cap
               (e.g. `nvidia-smi -pl {w}`); kill restores the maximum limit
+  rightsize   push: each running pod's CPU *request* follows its measured use x (1 + headroom), resized in place through the
+              pods/resize subresource (no restart); never above the limit, never below --rightsize-min-m; no decrease while
+              the SLO is breached, no increase during a security hold; kill restores every original request
+  coldstart   push: a deployment with no work waiting (ConfigMap key "queue" == 0, the queue a KEDA scaler would read) for
+              --coldstart-idle decisions is scaled to zero; it is scaled back to its recorded replica count the moment
+              work is waiting; kill restores the recorded count
+  batch_pace  push: while power stress or heat is high, one running Job labelled omnicompass.io/pausable=true is suspended
+              per decision (checkpointed training pauses instead of the site going over its limit); it is resumed when
+              stress and heat are back down; kill resumes every Job Omni paused
+  contain     push: an agent namespace whose measured CPU use exceeds --contain-cpu-m, or any namespace during a security
+              hold, gets a ResourceQuota (limits.cpu = budget) and its running pods' CPU limits are scaled in place so the
+              total fits the budget; lifted when use is back under budget; kill deletes the quota and restores the limits
+  cooling     facility connector. push: --cooling-cmd with {c}, the supply-air setpoint moved between --cooling-min-c and
+              --cooling-max-c by the heat state (warm setpoint while cool, saving chiller energy; cold setpoint as heat
+              rises); kill runs it with --cooling-restore-c
   Hardware connectors are off unless their commands are given (not available on CI runners); the mechanism is the same.
 """
 from __future__ import annotations
@@ -30,6 +45,12 @@ import re
 CPU_ANN = "omnicompass.io/original-cpu-limit"
 PAUSE_ANN = "omnicompass.io/paused-by-omni"
 BATCH_LABEL = "omnicompass.io/batch=true"
+PAUSABLE_LABEL = "omnicompass.io/pausable=true"
+REQ_ANN = "omnicompass.io/original-cpu-request"
+REPL_ANN = "omnicompass.io/original-replicas"
+PACE_ANN = "omnicompass.io/paced-by-omni"
+QUOTA = "omni-containment"
+LIM_ANN = "omnicompass.io/original-limits"
 
 
 def milli(v):
@@ -89,7 +110,7 @@ class Muscles:
             return float("nan")
 
     def _hw(self, template, value, why):
-        cmd = template.format(khz=int(value), w=int(value))
+        cmd = template.format(khz=int(value), w=int(value), v=value)
         self.audit({"write": shlex.split(cmd), "why": why, "dry_run": self.a.dry_run})
         if not self.a.dry_run:
             subprocess.run(shlex.split(cmd), check=True)
@@ -102,6 +123,155 @@ class Muscles:
         self._hardware(float(d["power_cap"]), obs)
         self._rollout(bool(d["change_permitted"]), bool(d["rollback_authorized"]))
         self._batch(bool(d["change_permitted"]), obs)
+        self._rightsize(obs)
+        self._coldstart()
+        self._batch_pace(obs)
+        self._contain(obs)
+        self._cooling(obs)
+
+    # ---- new levers ---------------------------------------------------------------------------------------------------
+    def _named_usage(self, ns, sel=None):
+        args = ["top", "pods", "-n", ns, "--no-headers"] + (["-l", sel] if sel else [])
+        try:
+            out = self.k.get(*args)
+        except Exception:
+            return {}
+        return {line.split()[0]: milli(line.split()[1]) for line in str(out).strip().splitlines() if line.strip()}
+
+    def _rightsize(self, obs):
+        for target in filter(None, getattr(self.a, "rightsize_deployments", "").split(",")):
+            ns, name = ref(target)
+            dep = self.k.get("get", "deployment", name, "-n", ns, "-o", "json")
+            ann = dep["metadata"].get("annotations", {}) or {}
+            c0 = dep["spec"]["template"]["spec"]["containers"][0].get("resources", {})
+            base = c0.get("requests", {}).get("cpu")
+            if base is None:
+                continue
+            if REQ_ANN not in ann:
+                self.k.write(["annotate", "deployment", name, "-n", ns, f"{REQ_ANN}={int(milli(base))}m"], "rightsize: record original CPU request")
+            sel = ",".join(f"{k}={v}" for k, v in dep["spec"]["selector"]["matchLabels"].items())
+            use = self._named_usage(ns, sel)
+            for pod in self._pods(dep, ns):
+                pn = pod["metadata"]["name"]
+                if pn not in use:
+                    continue
+                res = pod["spec"]["containers"][0].get("resources", {})
+                cur = milli(res.get("requests", {}).get("cpu", base))
+                lim = milli(res.get("limits", {}).get("cpu", "1000000m"))
+                want = int(min(lim, max(self.a.rightsize_min_m, math.ceil(use[pn] * (1.0 + self.a.rightsize_headroom) / 10.0) * 10)))
+                if want < cur and not obs.get("slo_clean", True):
+                    continue  # SLO reflex: never shrink while service is over its target
+                if want > cur and obs.get("security_block", 0.0) > 0.5:
+                    continue  # shield I1: no expansion during a security hold
+                if abs(want - cur) < self.a.cap_min_change_m:
+                    continue
+                self.k.write(["patch", "pod", pn, "-n", ns, "--subresource", "resize", "--type=json", "-p",
+                              json.dumps([{"op": "replace", "path": "/spec/containers/0/resources/requests/cpu", "value": f"{want}m"}])],
+                             f"rightsize: CPU request {int(cur)}m -> {want}m in place (use {int(use[pn])}m)")
+
+    def _coldstart(self):
+        sig = getattr(self.a, "coldstart_signal", "")
+        if not sig:
+            return
+        sns, sname = ref(sig)
+        try:
+            q = float((self.k.get("get", "configmap", sname, "-n", sns, "-o", "json").get("data") or {}).get("queue", "0"))
+        except Exception:
+            return
+        self._idle = getattr(self, "_idle", 0) + 1 if q <= 0 else 0
+        for target in filter(None, getattr(self.a, "coldstart_deployments", "").split(",")):
+            ns, name = ref(target)
+            dep = self.k.get("get", "deployment", name, "-n", ns, "-o", "json")
+            ann = dep["metadata"].get("annotations", {}) or {}
+            rep = int(dep["spec"].get("replicas", 1))
+            if q > 0 and rep == 0 and REPL_ANN in ann:
+                self.k.write(["scale", "deployment", name, "-n", ns, f"--replicas={ann[REPL_ANN]}"], f"coldstart: wake to {ann[REPL_ANN]} (queue {q:g})")
+            elif self._idle >= self.a.coldstart_idle and rep > 0:
+                self.k.write(["annotate", "deployment", name, "-n", ns, "--overwrite", f"{REPL_ANN}={rep}"], "coldstart: record replicas")
+                self.k.write(["scale", "deployment", name, "-n", ns, "--replicas=0"], f"coldstart: scale to zero (idle {self._idle} decisions)")
+
+    def _batch_pace(self, obs):
+        if not getattr(self.a, "batch_pace", False):
+            return
+        hot = obs.get("power_stress", 0.0) >= self.a.pace_high or obs.get("thermal", 0.0) >= self.a.pace_heat
+        calm = obs.get("power_stress", 1.0) <= self.a.pace_low and obs.get("thermal", 1.0) < self.a.pace_heat - 0.06
+        jobs = self.k.get("get", "jobs", "-A", "-l", PAUSABLE_LABEL, "-o", "json")["items"]
+        if hot:
+            run = [j for j in jobs if not j["spec"].get("suspend")]
+            if run:
+                j = run[0]; ns, name = j["metadata"]["namespace"], j["metadata"]["name"]
+                self.k.write(["annotate", "job", name, "-n", ns, "--overwrite", f"{PACE_ANN}=true"], "batch_pace: record pause")
+                self.k.write(["patch", "job", name, "-n", ns, "--type=merge", "-p", json.dumps({"spec": {"suspend": True}})],
+                             f"batch_pace: pause job (power stress {obs.get('power_stress', 0.0):.2f}, heat {obs.get('thermal', 0.0):.2f})")
+        elif calm:
+            paced = [j for j in jobs if j["spec"].get("suspend") and (j["metadata"].get("annotations") or {}).get(PACE_ANN) == "true"]
+            if paced:
+                self._resume_job(paced[0], "batch_pace: resume job (stress and heat back down)")
+
+    def _resume_job(self, j, why):
+        ns, name = j["metadata"]["namespace"], j["metadata"]["name"]
+        self.k.write(["patch", "job", name, "-n", ns, "--type=merge", "-p", json.dumps({"spec": {"suspend": False}})], why)
+        self.k.write(["annotate", "job", name, "-n", ns, f"{PACE_ANN}-"], "batch_pace: clear pause record")
+
+    def _quota(self, ns):
+        try:
+            return self.k.get("get", "resourcequota", QUOTA, "-n", ns, "-o", "json")
+        except Exception:
+            return None
+
+    def _contain(self, obs):
+        """Contain on over-budget use or a security hold; while contained each running pod gets an equal share of the
+        budget as its CPU limit (in place); lift only when use is under 80% of the budget (release band) and no hold."""
+        for ns in filter(None, getattr(self.a, "contain_namespaces", "").split(",")):
+            total = sum(self._named_usage(ns).values())
+            budget = float(self.a.contain_cpu_m)
+            hold = obs.get("security_block", 0.0) > 0.5
+            q = self._quota(ns)
+            if q is None and (total > budget or hold):
+                self.k.write(["create", "quota", QUOTA, "-n", ns, f"--hard=limits.cpu={int(budget)}m"],
+                             f"contain: quota limits.cpu={int(budget)}m (use {int(total)}m)")
+                q = {"metadata": {"annotations": {}}}
+            elif q is not None and total < 0.8 * budget and not hold:
+                self._release(ns, q, "contain: use back under budget, lift containment")
+                continue
+            if q is None:
+                continue
+            held = json.loads((q["metadata"].get("annotations") or {}).get(LIM_ANN, "{}"))
+            run = [p for p in self.k.get("get", "pods", "-n", ns, "-o", "json")["items"] if p["status"].get("phase") == "Running"
+                   and p["spec"]["containers"][0].get("resources", {}).get("limits", {}).get("cpu") is not None]
+            share = max(10, int(budget / max(1, len(run)) / 10) * 10)
+            changed = False
+            for p in run:
+                pn = p["metadata"]["name"]; lim = p["spec"]["containers"][0]["resources"]["limits"]["cpu"]
+                if pn not in held:
+                    held[pn] = lim; changed = True
+                want = min(share, int(milli(held[pn])))
+                if int(milli(lim)) != want:
+                    self.k.write(["patch", "pod", pn, "-n", ns, "--subresource", "resize", "--type=json", "-p",
+                                  json.dumps([{"op": "replace", "path": "/spec/containers/0/resources/limits/cpu", "value": f"{want}m"}])],
+                                 f"contain: pod CPU limit {lim} -> {want}m in place (budget share)")
+            if changed:
+                # the original limits live on the quota object, so a kill switch in any process can restore them
+                self.k.write(["annotate", "resourcequota", QUOTA, "-n", ns, "--overwrite", f"{LIM_ANN}={json.dumps(held, sort_keys=True)}"],
+                             "contain: record original pod CPU limits")
+
+    def _release(self, ns, q, why):
+        for pn, lim in json.loads((q["metadata"].get("annotations") or {}).get(LIM_ANN, "{}")).items():
+            self.k.write(["patch", "pod", pn, "-n", ns, "--subresource", "resize", "--type=json", "-p",
+                          json.dumps([{"op": "replace", "path": "/spec/containers/0/resources/limits/cpu", "value": lim}])],
+                         f"{why}: restore pod CPU limit {lim}")
+        self.k.write(["delete", "resourcequota", QUOTA, "-n", ns], f"{why}: delete quota")
+
+    def _cooling(self, obs):
+        cmd = getattr(self.a, "cooling_cmd", "")
+        if not cmd:
+            return
+        th = obs.get("thermal", 0.5)
+        x = min(1.0, max(0.0, (th - 0.5) / 0.5))
+        c = round(self.a.cooling_max_c - (self.a.cooling_max_c - self.a.cooling_min_c) * x, 1)
+        if abs(c - getattr(self, "_setpoint", -99.0)) >= 0.5:
+            self._hw(cmd.replace("{c}", "{v}"), c, f"cooling: supply-air setpoint {c} C (heat {th:.2f})")
+            self._setpoint = c
 
     def _pods(self, dep, ns):
         sel = ",".join(f"{k}={v}" for k, v in dep["spec"]["selector"]["matchLabels"].items())
@@ -196,6 +366,36 @@ class Muscles:
 
     # ---- kill -------------------------------------------------------------------------------------------------------
     def restore(self):
+        if getattr(self.a, "cooling_cmd", ""):
+            self._hw(self.a.cooling_cmd.replace("{c}", "{v}"), self.a.cooling_restore_c, "kill switch: restore cooling setpoint")
+            self._setpoint = None
+        for ns in filter(None, getattr(self.a, "contain_namespaces", "").split(",")):
+            q = self._quota(ns)
+            if q is not None:
+                self._release(ns, q, "kill switch")
+        if getattr(self.a, "batch_pace", False):
+            for j in self.k.get("get", "jobs", "-A", "-l", PAUSABLE_LABEL, "-o", "json")["items"]:
+                if j["spec"].get("suspend") and (j["metadata"].get("annotations") or {}).get(PACE_ANN) == "true":
+                    self._resume_job(j, "kill switch: resume paced job")
+        for target in filter(None, getattr(self.a, "coldstart_deployments", "").split(",")):
+            ns, name = ref(target)
+            dep = self.k.get("get", "deployment", name, "-n", ns, "-o", "json")
+            ann = dep["metadata"].get("annotations", {}) or {}
+            if REPL_ANN in ann:
+                if int(dep["spec"].get("replicas", 1)) == 0:
+                    self.k.write(["scale", "deployment", name, "-n", ns, f"--replicas={ann[REPL_ANN]}"], "kill switch: restore replicas")
+                self.k.write(["annotate", "deployment", name, "-n", ns, f"{REPL_ANN}-"], "kill switch: clear replica record")
+        for target in filter(None, getattr(self.a, "rightsize_deployments", "").split(",")):
+            ns, name = ref(target)
+            dep = self.k.get("get", "deployment", name, "-n", ns, "-o", "json")
+            orig = (dep["metadata"].get("annotations", {}) or {}).get(REQ_ANN)
+            if orig:
+                for pod in self._pods(dep, ns):
+                    if pod["spec"]["containers"][0].get("resources", {}).get("requests", {}).get("cpu") != orig:
+                        self.k.write(["patch", "pod", pod["metadata"]["name"], "-n", ns, "--subresource", "resize", "--type=json", "-p",
+                                      json.dumps([{"op": "replace", "path": "/spec/containers/0/resources/requests/cpu", "value": orig}])],
+                                     "kill switch: restore original CPU request in place")
+                self.k.write(["annotate", "deployment", name, "-n", ns, f"{REQ_ANN}-"], "kill switch: remove request record")
         if getattr(self.a, "cpufreq_cmd", "") and self.a.cpu_max_khz and getattr(self, "_last_cap", 1.0) != 1.0:
             self._hw(self.a.cpufreq_cmd, self.a.cpu_max_khz, "kill switch: restore maximum CPU frequency")
         if getattr(self.a, "gpu_power_cmd", "") and self.a.gpu_max_w and getattr(self, "_last_cap", 1.0) != 1.0:
@@ -256,3 +456,19 @@ def add_args(ap):
     ap.add_argument("--gpu-power-cmd", default="", help="gpu push: command template with {w}")
     ap.add_argument("--gpu-max-w", type=float, default=0.0)
     ap.add_argument("--gpu-temp-limit", type=float, default=83.0, help="GPU temperature treated as thermal 1.0")
+    ap.add_argument("--rightsize-deployments", default="", help="ns/name[,ns/name]: rightsize muscle sets pod CPU requests from use")
+    ap.add_argument("--rightsize-headroom", type=float, default=0.3)
+    ap.add_argument("--rightsize-min-m", type=int, default=50)
+    ap.add_argument("--coldstart-deployments", default="", help="ns/name[,ns/name]: scaled to zero when idle, woken on work")
+    ap.add_argument("--coldstart-signal", default="", help="ns/name of a ConfigMap whose key 'queue' is the waiting work")
+    ap.add_argument("--coldstart-idle", type=int, default=3, help="idle decisions before scaling to zero")
+    ap.add_argument("--batch-pace", action="store_true", help="batch_pace muscle: pause Jobs labelled " + PAUSABLE_LABEL + " under stress")
+    ap.add_argument("--pace-high", type=float, default=0.95, help="power stress that pauses a job")
+    ap.add_argument("--pace-low", type=float, default=0.8, help="power stress under which a paused job resumes")
+    ap.add_argument("--pace-heat", type=float, default=0.96, help="heat state that pauses a job")
+    ap.add_argument("--contain-namespaces", default="", help="ns[,ns]: agent namespaces held to --contain-cpu-m")
+    ap.add_argument("--contain-cpu-m", type=float, default=1000.0)
+    ap.add_argument("--cooling-cmd", default="", help="cooling push: command template with {c} (supply-air setpoint, C)")
+    ap.add_argument("--cooling-min-c", type=float, default=18.0)
+    ap.add_argument("--cooling-max-c", type=float, default=27.0)
+    ap.add_argument("--cooling-restore-c", type=float, default=22.0)
