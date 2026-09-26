@@ -1,0 +1,38 @@
+{
+ "run": "36220059046 (2026-09-26 05:11-05:37 UTC), commit fda2d39",
+ "change": "get on pods/resize (power cap can apply)",
+ "validity": "INVALID for response time and energy: the probe's kubectl port-forward attaches to one pod; when Omni drained a worker at minute 2 that pod moved and the tunnel died, so 91% of probe requests failed. Omni's latency nerve read the failures as an outage and restored full capacity (6 workers, cap 1.0) from minute 3. Engine side valid: 20 of 20 decisions, no errors, no fail-safe; the power cap applied in place for the first time under least privilege (11 resizes, restored to 500m by the kill switch).",
+ "gauges": [
+  [
+   "Worker nodes in service, mean",
+   "6.00",
+   "5.53",
+   "-7.8%"
+  ],
+  [
+   "Energy (Wh), standby counted",
+   "224",
+   "220",
+   "-2.0%"
+  ],
+  [
+   "Response time (ms), 95th percentile",
+   "501",
+   "380",
+   "not valid (probe)"
+  ],
+  [
+   "Response time (ms), 99th percentile",
+   "660",
+   "415",
+   "not valid (probe)"
+  ],
+  [
+   "Failed requests (%)",
+   "0",
+   "90.68",
+   "probe tunnel died"
+  ]
+ ],
+ "fix": "port-forward restarted automatically on both arms, restarts logged"
+}

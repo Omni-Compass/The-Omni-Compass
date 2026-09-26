@@ -96,7 +96,9 @@ step_s=$(( DURATION / ${#steps[@]} ))
   done ) > "$OUT_DIR/load_schedule.log" 2>&1 &
 load_pid=$!
 
-kubectl port-forward svc/php-apache 18080:80 >/dev/null 2>&1 &
+# The probe reaches the app through kubectl port-forward, which attaches to ONE pod. When that pod is moved (a drain,
+# a scale-down) the tunnel dies; restart it at once, on both arms alike, and log each restart so tunnel gaps are visible.
+( while true; do kubectl port-forward svc/php-apache 18080:80 >/dev/null 2>&1; echo "$(date -u +%H:%M:%S) port-forward restarted" >> "$OUT_DIR/port_forward.log"; sleep 0.2; done ) &
 pf_pid=$!; sleep 3
 INTERVAL=5 DURATION="$DURATION" python scripts/latency_probe.py http://127.0.0.1:18080/ "$OUT_DIR/latency.csv" &
 probe_pid=$!
@@ -118,7 +120,8 @@ fi
 ACTIVE_ONLY=1 INTERVAL=15 DURATION="$DURATION" POWER_CMD="bash scripts/kind_power.sh" OUT="$OUT_DIR/capture.csv" \
   bash fleet/capture/kube_capture.sh
 wait "$load_pid" || true
-wait "$probe_pid" || true; kill "$pf_pid" 2>/dev/null || true
+wait "$probe_pid" || true; kill "$pf_pid" 2>/dev/null || true; pkill -f "port-forward svc/php-apache" 2>/dev/null || true
+echo "port-forward restarts: $(wc -l < "$OUT_DIR/port_forward.log" 2>/dev/null || echo 0)"
 [ -n "$omni_pid" ] && { wait "$omni_pid" || true; }
 kubectl get nodes -o wide > "$OUT_DIR/nodes_end.txt"
 kubectl get hpa php-apache -o json > "$OUT_DIR/hpa_end.json"
