@@ -1,0 +1,214 @@
+{
+ "picks": {
+  "web": {
+   "k8s_hpa70_ca": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "openshift": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "gke_optimize": {
+    "tone_H": 96,
+    "rho": 0.75,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "aks_nap": {
+    "tone_H": 24,
+    "rho": 0.8,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "turbonomic": {
+    "tone_H": 960,
+    "rho": 0.75,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "cast_ai": {
+    "tone_H": 24,
+    "rho": 0.8,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "spot_ocean": {
+    "tone_H": 24,
+    "rho": 0.75,
+    "wq": -1.0,
+    "rho_max": 0.97
+   }
+  },
+  "multi": {
+   "k8s_hpa70_ca": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "openshift": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": 0.05,
+    "rho_max": 0.97
+   },
+   "gke_optimize": {
+    "tone_H": 96,
+    "rho": 0.75,
+    "wq": 0.1,
+    "rho_max": 0.99
+   },
+   "aks_nap": {
+    "tone_H": 96,
+    "rho": 0.75,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "turbonomic": {
+    "tone_H": 960,
+    "rho": 0.8,
+    "wq": 0.1,
+    "rho_max": 0.99
+   },
+   "cast_ai": {
+    "tone_H": 960,
+    "rho": 0.8,
+    "wq": -1.0,
+    "rho_max": 0.99
+   },
+   "spot_ocean": {
+    "tone_H": 96,
+    "rho": 0.75,
+    "wq": -1.0,
+    "rho_max": 0.97
+   }
+  },
+  "batch": {
+   "k8s_hpa70_ca": {
+    "tone_H": 960,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "openshift": {
+    "tone_H": 960,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "gke_optimize": {
+    "tone_H": 960,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "aks_nap": {
+    "tone_H": 24,
+    "rho_max": 0.99,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "turbonomic": {
+    "tone_H": 0,
+    "rho_max": 0.97,
+    "delta_rel": 0.15,
+    "H_add": 6
+   },
+   "cast_ai": {
+    "tone_H": 0,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "spot_ocean": {
+    "tone_H": 960,
+    "rho_max": 0.99,
+    "delta_rel": 0.08,
+    "H_add": 12
+   }
+  },
+  "gpu": {
+   "k8s_hpa70_ca": {
+    "tone_H": 960,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "openshift": {
+    "tone_H": 960,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "gke_optimize": {
+    "tone_H": 96,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "aks_nap": {
+    "tone_H": 0,
+    "rho_max": 0.99,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "turbonomic": {
+    "tone_H": 96,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "cast_ai": {
+    "tone_H": 0,
+    "rho_max": 0.99,
+    "delta_rel": 0.08,
+    "H_add": 12
+   },
+   "spot_ocean": {
+    "tone_H": 960,
+    "rho_max": 0.99,
+    "delta_rel": 0.08,
+    "H_add": 6
+   }
+  }
+ },
+ "sha256": "a5eeb829c7f302069c5b7eb6200bebe9e97995228671f87455ddb63ccda60251",
+ "base_settings": "tuning/CLOSURE_FINAL_DEV.json",
+ "heldout_seeds": [
+  700501,
+  700502,
+  700503,
+  700504,
+  700505,
+  700506,
+  700507,
+  700508,
+  700509,
+  700510,
+  700511,
+  700512,
+  700513,
+  700514,
+  700515,
+  700516,
+  700517,
+  700518,
+  700519,
+  700520,
+  700521,
+  700522,
+  700523,
+  700524,
+  700525,
+  700526,
+  700527,
+  700528,
+  700529,
+  700530
+ ]
+}

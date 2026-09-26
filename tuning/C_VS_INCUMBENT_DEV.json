@@ -1,0 +1,414 @@
+{
+ "web": {
+  "k8s_hpa70_ca": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "openshift": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "gke_optimize": {
+   "var": {
+    "tone_H": 96,
+    "rho": 0.75,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "aks_nap": {
+   "var": {
+    "tone_H": 24,
+    "rho": 0.8,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "turbonomic": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.75,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "cast_ai": {
+   "var": {
+    "tone_H": 24,
+    "rho": 0.8,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "spot_ocean": {
+   "var": {
+    "tone_H": 24,
+    "rho": 0.75,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "losing_cells": 0,
+   "losses": []
+  }
+ },
+ "multi": {
+  "k8s_hpa70_ca": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "openshift": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": 0.05,
+    "rho_max": 0.97
+   },
+   "losing_cells": 1,
+   "losses": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "start_stop",
+     "competitor_value": 28.2,
+     "omni_value": 38.0,
+     "omni_worse_by_pct": 34.751773049645394
+    }
+   ]
+  },
+  "gke_optimize": {
+   "var": {
+    "tone_H": 96,
+    "rho": 0.75,
+    "wq": 0.1,
+    "rho_max": 0.99
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "aks_nap": {
+   "var": {
+    "tone_H": 96,
+    "rho": 0.75,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "losing_cells": 1,
+   "losses": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "p95_ms",
+     "competitor_value": 125.44084724953007,
+     "omni_value": 133.96740063472885,
+     "omni_worse_by_pct": 6.797270245024394
+    }
+   ]
+  },
+  "turbonomic": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.8,
+    "wq": 0.1,
+    "rho_max": 0.99
+   },
+   "losing_cells": 1,
+   "losses": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 46.83338766543654,
+     "omni_value": 48.30492485823027,
+     "omni_worse_by_pct": 3.1420686526158232
+    }
+   ]
+  },
+  "cast_ai": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.8,
+    "wq": -1.0,
+    "rho_max": 0.99
+   },
+   "losing_cells": 1,
+   "losses": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "p95_ms",
+     "competitor_value": 125.89593325162232,
+     "omni_value": 149.2355438474125,
+     "omni_worse_by_pct": 18.53881217047925
+    }
+   ]
+  },
+  "spot_ocean": {
+   "var": {
+    "tone_H": 96,
+    "rho": 0.75,
+    "wq": -1.0,
+    "rho_max": 0.97
+   },
+   "losing_cells": 1,
+   "losses": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "p95_ms",
+     "competitor_value": 125.41457714633066,
+     "omni_value": 133.96740063472885,
+     "omni_worse_by_pct": 6.819640653429769
+    }
+   ]
+  }
+ },
+ "batch": {
+  "k8s_hpa70_ca": {
+   "var": {
+    "tone_H": 960,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "losing_cells": 1,
+   "losses": [
+    {
+     "vessel": "batch",
+     "competitor": "inc",
+     "gauge": "start_stop",
+     "competitor_value": 16.5,
+     "omni_value": 22.1,
+     "omni_worse_by_pct": 33.93939393939394
+    }
+   ]
+  },
+  "openshift": {
+   "var": {
+    "tone_H": 960,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "losing_cells": 1,
+   "losses": [
+    {
+     "vessel": "batch",
+     "competitor": "inc",
+     "gauge": "start_stop",
+     "competitor_value": 16.8,
+     "omni_value": 22.1,
+     "omni_worse_by_pct": 31.547619047619047
+    }
+   ]
+  },
+  "gke_optimize": {
+   "var": {
+    "tone_H": 960,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "aks_nap": {
+   "var": {
+    "tone_H": 24,
+    "rho_max": 0.99,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "losing_cells": 1,
+   "losses": [
+    {
+     "vessel": "batch",
+     "competitor": "inc",
+     "gauge": "node_hours",
+     "competitor_value": 89.89416666666668,
+     "omni_value": 90.41458333333334,
+     "omni_worse_by_pct": 0.5789215095529008
+    }
+   ]
+  },
+  "turbonomic": {
+   "var": {
+    "tone_H": 0,
+    "rho_max": 0.97,
+    "delta_rel": 0.15,
+    "H_add": 6
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "cast_ai": {
+   "var": {
+    "tone_H": 0,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "spot_ocean": {
+   "var": {
+    "tone_H": 960,
+    "rho_max": 0.99,
+    "delta_rel": 0.08,
+    "H_add": 12
+   },
+   "losing_cells": 2,
+   "losses": [
+    {
+     "vessel": "batch",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 70.35009802631573,
+     "omni_value": 71.90378618421062,
+     "omni_worse_by_pct": 2.2085088741648784
+    },
+    {
+     "vessel": "batch",
+     "competitor": "inc",
+     "gauge": "node_hours",
+     "competitor_value": 89.25708333333333,
+     "omni_value": 89.9675,
+     "omni_worse_by_pct": 0.7959218922867954
+    }
+   ]
+  }
+ },
+ "gpu": {
+  "k8s_hpa70_ca": {
+   "var": {
+    "tone_H": 960,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "losing_cells": 1,
+   "losses": [
+    {
+     "vessel": "gpu",
+     "competitor": "inc",
+     "gauge": "violation_backlog",
+     "competitor_value": 0.35840277777777774,
+     "omni_value": 0.36069444444444443,
+     "omni_worse_by_pct": 0.6394109668668891
+    }
+   ]
+  },
+  "openshift": {
+   "var": {
+    "tone_H": 960,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "gke_optimize": {
+   "var": {
+    "tone_H": 96,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "aks_nap": {
+   "var": {
+    "tone_H": 0,
+    "rho_max": 0.99,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "turbonomic": {
+   "var": {
+    "tone_H": 96,
+    "rho_max": 0.97,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "cast_ai": {
+   "var": {
+    "tone_H": 0,
+    "rho_max": 0.99,
+    "delta_rel": 0.08,
+    "H_add": 12
+   },
+   "losing_cells": 1,
+   "losses": [
+    {
+     "vessel": "gpu",
+     "competitor": "inc",
+     "gauge": "violation_heat",
+     "competitor_value": 0.4563194444444445,
+     "omni_value": 0.4668055555555556,
+     "omni_worse_by_pct": 2.297975954953584
+    }
+   ]
+  },
+  "spot_ocean": {
+   "var": {
+    "tone_H": 960,
+    "rho_max": 0.99,
+    "delta_rel": 0.08,
+    "H_add": 6
+   },
+   "losing_cells": 2,
+   "losses": [
+    {
+     "vessel": "gpu",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 193.14008421052705,
+     "omni_value": 195.20397894736982,
+     "omni_worse_by_pct": 1.0685998948789215
+    },
+    {
+     "vessel": "gpu",
+     "competitor": "inc",
+     "gauge": "time_healthy",
+     "competitor_value": 0.4555555555555556,
+     "omni_value": 0.4438194444444445,
+     "omni_worse_by_pct": 2.576219512195124
+    }
+   ]
+  }
+ }
+}
