@@ -1,0 +1,121 @@
+{
+ "preregistration": {
+  "chosen": {
+   "multi|aks_nap": {
+    "lag": 4,
+    "rise": 0.0,
+    "lead": 3,
+    "early": false,
+    "veto": false,
+    "flip_guard": 0,
+    "confirm": 1,
+    "tone": true,
+    "tone_H": 24,
+    "tone_rho": 0.9,
+    "pack": 0.9
+   },
+   "batch|turbonomic": {
+    "lag": 4,
+    "rise": 0.0,
+    "lead": 6,
+    "early": false,
+    "veto": true,
+    "tone": true,
+    "tone_H": 96,
+    "tone_rho": 0.9,
+    "pack": 0.0
+   },
+   "multi|cast_ai": {
+    "lag": 4,
+    "rise": 0.0,
+    "lead": 3,
+    "early": false,
+    "veto": false,
+    "flip_guard": 0,
+    "confirm": 1
+   }
+  },
+  "sha256": "aa081eb300c21ac4585d65130836db833246d76301455d5dd7bc910f2d207ef1",
+  "heldout_seeds": [
+   700701,
+   700702,
+   700703,
+   700704,
+   700705,
+   700706,
+   700707,
+   700708,
+   700709,
+   700710,
+   700711,
+   700712,
+   700713,
+   700714,
+   700715,
+   700716,
+   700717,
+   700718,
+   700719,
+   700720,
+   700721,
+   700722,
+   700723,
+   700724,
+   700725,
+   700726,
+   700727,
+   700728,
+   700729,
+   700730
+  ]
+ },
+ "heldout": {
+  "multi|aks_nap": {
+   "losses": [],
+   "gains_pct": {
+    "energy_kwh": -0.15852167062970954,
+    "p95_ms": 0.036089359240264594,
+    "p99_ms": 1.8457366657187793,
+    "mean_ms": -0.14433561478991838,
+    "violation_backlog": 0.0,
+    "start_stop": 3.45114345114345,
+    "node_reversals": 7.360406091370559,
+    "node_hours": 0.1137927870056003,
+    "pod_changes": -0.17214901416823092,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   }
+  },
+  "batch|turbonomic": {
+   "losses": [],
+   "gains_pct": {
+    "energy_kwh": -0.17746282500581456,
+    "p95_ms": -0.4992710465359108,
+    "p99_ms": 11.327484491015593,
+    "mean_ms": 6.5662330349501685,
+    "violation_backlog": 44.44444444444445,
+    "start_stop": 15.064695009242154,
+    "node_reversals": 21.794871794871803,
+    "node_hours": -0.15421600755787077,
+    "work_completed": 0.0,
+    "time_healthy": 0.013892426312268714
+   }
+  },
+  "multi|cast_ai": {
+   "losses": [],
+   "gains_pct": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "violation_backlog": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   }
+  }
+ }
+}
