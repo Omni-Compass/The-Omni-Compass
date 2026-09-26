@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from omnicompass.adapter import Governor, mode_law, OBSERVE
 from omnicompass.shield import enforce, ShieldLimits
+from omni_controller.muscles import Muscles, add_args as add_muscle_args
 
 ANNOTATION = "omnicompass.io/original-target-utilization"
 
@@ -96,6 +97,7 @@ class Controller:
         self.rec_n = None
         self.changed = {}
         self.nodes_restored = False
+        self.m = Muscles(self.k, a, self.audit)
 
     def audit(self, rec):
         rec = {"time": time.time(), **rec}
@@ -119,6 +121,7 @@ class Controller:
                              "kill switch: restore original HPA target")
             self.k.write(["annotate", "hpa", name, "-n", ns, f"{ANNOTATION}-"], "kill switch: remove record")
         self.changed.clear()
+        self.m.restore()
         cmd = getattr(self.a, "node_restore_cmd", "")
         if cmd and not self.nodes_restored:
             self.audit({"write": shlex.split(cmd), "why": "kill switch: restore node pool", "dry_run": self.a.dry_run})
@@ -160,13 +163,18 @@ class Controller:
                 power_stress = 0.0
         obs = {"queue_ratio": min(2.0, s["pending"] / max(1, repl)), "load_ratio": min(2.0, s["used_m"] / max(1.0, self.rec_n * per_node)),
                "power_stress": power_stress, "thermal": 0.0, "network_stress": 0.0, "drift_ratio": 0.0, "stale": 0.0, "security_block": 0.0}
+        obs.update(self.m.sense(power_stress))
         self.g.nodes = self.rec_n; self.g.current_cap = 1.0
         d = self.g.step(obs, 0)
         floor = max(int(math.ceil(s["req_m"] * (1.0 + self.a.headroom) / per_node)) if s["req_m"] > 0 else self.a.min_nodes, int(math.ceil(s["used_m"] / per_node)))
         rec_n = max(self.a.min_nodes, min(self.a.max_nodes, max(self.rec_n + int(d["node_delta"]), floor)))
         rho = max(0.5, min(0.95, float(d["demand"])))
         out = self.audit({"decision": {"nodes_observed": n, "nodes_recommended": rec_n, "hpa_target_recommended": round(rho, 3),
-                                       "E": d["state"]["E"], "U": d["state"]["U"], "pending": s["pending"]}, "mode": self.a.mode})
+                                       "E": d["state"]["E"], "U": d["state"]["U"], "pending": s["pending"],
+                                       "power_cap": round(float(d["power_cap"]), 3), "change_permitted": bool(d["change_permitted"]),
+                                       "rollback_authorized": bool(d["rollback_authorized"]),
+                                       "thermal": round(obs["thermal"], 3), "security_block": obs["security_block"],
+                                       "power_stress": round(power_stress, 3)}, "mode": self.a.mode})
         if self.a.mode in ("target", "nodepool"):
             want = int(round(rho * 100))
             for h in s["hpas"]:
@@ -179,10 +187,11 @@ class Controller:
                 self.k.write(["patch", "hpa", name, "-n", ns, "--type=json", "-p",
                               json.dumps([{"op": "replace", "path": f"/spec/metrics/{idx}/resource/target/averageUtilization", "value": want}])],
                              f"HPA target to rho* = {want}%")
+            self.m.push(d, obs)
         if self.a.mode == "nodepool" and self.a.node_scale_cmd and rec_n != n:
             cfg = SimpleNamespace(minimum_nodes=self.a.min_nodes, maximum_nodes=self.a.max_nodes)
             acts, hits = enforce([{"action": "nodes", "target": rec_n, "direction": 1 if rec_n > n else -1}],
-                                 {"actual_nodes": n, "power_cap": 1.0}, {"power_stress": power_stress, "security_block": 0.0}, cfg,
+                                 {"actual_nodes": n, "power_cap": 1.0}, {"power_stress": power_stress, "security_block": obs["security_block"]}, cfg,
                                  ShieldLimits(power_limit=1e9, max_node_step=max(self.a.max_node_step, floor - n)))
             for act in acts:
                 cmd = self.a.node_scale_cmd.format(n=int(act["target"]))
@@ -212,6 +221,7 @@ def parser():
     ap.add_argument("--active-nodes-only", action="store_true",
                     help="count only schedulable nodes (not cordoned, not tainted NoSchedule) and the pods and usage on them")
     ap.add_argument("--node-restore-cmd", default="", help="command run once when the kill switch fires, returning the node pool to native")
+    add_muscle_args(ap)
     ap.add_argument("--power-cmd", default="")
     ap.add_argument("--site-limit-w", type=float, default=0.0)
     return ap

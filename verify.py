@@ -215,6 +215,8 @@ def main():
     test_pilot_score.main(); check("pilot scoring: detects a real gain, no false gain on identical clusters, detects a service regression", True)
     from tests import test_omni_controller
     test_omni_controller.main(); check("live controller against a fake cluster: observe writes nothing, target bounded, kill restores, node pool bounded and dry-run safe", True)
+    from tests import test_muscles
+    test_muscles.main(); check("live muscles: power cap, heat, security, rollout, batch, CPU frequency and GPU connectors; kill restores; observe writes nothing", True)
     from tests import test_active_nodes
     test_active_nodes.main(); check("full-engine controller options: parked and control-plane nodes excluded, kill switch restores the node pool once", True)
     from tests import test_fleet_realdata_paths

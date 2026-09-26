@@ -24,5 +24,30 @@ elif a[:2] == ["annotate", "hpa"]:
             if kv.endswith("-"): ann.pop(kv[:-1], None)
             else: k, v = kv.split("=", 1); ann[k] = v
     save()
+elif a[:2] == ["get", "deployment"]:
+    print(json.dumps(next(d for d in st.get("deployments", []) if d["metadata"]["name"] == a[2])))
+elif a[:2] == ["patch", "deployment"]:
+    log(); d = next(d for d in st["deployments"] if d["metadata"]["name"] == a[2]); ops = json.loads(a[a.index("-p") + 1])
+    for op in ops:
+        d["spec"]["template"]["spec"]["containers"][0]["resources"]["limits"]["cpu"] = op["value"]
+    save()
+elif a[:2] == ["annotate", "deployment"]:
+    log(); d = next(d for d in st["deployments"] if d["metadata"]["name"] == a[2]); kv = a[-1]
+    ann = d["metadata"].setdefault("annotations", {})
+    if kv.endswith("-"): ann.pop(kv[:-1], None)
+    else: k, v = kv.split("=", 1); ann[k] = v
+    save()
+elif a[0] == "rollout":
+    log(); name = a[2].split("/")[1]; d = next(d for d in st["deployments"] if d["metadata"]["name"] == name)
+    if a[1] == "pause": d["spec"]["paused"] = True
+    elif a[1] == "resume": d["spec"]["paused"] = False
+    elif a[1] == "undo": d["status"]["conditions"] = [{"type": "Progressing", "reason": "NewReplicaSetAvailable"}]
+    save()
+elif a[:2] == ["get", "configmap"]:
+    print(json.dumps(next(c for c in st.get("configmaps", []) if c["metadata"]["name"] == a[2])))
+elif a[:2] == ["get", "jobs"]:
+    print(json.dumps({"items": st.get("jobs", [])}))
+elif a[:2] == ["patch", "job"]:
+    log(); j = next(j for j in st["jobs"] if j["metadata"]["name"] == a[2]); j["spec"].update(json.loads(a[a.index("-p") + 1])["spec"]); save()
 else:
     sys.exit(f"fake kubectl: unsupported {a}")

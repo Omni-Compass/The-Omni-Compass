@@ -23,13 +23,13 @@ def test_catalog_has_body_and_a_not_ours():
     names = {m.name for m in CATALOG}
     assert {"nodes", "hpa", "power_cap", "gpu", "cooling", "agent_containment"} <= names
     assert any(m.fit == NOT_OURS for m in CATALOG)
-    assert {m.name for m in wired()} == {"nodes", "hpa", "power_cap"}
+    assert {m.name for m in wired()} == {"nodes", "hpa", "power_cap", "security", "deployments", "gpu", "cpu_pstate", "batch_queue"}
 
 
 def test_open_muscle_senses_but_cannot_push():
     b = Bundle(obs={})
-    b.sense("gpu", gpu_util=0.9, gpu_temp=78.0)
-    assert allow_push("gpu", authority=True, killed=[]) is False
+    b.sense("memory", mem_used=0.9, mem_request=0.5)
+    assert allow_push("memory", authority=True, killed=[]) is False
     assert any(e.kind == "hold" for e in b.events)
 
 
