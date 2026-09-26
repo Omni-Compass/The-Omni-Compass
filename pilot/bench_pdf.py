@@ -69,6 +69,8 @@ def render(md: str, out: str):
             story.append(Preformatted("\n".join(block), ss["Code"])); i = j + 1; continue
         if ln.startswith("# "):
             flush(); story.append(Paragraph(inline(ln[2:]), ss["Title"]))
+        elif ln.startswith("### "):
+            flush(); story.append(Paragraph(inline(ln[4:]), ss["Heading3"]))
         elif ln.startswith("## "):
             flush(); story.append(Paragraph(inline(ln[3:]), ss["Heading2"]))
         elif ln.startswith("- "):

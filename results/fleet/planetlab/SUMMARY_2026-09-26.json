@@ -1,0 +1,639 @@
+{
+  "trace_dir": "fleet/traces/planetlab",
+  "traces": 9,
+  "scenarios": 8,
+  "seed_base": 700000,
+  "means": {
+    "k8s_hpa60_ca": {
+      "energy_kwh": 7.8469185341282675,
+      "time_healthy": 1.0,
+      "work_completed": 0.9999999999999998,
+      "violation_backlog": 0.0,
+      "node_reversals": 1.75,
+      "machines_started": 1.25
+    },
+    "k8s_hpa70_ca": {
+      "energy_kwh": 7.700543534128278,
+      "time_healthy": 1.0,
+      "work_completed": 0.9999999999999998,
+      "violation_backlog": 0.0,
+      "node_reversals": 0.75,
+      "machines_started": 0.625
+    },
+    "k8s_hpa80_ca": {
+      "energy_kwh": 7.647043534128277,
+      "time_healthy": 1.0,
+      "work_completed": 0.9999999999999997,
+      "violation_backlog": 0.0,
+      "node_reversals": 0.625,
+      "machines_started": 0.375
+    },
+    "k8s_hpa70_karpenter": {
+      "energy_kwh": 5.905418534128283,
+      "time_healthy": 1.0,
+      "work_completed": 0.9999999999999998,
+      "violation_backlog": 0.0,
+      "node_reversals": 1.75,
+      "machines_started": 1.0
+    },
+    "omni_observe": {
+      "energy_kwh": 7.700543534128278,
+      "time_healthy": 1.0,
+      "work_completed": 0.9999999999999998,
+      "violation_backlog": 0.0,
+      "node_reversals": 0.75,
+      "machines_started": 0.625
+    },
+    "omni_target": {
+      "energy_kwh": 7.619668534128275,
+      "time_healthy": 0.9967881944444444,
+      "work_completed": 0.9999999999999991,
+      "violation_backlog": 0.0,
+      "node_reversals": 0.125,
+      "machines_started": 0.125
+    },
+    "omni_fleet": {
+      "energy_kwh": 4.661910064106589,
+      "time_healthy": 1.0,
+      "work_completed": 0.9998834202187071,
+      "violation_backlog": 0.0,
+      "node_reversals": 2.875,
+      "machines_started": 1.5
+    },
+    "omni_fleet_balanced": {
+      "energy_kwh": 4.898217099596927,
+      "time_healthy": 1.0,
+      "work_completed": 0.9998834202187071,
+      "violation_backlog": 0.0,
+      "node_reversals": 2.375,
+      "machines_started": 1.25
+    },
+    "omni_fleet_wear": {
+      "energy_kwh": 5.389490276781338,
+      "time_healthy": 1.0,
+      "work_completed": 0.9998834202187072,
+      "violation_backlog": 0.0,
+      "node_reversals": 1.875,
+      "machines_started": 1.0
+    },
+    "omni_fleet_park": {
+      "energy_kwh": 7.802639328002922,
+      "time_healthy": 1.0,
+      "work_completed": 0.9998834403456053,
+      "violation_backlog": 0.0,
+      "node_reversals": 0.0,
+      "machines_started": 0.0
+    },
+    "omni_fleet_no_dynamics": {
+      "energy_kwh": 4.658075044717165,
+      "time_healthy": 1.0,
+      "work_completed": 0.9998921067855076,
+      "violation_backlog": 0.0,
+      "node_reversals": 3.25,
+      "machines_started": 1.875
+    },
+    "omni_fleet_no_gate": {
+      "energy_kwh": 4.661910064106589,
+      "time_healthy": 1.0,
+      "work_completed": 0.9998834202187071,
+      "violation_backlog": 0.0,
+      "node_reversals": 2.875,
+      "machines_started": 1.5
+    }
+  },
+  "observe_identical": 8,
+  "paired": {
+    "omni_target_vs_k8s_hpa70_ca": [
+      {
+        "metric": "energy_kwh",
+        "delta": -0.08087500000000436,
+        "ci95": [
+          -0.16112499999999957,
+          -0.02449999999999007
+        ],
+        "verdict": "better"
+      },
+      {
+        "metric": "time_healthy",
+        "delta": -0.003211805555555544,
+        "ci95": [
+          -0.005468749999999981,
+          -0.0011284722222222182
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "work_completed",
+        "delta": -7.355227538141662e-16,
+        "ci95": [
+          -1.790234627208065e-15,
+          2.0851376181241347e-16
+        ],
+        "verdict": "not significant"
+      },
+      {
+        "metric": "node_reversals",
+        "delta": -0.625,
+        "ci95": [
+          -1.25,
+          -0.125
+        ],
+        "verdict": "better"
+      }
+    ],
+    "omni_target_vs_k8s_hpa70_karpenter": [
+      {
+        "metric": "energy_kwh",
+        "delta": 1.7142499999999914,
+        "ci95": [
+          1.6993749999999754,
+          1.7278750000000094
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "time_healthy",
+        "delta": -0.003211805555555544,
+        "ci95": [
+          -0.005555555555555536,
+          -0.0012152777777777735
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "work_completed",
+        "delta": -7.355227538141662e-16,
+        "ci95": [
+          -1.7767037840954455e-15,
+          1.942890293094024e-16
+        ],
+        "verdict": "not significant"
+      },
+      {
+        "metric": "node_reversals",
+        "delta": -1.625,
+        "ci95": [
+          -3.25,
+          -0.5
+        ],
+        "verdict": "better"
+      }
+    ],
+    "omni_fleet_vs_k8s_hpa70_ca": [
+      {
+        "metric": "energy_kwh",
+        "delta": -3.0386334700216895,
+        "ci95": [
+          -3.079046450243739,
+          -3.0021077607254636
+        ],
+        "verdict": "better"
+      },
+      {
+        "metric": "time_healthy",
+        "delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "verdict": "not significant"
+      },
+      {
+        "metric": "work_completed",
+        "delta": -0.00011657978129266111,
+        "ci95": [
+          -0.0002568303725321446,
+          -1.736753091283183e-05
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "node_reversals",
+        "delta": 2.125,
+        "ci95": [
+          0.5,
+          4.0
+        ],
+        "verdict": "worse"
+      }
+    ],
+    "omni_fleet_vs_k8s_hpa70_karpenter": [
+      {
+        "metric": "energy_kwh",
+        "delta": -1.243508470021694,
+        "ci95": [
+          -1.3041778725708135,
+          -1.1676230946626096
+        ],
+        "verdict": "better"
+      },
+      {
+        "metric": "time_healthy",
+        "delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "verdict": "not significant"
+      },
+      {
+        "metric": "work_completed",
+        "delta": -0.00011657978129266111,
+        "ci95": [
+          -0.00026334859341814107,
+          -1.72221626345493e-05
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "node_reversals",
+        "delta": 1.125,
+        "ci95": [
+          -0.25,
+          2.5
+        ],
+        "verdict": "not significant"
+      }
+    ],
+    "omni_fleet_balanced_vs_k8s_hpa70_ca": [
+      {
+        "metric": "energy_kwh",
+        "delta": -2.802326434531352,
+        "ci95": [
+          -2.8552535303882984,
+          -2.7532250782714796
+        ],
+        "verdict": "better"
+      },
+      {
+        "metric": "time_healthy",
+        "delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "verdict": "not significant"
+      },
+      {
+        "metric": "work_completed",
+        "delta": -0.00011657978129266111,
+        "ci95": [
+          -0.0002639909350099716,
+          -1.7222162633709348e-05
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "node_reversals",
+        "delta": 1.625,
+        "ci95": [
+          0.25,
+          3.5
+        ],
+        "verdict": "worse"
+      }
+    ],
+    "omni_fleet_balanced_vs_k8s_hpa70_karpenter": [
+      {
+        "metric": "energy_kwh",
+        "delta": -1.0072014345313565,
+        "ci95": [
+          -1.0700951297718744,
+          -0.9241368619373097
+        ],
+        "verdict": "better"
+      },
+      {
+        "metric": "time_healthy",
+        "delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "verdict": "not significant"
+      },
+      {
+        "metric": "work_completed",
+        "delta": -0.00011657978129266111,
+        "ci95": [
+          -0.00026001498173349006,
+          -1.751289918826282e-05
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "node_reversals",
+        "delta": 0.625,
+        "ci95": [
+          -0.625,
+          2.125
+        ],
+        "verdict": "not significant"
+      }
+    ],
+    "omni_fleet_wear_vs_k8s_hpa70_ca": [
+      {
+        "metric": "energy_kwh",
+        "delta": -2.3110532573469404,
+        "ci95": [
+          -2.3488633555679344,
+          -2.2588516344795666
+        ],
+        "verdict": "better"
+      },
+      {
+        "metric": "time_healthy",
+        "delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "verdict": "not significant"
+      },
+      {
+        "metric": "work_completed",
+        "delta": -0.0001165797812924807,
+        "ci95": [
+          -0.0002600149817342662,
+          -1.7222162635574176e-05
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "node_reversals",
+        "delta": 1.125,
+        "ci95": [
+          0.25,
+          2.375
+        ],
+        "verdict": "worse"
+      }
+    ],
+    "omni_fleet_wear_vs_k8s_hpa70_karpenter": [
+      {
+        "metric": "energy_kwh",
+        "delta": -0.5159282573469445,
+        "ci95": [
+          -0.6010237198906405,
+          -0.40460136937432334
+        ],
+        "verdict": "better"
+      },
+      {
+        "metric": "time_healthy",
+        "delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "verdict": "not significant"
+      },
+      {
+        "metric": "work_completed",
+        "delta": -0.0001165797812924807,
+        "ci95": [
+          -0.00026384556673267334,
+          -1.721852842690405e-05
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "node_reversals",
+        "delta": 0.125,
+        "ci95": [
+          -0.75,
+          1.0
+        ],
+        "verdict": "not significant"
+      }
+    ],
+    "omni_fleet_park_vs_k8s_hpa70_ca": [
+      {
+        "metric": "energy_kwh",
+        "delta": 0.10209579387464385,
+        "ci95": [
+          0.05863783781449414,
+          0.14605130511059425
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "time_healthy",
+        "delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "verdict": "not significant"
+      },
+      {
+        "metric": "work_completed",
+        "delta": -0.0001165596543945685,
+        "ci95": [
+          -0.00026378518603898115,
+          -1.7218528426923827e-05
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "node_reversals",
+        "delta": -0.75,
+        "ci95": [
+          -1.5,
+          -0.125
+        ],
+        "verdict": "better"
+      }
+    ],
+    "omni_fleet_park_vs_k8s_hpa70_karpenter": [
+      {
+        "metric": "energy_kwh",
+        "delta": 1.8972207938746395,
+        "ci95": [
+          1.8623512465691823,
+          1.9354903346589838
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "time_healthy",
+        "delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "verdict": "not significant"
+      },
+      {
+        "metric": "work_completed",
+        "delta": -0.0001165596543945685,
+        "ci95": [
+          -0.00026032495282285597,
+          -1.7222162635567583e-05
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "node_reversals",
+        "delta": -1.75,
+        "ci95": [
+          -3.5,
+          -0.5
+        ],
+        "verdict": "better"
+      }
+    ],
+    "omni_fleet_no_dynamics_vs_k8s_hpa70_ca": [
+      {
+        "metric": "energy_kwh",
+        "delta": -3.042468489411113,
+        "ci95": [
+          -3.1016044769569215,
+          -2.980607719841088
+        ],
+        "verdict": "better"
+      },
+      {
+        "metric": "time_healthy",
+        "delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "verdict": "not significant"
+      },
+      {
+        "metric": "work_completed",
+        "delta": -0.0001078932144921857,
+        "ci95": [
+          -0.00025135110603402566,
+          -1.4284980099740774e-05
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "node_reversals",
+        "delta": 2.5,
+        "ci95": [
+          0.5,
+          5.25
+        ],
+        "verdict": "worse"
+      }
+    ],
+    "omni_fleet_no_dynamics_vs_k8s_hpa70_karpenter": [
+      {
+        "metric": "energy_kwh",
+        "delta": -1.2473434894111173,
+        "ci95": [
+          -1.3309474340390604,
+          -1.1356346528429508
+        ],
+        "verdict": "better"
+      },
+      {
+        "metric": "time_healthy",
+        "delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "verdict": "not significant"
+      },
+      {
+        "metric": "work_completed",
+        "delta": -0.0001078932144921857,
+        "ci95": [
+          -0.0002510119133892763,
+          -1.3945787454920644e-05
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "node_reversals",
+        "delta": 1.5,
+        "ci95": [
+          -0.375,
+          3.75
+        ],
+        "verdict": "not significant"
+      }
+    ],
+    "omni_fleet_no_gate_vs_k8s_hpa70_ca": [
+      {
+        "metric": "energy_kwh",
+        "delta": -3.0386334700216895,
+        "ci95": [
+          -3.0779048691967774,
+          -3.0001723480459503
+        ],
+        "verdict": "better"
+      },
+      {
+        "metric": "time_healthy",
+        "delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "verdict": "not significant"
+      },
+      {
+        "metric": "work_completed",
+        "delta": -0.00011657978129266111,
+        "ci95": [
+          -0.0002641363032872268,
+          -1.7218528425856278e-05
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "node_reversals",
+        "delta": 2.125,
+        "ci95": [
+          0.5,
+          4.0
+        ],
+        "verdict": "worse"
+      }
+    ],
+    "omni_fleet_no_gate_vs_k8s_hpa70_karpenter": [
+      {
+        "metric": "energy_kwh",
+        "delta": -1.243508470021694,
+        "ci95": [
+          -1.3051302641157787,
+          -1.1663060195327761
+        ],
+        "verdict": "better"
+      },
+      {
+        "metric": "time_healthy",
+        "delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "verdict": "not significant"
+      },
+      {
+        "metric": "work_completed",
+        "delta": -0.00011657978129266111,
+        "ci95": [
+          -0.0002633449592121112,
+          -1.722216263276462e-05
+        ],
+        "verdict": "worse"
+      },
+      {
+        "metric": "node_reversals",
+        "delta": 1.125,
+        "ci95": [
+          -0.25,
+          2.5
+        ],
+        "verdict": "not significant"
+      }
+    ]
+  }
+}

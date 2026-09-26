@@ -1,0 +1,176 @@
+{
+ "side_by_side": {
+  "nodes_native": 6.0,
+  "nodes_omni": 3.2,
+  "energy_native_wh": 220,
+  "energy_omni_wh": 125,
+  "epc_change": "-37.5% (802 to 501 Wh per core-hour)",
+  "util_native": 0.068,
+  "util_omni": 0.116
+ },
+ "gauges": [
+  [
+   "Duration (min)",
+   "20.10",
+   "20.13",
+   ""
+  ],
+  [
+   "Worker nodes in service, mean",
+   "6.00",
+   "3.20",
+   "-46.7%"
+  ],
+  [
+   "Worker nodes in service, min",
+   "6.00",
+   "3.00",
+   "-50.0%"
+  ],
+  [
+   "Node-hours",
+   "2.01",
+   "1.07",
+   "-46.6%"
+  ],
+  [
+   "Power (W), mean",
+   "657",
+   "373",
+   "-43.2%"
+  ],
+  [
+   "Power (W), peak",
+   "699",
+   "632",
+   "-9.7%"
+  ],
+  [
+   "Energy (Wh)",
+   "220",
+   "125",
+   "-43.1%"
+  ],
+  [
+   "CPU used (cores), mean",
+   "0.819",
+   "0.745",
+   "-9.1%"
+  ],
+  [
+   "CPU allocatable (cores), mean",
+   "12.00",
+   "6.40",
+   "-46.7%"
+  ],
+  [
+   "Utilisation",
+   "0.068",
+   "0.116",
+   "+70.5%"
+  ],
+  [
+   "Energy per core-hour (Wh)",
+   "802",
+   "501",
+   "-37.5%"
+  ],
+  [
+   "Node-hours per core-hour",
+   "7.32",
+   "4.29",
+   "-41.4%"
+  ],
+  [
+   "Pending pods, pod-minutes",
+   "0.567",
+   "0.267",
+   "-52.9%"
+  ],
+  [
+   "Pending pods, peak",
+   "1",
+   "1",
+   "0"
+  ],
+  [
+   "HPA replicas, mean",
+   "8.71",
+   "6.20",
+   "-28.8%"
+  ],
+  [
+   "HPA replicas, peak",
+   "10",
+   "8",
+   "-20.0%"
+  ],
+  [
+   "HPA shortfall, minutes",
+   "0.833",
+   "1.07",
+   "+28.0%"
+  ]
+ ],
+ "significance": [
+  [
+   "Node-hours per core-hour",
+   "7.8535",
+   "4.6976",
+   "-40.2%",
+   "[-5.0982, -1.1072]",
+   "better"
+  ],
+  [
+   "kWh per core-hour",
+   "0.8545",
+   "0.5412",
+   "-36.7%",
+   "[-0.5017, -0.1150]",
+   "better"
+  ],
+  [
+   "Utilisation",
+   "0.0694",
+   "0.1224",
+   "+76.3%",
+   "[+0.0217, +0.0830]",
+   "better"
+  ],
+  [
+   "Pending-pod minutes per hour",
+   "1.7253",
+   "0.8333",
+   "-51.7%",
+   "[-3.4961, +1.6667]",
+   "not significant"
+  ],
+  [
+   "HPA shortfall minutes per hour",
+   "2.5458",
+   "3.3399",
+   "+31.2%",
+   "[-3.3277, +5.0066]",
+   "not significant"
+  ]
+ ],
+ "nodes_decided": "5 4 3 then 3 for the remaining 17 minutes",
+ "hpa_target": "78-79% (Kubernetes alone: 50%)",
+ "other_runs": [
+  [
+   "live-kind, run 36205408388",
+   "1 node; baseline 10 min (Omni observing) then Omni target mode 10 min",
+   "0 writes while observing; kill switch restored 50; pending-pod minutes -48.6% (significant, but the baseline phase included warm-up); energy per core-hour no significant difference (one node cannot be parked)"
+  ],
+  [
+   "live-kind-full, run 36205869009",
+   "1 control plane + 3 workers",
+   "node pool never resized: 3 of 3 every minute at about 8% utilisation, because the fleet law needs more than 3 nodes of slack; kill switch restored target and workers"
+  ],
+  [
+   "live-kind-full, run 36207925928",
+   "1 control plane + 6 workers; sequential baseline then full engine",
+   "nodes 6 to 5 to 4 to 3; node-hours per core-hour -38.2%, kWh per core-hour -35.8%, utilisation +63.7% (all significant); kill switch restored target 50 and 6 of 6 workers"
+  ]
+ ]
+}
