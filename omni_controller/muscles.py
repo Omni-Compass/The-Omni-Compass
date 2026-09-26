@@ -263,11 +263,14 @@ class Muscles:
                              "contain: record original pod CPU limits")
 
     def _release(self, ns, q, why):
-        for pn, lim in json.loads((q["metadata"].get("annotations") or {}).get(LIM_ANN, "{}")).items():
-            self.k.write(["patch", "pod", pn, "-n", ns, "--subresource", "resize", "--type=json", "-p",
-                          json.dumps([{"op": "replace", "path": "/spec/containers/0/resources/limits/cpu", "value": lim}])],
-                         f"{why}: restore pod CPU limit {lim}")
+        # the quota goes first: while it stands, Kubernetes refuses to raise a pod's limit back above the budget share
+        held = json.loads((q["metadata"].get("annotations") or {}).get(LIM_ANN, "{}"))
         self.k.write(["delete", "resourcequota", QUOTA, "-n", ns], f"{why}: delete quota")
+        for pn, lim in held.items():
+            self._guard(f"{why} {pn}", lambda pn=pn, lim=lim: self.k.write(
+                ["patch", "pod", pn, "-n", ns, "--subresource", "resize", "--type=json", "-p",
+                 json.dumps([{"op": "replace", "path": "/spec/containers/0/resources/limits/cpu", "value": lim}])],
+                f"{why}: restore pod CPU limit {lim}"))
 
     def _cooling(self, obs):
         cmd = getattr(self.a, "cooling_cmd", "")

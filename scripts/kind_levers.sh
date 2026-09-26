@@ -87,11 +87,26 @@ left=$( (kubectl get deployment php-apache idle-worker -o json | jq -r '.items[]
   echo "records left after kill: ${left:-none}"
   echo "writes by lever: $(grep -o '"why": "[a-z_]*' "$OUT_DIR/audit.jsonl" | cut -d'"' -f4 | sort | uniq -c | tr '\n' ';')"
 } | tee "$OUT_DIR/levers.txt"
-test "$R1" != "$R0" && test "$R4" = "$R0"
-test "$P1" = "0" && test "$P2" = "2" && test "$P3" = "0" && test "$P4" = "2"
-test "$S1" = "true" && test "$S2" = "false" && test "$S3" = "true" && test "$S4" = "false"
-test "$Q1" = "1" && test "$Q2" = "0" && test "$Q3" = "1" && test "$Q4" = "0"
-test "$L1" != "$L0" && test "$L2" = "$L0" && test "$L4" = "$L0"
-test -z "$left"
-test "$(tail -n1 "$BMS")" = "22.0"
+fail=0
+check() { if eval "$2"; then echo "CHECK ok   $1"; else echo "CHECK FAIL $1"; fail=1; fi; }   # every check counted
+check "rightsize changed the request" '[ "$R1" != "$R0" ]'
+check "rightsize restored by kill" '[ "$R4" = "$R0" ]'
+check "coldstart idle -> 0" '[ "$P1" = "0" ]'
+check "coldstart work -> woken" '[ "$P2" = "2" ]'
+check "coldstart idle again -> 0" '[ "$P3" = "0" ]'
+check "coldstart restored by kill" '[ "$P4" = "2" ]'
+check "batch_pace stress -> paused" '[ "$S1" = "true" ]'
+check "batch_pace calm -> resumed" '[ "$S2" = "false" ]'
+check "batch_pace stress -> paused again" '[ "$S3" = "true" ]'
+check "batch_pace restored by kill" '[ "$S4" = "false" ]'
+check "contain over budget -> quota" '[ "$Q1" = "1" ]'
+check "contain limits cut" '[ "$L1" != "$L0" ]'
+check "contain under budget -> quota lifted" '[ "$Q2" = "0" ]'
+check "contain under budget -> limits back" '[ "$L2" = "$L0" ]'
+check "contain over again -> quota" '[ "$Q3" = "1" ]'
+check "contain restored by kill (quota)" '[ "$Q4" = "0" ]'
+check "contain restored by kill (limits)" '[ "$L4" = "$L0" ]'
+check "no omnicompass.io record left" '[ -z "$left" ]'
+check "cooling restored by kill" '[ "$(tail -n1 "$BMS")" = "22.0" ]'
+[ "$fail" = "0" ] || { echo "LIVE LEVERS: FAIL"; exit 1; }
 echo "LIVE LEVERS: PASS"
