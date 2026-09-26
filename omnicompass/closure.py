@@ -43,16 +43,23 @@ class ClosureLaw:
     z: float = 0.0             # deviation-bath band: a release must survive z standard deviations of the tracker's
                                # innovation over the release horizon (Chapter 31: the deviation bath carries the noise;
                                # the band is wide where demand is noisy, tight where it is calm)
+    tone: bool = False         # muscle tone: release = park (alive, low power, instant wake), not power-off; parked
+                               # machines beyond the reserve needed within tone_H are powered off
+    tone_H: int = 960          # reserve horizon (ticks): the largest demand seen over this window sets the warm reserve
     dwell: int = 0             # release only after this many consecutive calm decisions (resource-aware envelope,
                                # Proposition 2: no release outside the calm set; 0 = no dwell requirement)
 
 
 class ClosureNodes:
     def __init__(self, law: ClosureLaw = ClosureLaw()):
-        self.L = None; self.v = 0.0; self.law = law; self.calm = 0; self.s2 = 0.0
+        self.L = None; self.v = 0.0; self.law = law; self.calm = 0; self.s2 = 0.0; self.hist = []
 
     def observe(self, r: float, dt: float = 1.0) -> None:
         a, b, g = self.law.a, self.law.b, self.law.g
+        if self.law.tone:
+            self.hist.append(r)
+            if len(self.hist) > self.law.tone_H:
+                self.hist.pop(0)
         if self.L is None:
             self.L = r; return
         pred = self.L + self.v * dt
@@ -60,6 +67,12 @@ class ClosureNodes:
         self.s2 = 0.95 * self.s2 + 0.05 * e * e
         self.L = pred + a * e
         self.v = (1.0 - g) * self.v + b * e / dt
+
+    def reserve(self, c: float) -> int:
+        """Machines the law expects to need within the tone horizon (largest recent demand at the working boundary)."""
+        if not self.hist:
+            return 0
+        return int(math.ceil(max(self.hist) / ((self.law.rho_max - self.law.delta) * c) - 1e-9))
 
     def fwd_max(self, H: int) -> float:
         return max(self.L + self.v * tau for tau in range(0, H + 1)) if self.L is not None else 0.0

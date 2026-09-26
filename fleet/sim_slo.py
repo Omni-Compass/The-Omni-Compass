@@ -303,6 +303,7 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
     node_ticks = 0
     pod_changes = 0
     cap_moves = 0
+    park_moves = 0
     R_all, W_all = [], []
     r_recent = [0.0] * len(scn.clusters)
     trace = []
@@ -409,7 +410,14 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                         capn = 1.0
                     tgt = max(p.min_nodes, min(p.max_nodes, tgt))
                     if tgt != n:
-                        _resize(c, tgt, park=not p.power_off)
+                        _resize(c, tgt, park=not p.power_off or (closure and CL.tone))
+                    if closure and CL.tone:
+                        # muscle tone: machines the law expects to need within tone_H stay parked (alive, low power,
+                        # instant wake); only machines beyond that reserve are powered off
+                        keep = max(0, cl_nodes[ci].reserve(p.cores * ALLOC) - (p.nodes + len(p.booting)))
+                        if p.parked > keep:
+                            off = p.parked - keep; p.parked -= off
+                            c._single_dn = getattr(c, "_single_dn", 0) - off
                     if abs(capn - p.cap) > 1e-9:
                         p.cap = capn; cap_moves += 1
                     continue
@@ -473,6 +481,7 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             dn = n_after - n_before + (c.pool.parked - parked_before)
             if single and hasattr(c, "_single_dn"):
                 dn += c._single_dn; c._single_dn = 0
+            park_moves += getattr(c, "_park_moves", 0)
             c._park_moves = 0
             starts += max(0, dn); stops += max(0, -dn)
             if dn:
@@ -484,7 +493,7 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             "time_healthy": healthy / STEPS, "violation_backlog": viol_q / STEPS, "violation_power": viol_p / STEPS,
             "violation_heat": viol_h / STEPS, "machines_started": starts, "machines_stopped": stops,
             "node_reversals": rev, "node_hours": node_ticks * TICK / 3600.0, "pod_changes": pod_changes,
-            "cap_moves": cap_moves, "b_vetoes": b_veto, "b_early_adds": b_early, "p95_ms": wpct(R_all, W_all, 95), "p99_ms": wpct(R_all, W_all, 99),
+            "cap_moves": cap_moves, "park_moves": park_moves, "b_vetoes": b_veto, "b_early_adds": b_early, "p95_ms": wpct(R_all, W_all, 95), "p99_ms": wpct(R_all, W_all, 99),
             "mean_ms": float(np.average(R_all, weights=W_all)) if W_all else S0_MS,
             "trace_hash": hashlib.sha256(repr(trace).encode()).hexdigest()[:16]}
     if series is not None:
