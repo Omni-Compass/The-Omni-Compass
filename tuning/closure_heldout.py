@@ -17,7 +17,7 @@ from tuning.league import COMPETITORS, VESSELS, LOWER, HIGHER, losses
 
 SL = dict(rho0=0.7, rho_min=0.7, kI=0.0, kE=0.0)
 SEEDS = list(range(700201, 700231))
-SRC = next(p for p in ("tuning/CLOSURE_SEARCH2_DEV.json", "tuning/CLOSURE_SEARCH_DEV.json") if (ROOT / p).exists())
+SRC = next(p for p in ("tuning/CLOSURE_FINAL_DEV.json", "tuning/CLOSURE_SEARCH2_DEV.json", "tuning/CLOSURE_SEARCH_DEV.json") if (ROOT / p).exists())
 SET = {v: {"closure": d["closure"], "direct": d["direct"]} for v, d in json.load(open(ROOT / SRC)).items()}
 
 

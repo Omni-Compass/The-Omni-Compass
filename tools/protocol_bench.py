@@ -48,7 +48,7 @@ KINDS = ["node_crash", "load_spike", "service_crash", "cpu_pressure"]
 B_SET = json.load(open(ROOT / "tuning/B_SETTINGS_PER_PLATFORM.json"))
 C_PICK = json.load(open(ROOT / "tuning/LEAGUE_HELDOUT.json"))["omni_per_vessel"]
 CANDS = candidates()
-_cs = [ROOT / "tuning/CLOSURE_SEARCH2_DEV.json", ROOT / "tuning/CLOSURE_SEARCH_DEV.json"]
+_cs = [ROOT / "tuning/CLOSURE_FINAL_DEV.json", ROOT / "tuning/CLOSURE_SEARCH2_DEV.json", ROOT / "tuning/CLOSURE_SEARCH_DEV.json"]
 CLOSURE = next((json.load(open(p)) for p in _cs if p.exists()), {})
 SL = dict(rho0=0.7, rho_min=0.7, kI=0.0, kE=0.0)
 
