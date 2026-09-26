@@ -12,8 +12,8 @@ from fleet.sim_slo import BLaw
 from tuning.speed_search import gauges, LOWER, HIGHER
 from tuning.league import COMPETITORS, VESSELS, SEEDS, losses
 
-GRID = [dict(lag=l, rise=r, lead=d, early=e) for l, r, d, e in
-        itertools.product([4, 8, 16], [0.0, 0.02, 0.05, 99.0], [3, 6, 12], [True, False])]
+GRID = [dict(lag=l, rise=r, lead=d, early=e, veto=vt) for l, r, d, e, vt in
+        itertools.product([4, 8, 16], [0.0, 0.02, 0.05], [3, 6, 12], [True, False], [True, False]) if vt or r == 0.0]
 
 
 def _job(args):

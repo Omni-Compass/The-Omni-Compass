@@ -158,6 +158,7 @@ class BLaw:
     need_hold: float = 9.0
     lead: int = 6
     early: bool = True
+    veto: bool = True
 
 
 def _omni_on_top(c, before, g, L):
@@ -168,7 +169,7 @@ def _omni_on_top(c, before, g, L):
     veto = early = 0
     n0, parked0, boot0 = before
     removed = (n0 + len(boot0)) - (p.nodes + len(p.booting))
-    if removed > 0 and (trend > L.rise or g.last_push > L.push_hold or g.x.I_U > L.need_hold):
+    if L.veto and removed > 0 and (trend > L.rise or g.last_push > L.push_hold or g.x.I_U > L.need_hold):
         p.nodes, p.parked, p.booting = n0, parked0, list(boot0)
         veto = 1
     if L.early and not p.booting and len(h) > L.lag:
@@ -260,7 +261,7 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                 w.backlog = d + w.backlog - srv
                 dem += d; done += srv; used += srv; cap_rate += max(capw, 1e-9)
                 w.metric_next = min(1.0, srv / max(w.replicas * w.request, 1e-9)) if w.hpa else 0.0
-                if arm == "turbonomic" and w.hpa:
+                if base == "turbonomic" and w.hpa:
                     w.use_hist = getattr(w, "use_hist", []) + [srv / max(1, w.replicas)]
                 if d > 0:
                     r = response_ms(w, d, capw, p.cap, frac)
