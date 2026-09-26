@@ -156,12 +156,16 @@ class DirectLaw:
     kb: float = 1.0
     push_release: float = 0.05
     tol: float = 0.0
+    beta: float = -1.0   # >= 0: square-root staffing (Halfin-Whitt), replicas = a + beta sqrt(a), a = busy pods: the same
+                         # queueing delay with fewer pods on large services and more headroom on small ones
 
 
 def omni_replicas(w, rho, push, L):
     import math as _m
     cur = w.replicas
-    want = max(w.min_rep, min(w.max_rep, int(_m.ceil(cur * w.metric / max(rho, 1e-9) + L.kb * w.backlog / max(w.request, 1e-9) - 1e-9))))
+    a = cur * w.metric
+    base = a + L.beta * _m.sqrt(a) if L.beta >= 0 else a / max(rho, 1e-9)
+    want = max(w.min_rep, min(w.max_rep, int(_m.ceil(base + L.kb * w.backlog / max(w.request, 1e-9) - 1e-9))))
     if abs(w.metric / max(rho, 1e-9) - 1.0) <= L.tol and w.backlog <= 1e-9:
         want = cur
     w.rec_hist = (w.rec_hist + [want])[-max(1, L.window):]

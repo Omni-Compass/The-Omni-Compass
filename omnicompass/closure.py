@@ -40,13 +40,16 @@ class ClosureLaw:
     push_release: float = 0.2  # engine gate on release
     turn: bool = True          # release only after the turning point (v <= 0)
     delta_rel: float = -1.0    # release band: a release must fit at rho_max - delta_rel (hysteresis; < 0 means = delta)
+    z: float = 0.0             # deviation-bath band: a release must survive z standard deviations of the tracker's
+                               # innovation over the release horizon (Chapter 31: the deviation bath carries the noise;
+                               # the band is wide where demand is noisy, tight where it is calm)
     dwell: int = 0             # release only after this many consecutive calm decisions (resource-aware envelope,
                                # Proposition 2: no release outside the calm set; 0 = no dwell requirement)
 
 
 class ClosureNodes:
     def __init__(self, law: ClosureLaw = ClosureLaw()):
-        self.L = None; self.v = 0.0; self.law = law; self.calm = 0
+        self.L = None; self.v = 0.0; self.law = law; self.calm = 0; self.s2 = 0.0
 
     def observe(self, r: float, dt: float = 1.0) -> None:
         a, b, g = self.law.a, self.law.b, self.law.g
@@ -54,6 +57,7 @@ class ClosureNodes:
             self.L = r; return
         pred = self.L + self.v * dt
         e = r - pred
+        self.s2 = 0.95 * self.s2 + 0.05 * e * e
         self.L = pred + a * e
         self.v = (1.0 - g) * self.v + b * e / dt
 
@@ -70,7 +74,7 @@ class ClosureNodes:
             self.calm = 0
             need = math.ceil(peak_add / ((L.rho_max - L.delta) * c) - 1e-9)
             return int(min(n_max, max(n_min, need, n)))
-        peak_rel = max(self.fwd_max(L.H_rel), 0.0)
+        peak_rel = max(self.fwd_max(L.H_rel), 0.0) + L.z * math.sqrt(self.s2 * max(1, L.H_rel)) * L.a
         band = L.delta if L.delta_rel < 0 else L.delta_rel
         calm = n - 1 >= n_min and peak_rel / ((n - 1) * c) <= L.rho_max - band \
             and (not L.turn or self.v <= 0.0) and push <= L.push_release
