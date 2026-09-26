@@ -1,0 +1,394 @@
+{
+ "seeds": [
+  700901,
+  700902,
+  700903,
+  700904,
+  700905,
+  700906,
+  700907,
+  700908,
+  700909,
+  700910,
+  700911,
+  700912,
+  700913,
+  700914,
+  700915,
+  700916,
+  700917,
+  700918,
+  700919,
+  700920,
+  700921,
+  700922,
+  700923,
+  700924,
+  700925,
+  700926,
+  700927,
+  700928,
+  700929,
+  700930
+ ],
+ "picks": {
+  "web": {
+   "k8s_hpa70_ca": {
+    "tone_H": 960,
+    "rho": 0.75,
+    "rho_max": 0.99,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   },
+   "openshift": {
+    "tone_H": 960,
+    "rho": 0.75,
+    "rho_max": 0.99,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   }
+  },
+  "multi": {
+   "k8s_hpa70_ca": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "rho_max": 0.99,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   },
+   "openshift": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "rho_max": 0.99,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   }
+  },
+  "batch": {
+   "k8s_hpa70_ca": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "rho_max": 0.97,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   },
+   "openshift": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "rho_max": 0.97,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   }
+  }
+ },
+ "cells": {
+  "web": {
+   "k8s_hpa70_ca": [
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 13.466218293152743,
+     "omni_value": 15.02417179872403,
+     "omni_worse_by_pct": 11.56934687716647
+    },
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "p95_ms",
+     "competitor_value": 124.16688806195471,
+     "omni_value": 129.9839417776586,
+     "omni_worse_by_pct": 4.684867122385632
+    },
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "node_hours",
+     "competitor_value": 36.15027777777778,
+     "omni_value": 41.77305555555556,
+     "omni_worse_by_pct": 15.553899232371037
+    }
+   ],
+   "openshift": [
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 14.081184959819405,
+     "omni_value": 15.02417179872403,
+     "omni_worse_by_pct": 6.6967861127840695
+    },
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "p95_ms",
+     "competitor_value": 124.06406455819722,
+     "omni_value": 129.9839417776586,
+     "omni_worse_by_pct": 4.771629271169355
+    },
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "node_hours",
+     "competitor_value": 38.71263888888888,
+     "omni_value": 41.77305555555556,
+     "omni_worse_by_pct": 7.905471583713329
+    }
+   ]
+  },
+  "multi": {
+   "k8s_hpa70_ca": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 53.42116598149328,
+     "omni_value": 60.88920967213718,
+     "omni_worse_by_pct": 13.979559512480586
+    },
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "node_hours",
+     "competitor_value": 143.7134722222222,
+     "omni_value": 171.32555555555555,
+     "omni_worse_by_pct": 19.21328801424903
+    }
+   ],
+   "openshift": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 55.446199314826636,
+     "omni_value": 60.88920967213718,
+     "omni_worse_by_pct": 9.816742039260127
+    },
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "node_hours",
+     "competitor_value": 152.15111111111113,
+     "omni_value": 171.32555555555555,
+     "omni_worse_by_pct": 12.602237541625282
+    }
+   ]
+  },
+  "batch": {
+   "k8s_hpa70_ca": [],
+   "openshift": []
+  }
+ },
+ "means": {
+  "web": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": {
+     "incumbent": 13.466218293152743,
+     "omni": 15.02417179872403
+    },
+    "node_hours": {
+     "incumbent": 36.15027777777778,
+     "omni": 41.77305555555556
+    },
+    "p95_ms": {
+     "incumbent": 124.16688806195471,
+     "omni": 129.9839417776586
+    },
+    "p99_ms": {
+     "incumbent": 804.168451159058,
+     "omni": 166.21767328208534
+    },
+    "mean_ms": {
+     "incumbent": 205.5955044991997,
+     "omni": 152.73726527126516
+    },
+    "start_stop": {
+     "incumbent": 9.433333333333334,
+     "omni": 7.6
+    },
+    "work_completed": {
+     "incumbent": 0.9999971784829459,
+     "omni": 0.9999992530754824
+    }
+   },
+   "openshift": {
+    "energy_kwh": {
+     "incumbent": 14.081184959819405,
+     "omni": 15.02417179872403
+    },
+    "node_hours": {
+     "incumbent": 38.71263888888888,
+     "omni": 41.77305555555556
+    },
+    "p95_ms": {
+     "incumbent": 124.06406455819722,
+     "omni": 129.9839417776586
+    },
+    "p99_ms": {
+     "incumbent": 803.4935029094365,
+     "omni": 166.21767328208534
+    },
+    "mean_ms": {
+     "incumbent": 205.17180598459194,
+     "omni": 152.73726527126516
+    },
+    "start_stop": {
+     "incumbent": 7.166666666666667,
+     "omni": 7.6
+    },
+    "work_completed": {
+     "incumbent": 0.9999971784829459,
+     "omni": 0.9999992530754824
+    }
+   }
+  },
+  "multi": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": {
+     "incumbent": 53.42116598149328,
+     "omni": 60.88920967213718
+    },
+    "node_hours": {
+     "incumbent": 143.7134722222222,
+     "omni": 171.32555555555555
+    },
+    "p95_ms": {
+     "incumbent": 124.40955174247652,
+     "omni": 123.66846558945585
+    },
+    "p99_ms": {
+     "incumbent": 239.58448937832105,
+     "omni": 153.3112542301388
+    },
+    "mean_ms": {
+     "incumbent": 221.93040452295708,
+     "omni": 161.04412475443283
+    },
+    "start_stop": {
+     "incumbent": 38.7,
+     "omni": 29.966666666666665
+    },
+    "work_completed": {
+     "incumbent": 0.9999955655561955,
+     "omni": 0.9999974376610441
+    }
+   },
+   "openshift": {
+    "energy_kwh": {
+     "incumbent": 55.446199314826636,
+     "omni": 60.88920967213718
+    },
+    "node_hours": {
+     "incumbent": 152.15111111111113,
+     "omni": 171.32555555555555
+    },
+    "p95_ms": {
+     "incumbent": 124.29544913598662,
+     "omni": 123.66846558945585
+    },
+    "p99_ms": {
+     "incumbent": 176.4962628928186,
+     "omni": 153.3112542301388
+    },
+    "mean_ms": {
+     "incumbent": 220.4325473111783,
+     "omni": 161.04412475443283
+    },
+    "start_stop": {
+     "incumbent": 29.033333333333335,
+     "omni": 29.966666666666665
+    },
+    "work_completed": {
+     "incumbent": 0.9999955655561954,
+     "omni": 0.9999974376610441
+    }
+   }
+  },
+  "batch": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": {
+     "incumbent": 64.87178344298246,
+     "omni": 63.58350219298247
+    },
+    "node_hours": {
+     "incumbent": 92.90347222222223,
+     "omni": 87.62527777777778
+    },
+    "p95_ms": {
+     "incumbent": 100.0,
+     "omni": 100.0
+    },
+    "p99_ms": {
+     "incumbent": 1125.604679045136,
+     "omni": 635.0854004535979
+    },
+    "mean_ms": {
+     "incumbent": 134.04174909570773,
+     "omni": 122.35571561068711
+    },
+    "start_stop": {
+     "incumbent": 13.166666666666666,
+     "omni": 10.233333333333333
+    },
+    "work_completed": {
+     "incumbent": 1.0,
+     "omni": 1.0
+    }
+   },
+   "openshift": {
+    "energy_kwh": {
+     "incumbent": 64.86115844298247,
+     "omni": 63.58350219298247
+    },
+    "node_hours": {
+     "incumbent": 92.86805555555553,
+     "omni": 87.62527777777778
+    },
+    "p95_ms": {
+     "incumbent": 100.0,
+     "omni": 100.0
+    },
+    "p99_ms": {
+     "incumbent": 1231.6266648174064,
+     "omni": 635.0854004535979
+    },
+    "mean_ms": {
+     "incumbent": 136.4885190523819,
+     "omni": 122.35571561068711
+    },
+    "start_stop": {
+     "incumbent": 14.633333333333333,
+     "omni": 10.233333333333333
+    },
+    "work_completed": {
+     "incumbent": 1.0,
+     "omni": 1.0
+    }
+   }
+  }
+ }
+}
