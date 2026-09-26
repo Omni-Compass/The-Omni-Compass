@@ -51,12 +51,18 @@ Two ways to run Omni-Compass on a real Kubernetes control plane (kind: real API 
 metrics-server). Each run does: baseline (HPA alone, Omni observing and writing nothing), Omni in target
 mode, kill-switch restore check, then a scored comparison.
 
-- **GitHub Actions:** Actions tab → `live-kind` → Run workflow, or push a commit whose message contains `[kind]`.
-  Results appear on the run's summary page and as the `kind-pilot-results` artifact. About 25 minutes per run.
-- **Your laptop (Docker Desktop):** `docker compose up --build`. Results land in `lab_results/run_<date>/`.
+| Workflow | Cluster | Omni-Compass drives | Start it |
+|---|---|---|---|
+| `live-kind` | 1 node | HPA target | Actions → live-kind → Run workflow, or `[kind]` in a commit message |
+| `live-kind-full` | 1 control plane + 3 workers | HPA target, node pool (cordon/drain/uncordon), power sensing | Actions → live-kind-full → Run workflow, or `[full]` in a commit message |
 
-What the live run exercises today: the HPA muscle (target mode) and the kill switch. Node-pool and power-cap
-muscles are wired in the controller and tested in simulation, not in the live run. See `LIMITS.md`.
+Results appear on each run's summary page and as an artifact. Locally (Docker Desktop): `docker compose up --build`
+runs `live-kind`; results land in `lab_results/run_<date>/`.
+
+Full-engine run (`scripts/kind_full.sh`): baseline on all three workers with Omni observing (must write nothing), then
+Omni drives the wired muscles, then the kill switch must restore the HPA target and return every worker to service.
+Limits: a parked kind worker is a cordoned, drained container, counted as off; power is a declared model
+(`scripts/kind_power.sh`, the same constants `pilot/score.py` uses), not a meter. Energy numbers from kind are modelled.
 
 ## Verify
 

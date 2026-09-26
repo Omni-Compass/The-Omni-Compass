@@ -11,7 +11,8 @@ Safety
   every node action passes through the shield (bounds, step limit); the recommendation never falls below what the CPU
   requests of running and pending pods, or current usage, need, and capacity required by that floor is added in one step
   (the step limit applies only to the governor's own adjustments); --dry-run logs intended writes without executing them; creating the kill file (or
-  setting OMNI_KILL=1) restores every HPA target this controller changed and returns to observe; every decision and action
+  setting OMNI_KILL=1) restores every HPA target this controller changed, runs --node-restore-cmd if given, and returns to
+  observe; every decision and action
   is appended to the audit log.
 Requires kubectl on PATH with access to the cluster (metrics-server for kubectl top).
 """
@@ -52,16 +53,28 @@ class Kube:
             subprocess.run([self.kubectl, *args], capture_output=True, text=True, check=True)
 
 
-def snapshot(k: Kube):
+def schedulable(n):
+    """False for a cordoned node or one tainted NoSchedule (control plane, or a node the node pool has parked)."""
+    spec = n.get("spec", {})
+    return not spec.get("unschedulable") and not any(t.get("effect") == "NoSchedule" for t in spec.get("taints") or [])
+
+
+def snapshot(k: Kube, active_only: bool = False):
     nodes = k.get("get", "nodes", "-o", "json")["items"]
     ready = [n for n in nodes if any(c["type"] == "Ready" and c["status"] == "True" for c in n["status"].get("conditions", []))]
+    if active_only:
+        ready = [n for n in ready if schedulable(n)]
+    names = {n["metadata"]["name"] for n in ready}
     alloc = sum(to_milli(n["status"]["allocatable"]["cpu"]) for n in ready)
     pods = k.get("get", "pods", "-A", "-o", "json")["items"]
     req = sum(to_milli(c.get("resources", {}).get("requests", {}).get("cpu", "0")) for p in pods
-              if p["status"].get("phase") in ("Running", "Pending") for c in p["spec"]["containers"])
+              if p["status"].get("phase") in ("Running", "Pending")
+              and (not active_only or p["status"].get("phase") == "Pending" or p["spec"].get("nodeName") in names)
+              for c in p["spec"]["containers"])
     pending = sum(1 for p in pods if p["status"].get("phase") == "Pending")
     top = k.get("top", "nodes", "--no-headers")
-    used = sum(to_milli(line.split()[1]) for line in top.strip().splitlines() if line.strip())
+    used = sum(to_milli(line.split()[1]) for line in top.strip().splitlines()
+               if line.strip() and (not active_only or line.split()[0] in names))
     hpas = k.get("get", "hpa", "-A", "-o", "json")["items"]
     return {"nodes": len(ready), "alloc_m": alloc, "req_m": req, "used_m": used, "pending": pending, "hpas": hpas}
 
@@ -82,6 +95,7 @@ class Controller:
         self.g = Governor(law=mode_law("fleet")); self.g.set_mode(OBSERVE)
         self.rec_n = None
         self.changed = {}
+        self.nodes_restored = False
 
     def audit(self, rec):
         rec = {"time": time.time(), **rec}
@@ -105,12 +119,18 @@ class Controller:
                              "kill switch: restore original HPA target")
             self.k.write(["annotate", "hpa", name, "-n", ns, f"{ANNOTATION}-"], "kill switch: remove record")
         self.changed.clear()
+        cmd = getattr(self.a, "node_restore_cmd", "")
+        if cmd and not self.nodes_restored:
+            self.audit({"write": shlex.split(cmd), "why": "kill switch: restore node pool", "dry_run": self.a.dry_run})
+            if not self.a.dry_run:
+                subprocess.run(shlex.split(cmd), check=True)
+            self.nodes_restored = True
 
     def floor_step(self):
         """Fast path between governor decisions: add the nodes that pending and running pod requests need (nodepool mode)."""
         if self.killed() or self.a.mode != "nodepool" or not self.a.node_scale_cmd:
             return None
-        s = snapshot(self.k)
+        s = snapshot(self.k, getattr(self.a, "active_nodes_only", False))
         n = max(1, s["nodes"]); per_node = s["alloc_m"] / n
         floor = max(int(math.ceil(s["req_m"] * (1.0 + self.a.headroom) / per_node)) if s["req_m"] > 0 else self.a.min_nodes, int(math.ceil(s["used_m"] / per_node)))
         floor = min(self.a.max_nodes, floor)
@@ -127,7 +147,7 @@ class Controller:
         if self.killed():
             self.restore()
             return self.audit({"decision": "killed", "mode": "observe"})
-        s = snapshot(self.k)
+        s = snapshot(self.k, getattr(self.a, "active_nodes_only", False))
         n = max(1, s["nodes"]); per_node = s["alloc_m"] / n if n else 1.0
         if self.rec_n is None:
             self.rec_n = n
@@ -189,6 +209,9 @@ def parser():
     ap.add_argument("--max-node-step", type=int, default=2)
     ap.add_argument("--min-target-change", type=int, default=3)
     ap.add_argument("--headroom", type=float, default=0.5, help="spare capacity kept above pod requests (0.5 = 50%%, the default)")
+    ap.add_argument("--active-nodes-only", action="store_true",
+                    help="count only schedulable nodes (not cordoned, not tainted NoSchedule) and the pods and usage on them")
+    ap.add_argument("--node-restore-cmd", default="", help="command run once when the kill switch fires, returning the node pool to native")
     ap.add_argument("--power-cmd", default="")
     ap.add_argument("--site-limit-w", type=float, default=0.0)
     return ap

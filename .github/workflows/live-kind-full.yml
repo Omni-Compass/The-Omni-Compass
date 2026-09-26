@@ -1,0 +1,39 @@
+name: live-kind-full
+# Full-engine live pilot: multi-node kind cluster, Omni-Compass driving the HPA target and the node pool
+# (cordon/drain/uncordon) with live power sensing, then the kill switch. Started by hand
+# (Actions tab -> live-kind-full -> Run workflow) or by a pushed commit whose message contains [full].
+on:
+  workflow_dispatch:
+    inputs:
+      phase_s:
+        description: "Seconds per phase (baseline, then full engine)"
+        default: "600"
+  push:
+jobs:
+  kind-full:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[full]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - uses: helm/kind-action@v1
+        with: {cluster_name: omni-full, config: deploy/kind/cluster-full.yaml}
+      - run: bash scripts/kind_full.sh
+        env:
+          OUT_DIR: kind_full_out
+          PHASE_S: ${{ github.event.inputs.phase_s || '600' }}
+      - name: Results summary
+        if: always()
+        run: |
+          {
+            echo "## Omni-Compass full-engine live pilot"
+            for f in observe_writes.txt kill_switch.txt muscles.txt score.txt; do
+              echo "### $f"; echo '```'; cat "kind_full_out/$f" 2>/dev/null || echo "(missing)"; echo '```'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: kind-full-results, path: kind_full_out}
