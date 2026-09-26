@@ -76,8 +76,10 @@ def main():
     if Bres:
         w(f"**B against A (held-out, {len(Bres[VES[0]]['seeds'])} unseen scenarios per workload, settings frozen by SHA-256 first):** "
           f"{nb_cells - nb_loss} of {nb_cells} gauge-by-platform-by-workload cells are equal or better; {nb_loss} "
-          f"{'is' if nb_loss == 1 else 'are'} worse (section 5). On top of every platform Omni-Compass is never significantly worse on "
-          "any gauge except where stated, and it is better where it can be without cost.")
+          f"{'is' if nb_loss == 1 else 'are'} worse: " + "; ".join(f"{VNAME[v]} on {PNAME[l['competitor']]}, {GAUGE[l['gauge']]} "
+          f"{l['omni_worse_by_pct']:.1f}% worse" for v in VES for l in Bres[v]["losses"]) + ". Batch jobs gain most: the slowest jobs "
+          "finish much sooner on every platform (section 5.3). Where no intervention was free (web services, four clusters) Omni-Compass "
+          "reproduces the platform exactly.")
         w("")
     if Cres:
         w(f"**C against the seven platforms at once ({'held-out' if 'HELDOUT' in csrc else 'development seeds'}):** {nc_loss} cells where "
@@ -156,19 +158,36 @@ def main():
         w("")
         for v in VES:
             R = Bres[v]
-            w(f"### 5.{VES.index(v) + 1} {VNAME[v].capitalize()}: setting {R['setting']}")
+            w(f"### 5.{VES.index(v) + 1} {VNAME[v].capitalize()}")
             w("")
-            w("| Platform | Better (significant) | Worse (significant) | Equal |")
-            w("|---|---|---|---|")
+            st = R["setting"]
+            per = st if isinstance(st, dict) and set(st) >= set(PLAT) else {c: st for c in PLAT}
+            if all(not x.get("early") and not x.get("veto") and not x.get("flip_guard") for x in per.values()):
+                w("Setting: pass-through. Every intervention tried here cost some gauge on some platform, so Omni-Compass leaves these "
+                  "decisions to the platform and the result is identical to the platform alone.")
+            else:
+                w("Setting per platform (chosen on development scenarios): " + "; ".join(
+                    f"{PNAME[c]}: " + ("pass-through" if not x.get("early") and not x.get("veto") else
+                                       ", ".join(filter(None, [f"early add (lead {x['lead']}, trend over {x['lag']})" if x.get("early") else "",
+                                                               "reversal veto" if x.get("veto") else ""])))
+                    for c, x in per.items()) + ".")
+            w("")
+            w("| Platform | Better (significant) | Worse beyond tolerance (LOSS) | Worse within 0.5% tolerance | Equal |")
+            w("|---|---|---|---|---|")
+            lossg = {(l["competitor"], l["gauge"]) for l in R["losses"]}
+            def raw(x):
+                return (x["B"] - x["A"]) / abs(x["A"]) * 100 if abs(x["A"]) > 1e-12 else 0.0
             for c in PLAT:
                 cc = R["cells"][c]
-                bet = [f"{GAUGE[m]} {x['better_pct']:+.0f}%" for m, x in cc.items() if x["verdict"] == "better"]
-                wor = [f"{GAUGE[m]} {-x['better_pct']:+.1f}%" for m, x in cc.items() if x["verdict"] == "worse"]
-                eq = sum(1 for x in cc.values() if x["verdict"] in ("identical", "not significant"))
-                w(f"| {PNAME[c]} | {'; '.join(bet) or '-'} | {'; '.join(wor) or '-'} | {eq} of 13 |")
+                bet = [f"{GAUGE[m]} {raw(x):+.0f}%" for m, x in cc.items() if x["verdict"] == "better" and abs(raw(x)) >= 0.5]
+                los = [f"{GAUGE[m]} {raw(x):+.1f}%" for m, x in cc.items() if (c, m) in lossg]
+                tol = [f"{GAUGE[m]} {raw(x):+.1f}%" for m, x in cc.items() if x["verdict"] == "worse" and (c, m) not in lossg]
+                eq = 13 - len(bet) - len(los) - len(tol)
+                w(f"| {PNAME[c]} | {'; '.join(bet) or '-'} | {'; '.join(los) or '-'} | {'; '.join(tol) or '-'} | {eq} of 13 |")
             w("")
-        w("A significant 'worse' verdict above counts as a loss only if it also exceeds the 0.5% tolerance; section 1's count uses "
-          "the loss rule of section 2.")
+        w("Percentages are the plain change of Omni-Compass on top against the platform alone: for response times, starts+stops, "
+          "reversals, energy and machine-hours negative is better; for work completed and time healthy positive is better. A LOSS is "
+          "worse beyond the 0.5% tolerance with a 95% interval excluding zero (section 2).")
         w("")
     # ---------------------------------------------------------------- 6
     if Cres:
@@ -197,7 +216,7 @@ def main():
             for g in ("p95_ms", "p99_ms", "mean_ms"):
                 best = min(M[v][c][g] for c in PLAT)
                 if M[v][o][g] < best * 0.995:
-                    wins.append(f"{GAUGE[g]} {M[v][o][g]:.4g} vs best platform {best:.4g}")
+                    wins.append(f"{GAUGE[g]} {M[v][o][g]:.4g} ms vs best platform {best:.4g} ms")
             if wins:
                 w(f"- {VNAME[v].capitalize()}: " + "; ".join(wins) + ".")
         w("")
