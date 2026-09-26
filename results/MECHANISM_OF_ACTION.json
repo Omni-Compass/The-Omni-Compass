@@ -1,0 +1,158 @@
+{
+ "operating_point": {
+  "E": 0.09473834585941346,
+  "U": 0.9759002601929881,
+  "I_U": -0.03810350924784588,
+  "S": 0.3152953194079123,
+  "B": 0.10150080506964589,
+  "B_dot": 0.02154295735171577
+ },
+ "forcing_at_operating_point": {
+  "beta_int": 0.01790524095689234,
+  "beta_ext": 0.09448196245965568
+ },
+ "jacobian": [
+  [
+   -3.4870000000242207,
+   0.9835659591228563,
+   0.0,
+   0.7297426622976388,
+   0.0,
+   0.0
+  ],
+  [
+   1.7435000000121104,
+   -7.51551248448501,
+   0.0,
+   -0.3648713311488194,
+   0.0,
+   0.0
+  ],
+  [
+   -0.3799999999942738,
+   -1.0000000000287557,
+   -0.7189999999823726,
+   -0.7049999999897416,
+   0.0,
+   0.0
+  ],
+  [
+   0.0,
+   0.0,
+   0.0,
+   -0.16729437302132055,
+   0.0,
+   0.0
+  ],
+  [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   1.000000000001
+  ],
+  [
+   0.0,
+   0.0,
+   0.0,
+   0.7049999999897416,
+   -1.000000000001,
+   -0.40000000001150227
+  ]
+ ],
+ "modes": [
+  {
+   "eigenvalue": [
+    -7.903770645771631,
+    0.0
+   ],
+   "time_constant_engine": 0.12652188997095726,
+   "time_constant_decisions": 1.2652188997095726,
+   "period_decisions": null
+  },
+  {
+   "eigenvalue": [
+    -3.0987418387376,
+    0.0
+   ],
+   "time_constant_engine": 0.3227116204063618,
+   "time_constant_decisions": 3.227116204063618,
+   "period_decisions": null
+  },
+  {
+   "eigenvalue": [
+    -0.7189999999823726,
+    0.0
+   ],
+   "time_constant_engine": 1.3908205841787433,
+   "time_constant_decisions": 13.908205841787433,
+   "period_decisions": null
+  },
+  {
+   "eigenvalue": [
+    -0.20000000000575113,
+    0.9797958971131183
+   ],
+   "time_constant_engine": 4.999999999856222,
+   "time_constant_decisions": 49.99999999856222,
+   "period_decisions": 64.1274915081032
+  },
+  {
+   "eigenvalue": [
+    -0.20000000000575113,
+    -0.9797958971131183
+   ],
+   "time_constant_engine": 4.999999999856222,
+   "time_constant_decisions": 49.99999999856222,
+   "period_decisions": 64.1274915081032
+  },
+  {
+   "eigenvalue": [
+    -0.16729437302132055,
+    0.0
+   ],
+   "time_constant_engine": 5.977487359198607,
+   "time_constant_decisions": 59.774873591986065,
+   "period_decisions": null
+  }
+ ],
+ "per_decision_movement": {
+  "E": {
+   "assimilation": 0.01999538523446174,
+   "equations": 0.01997616085295062,
+   "equations_share": 0.49975952416915426
+  },
+  "U": {
+   "assimilation": 0.01706139675947709,
+   "equations": 0.017280647722621154,
+   "equations_share": 0.5031921652663742
+  },
+  "I_U": {
+   "assimilation": 0.01777404739205487,
+   "equations": 0.017787036509894116,
+   "equations_share": 0.5001826310732691
+  },
+  "S": {
+   "assimilation": 0.06599070653629237,
+   "equations": 0.06656158725217365,
+   "equations_share": 0.5021534169630906
+  },
+  "B": {
+   "assimilation": 0.00207003227577352,
+   "equations": 0.001713357270682429,
+   "equations_share": 0.45286303449439896
+  },
+  "B_dot": {
+   "assimilation": 0.009140948859220257,
+   "equations": 0.008909385179037988,
+   "equations_share": 0.4935856123301801
+  }
+ },
+ "engine_time_per_decision": 0.1,
+ "assimilation_weight": 0.339,
+ "controller_applied_in_governance": false,
+ "controller_note": "Governor.step evolves with target=None: equation (2)'s input u is zero; the control law is evaluated only to produce 'push', which gates capacity release",
+ "microseconds_per_decision_python": 95.49505833311505,
+ "decisions_measured": 1080
+}
