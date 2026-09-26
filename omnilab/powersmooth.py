@@ -15,6 +15,9 @@ Arms
                         engine: power_stress = grid stress; applied limit = R_grid(t) x (margin - k E), E the engine's
                         energy state (tightens under sustained stress); the burn floor is only what the limit needs
   omni_no_engine        same mapping, engine not evolved
+  omni_basin            the engine alone: demand drives the bath equation (7) every 0.1 s; the evolved bath state B
+                        sets the site draw (no ramp rule, floor or rhythm). Tests whether the basin by itself holds the
+                        grid limit
 """
 from __future__ import annotations
 
@@ -28,7 +31,7 @@ DT = 0.1
 STEPS = int(30 * 60 / DT)
 GAUGES = {"ramp_violation_s": "lower", "max_ramp_mw_s": "lower", "energy_overhead_pct": "lower",
           "throughput_loss_pct": "lower", "swing_1s_mw": "lower"}
-ARMS = ["native_none", "native_floor_safe", "native_floor_nominal", "omni", "omni_no_engine"]
+ARMS = ["native_none", "native_floor_safe", "native_floor_nominal", "omni", "omni_no_engine", "omni_basin"]
 MARGIN, KE = 0.92, 0.3   # chosen on development seeds
 
 
@@ -72,6 +75,12 @@ def run(sc, arm):
         want = site[i]
         if arm == "native_none":
             p = want
+        elif arm == "omni_basin":
+            # the engine alone: site power drives the bath (equation 7, a damped second-order oscillator) through the
+            # frozen assimilation (b_obs = 0.52 power_stress); the evolved bath state B is the power the site draws.
+            # No ramp rule, no floor, no rhythm: nothing but the equations between demand and draw.
+            eng.step(power_stress=float(want / peak))
+            p = max(0.0, float(eng.x.B)) / 0.52 * peak
         else:
             if arm == "native_floor_safe":
                 lim, floor = 0.4 * R0, 0.65 * peak

@@ -1,0 +1,301 @@
+{
+ "muscle": "inference",
+ "seeds": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8
+ ],
+ "means": {
+  "native_hpa_gpu": {
+   "ttft_p95_s": 1.0,
+   "ttft_p50_s": 1.0,
+   "tpot_p95_ms": 21.15,
+   "slo_breach_pct": 0.0,
+   "gpu_hours": 60.297048611111116,
+   "preemptions": 0.0
+  },
+  "native_keda": {
+   "ttft_p95_s": 1.25,
+   "ttft_p50_s": 1.0,
+   "tpot_p95_ms": 29.8,
+   "slo_breach_pct": 2.8274360302738866,
+   "gpu_hours": 25.57277777777778,
+   "preemptions": 437.0
+  },
+  "omni": {
+   "ttft_p95_s": 1.125,
+   "ttft_p50_s": 1.0,
+   "tpot_p95_ms": 28.550000000000004,
+   "slo_breach_pct": 0.9671885124992242,
+   "gpu_hours": 21.3290625,
+   "preemptions": 149.75
+  },
+  "omni_no_engine": {
+   "ttft_p95_s": 1.125,
+   "ttft_p50_s": 1.0,
+   "tpot_p95_ms": 28.200000000000003,
+   "slo_breach_pct": 0.9492348266789283,
+   "gpu_hours": 22.414965277777778,
+   "preemptions": 146.5
+  }
+ },
+ "vs": {
+  "native_hpa_gpu": {
+   "omni": {
+    "ttft_p95_s": {
+     "native": 1.0,
+     "omni": 1.125,
+     "better_by": -0.125,
+     "ci95": [
+      0.0,
+      0.375
+     ],
+     "verdict": "not significant"
+    },
+    "ttft_p50_s": {
+     "native": 1.0,
+     "omni": 1.0,
+     "better_by": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "verdict": "tie"
+    },
+    "tpot_p95_ms": {
+     "native": 21.15,
+     "omni": 28.550000000000004,
+     "better_by": -0.3498817966903076,
+     "ci95": [
+      3.300000000000001,
+      11.65
+     ],
+     "verdict": "worse"
+    },
+    "slo_breach_pct": {
+     "native": 0.0,
+     "omni": 0.9671885124992242,
+     "better_by": -1.0,
+     "ci95": [
+      0.1492400692411109,
+      2.1970727947284407
+     ],
+     "verdict": "worse"
+    },
+    "gpu_hours": {
+     "native": 60.297048611111116,
+     "omni": 21.3290625,
+     "better_by": 0.6462668904814417,
+     "ci95": [
+      -48.59264149305555,
+      -29.93697395833333
+     ],
+     "verdict": "better"
+    },
+    "preemptions": {
+     "native": 0.0,
+     "omni": 149.75,
+     "better_by": -1.0,
+     "ci95": [
+      30.0,
+      309.25
+     ],
+     "verdict": "worse"
+    }
+   },
+   "omni_no_engine": {
+    "ttft_p95_s": {
+     "native": 1.0,
+     "omni": 1.125,
+     "better_by": -0.125,
+     "ci95": [
+      0.0,
+      0.375
+     ],
+     "verdict": "not significant"
+    },
+    "ttft_p50_s": {
+     "native": 1.0,
+     "omni": 1.0,
+     "better_by": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "verdict": "tie"
+    },
+    "tpot_p95_ms": {
+     "native": 21.15,
+     "omni": 28.200000000000003,
+     "better_by": -0.33333333333333354,
+     "ci95": [
+      2.950000000000002,
+      11.401250000000006
+     ],
+     "verdict": "worse"
+    },
+    "slo_breach_pct": {
+     "native": 0.0,
+     "omni": 0.9492348266789283,
+     "better_by": -1.0,
+     "ci95": [
+      0.12381297085607487,
+      2.185150515755149
+     ],
+     "verdict": "worse"
+    },
+    "gpu_hours": {
+     "native": 60.297048611111116,
+     "omni": 22.414965277777778,
+     "better_by": 0.6282576710786587,
+     "ci95": [
+      -47.546717013888895,
+      -28.656383680555557
+     ],
+     "verdict": "better"
+    },
+    "preemptions": {
+     "native": 0.0,
+     "omni": 146.5,
+     "better_by": -1.0,
+     "ci95": [
+      26.118750000000002,
+      307.125
+     ],
+     "verdict": "worse"
+    }
+   }
+  },
+  "native_keda": {
+   "omni": {
+    "ttft_p95_s": {
+     "native": 1.25,
+     "omni": 1.125,
+     "better_by": 0.1,
+     "ci95": [
+      -0.375,
+      0.0
+     ],
+     "verdict": "not significant"
+    },
+    "ttft_p50_s": {
+     "native": 1.0,
+     "omni": 1.0,
+     "better_by": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "verdict": "tie"
+    },
+    "tpot_p95_ms": {
+     "native": 29.8,
+     "omni": 28.550000000000004,
+     "better_by": 0.04194630872483209,
+     "ci95": [
+      -9.3,
+      6.499999999999998
+     ],
+     "verdict": "not significant"
+    },
+    "slo_breach_pct": {
+     "native": 2.8274360302738866,
+     "omni": 0.9671885124992242,
+     "better_by": 0.6579273581635957,
+     "ci95": [
+      -2.8261256347345824,
+      -0.8350640813117861
+     ],
+     "verdict": "better"
+    },
+    "gpu_hours": {
+     "native": 25.57277777777778,
+     "omni": 21.3290625,
+     "better_by": 0.16594659034129186,
+     "ci95": [
+      -16.858467013888887,
+      8.939023437500003
+     ],
+     "verdict": "not significant"
+    },
+    "preemptions": {
+     "native": 437.0,
+     "omni": 149.75,
+     "better_by": 0.6573226544622426,
+     "ci95": [
+      -438.64375,
+      -150.246875
+     ],
+     "verdict": "better"
+    }
+   },
+   "omni_no_engine": {
+    "ttft_p95_s": {
+     "native": 1.25,
+     "omni": 1.125,
+     "better_by": 0.1,
+     "ci95": [
+      -0.375,
+      0.0
+     ],
+     "verdict": "not significant"
+    },
+    "ttft_p50_s": {
+     "native": 1.0,
+     "omni": 1.0,
+     "better_by": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "verdict": "tie"
+    },
+    "tpot_p95_ms": {
+     "native": 29.8,
+     "omni": 28.200000000000003,
+     "better_by": 0.053691275167785164,
+     "ci95": [
+      -9.5,
+      6.101250000000004
+     ],
+     "verdict": "not significant"
+    },
+    "slo_breach_pct": {
+     "native": 2.8274360302738866,
+     "omni": 0.9492348266789283,
+     "better_by": 0.6642771696635066,
+     "ci95": [
+      -2.859039316986596,
+      -0.8395752062952864
+     ],
+     "verdict": "better"
+    },
+    "gpu_hours": {
+     "native": 25.57277777777778,
+     "omni": 22.414965277777778,
+     "better_by": 0.1234833590406466,
+     "ci95": [
+      -15.053055555555554,
+      9.493402777777778
+     ],
+     "verdict": "not significant"
+    },
+    "preemptions": {
+     "native": 437.0,
+     "omni": 146.5,
+     "better_by": 0.6647597254004577,
+     "ci95": [
+      -441.625,
+      -153.625
+     ],
+     "verdict": "better"
+    }
+   }
+  }
+ }
+}

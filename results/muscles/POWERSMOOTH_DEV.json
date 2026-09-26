@@ -45,6 +45,13 @@
    "energy_overhead_pct": 14.562618193990314,
    "throughput_loss_pct": 0.7433122414721038,
    "swing_1s_mw": 0.7044577480333356
+  },
+  "omni_basin": {
+   "ramp_violation_s": 845.1125000000001,
+   "max_ramp_mw_s": 72.06747751533935,
+   "energy_overhead_pct": 3.1156665580905694,
+   "throughput_loss_pct": 7.29938756271887,
+   "swing_1s_mw": 8.326829508508919
   }
  },
  "vs": {
