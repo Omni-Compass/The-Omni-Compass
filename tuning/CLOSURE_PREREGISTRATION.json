@@ -3,8 +3,8 @@
  "settings": {
   "web": {
    "closure": {
-    "rho_max": 0.97,
-    "delta": 0.05,
+    "rho_max": 0.99,
+    "delta": 0.02,
     "H_add": 6,
     "H_rel": 40,
     "a": 0.2,
@@ -13,13 +13,17 @@
     "push_release": 0.2,
     "turn": true,
     "delta_rel": 0.08,
-    "dwell": 0
+    "dwell": 0,
+    "tone": true,
+    "tone_H": 960,
+    "z": 0.0
    },
    "direct": {
     "window": 40,
     "kb": 1.0,
     "push_release": 0.2,
-    "tol": 0.1
+    "tol": 0.1,
+    "beta": -1.0
    },
    "speed": {
     "rho0": 0.8,
@@ -30,8 +34,8 @@
   },
   "multi": {
    "closure": {
-    "rho_max": 0.9,
-    "delta": 0.05,
+    "rho_max": 0.99,
+    "delta": 0.02,
     "H_add": 6,
     "H_rel": 40,
     "a": 0.5,
@@ -40,17 +44,21 @@
     "push_release": 0.2,
     "turn": true,
     "delta_rel": 0.08,
-    "dwell": 0
+    "dwell": 0,
+    "tone": true,
+    "tone_H": 960,
+    "z": 0.0
    },
    "direct": {
     "window": 20,
     "kb": 0.5,
     "push_release": 0.2,
-    "tol": 0.1
+    "tol": 0.1,
+    "beta": -1.0
    },
    "speed": {
-    "rho0": 0.85,
-    "rho_min": 0.85,
+    "rho0": 0.8,
+    "rho_min": 0.8,
     "kI": 0.0,
     "kE": 0.0
    }
@@ -58,7 +66,7 @@
   "batch": {
    "closure": {
     "rho_max": 0.97,
-    "delta": 0.05,
+    "delta": 0.02,
     "H_add": 6,
     "H_rel": 40,
     "a": 0.2,
@@ -67,13 +75,17 @@
     "push_release": 0.2,
     "turn": true,
     "delta_rel": 0.08,
-    "dwell": 0
+    "dwell": 0,
+    "tone": true,
+    "tone_H": 960,
+    "z": 0.0
    },
    "direct": {
     "window": 20,
     "kb": 1.0,
     "push_release": 0.2,
-    "tol": 0.0
+    "tol": 0.0,
+    "beta": -1.0
    },
    "speed": {
     "rho0": 0.7,
@@ -84,8 +96,8 @@
   },
   "gpu": {
    "closure": {
-    "rho_max": 0.97,
-    "delta": 0.05,
+    "rho_max": 0.99,
+    "delta": 0.02,
     "H_add": 12,
     "H_rel": 40,
     "a": 0.5,
@@ -94,13 +106,17 @@
     "push_release": 0.2,
     "turn": true,
     "delta_rel": 0.08,
-    "dwell": 0
+    "dwell": 0,
+    "tone": true,
+    "tone_H": 480,
+    "z": 0.0
    },
    "direct": {
     "window": 20,
     "kb": 1.0,
     "push_release": 0.2,
-    "tol": 0.0
+    "tol": 0.0,
+    "beta": -1.0
    },
    "speed": {
     "rho0": 0.7,
@@ -110,38 +126,38 @@
    }
   }
  },
- "sha256": "7650fa885b1a341baea3835e1a8dfb82591ffe02fc9289b21d1ad8e5a328dc5d",
- "closure_py_sha256": "62ecbdb8553fb0853c349547e4b5b23e8459ec677f2b57339cd2898ac6e75250",
+ "sha256": "56be5f50b8d2631c9977ab7cc095220068994f07a9faf6abd862b5b7b9ee7388",
+ "closure_py_sha256": "a9b2a695c2c8c643eee3f045ff514136248df9d1fbd67d33095b7fb7de865bfc",
  "heldout_seeds": [
-  700201,
-  700202,
-  700203,
-  700204,
-  700205,
-  700206,
-  700207,
-  700208,
-  700209,
-  700210,
-  700211,
-  700212,
-  700213,
-  700214,
-  700215,
-  700216,
-  700217,
-  700218,
-  700219,
-  700220,
-  700221,
-  700222,
-  700223,
-  700224,
-  700225,
-  700226,
-  700227,
-  700228,
-  700229,
-  700230
+  700301,
+  700302,
+  700303,
+  700304,
+  700305,
+  700306,
+  700307,
+  700308,
+  700309,
+  700310,
+  700311,
+  700312,
+  700313,
+  700314,
+  700315,
+  700316,
+  700317,
+  700318,
+  700319,
+  700320,
+  700321,
+  700322,
+  700323,
+  700324,
+  700325,
+  700326,
+  700327,
+  700328,
+  700329,
+  700330
  ]
 }
