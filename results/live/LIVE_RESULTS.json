@@ -2,11 +2,12 @@
  "side_by_side": {
   "nodes_native": 6.0,
   "nodes_omni": 3.2,
-  "energy_native_wh": 220,
-  "energy_omni_wh": 125,
-  "epc_change": "-37.5% (802 to 501 Wh per core-hour)",
+  "energy_native_wh": 219,
+  "energy_omni_wh": 218,
+  "epc_change": "+8% (not significant; 872 to 944 Wh per core-hour, from minute averages)",
   "util_native": 0.068,
-  "util_omni": 0.116
+  "util_omni": 0.116,
+  "standby_note": "100 W each, the same as idle"
  },
  "gauges": [
   [
@@ -28,30 +29,6 @@
    "-50.0%"
   ],
   [
-   "Node-hours",
-   "2.01",
-   "1.07",
-   "-46.6%"
-  ],
-  [
-   "Power (W), mean",
-   "657",
-   "373",
-   "-43.2%"
-  ],
-  [
-   "Power (W), peak",
-   "699",
-   "632",
-   "-9.7%"
-  ],
-  [
-   "Energy (Wh)",
-   "220",
-   "125",
-   "-43.1%"
-  ],
-  [
    "CPU used (cores), mean",
    "0.819",
    "0.745",
@@ -70,16 +47,52 @@
    "+70.5%"
   ],
   [
-   "Energy per core-hour (Wh)",
-   "802",
-   "501",
-   "-37.5%"
+   "Workers powered (in service + standby)",
+   "6.00",
+   "6.00",
+   "0"
   ],
   [
-   "Node-hours per core-hour",
-   "7.32",
-   "4.29",
-   "-41.4%"
+   "Node-hours in service",
+   "2.01",
+   "1.07",
+   "-46.6%"
+  ],
+  [
+   "Power (W), mean, parked workers on standby at 100 W",
+   "657",
+   "654",
+   "-0.5%"
+  ],
+  [
+   "Power (W), peak, parked workers on standby at 100 W",
+   "691",
+   "687",
+   "-0.6%"
+  ],
+  [
+   "Energy (Wh), parked workers on standby at 100 W",
+   "219",
+   "218",
+   "-0.5%"
+  ],
+  [
+   "Energy (Wh), parked workers in low-power standby at 50 W",
+   "219",
+   "171",
+   "-22%"
+  ],
+  [
+   "Energy (Wh), parked workers in deep sleep at 10 W",
+   "219",
+   "133",
+   "-39%"
+  ],
+  [
+   "Energy (Wh), parked workers powered off (as first reported)",
+   "220",
+   "125",
+   "-43%"
   ],
   [
    "Pending pods, pod-minutes",
@@ -114,20 +127,20 @@
  ],
  "significance": [
   [
-   "Node-hours per core-hour",
+   "Wh per core-hour, standby at 100 W (2-minute blocks from minute averages)",
+   "872",
+   "944",
+   "+8.2%",
+   "[-150, +292]",
+   "not significant"
+  ],
+  [
+   "Node-hours in service per core-hour",
    "7.8535",
    "4.6976",
    "-40.2%",
    "[-5.0982, -1.1072]",
-   "better"
-  ],
-  [
-   "kWh per core-hour",
-   "0.8545",
-   "0.5412",
-   "-36.7%",
-   "[-0.5017, -0.1150]",
-   "better"
+   "fewer (not energy while parked nodes stay powered)"
   ],
   [
    "Utilisation",
@@ -170,7 +183,7 @@
   [
    "live-kind-full, run 36207925928",
    "1 control plane + 6 workers; sequential baseline then full engine",
-   "nodes 6 to 5 to 4 to 3; node-hours per core-hour -38.2%, kWh per core-hour -35.8%, utilisation +63.7% (all significant); kill switch restored target 50 and 6 of 6 workers"
+   "nodes in service 6 to 5 to 4 to 3; node-hours in service per core-hour -38.2%, utilisation +63.7% (significant); the reported kWh per core-hour -35.8% counted parked workers as powered off; with parked workers on standby the saving largely disappears; kill switch restored target 50 and 6 of 6 workers"
   ]
  ]
 }

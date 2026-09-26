@@ -207,9 +207,11 @@ def main():
     lv = live["side_by_side"]
     w(f"**Live Kubernetes result (measured).** Two identical Kubernetes clusters (1 control plane + 6 workers) ran the same load at the "
       f"same time, one without Omni-Compass and one with it. With Omni-Compass: worker nodes in service {lv['nodes_native']:.1f} to "
-      f"{lv['nodes_omni']:.1f}, energy {lv['energy_native_wh']:.0f} to {lv['energy_omni_wh']:.0f} Wh ({pct(lv['energy_native_wh'], lv['energy_omni_wh'])}), "
-      f"energy per unit of work {lv['epc_change']}, utilisation {lv['util_native']:.3f} to {lv['util_omni']:.3f}; waiting pods and HPA "
-      f"shortfall not significantly different. The kill switch restored the original HPA target (50) and all 6 workers.")
+      f"{lv['nodes_omni']:.1f}; utilisation of the workers in service {lv['util_native']:.3f} to {lv['util_omni']:.3f}. **Energy:** with the "
+      f"parked workers kept on standby, powered and ready ({lv['standby_note']}), energy was {lv['energy_native_wh']:.0f} vs "
+      f"{lv['energy_omni_wh']:.0f} Wh ({pct(lv['energy_native_wh'], lv['energy_omni_wh'])}): parking alone saves essentially nothing; "
+      f"energy per unit of work {lv['epc_change']}. The -43% first reported for this run holds only if parked workers are powered "
+      f"off. Waiting pods and HPA shortfall were not significantly different. The kill switch restored the original HPA target (50) and all 6 workers.")
     w("")
     w("**Where Omni-Compass costs something.** In the pre-registered study both B and C keep more node-hours powered than "
       "Kubernetes alone and start and stop machines more often (more wear), and move the power cap more; C also lets more work wait "
@@ -217,7 +219,7 @@ def main():
       "shaping, not from switching machines off. On the live cluster the saving came from switching machines off. Other limits: "
       "the small-cluster release band (section 11); power and heat on the live cluster are modelled, not metered.")
     w("")
-    w("**Trade-off in one line:** B is the strongest all-round result (energy, health, recovery, queue, coordination and safety "
+    w("**Trade-off in one line:** B is the strongest all-round result in simulation (energy, health, recovery, queue, coordination and safety "
       "all better; wear and node-hours worse); C is the strongest on peak power, heat and safety (zero invariant violations) at the "
       "cost of queue length, wear and flip-flops. These are the gauges to tune next.")
     w("")
@@ -391,8 +393,10 @@ def main():
     w("- **Heat:** thermal state follows a first-order lag toward 0.34 + 0.62 x power stress (time constant about 7 steps); heat above "
       "0.82 throttles capacity; 'over the heat limit' means thermal above 1.03.")
     w("- **Live kind cluster:** kind nodes have no power meter, so power is a declared model: 100 W idle + 150 W x CPU utilisation per "
-      "worker in service; a parked (cordoned and drained) worker counts as off. The same constants drive the governor's power sense "
-      "and the energy score, so they cannot disagree. On real hardware this is replaced by metered power (RAPL, PDU or BMC).")
+      "worker in service, plus a standby power for each parked (cordoned and drained) worker. Standby defaults to the idle power "
+      "(the worker stays powered and ready); lower values apply only to a declared sleep state, zero only to machines really powered "
+      "off. The first live reports counted parked workers as zero; section 7.1 gives both. The same constants drive the governor's "
+      "power sense and the energy score, so they cannot disagree. On real hardware this is replaced by metered power (RAPL, PDU or BMC).")
     w("- **Savings model** (`results/SAVINGS.csv`): a 1,000-node web cluster at 0.4 kW per node, PUE 1.4, $0.12/kWh and 0.4 kg CO2/kWh; "
       "reduction versus HPA 0.7 + Karpenter-lite of 14% to 20% (fleet plant) gives roughly 710 to 960 MWh, $85,000 to $115,000 and "
       "280 to 380 t CO2 per year.")
@@ -406,7 +410,8 @@ def main():
               ("Observe mode changes nothing", "Proven (simulation and live)", "bit-identical trajectories; 0 writes live"),
               ("Kill switch restores native control", "Proven (simulation and live)", "HPA target 50 and all workers restored live"),
               ("Omni-Compass acts on a real Kubernetes control plane (HPA target, node pool)", "Proven live", "section 7"),
-              ("Lower energy and node-hours than Kubernetes with a fixed node pool", "Measured live", "section 7.1"),
+              ("Fewer nodes in service than Kubernetes with a fixed node pool, same load served", "Measured live", "section 7.1"),
+              ("Lower energy on the live cluster", "Not shown while parked nodes stay on standby; -22% to -43% only if parked nodes sleep or power off", "section 7.1"),
               ("Better energy, health, recovery, coordination than Kubernetes (HPA + CA)", "Pre-registered simulation", "section 5"),
               ("Better than Karpenter-lite on energy", "Simulation", "sections 6, and PlanetLab fleet plant"),
               ("Better than upstream Karpenter or Cluster Autoscaler binaries, live", "Not yet tested", "section 12"),
@@ -421,9 +426,13 @@ def main():
               "Kubernetes reference omits Karpenter consolidation, VPA, scheduling constraints and disruption budgets.",
               "The live cluster is kind: nodes are containers on one CI machine; the two live arms ran on two machines at the same "
               "time, so machine-to-machine variation is part of the noise; each live arm is 20 minutes, one repetition.",
-              "Live power and heat are modelled; parked kind workers are drained containers, counted as off.",
+              "Live power and heat are modelled; parked kind workers are drained containers. If parked machines must stay on "
+              "standby, parking reduces nodes in service but not energy; live energy savings then have to come from power caps, CPU "
+              "power states and heat control, which are not yet wired live.",
               "The live native arm had no node autoscaler, so its node pool was always full; the fair live opponent is Karpenter or "
               "Cluster Autoscaler (section 13).",
+              "The live significance for energy per core-hour with standby power is computed from minute averages (10 two-minute "
+              "blocks), not from the 15-second capture.",
               "The fleet law releases a node only when the pool has more than three nodes of slack; a three-worker pool cannot scale "
               "down (observed live, reproduced offline). Small clusters need a pool-size-aware release band.",
               "Architecture C was measured in simulation only; the live C (Kubernetes' controllers parked, Omni-Compass as the only "
@@ -442,7 +451,8 @@ def main():
     w("|---|---|---|---|---|---|")
     for r in [
         ("Data-centre electricity growth", "about 415 TWh in 2024, about 1.5% of world electricity, projected near 945 TWh by 2030 (IEA, Energy and AI, 2025)",
-         "Karpenter, Cluster Autoscaler, CAST AI, Spot Ocean; Kepler for metering", "compute vessel: nodes, HPA, power cap", "energy, node-hours, idle node-hours", "live + sim"),
+         "Karpenter, Cluster Autoscaler, CAST AI, Spot Ocean; Kepler for metering", "compute vessel: nodes, HPA, power cap", "energy, node-hours, idle node-hours",
+         "sim; live only where parked nodes can sleep or power off"),
         ("Idle and over-provisioned capacity", "Kubernetes clusters commonly run near 10-15% average CPU utilisation (CAST AI and Datadog industry reports); roughly a quarter to a third of cloud spend reported as waste (Flexera State of the Cloud)",
          "VPA, Goldilocks, StormForge, Kubecost/OpenCost", "compute vessel: nodes, HPA; memory (open)", "utilisation, node-hours per core-hour", "live + sim"),
         ("Controllers fighting each other", "documented conflicts, e.g. HPA and VPA on the same CPU metric (Kubernetes documentation advises against it)",
@@ -488,10 +498,10 @@ def main():
          "Its real costs are listed in sections 1 and 5.1."),
         ("How fast does it decide, and what does it cost to run?", "One decision per 60 s on live Kubernetes (300 s in the replica), "
          "with a 15 s fast path that adds nodes for pending pods. The engine takes about 2.9 microseconds per decision."),
-        ("Why does it save energy?", "Two mechanisms. On the live cluster it switched off machines the load did not need (6 to 3 "
-         "workers) and raised the HPA target so replicas packed more densely. In the pre-registered stack study it saved energy mainly "
-         "by power capping and load shaping (fewer minutes over the power limit, lower peak), while keeping slightly more machines on. "
-         "Separate controllers each keep their own headroom; one authority does not stack the padding."),
+        ("Why does it save energy?", "In the pre-registered stack study mainly by power capping and load shaping (fewer minutes over "
+         "the power limit, lower peak), while keeping slightly more machines on. On the live cluster it took machines out of service "
+         "(6 to 3 workers) and packed replicas more densely; that saves energy only if the parked machines sleep or power off. With "
+         "parked machines on standby the live saving was about zero, so live savings must come from power caps and CPU power states."),
         ("Does it slow applications down?", "In architecture B the queue is shorter than Kubernetes alone; in C it is longer. Live, "
          "response-time measurement is not yet in the capture; pending pods and HPA shortfall were not significantly different."),
         ("Is this tuned to the test?", "Parameters were selected on development seeds and frozen with hashes before the held-out seeds "

@@ -12,11 +12,11 @@ Omni-Compass is a single control engine that senses the whole compute stack and 
 
 **Main result (pre-registered, 1,000 held-out scenarios, simulation).** Against Kubernetes alone, B used -28% energy and C -23%; time healthy rose from 79% to 91% (B) and 90% (C); recovery time fell from 58 to 17 and 28 minutes; contradictory commands, pages and human interventions went to zero in both; safety-rule violations fell from 9.5 to 2.7 (B) and 0.0 (C). Of 28 gauges, B is significantly better on 20 and worse on 5; C is better on 16 and worse on 10.
 
-**Live Kubernetes result (measured).** Two identical Kubernetes clusters (1 control plane + 6 workers) ran the same load at the same time, one without Omni-Compass and one with it. With Omni-Compass: worker nodes in service 6.0 to 3.2, energy 220 to 125 Wh (-43%), energy per unit of work -37.5% (802 to 501 Wh per core-hour), utilisation 0.068 to 0.116; waiting pods and HPA shortfall not significantly different. The kill switch restored the original HPA target (50) and all 6 workers.
+**Live Kubernetes result (measured).** Two identical Kubernetes clusters (1 control plane + 6 workers) ran the same load at the same time, one without Omni-Compass and one with it. With Omni-Compass: worker nodes in service 6.0 to 3.2; utilisation of the workers in service 0.068 to 0.116. **Energy:** with the parked workers kept on standby, powered and ready (100 W each, the same as idle), energy was 219 vs 218 Wh (-0.46%): parking alone saves essentially nothing; energy per unit of work +8% (not significant; 872 to 944 Wh per core-hour, from minute averages). The -43% first reported for this run holds only if parked workers are powered off. Waiting pods and HPA shortfall were not significantly different. The kill switch restored the original HPA target (50) and all 6 workers.
 
 **Where Omni-Compass costs something.** In the pre-registered study both B and C keep more node-hours powered than Kubernetes alone and start and stop machines more often (more wear), and move the power cap more; C also lets more work wait in the queue and flips scale direction more often. In that study the energy saving comes from power capping and load shaping, not from switching machines off. On the live cluster the saving came from switching machines off. Other limits: the small-cluster release band (section 11); power and heat on the live cluster are modelled, not metered.
 
-**Trade-off in one line:** B is the strongest all-round result (energy, health, recovery, queue, coordination and safety all better; wear and node-hours worse); C is the strongest on peak power, heat and safety (zero invariant violations) at the cost of queue length, wear and flip-flops. These are the gauges to tune next.
+**Trade-off in one line:** B is the strongest all-round result in simulation (energy, health, recovery, queue, coordination and safety all better; wear and node-hours worse); C is the strongest on peak power, heat and safety (zero invariant violations) at the cost of queue length, wear and flip-flops. These are the gauges to tune next.
 
 ## 2. What Omni-Compass is
 
@@ -162,15 +162,17 @@ kind clusters (real Kubernetes API server, scheduler, kubelet, HPA and metrics-s
 | Duration (min) | 20.10 | 20.13 |  |
 | Worker nodes in service, mean | 6.00 | 3.20 | -46.7% |
 | Worker nodes in service, min | 6.00 | 3.00 | -50.0% |
-| Node-hours | 2.01 | 1.07 | -46.6% |
-| Power (W), mean | 657 | 373 | -43.2% |
-| Power (W), peak | 699 | 632 | -9.7% |
-| Energy (Wh) | 220 | 125 | -43.1% |
 | CPU used (cores), mean | 0.819 | 0.745 | -9.1% |
 | CPU allocatable (cores), mean | 12.00 | 6.40 | -46.7% |
 | Utilisation | 0.068 | 0.116 | +70.5% |
-| Energy per core-hour (Wh) | 802 | 501 | -37.5% |
-| Node-hours per core-hour | 7.32 | 4.29 | -41.4% |
+| Workers powered (in service + standby) | 6.00 | 6.00 | 0 |
+| Node-hours in service | 2.01 | 1.07 | -46.6% |
+| Power (W), mean, parked workers on standby at 100 W | 657 | 654 | -0.5% |
+| Power (W), peak, parked workers on standby at 100 W | 691 | 687 | -0.6% |
+| Energy (Wh), parked workers on standby at 100 W | 219 | 218 | -0.5% |
+| Energy (Wh), parked workers in low-power standby at 50 W | 219 | 171 | -22% |
+| Energy (Wh), parked workers in deep sleep at 10 W | 219 | 133 | -39% |
+| Energy (Wh), parked workers powered off (as first reported) | 220 | 125 | -43% |
 | Pending pods, pod-minutes | 0.567 | 0.267 | -52.9% |
 | Pending pods, peak | 1 | 1 | 0 |
 | HPA replicas, mean | 8.71 | 6.20 | -28.8% |
@@ -179,8 +181,8 @@ kind clusters (real Kubernetes API server, scheduler, kubelet, HPA and metrics-s
 
 | Metric (per unit of work, 2-minute blocks) | Kubernetes alone | Kubernetes + Omni-Compass | Change | 95% CI | Verdict |
 |---|---:|---:|---:|---|---|
-| Node-hours per core-hour | 7.8535 | 4.6976 | -40.2% | [-5.0982, -1.1072] | better |
-| kWh per core-hour | 0.8545 | 0.5412 | -36.7% | [-0.5017, -0.1150] | better |
+| Wh per core-hour, standby at 100 W (2-minute blocks from minute averages) | 872 | 944 | +8.2% | [-150, +292] | not significant |
+| Node-hours in service per core-hour | 7.8535 | 4.6976 | -40.2% | [-5.0982, -1.1072] | fewer (not energy while parked nodes stay powered) |
 | Utilisation | 0.0694 | 0.1224 | +76.3% | [+0.0217, +0.0830] | better |
 | Pending-pod minutes per hour | 1.7253 | 0.8333 | -51.7% | [-3.4961, +1.6667] | not significant |
 | HPA shortfall minutes per hour | 2.5458 | 3.3399 | +31.2% | [-3.3277, +5.0066] | not significant |
@@ -192,7 +194,7 @@ Omni-Compass decisions: nodes per minute 5 4 3 then 3 for the remaining 17 minut
 |---|---|---|
 | live-kind, run 36205408388 | 1 node; baseline 10 min (Omni observing) then Omni target mode 10 min | 0 writes while observing; kill switch restored 50; pending-pod minutes -48.6% (significant, but the baseline phase included warm-up); energy per core-hour no significant difference (one node cannot be parked) |
 | live-kind-full, run 36205869009 | 1 control plane + 3 workers | node pool never resized: 3 of 3 every minute at about 8% utilisation, because the fleet law needs more than 3 nodes of slack; kill switch restored target and workers |
-| live-kind-full, run 36207925928 | 1 control plane + 6 workers; sequential baseline then full engine | nodes 6 to 5 to 4 to 3; node-hours per core-hour -38.2%, kWh per core-hour -35.8%, utilisation +63.7% (all significant); kill switch restored target 50 and 6 of 6 workers |
+| live-kind-full, run 36207925928 | 1 control plane + 6 workers; sequential baseline then full engine | nodes in service 6 to 5 to 4 to 3; node-hours in service per core-hour -38.2%, utilisation +63.7% (significant); the reported kWh per core-hour -35.8% counted parked workers as powered off; with parked workers on standby the saving largely disappears; kill switch restored target 50 and 6 of 6 workers |
 
 ## 8. Engineering verification
 
@@ -215,7 +217,7 @@ Also tested: the live controller against a fake cluster (observe writes nothing;
 
 - **Stack plant power:** each node draws idle 0.38 kW plus 1.12 kW x utilisation; a power cap throttles delivered capacity.
 - **Heat:** thermal state follows a first-order lag toward 0.34 + 0.62 x power stress (time constant about 7 steps); heat above 0.82 throttles capacity; 'over the heat limit' means thermal above 1.03.
-- **Live kind cluster:** kind nodes have no power meter, so power is a declared model: 100 W idle + 150 W x CPU utilisation per worker in service; a parked (cordoned and drained) worker counts as off. The same constants drive the governor's power sense and the energy score, so they cannot disagree. On real hardware this is replaced by metered power (RAPL, PDU or BMC).
+- **Live kind cluster:** kind nodes have no power meter, so power is a declared model: 100 W idle + 150 W x CPU utilisation per worker in service, plus a standby power for each parked (cordoned and drained) worker. Standby defaults to the idle power (the worker stays powered and ready); lower values apply only to a declared sleep state, zero only to machines really powered off. The first live reports counted parked workers as zero; section 7.1 gives both. The same constants drive the governor's power sense and the energy score, so they cannot disagree. On real hardware this is replaced by metered power (RAPL, PDU or BMC).
 - **Savings model** (`results/SAVINGS.csv`): a 1,000-node web cluster at 0.4 kW per node, PUE 1.4, $0.12/kWh and 0.4 kg CO2/kWh; reduction versus HPA 0.7 + Karpenter-lite of 14% to 20% (fleet plant) gives roughly 710 to 960 MWh, $85,000 to $115,000 and 280 to 380 t CO2 per year.
 - **Engine overhead:** about 2.9 microseconds per decision in C++, memory flat over 100 million decisions.
 
@@ -227,7 +229,8 @@ Also tested: the live controller against a fake cluster (observe writes nothing;
 | Observe mode changes nothing | Proven (simulation and live) | bit-identical trajectories; 0 writes live |
 | Kill switch restores native control | Proven (simulation and live) | HPA target 50 and all workers restored live |
 | Omni-Compass acts on a real Kubernetes control plane (HPA target, node pool) | Proven live | section 7 |
-| Lower energy and node-hours than Kubernetes with a fixed node pool | Measured live | section 7.1 |
+| Fewer nodes in service than Kubernetes with a fixed node pool, same load served | Measured live | section 7.1 |
+| Lower energy on the live cluster | Not shown while parked nodes stay on standby; -22% to -43% only if parked nodes sleep or power off | section 7.1 |
 | Better energy, health, recovery, coordination than Kubernetes (HPA + CA) | Pre-registered simulation | section 5 |
 | Better than Karpenter-lite on energy | Simulation | sections 6, and PlanetLab fleet plant |
 | Better than upstream Karpenter or Cluster Autoscaler binaries, live | Not yet tested | section 12 |
@@ -239,8 +242,9 @@ Also tested: the live controller against a fake cluster (observe writes nothing;
 
 - Simulated studies use documented-behaviour replicas of Kubernetes controllers, not the upstream binaries; the Kubernetes reference omits Karpenter consolidation, VPA, scheduling constraints and disruption budgets.
 - The live cluster is kind: nodes are containers on one CI machine; the two live arms ran on two machines at the same time, so machine-to-machine variation is part of the noise; each live arm is 20 minutes, one repetition.
-- Live power and heat are modelled; parked kind workers are drained containers, counted as off.
+- Live power and heat are modelled; parked kind workers are drained containers. If parked machines must stay on standby, parking reduces nodes in service but not energy; live energy savings then have to come from power caps, CPU power states and heat control, which are not yet wired live.
 - The live native arm had no node autoscaler, so its node pool was always full; the fair live opponent is Karpenter or Cluster Autoscaler (section 13).
+- The live significance for energy per core-hour with standby power is computed from minute averages (10 two-minute blocks), not from the 15-second capture.
 - The fleet law releases a node only when the pool has more than three nodes of slack; a three-worker pool cannot scale down (observed live, reproduced offline). Small clusters need a pool-size-aware release band.
 - Architecture C was measured in simulation only; the live C (Kubernetes' controllers parked, Omni-Compass as the only brain) is not built yet.
 - Service quality differences in the live runs (pending pods, HPA shortfall) are not statistically significant at this run length.
@@ -251,7 +255,7 @@ One engine; the vessel (the plant it sits on) is the only thing that changes. In
 
 | Problem | Scale in the industry (approximate, source) | Best software today | Omni-Compass vessel and muscles | Gauge that shows it | Status |
 |---|---|---|---|---|---|
-| Data-centre electricity growth | about 415 TWh in 2024, about 1.5% of world electricity, projected near 945 TWh by 2030 (IEA, Energy and AI, 2025) | Karpenter, Cluster Autoscaler, CAST AI, Spot Ocean; Kepler for metering | compute vessel: nodes, HPA, power cap | energy, node-hours, idle node-hours | live + sim |
+| Data-centre electricity growth | about 415 TWh in 2024, about 1.5% of world electricity, projected near 945 TWh by 2030 (IEA, Energy and AI, 2025) | Karpenter, Cluster Autoscaler, CAST AI, Spot Ocean; Kepler for metering | compute vessel: nodes, HPA, power cap | energy, node-hours, idle node-hours | sim; live only where parked nodes can sleep or power off |
 | Idle and over-provisioned capacity | Kubernetes clusters commonly run near 10-15% average CPU utilisation (CAST AI and Datadog industry reports); roughly a quarter to a third of cloud spend reported as waste (Flexera State of the Cloud) | VPA, Goldilocks, StormForge, Kubecost/OpenCost | compute vessel: nodes, HPA; memory (open) | utilisation, node-hours per core-hour | live + sim |
 | Controllers fighting each other | documented conflicts, e.g. HPA and VPA on the same CPU metric (Kubernetes documentation advises against it) | none: each tool decides alone | single authority over all muscles | contradictory commands, scale reversals | sim |
 | Outages and slow recovery | most significant outages cost over $100,000 (Uptime Institute annual outage analysis) | Argo Rollouts, Flagger, SRE runbooks, AIOps (Dynatrace, Datadog) | compute vessel + deployments (partial) | time healthy, recovery time, SLA breaches | sim |
@@ -282,7 +286,7 @@ One engine; the vessel (the plant it sits on) is the only thing that changes. In
 
 **How fast does it decide, and what does it cost to run?** One decision per 60 s on live Kubernetes (300 s in the replica), with a 15 s fast path that adds nodes for pending pods. The engine takes about 2.9 microseconds per decision.
 
-**Why does it save energy?** Two mechanisms. On the live cluster it switched off machines the load did not need (6 to 3 workers) and raised the HPA target so replicas packed more densely. In the pre-registered stack study it saved energy mainly by power capping and load shaping (fewer minutes over the power limit, lower peak), while keeping slightly more machines on. Separate controllers each keep their own headroom; one authority does not stack the padding.
+**Why does it save energy?** In the pre-registered stack study mainly by power capping and load shaping (fewer minutes over the power limit, lower peak), while keeping slightly more machines on. On the live cluster it took machines out of service (6 to 3 workers) and packed replicas more densely; that saves energy only if the parked machines sleep or power off. With parked machines on standby the live saving was about zero, so live savings must come from power caps and CPU power states.
 
 **Does it slow applications down?** In architecture B the queue is shorter than Kubernetes alone; in C it is longer. Live, response-time measurement is not yet in the capture; pending pods and HPA shortfall were not significantly different.
 
