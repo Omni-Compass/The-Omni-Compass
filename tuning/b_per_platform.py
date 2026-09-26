@@ -11,36 +11,6 @@ from tuning.league import COMPETITORS, SEEDS, losses
 from tuning.b_league import GRID, _job, gains
 
 LG.TOL = 0.0025
-if __name__ == "__main__" and sys.argv[1] == "--heldout":
-    LG.TOL = 0.005
-    settings = json.load(open(ROOT / "tuning/B_SETTINGS_PER_PLATFORM.json"))
-    res = heldout(settings, list(range(700201, 700231)))
-    (ROOT / "tuning/B_LEAGUE_HELDOUT2.json").write_text(json.dumps(res, indent=1))
-    print("TOTAL losing cells", sum(r["losing_cells"] for r in res.values()), "of", 13 * 7 * 4)
-elif __name__ == "__main__":
-    vessels = sys.argv[1:]
-    seeds = SEEDS["dev"]
-    with Pool(4) as p:
-        res = p.map(_job, [(v, s, GRID) for v in vessels for s in seeds], chunksize=1)
-    A = {k: a for k, a, _ in res}; Bv = {k: b for k, _, b in res}
-    path = ROOT / "tuning/B_SETTINGS_PER_PLATFORM.json"
-    out = json.loads(path.read_text()) if path.exists() else {}
-    for v in vessels:
-        out[v] = {}
-        for c in COMPETITORS:
-            best = None
-            for i in range(len(GRID)):
-                rows = {(v, s): {"A": A[(v, s)][c], "B": Bv[(v, s)][(c, i)]} for s in seeds}
-                L = losses(rows, seeds, "B", "A", v, np.random.default_rng(11))
-                g = gains(A, Bv, seeds, v, c, i)
-                key = (len(L), -(sum(max(0.0, x) for x in g.values()) - 3.0 * sum(max(0.0, -x) for x in g.values())))
-                if best is None or key < best[0]:
-                    best = (key, i, g)
-            out[v][c] = GRID[best[1]]
-            print(v, c, "losses", best[0][0], GRID[best[1]], {m: round(x, 1) for m, x in best[2].items() if abs(x) >= 1})
-    path.write_text(json.dumps(out, indent=1))
-
-
 def heldout(settings, seeds):
     """Run the frozen per-platform settings on held-out seeds; same output format as tuning/b_league.py."""
     from fleet import sim_slo
@@ -74,3 +44,34 @@ def _ho_job(args):
     A = {c: gauges(sim_slo.run(sc, c)) for c in COMPETITORS}
     Bv = {(c, 0): gauges(sim_slo.run(sc, "omniB:" + c, b_law=BLaw(**per[c]))) for c in COMPETITORS}
     return (v, s), A, Bv
+
+
+if __name__ == "__main__" and sys.argv[1] == "--heldout":
+    LG.TOL = 0.005
+    settings = json.load(open(ROOT / "tuning/B_SETTINGS_PER_PLATFORM.json"))
+    res = heldout(settings, list(range(700201, 700231)))
+    (ROOT / "tuning/B_LEAGUE_HELDOUT2.json").write_text(json.dumps(res, indent=1))
+    print("TOTAL losing cells", sum(r["losing_cells"] for r in res.values()), "of", 13 * 7 * 4)
+elif __name__ == "__main__":
+    vessels = sys.argv[1:]
+    seeds = SEEDS["dev"]
+    with Pool(4) as p:
+        res = p.map(_job, [(v, s, GRID) for v in vessels for s in seeds], chunksize=1)
+    A = {k: a for k, a, _ in res}; Bv = {k: b for k, _, b in res}
+    path = ROOT / "tuning/B_SETTINGS_PER_PLATFORM.json"
+    out = json.loads(path.read_text()) if path.exists() else {}
+    for v in vessels:
+        out[v] = {}
+        for c in COMPETITORS:
+            best = None
+            for i in range(len(GRID)):
+                rows = {(v, s): {"A": A[(v, s)][c], "B": Bv[(v, s)][(c, i)]} for s in seeds}
+                L = losses(rows, seeds, "B", "A", v, np.random.default_rng(11))
+                g = gains(A, Bv, seeds, v, c, i)
+                key = (len(L), -(sum(max(0.0, x) for x in g.values()) - 3.0 * sum(max(0.0, -x) for x in g.values())))
+                if best is None or key < best[0]:
+                    best = (key, i, g)
+            out[v][c] = GRID[best[1]]
+            print(v, c, "losses", best[0][0], GRID[best[1]], {m: round(x, 1) for m, x in best[2].items() if abs(x) >= 1})
+    path.write_text(json.dumps(out, indent=1))
+
