@@ -35,6 +35,7 @@ from fleet.sim import ALLOC, OMNI_EVERY, _resize, _cluster_autoscaler, _karpente
 from omnicompass.adapter import Governor, AllocationLaw, mode_law, OBSERVE, AUTOPILOT
 from omnicompass.shield import enforce, ShieldLimits
 from omnicompass.speed import SpeedGovernor, SpeedLaw
+from omnicompass.mathdrive import MathDrive, MathLaw
 
 S0_MS = 100.0
 REC = None   # when a list, run() appends each tick's per-cluster pod requests (analysis only)
@@ -165,9 +166,10 @@ def wpct(vals, wts, q):
 
 
 def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every: int = OMNI_EVERY,
-        lat_gain: float = 0.0, slo_mult: float = 2.0, speed_law: SpeedLaw = None) -> Dict:
+        lat_gain: float = 0.0, slo_mult: float = 2.0, speed_law: SpeedLaw = None, math_law: MathLaw = None) -> Dict:
     scn = copy.deepcopy(scn0)
-    speed = arm == "omni_speed"
+    mathd = arm == "omni_math"
+    speed = arm == "omni_speed" or mathd
     single = arm.startswith("omni_fleet") or arm.startswith("omni_single") or speed
     uses_gov = arm.startswith("omni")
     glaw = governor_law if governor_law is not None else (mode_law("fleet", AllocationLaw()) if single else AllocationLaw())
@@ -178,7 +180,7 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
     for g in govs:
         g.set_mode(AUTOPILOT if single or arm == "omni_target" else OBSERVE)
     if speed:
-        govs = [SpeedGovernor(speed_law or SpeedLaw()) for _ in scn.clusters]
+        govs = [MathDrive(math_law or MathLaw()) if mathd else SpeedGovernor(speed_law or SpeedLaw()) for _ in scn.clusters]
     targets = [hpa_target(arm)] * len(scn.clusters)
     energy = dem = done = 0.0
     viol_q = viol_p = viol_h = healthy = 0
@@ -255,8 +257,11 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                 if speed:
                     p = c.pool
                     n = p.nodes + len(p.booting)
-                    g.g.current_cap = p.cap
-                    rho, tgt, capn = g.step(obs, n, c.reqs, p.cores * ALLOC)
+                    if mathd:
+                        rho, tgt, capn, _ = g.step(obs, n, c.reqs, p.cores * ALLOC)
+                    else:
+                        g.g.current_cap = p.cap
+                        rho, tgt, capn = g.step(obs, n, c.reqs, p.cores * ALLOC)
                     targets[ci] = min(0.95, max(0.4, rho))
                     tgt = max(p.min_nodes, min(p.max_nodes, tgt))
                     if tgt != n:
