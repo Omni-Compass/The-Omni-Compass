@@ -7,6 +7,9 @@
 # no chiller, so that lever proves the mechanism only. Results in $OUT_DIR/levers.txt.
 set -euo pipefail
 OUT_DIR="${OUT_DIR:-levers_out}"; mkdir -p "$OUT_DIR"
+show() { echo "-- lever errors in the audit log"; grep '"error"' "$OUT_DIR/audit.jsonl" 2>/dev/null | tail -n 30 || true
+         echo "-- controller.log (last 40 lines)"; tail -n 40 "$OUT_DIR/controller.log" 2>/dev/null || true; }
+trap show EXIT
 METRICS_SERVER_VERSION="${METRICS_SERVER_VERSION:-v0.9.0}"
 METRICS_SERVER_SHA256="${METRICS_SERVER_SHA256:-1cec29a5267809306a2c6ec74a3e449abbb705b4a8beed0c8a1963910f72c79b}"
 curl -fsSL "https://github.com/kubernetes-sigs/metrics-server/releases/download/${METRICS_SERVER_VERSION}/components.yaml" -o "$OUT_DIR/ms.yaml"

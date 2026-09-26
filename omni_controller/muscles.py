@@ -123,11 +123,18 @@ class Muscles:
         self._hardware(float(d["power_cap"]), obs)
         self._rollout(bool(d["change_permitted"]), bool(d["rollback_authorized"]))
         self._batch(bool(d["change_permitted"]), obs)
-        self._rightsize(obs)
-        self._coldstart()
-        self._batch_pace(obs)
-        self._contain(obs)
-        self._cooling(obs)
+        for name, fn in (("rightsize", lambda: self._rightsize(obs)), ("coldstart", self._coldstart),
+                         ("batch_pace", lambda: self._batch_pace(obs)), ("contain", lambda: self._contain(obs)),
+                         ("cooling", lambda: self._cooling(obs))):
+            self._guard(name, fn)
+
+    def _guard(self, name, fn):
+        """One lever failing is logged and never stops the others (nor the kill switch)."""
+        try:
+            fn()
+        except Exception as e:  # noqa: BLE001
+            err = getattr(e, "stderr", "") or str(e)
+            self.audit({"error": f"{name}: {type(e).__name__}: {str(err).strip()[:400]}"})
 
     # ---- new levers ---------------------------------------------------------------------------------------------------
     def _named_usage(self, ns, sel=None):
@@ -366,17 +373,31 @@ class Muscles:
 
     # ---- kill -------------------------------------------------------------------------------------------------------
     def restore(self):
+        self._guard("kill cooling", self._restore_cooling)
+        self._guard("kill contain", self._restore_contain)
+        self._guard("kill batch_pace", self._restore_pace)
+        self._guard("kill coldstart", self._restore_coldstart)
+        self._guard("kill rightsize", self._restore_rightsize)
+        self._guard("kill hardware and power cap", self._restore_core)
+
+    def _restore_cooling(self):
         if getattr(self.a, "cooling_cmd", ""):
             self._hw(self.a.cooling_cmd.replace("{c}", "{v}"), self.a.cooling_restore_c, "kill switch: restore cooling setpoint")
             self._setpoint = None
+
+    def _restore_contain(self):
         for ns in filter(None, getattr(self.a, "contain_namespaces", "").split(",")):
             q = self._quota(ns)
             if q is not None:
                 self._release(ns, q, "kill switch")
+
+    def _restore_pace(self):
         if getattr(self.a, "batch_pace", False):
             for j in self.k.get("get", "jobs", "-A", "-l", PAUSABLE_LABEL, "-o", "json")["items"]:
                 if j["spec"].get("suspend") and (j["metadata"].get("annotations") or {}).get(PACE_ANN) == "true":
                     self._resume_job(j, "kill switch: resume paced job")
+
+    def _restore_coldstart(self):
         for target in filter(None, getattr(self.a, "coldstart_deployments", "").split(",")):
             ns, name = ref(target)
             dep = self.k.get("get", "deployment", name, "-n", ns, "-o", "json")
@@ -385,6 +406,8 @@ class Muscles:
                 if int(dep["spec"].get("replicas", 1)) == 0:
                     self.k.write(["scale", "deployment", name, "-n", ns, f"--replicas={ann[REPL_ANN]}"], "kill switch: restore replicas")
                 self.k.write(["annotate", "deployment", name, "-n", ns, f"{REPL_ANN}-"], "kill switch: clear replica record")
+
+    def _restore_rightsize(self):
         for target in filter(None, getattr(self.a, "rightsize_deployments", "").split(",")):
             ns, name = ref(target)
             dep = self.k.get("get", "deployment", name, "-n", ns, "-o", "json")
@@ -396,6 +419,8 @@ class Muscles:
                                       json.dumps([{"op": "replace", "path": "/spec/containers/0/resources/requests/cpu", "value": orig}])],
                                      "kill switch: restore original CPU request in place")
                 self.k.write(["annotate", "deployment", name, "-n", ns, f"{REQ_ANN}-"], "kill switch: remove request record")
+
+    def _restore_core(self):
         if getattr(self.a, "cpufreq_cmd", "") and self.a.cpu_max_khz and getattr(self, "_last_cap", 1.0) != 1.0:
             self._hw(self.a.cpufreq_cmd, self.a.cpu_max_khz, "kill switch: restore maximum CPU frequency")
         if getattr(self.a, "gpu_power_cmd", "") and self.a.gpu_max_w and getattr(self, "_last_cap", 1.0) != 1.0:
