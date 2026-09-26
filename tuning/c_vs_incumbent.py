@@ -18,13 +18,19 @@ from omnicompass.closure import ClosureLaw
 from tuning.speed_search import gauges
 from tuning.league import COMPETITORS, SEEDS, VESSELS, losses
 
+VES = ["web", "multi"] if "--round3" in sys.argv else VESSELS
 F = {k: v for k, v in json.load(open(ROOT / "tuning/CLOSURE_FINAL_DEV.json")).items() if not k.startswith("_")}
-WIDE = "--wide" in sys.argv
-HELD = list(range(700601, 700631)) if WIDE else list(range(700501, 700531))
-TAG = "_WIDE" if WIDE else ""
+R3 = "--round3" in sys.argv          # web and multi only: pods near the platforms' fill, packing to the boundary, short release look-ahead
+WIDE = "--wide" in sys.argv or R3
+HELD = list(range(700801, 700831)) if R3 else list(range(700601, 700631)) if WIDE else list(range(700501, 700531))
+TAG = "_R3" if R3 else "_WIDE" if WIDE else ""
 
 
 def variants(v):
+    if v in ("web", "multi") and R3:
+        return [dict(tone_H=th, rho=r, wq=-1.0, rho_max=rm, turn=tu, H_rel=hr, delta=0.0 if rm >= 1.0 else 0.02,
+                     delta_rel=0.0 if rm >= 1.0 else 0.08, H_add=2)
+                for th, r, rm, tu, hr in itertools.product([0, 24, 960], [0.7, 0.72, 0.75, 0.8], [0.97, 1.0], [True, False], [10, 40])]
     if v in ("web", "multi"):
         return [dict(tone_H=th, rho=r, wq=wq, rho_max=rm) for th, r, wq, rm in
                 itertools.product([24, 96, 960], [0.7, 0.75, 0.8], [-1.0, 0.05, 0.1], [0.97, 0.99])]
@@ -36,7 +42,7 @@ def law(v, x):
     f = F[v]; cl = dict(f["closure"]); dl = dict(f["direct"]); sl = dict(f["speed"])
     if "tone_H" in x:
         cl.update(tone=x["tone_H"] > 0, tone_H=max(1, x["tone_H"]))
-    for k in ("rho_max", "delta_rel", "H_add"):
+    for k in ("rho_max", "delta_rel", "H_add", "delta", "turn", "H_rel"):
         if k in x:
             cl[k] = x[k]
     if "rho" in x:
@@ -67,10 +73,10 @@ def _ho(a):
 if __name__ == "__main__" and sys.argv[1] == "dev":
     seeds = list(range(101, 131)) if WIDE else SEEDS["dev"]
     with Pool(4) as p:
-        res = p.map(_dev, [(v, s) for v in VESSELS for s in seeds], chunksize=1)
+        res = p.map(_dev, [(v, s) for v in VES for s in seeds], chunksize=1)
     A = {k: a for k, a, _ in res}; O = {k: o for k, _, o in res}
     out = {}
-    for v in VESSELS:
+    for v in VES:
         out[v] = {}
         for c in COMPETITORS:
             best = None
@@ -86,15 +92,15 @@ if __name__ == "__main__" and sys.argv[1] == "dev":
     (ROOT / f"tuning/C_VS_INCUMBENT{TAG}_DEV.json").write_text(json.dumps(out, indent=1))
 elif __name__ == "__main__":
     dev = json.load(open(ROOT / f"tuning/C_VS_INCUMBENT{TAG}_DEV.json"))
-    pick = {v: {c: dev[v][c]["var"] for c in COMPETITORS} for v in VESSELS}
+    pick = {v: {c: dev[v][c]["var"] for c in COMPETITORS} for v in VES}
     (ROOT / f"tuning/C_VS_INCUMBENT{TAG}_PREREGISTRATION.json").write_text(json.dumps(
         {"picks": pick, "sha256": hashlib.sha256(json.dumps(pick, sort_keys=True).encode()).hexdigest(),
          "base_settings": "tuning/CLOSURE_FINAL_DEV.json", "heldout_seeds": HELD}, indent=1))
     with Pool(4) as p:
-        res = p.map(_ho, [(v, s, pick[v]) for v in VESSELS for s in HELD], chunksize=1)
+        res = p.map(_ho, [(v, s, pick[v]) for v in VES for s in HELD], chunksize=1)
     A = {k: a for k, a, _ in res}; O = {k: o for k, _, o in res}
     out = {"seeds": HELD, "picks": pick, "cells": {}, "means": {}}
-    for v in VESSELS:
+    for v in VES:
         out["cells"][v] = {}; out["means"][v] = {}
         for c in COMPETITORS:
             rows = {(v, s): {"inc": A[(v, s)][c], "omni": O[(v, s)][c]} for s in HELD}
