@@ -54,6 +54,7 @@ mode, kill-switch restore check, then a scored comparison.
 | Workflow | Cluster | Omni-Compass drives | Start it |
 |---|---|---|---|
 | `live-kind` | 1 node | HPA target | Actions → live-kind → Run workflow, or `[kind]` in a commit message |
+| `benchmark` | two identical 6-worker clusters side by side | nothing (native) vs HPA target + node pool + power | Actions → benchmark → Run workflow, or `[bench]` in a commit message; writes `BENCHMARK.md` |
 | `live-kind-full` | 1 control plane + 6 workers | HPA target, node pool (cordon/drain/uncordon), power sensing | Actions → live-kind-full → Run workflow, or `[full]` in a commit message |
 
 Results appear on each run's summary page and as an artifact. Locally (Docker Desktop): `docker compose up --build`
