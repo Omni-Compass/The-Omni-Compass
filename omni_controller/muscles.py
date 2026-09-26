@@ -3,8 +3,8 @@
 Each muscle pulls (afferent) and pushes (efferent) through kubectl, records what it changed so the kill switch can hand
 the muscle back, and tags every write with its muscle name in the audit log.
 
-  power_cap   push: CPU limit of the capped deployments = base limit x the governor's power cap (Linux CFS quota throttles
-              the containers for real); pull: power from --power-cmd
+  power_cap   push: CPU limit of each running pod of the capped deployments = base limit x the governor's power cap,
+              resized in place (no restart; Linux CFS quota throttles the containers for real); pull: power from --power-cmd
   heat        pull: thermal state from the harness heat law driven by live power stress (modelled: kind has no thermometer)
   security    pull: ConfigMap key "hold" == "true" means a security hold; the shield then blocks every expansion
   rollout     push: pause a deployment's rollout while the governor does not permit change; resume it when it does;
@@ -95,27 +95,38 @@ class Muscles:
         self._rollout(bool(d["change_permitted"]), bool(d["rollback_authorized"]))
         self._batch(bool(d["change_permitted"]), obs)
 
+    def _pods(self, dep, ns):
+        sel = ",".join(f"{k}={v}" for k, v in dep["spec"]["selector"]["matchLabels"].items())
+        return [p for p in self.k.get("get", "pods", "-n", ns, "-l", sel, "-o", "json")["items"]
+                if p["status"].get("phase") == "Running"]
+
+    def _resize(self, pod, ns, value, why):
+        self.k.write(["patch", "pod", pod["metadata"]["name"], "-n", ns, "--subresource", "resize", "--type=json", "-p",
+                      json.dumps([{"op": "replace", "path": "/spec/containers/0/resources/limits/cpu", "value": value}])], why)
+
     def _power_cap(self, cap, obs):
+        """In-place pod resize (no restart): each running pod's CPU limit = base limit x cap; the kernel's CFS quota
+        enforces it. The deployment template is not changed, so no rollout is triggered."""
         for target in filter(None, getattr(self.a, "cap_deployments", "").split(",")):
             ns, name = ref(target)
             dep = self.k.get("get", "deployment", name, "-n", ns, "-o", "json")
             ann = dep["metadata"].get("annotations", {}) or {}
             c0 = dep["spec"]["template"]["spec"]["containers"][0]
-            cur = c0.get("resources", {}).get("limits", {}).get("cpu")
-            if cur is None:
+            tmpl = c0.get("resources", {}).get("limits", {}).get("cpu")
+            if tmpl is None:
                 continue
-            base = milli(ann.get(CPU_ANN, cur))
+            base = milli(ann.get(CPU_ANN, tmpl))
             req = milli(c0.get("resources", {}).get("requests", {}).get("cpu", "0"))
             want = int(max(req, round(base * max(self.a.cap_min, min(1.0, cap)) / 10.0) * 10))
-            if obs.get("security_block", 0.0) > 0.5 and want > milli(cur):
-                continue  # shield I1: no expansion during a security hold
-            if abs(want - milli(cur)) < self.a.cap_min_change_m:
-                continue
             if CPU_ANN not in ann:
                 self.k.write(["annotate", "deployment", name, "-n", ns, f"{CPU_ANN}={int(base)}m"], "power_cap: record original CPU limit")
-            self.k.write(["patch", "deployment", name, "-n", ns, "--type=json", "-p",
-                          json.dumps([{"op": "replace", "path": "/spec/template/spec/containers/0/resources/limits/cpu", "value": f"{want}m"}])],
-                         f"power_cap: CPU limit to {want}m (cap {cap:.3f})")
+            for pod in self._pods(dep, ns):
+                cur = milli(pod["spec"]["containers"][0].get("resources", {}).get("limits", {}).get("cpu", tmpl))
+                if obs.get("security_block", 0.0) > 0.5 and want > cur:
+                    continue  # shield I1: no expansion during a security hold
+                if abs(want - cur) < self.a.cap_min_change_m:
+                    continue
+                self._resize(pod, ns, f"{want}m", f"power_cap: pod CPU limit to {want}m in place (cap {cap:.3f})")
 
     def _hardware(self, cap, obs):
         cap = max(self.a.cap_min, min(1.0, cap))
@@ -173,9 +184,9 @@ class Muscles:
             dep = self.k.get("get", "deployment", name, "-n", ns, "-o", "json")
             orig = (dep["metadata"].get("annotations", {}) or {}).get(CPU_ANN)
             if orig:
-                self.k.write(["patch", "deployment", name, "-n", ns, "--type=json", "-p",
-                              json.dumps([{"op": "replace", "path": "/spec/template/spec/containers/0/resources/limits/cpu", "value": orig}])],
-                             "kill switch: restore original CPU limit")
+                for pod in self._pods(dep, ns):
+                    if pod["spec"]["containers"][0].get("resources", {}).get("limits", {}).get("cpu") != orig:
+                        self._resize(pod, ns, orig, "kill switch: restore original pod CPU limit in place")
                 self.k.write(["annotate", "deployment", name, "-n", ns, f"{CPU_ANN}-"], "kill switch: remove CPU record")
         for target in filter(None, getattr(self.a, "rollout_guard", "").split(",")):
             ns, name = ref(target)

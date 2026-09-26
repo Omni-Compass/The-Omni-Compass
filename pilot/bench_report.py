@@ -53,8 +53,23 @@ def gauges(rows):
 
 LOWER_BETTER = {"worker nodes in service, mean", "node-hours", "power (W), mean", "power (W), peak", "energy (Wh)",
                 "energy per core-hour (Wh)", "node-hours per core-hour", "pending pods, pod-minutes", "pending pods, peak",
-                "HPA shortfall (desired > current), minutes"}
+                "HPA shortfall (desired > current), minutes", "response time (ms), mean", "response time (ms), median",
+                "response time (ms), 95th percentile", "response time (ms), 99th percentile", "failed requests (%)"}
 HIGHER_BETTER = {"utilisation (used / allocatable)"}
+
+
+def latency(path):
+    import csv
+    if not path or not Path(path).exists():
+        return {}
+    r = list(csv.DictReader(open(path)))
+    ok = np.array([float(x["latency_ms"]) for x in r if x["ok"] == "1"]); n = len(r)
+    if not len(ok):
+        return {"requests timed": float(n), "failed requests (%)": 100.0}
+    return {"requests timed": float(n), "response time (ms), mean": float(ok.mean()),
+            "response time (ms), median": float(np.percentile(ok, 50)), "response time (ms), 95th percentile": float(np.percentile(ok, 95)),
+            "response time (ms), 99th percentile": float(np.percentile(ok, 99)),
+            "failed requests (%)": 100.0 * (n - len(ok)) / max(n, 1)}
 
 
 def timeline(rows, minute):
@@ -74,11 +89,16 @@ def fmt(v):
 def report(native_csv, omni_csv, audit=None, kill=None, block_minutes=2.0, idle_w=100.0, dyn_w=150.0):
     N, O = load(native_csv), load(omni_csv)
     gn, go = gauges(N), gauges(O)
+    ln, lo_ = latency(str(Path(native_csv).with_name("latency.csv"))), latency(str(Path(omni_csv).with_name("latency.csv")))
+    for k in ln:
+        gn[k], go[k] = ln[k], lo_.get(k, float("nan"))
     L = ["# Omni-Compass benchmark: Kubernetes native vs Kubernetes + Omni-Compass", "",
          "Two identical kind clusters (1 control plane + 6 workers), same add-ons, workload (php-apache + HPA, target 50),",
          "load schedule and capture. **Native**: Omni-Compass not running. **Omni**: Omni-Compass drives the HPA target, the",
-         "node pool (cordon/drain/uncordon) and senses power. Power is a declared model (idle 100 W + 150 W x utilisation per",
-         "worker in service), not a meter; a parked kind worker is a drained container counted as off.", "",
+         "node pool (cordon/drain/uncordon), the power cap (in-place CPU limits on the app pods, enforced by the kernel), heat",
+         "(harness law on live power), security (hold signal) and the rollout guard. Response times are real HTTP requests timed",
+         "every 5 s. Power is a declared model (idle 100 W + 150 W x utilisation per worker in service; parked workers on",
+         "standby at idle power), not a meter.", "",
          "## Gauges", "", "| Gauge | Native | Omni-Compass | Change |", "|---|---:|---:|---:|"]
     for k in gn:
         a, b = gn[k], go[k]
@@ -103,6 +123,10 @@ def report(native_csv, omni_csv, audit=None, kill=None, block_minutes=2.0, idle_
               f"- HPA target writes: {sum(1 for r in recs if 'HPA target to rho' in str(r.get('why', '')))}",
               f"- node-pool resizes: {sum(1 for r in recs if r.get('why') == 'node pool size')}",
               f"- scheduling-floor adds (pending pods): {sum(1 for r in recs if 'scheduling floor' in str(r.get('why', '')))}",
+              f"- power-cap pod resizes (in place): {sum(1 for r in recs if str(r.get('why', '')).startswith('power_cap: pod'))}",
+              f"- rollout actions: {sum(1 for r in recs if str(r.get('why', '')).startswith('rollout:'))}",
+              f"- power cap decided per minute: {' '.join(str(d.get('power_cap', '')) for d in dec)}",
+              f"- heat (thermal) per minute: {' '.join(str(d.get('thermal', '')) for d in dec)}",
               f"- nodes decided per minute: {' '.join(str(d['nodes_recommended']) for d in dec)}",
               f"- HPA target decided per minute (%): {' '.join(str(round(100 * d['hpa_target_recommended'])) for d in dec)}"]
     if kill and Path(kill).exists():

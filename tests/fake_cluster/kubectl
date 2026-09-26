@@ -6,7 +6,17 @@ st = json.load(open(st_path)); a = sys.argv[1:]
 def save(): json.dump(st, open(st_path, "w"))
 def log(): open(log_path, "a").write(json.dumps(a) + "\n")
 if a[:2] == ["get", "nodes"]: print(json.dumps({"items": st["nodes"]}))
-elif a[:2] == ["get", "pods"]: print(json.dumps({"items": st["pods"]}))
+elif a[:2] == ["get", "pods"]:
+    items = st["pods"]
+    if "-l" in a:
+        k, v = a[a.index("-l") + 1].split("=", 1)
+        items = [p for p in items if p.get("metadata", {}).get("labels", {}).get(k) == v]
+    print(json.dumps({"items": items}))
+elif a[:2] == ["patch", "pod"]:
+    log(); p = next(p for p in st["pods"] if p.get("metadata", {}).get("name") == a[2]); ops = json.loads(a[a.index("-p") + 1])
+    for op in ops:
+        p["spec"]["containers"][0].setdefault("resources", {}).setdefault("limits", {})["cpu"] = op["value"]
+    save()
 elif a[:2] == ["get", "hpa"]: print(json.dumps({"items": st["hpas"]}))
 elif a[:2] == ["top", "nodes"]: print("\n".join(f"{n['metadata']['name']} {st['used_per_node']} 10% 1Gi 5%" for n in st["nodes"]))
 elif a[:2] == ["patch", "hpa"]:

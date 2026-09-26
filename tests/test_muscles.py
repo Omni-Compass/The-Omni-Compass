@@ -14,12 +14,15 @@ FAKE = str(ROOT / "tests" / "fake_cluster" / "kubectl")
 
 def state(tmp, hold="false"):
     dep = lambda name: {"metadata": {"name": name, "namespace": "default", "annotations": {}},
-                        "spec": {"template": {"spec": {"containers": [{"resources": {"limits": {"cpu": "500m"}, "requests": {"cpu": "200m"}}}]}}},
+                        "spec": {"selector": {"matchLabels": {"app": name}},
+                                 "template": {"spec": {"containers": [{"resources": {"limits": {"cpu": "500m"}, "requests": {"cpu": "200m"}}}]}}},
                         "status": {"conditions": [{"type": "Progressing", "reason": "NewReplicaSetAvailable"}]}}
     job = lambda n, t: {"metadata": {"name": n, "namespace": "batch", "creationTimestamp": t}, "spec": {"suspend": True}}
     ready = [{"type": "Ready", "status": "True"}]
     st = {"nodes": [{"metadata": {"name": f"w{i}"}, "spec": {}, "status": {"allocatable": {"cpu": "4"}, "conditions": ready}} for i in range(3)],
-          "pods": [], "hpas": [{"metadata": {"name": "web", "namespace": "default"}, "spec": {"metrics": [{"type": "Resource", "resource": {
+          "pods": [{"metadata": {"name": f"web-{i}", "labels": {"app": "web"}}, "status": {"phase": "Running"},
+                    "spec": {"nodeName": "w0", "containers": [{"resources": {"limits": {"cpu": "500m"}, "requests": {"cpu": "200m"}}}]}}
+                   for i in range(2)], "hpas": [{"metadata": {"name": "web", "namespace": "default"}, "spec": {"metrics": [{"type": "Resource", "resource": {
               "name": "cpu", "target": {"type": "Utilization", "averageUtilization": 50}}}]}, "status": {"currentReplicas": 2}}],
           "used_per_node": "400m", "deployments": [dep("web"), dep("api")],
           "configmaps": [{"metadata": {"name": "omni-security"}, "data": {"hold": hold}}],
@@ -30,7 +33,12 @@ def state(tmp, hold="false"):
 
 
 def load(p): return json.loads(Path(p).read_text())
-def cpu(p, name="web"): return next(d for d in load(p)["deployments"] if d["metadata"]["name"] == name)["spec"]["template"]["spec"]["containers"][0]["resources"]["limits"]["cpu"]
+def cpu(p, name="web"):
+    lims = {q["spec"]["containers"][0]["resources"]["limits"]["cpu"] for q in load(p)["pods"] if q["metadata"]["labels"]["app"] == name}
+    tmpl = next(d for d in load(p)["deployments"] if d["metadata"]["name"] == name)["spec"]["template"]["spec"]["containers"][0]["resources"]["limits"]["cpu"]
+    assert tmpl == "500m", "the deployment template must not change (no rollout)"
+    assert len(lims) == 1, lims
+    return lims.pop()
 
 
 def args(tmp, **kw):
