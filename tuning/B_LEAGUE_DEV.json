@@ -1,0 +1,399 @@
+{
+ "web": {
+  "setting": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false
+  },
+  "losing_cells": 0,
+  "losses": [],
+  "gains_pct": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "openshift": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "gke_optimize": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "aks_nap": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "turbonomic": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "violation_backlog": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "cast_ai": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "spot_ocean": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   }
+  }
+ },
+ "multi": {
+  "setting": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false
+  },
+  "losing_cells": 0,
+  "losses": [],
+  "gains_pct": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "openshift": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "gke_optimize": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "aks_nap": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "turbonomic": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "violation_backlog": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "cast_ai": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "spot_ocean": {
+    "energy_kwh": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "start_stop": 0.0,
+    "node_reversals": 0.0,
+    "node_hours": 0.0,
+    "pod_changes": 0.0,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   }
+  }
+ },
+ "batch": {
+  "setting": {
+   "lag": 16,
+   "rise": 0.02,
+   "lead": 6,
+   "early": true,
+   "veto": true
+  },
+  "losing_cells": 0,
+  "losses": [],
+  "gains_pct": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": 0.3057497280164841,
+    "p95_ms": 0.0,
+    "p99_ms": 60.62771144330501,
+    "mean_ms": 13.458848545851318,
+    "start_stop": 15.151515151515152,
+    "node_reversals": 78.57142857142857,
+    "node_hours": 0.721289744039608,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "openshift": {
+    "energy_kwh": 0.6912885031981428,
+    "p95_ms": 0.0,
+    "p99_ms": 69.46135784887709,
+    "mean_ms": 16.566029148280464,
+    "start_stop": 21.428571428571434,
+    "node_reversals": 90.0,
+    "node_hours": 1.6186635057957959,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "gke_optimize": {
+    "energy_kwh": 0.19321526887248922,
+    "p95_ms": 0.0,
+    "p99_ms": 58.19007150322134,
+    "mean_ms": 22.56455747849333,
+    "start_stop": 27.070063694267514,
+    "node_reversals": 22.85714285714285,
+    "node_hours": 0.4715889364656668,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "aks_nap": {
+    "energy_kwh": -0.11394021505526278,
+    "p95_ms": 83.122868878048,
+    "p99_ms": 40.901074663626225,
+    "mean_ms": 33.654590927779196,
+    "start_stop": 20.754716981132088,
+    "node_reversals": 14.62450592885375,
+    "node_hours": -0.29803565303643864,
+    "work_completed": 2.2204460492503137e-14,
+    "time_healthy": 0.02083912197833057
+   },
+   "turbonomic": {
+    "energy_kwh": 0.2914183467770806,
+    "p95_ms": 0.0,
+    "p99_ms": 49.9045421835298,
+    "mean_ms": 22.873772613343625,
+    "start_stop": 21.89973614775725,
+    "node_reversals": 29.090909090909093,
+    "node_hours": 0.7148335250671106,
+    "work_completed": 0.0,
+    "time_healthy": 0.0069449267310240734
+   },
+   "cast_ai": {
+    "energy_kwh": 0.1860708642353572,
+    "p95_ms": 30.186309431248027,
+    "p99_ms": 20.30852039971964,
+    "mean_ms": 22.94916628291953,
+    "start_stop": 12.243702401874621,
+    "node_reversals": -4.807692307692308,
+    "node_hours": 0.48335833724733124,
+    "work_completed": 0.0007976179997533998,
+    "time_healthy": 0.013890818169203442
+   },
+   "spot_ocean": {
+    "energy_kwh": -0.17435214923065004,
+    "p95_ms": 19.258339712292372,
+    "p99_ms": 22.329046869905447,
+    "mean_ms": 9.483978088558551,
+    "start_stop": 11.760752688172042,
+    "node_reversals": 15.432873274780423,
+    "node_hours": -0.4574800319302369,
+    "work_completed": 0.00034254882304951946,
+    "time_healthy": 0.0
+   }
+  }
+ },
+ "gpu": {
+  "setting": {
+   "lag": 16,
+   "rise": 0.0,
+   "lead": 3,
+   "early": true,
+   "veto": false
+  },
+  "losing_cells": 0,
+  "losses": [],
+  "gains_pct": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": 0.016832746484085163,
+    "p95_ms": -0.07054756669685217,
+    "p99_ms": 0.007888606564418523,
+    "mean_ms": -0.004805549789852981,
+    "violation_backlog": 0.05812826971516509,
+    "violation_power": 2.1307758969215318e-14,
+    "violation_heat": -0.05887547836327091,
+    "start_stop": 4.761904761904765,
+    "node_reversals": 7.407407407407414,
+    "node_hours": 0.07650371146381738,
+    "work_completed": 0.0,
+    "time_healthy": 0.06336131791539722
+   },
+   "openshift": {
+    "energy_kwh": 0.14026221004749384,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": -0.00036326811975490514,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.02935133548576919,
+    "start_stop": 2.0618556701030855,
+    "node_reversals": 6.250000000000005,
+    "node_hours": 0.6278426946548944,
+    "work_completed": 0.0,
+    "time_healthy": 0.015487068297973614
+   },
+   "gke_optimize": {
+    "energy_kwh": -0.005196878151077659,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": -0.5479452054794599,
+    "node_reversals": -3.0769230769230793,
+    "node_hours": -0.02430741733691023,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "aks_nap": {
+    "energy_kwh": -0.0009305861378434572,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": -0.35650623885917243,
+    "node_reversals": -1.6528925619834798,
+    "node_hours": -0.0046015445851282245,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "turbonomic": {
+    "energy_kwh": -0.01198604216492392,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.004558557161768764,
+    "violation_backlog": 0.019238168526343923,
+    "violation_power": -0.07894736842104394,
+    "violation_heat": -0.05886681383371046,
+    "start_stop": 3.0487804878048674,
+    "node_reversals": 3.5087719298245648,
+    "node_hours": -0.05718768558504786,
+    "work_completed": 0.0,
+    "time_healthy": -0.047785919082505096
+   },
+   "cast_ai": {
+    "energy_kwh": -0.0024784249978670346,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": -0.31055900621116245,
+    "node_reversals": -1.3793103448275814,
+    "node_hours": -0.012182029983010215,
+    "work_completed": 0.0,
+    "time_healthy": 0.0
+   },
+   "spot_ocean": {
+    "energy_kwh": -0.01118359251435015,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "mean_ms": 0.0,
+    "violation_backlog": 0.0,
+    "violation_power": -0.10992030777687897,
+    "violation_heat": 0.0,
+    "start_stop": -0.3164556962025249,
+    "node_reversals": -1.5267175572519165,
+    "node_hours": -0.055624227441300834,
+    "work_completed": 0.0,
+    "time_healthy": -0.015243902439026773
+   }
+  }
+ }
+}

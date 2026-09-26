@@ -1,0 +1,30 @@
+{
+ "web": {
+  "lag": 4,
+  "rise": 0.0,
+  "lead": 3,
+  "early": false,
+  "veto": false
+ },
+ "multi": {
+  "lag": 4,
+  "rise": 0.0,
+  "lead": 3,
+  "early": false,
+  "veto": false
+ },
+ "batch": {
+  "lag": 16,
+  "rise": 0.02,
+  "lead": 6,
+  "early": true,
+  "veto": true
+ },
+ "gpu": {
+  "lag": 16,
+  "rise": 0.0,
+  "lead": 3,
+  "early": true,
+  "veto": false
+ }
+}
