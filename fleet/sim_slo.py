@@ -37,6 +37,7 @@ from omnicompass.shield import enforce, ShieldLimits
 from omnicompass.speed import SpeedGovernor, SpeedLaw
 
 S0_MS = 100.0
+REC = None   # when a list, run() appends each tick's per-cluster pod requests (analysis only)
 
 
 # Vendor opponents: emulations of documented behaviour (not the vendors' binaries). Declared parameters:
@@ -230,6 +231,8 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             node_ticks += p.nodes + len(p.booting)
             c.q = min(2.0, sum(w.backlog for w in c.workloads) / max(cap_rate * 8.0, 1e-9))
             stress_q.append(c.q)
+        if REC is not None:
+            REC.append([c.reqs for c in scn.clusters])
         pstress = site_power / scn.site_limit_kw
         for c in scn.clusters:
             c.pool.thermal = 0.97 * c.pool.thermal + 0.03 * (0.30 + 0.65 * min(1.4, pstress))
