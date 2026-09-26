@@ -151,6 +151,7 @@ class BLaw:
              that would be reversed within the boot delay costs a stop, a start, a boot and pending pods
       early  one node is added ahead when the requests projected `lead` ticks ahead exceed allocatable capacity and no
              node is booting: the node the platform would add after pods go pending, added before they do
+      flip   a removal within flip_guard ticks of the platform's own last addition is undone (flip-flop damping)
     Pods, HPA targets and everything else stay the platform's."""
     lag: int = 8
     rise: float = 0.02
@@ -159,20 +160,28 @@ class BLaw:
     lead: int = 6
     early: bool = True
     veto: bool = True
+    flip_guard: int = 0         # veto a removal within this many ticks of the platform's last addition (0 = off)
+    confirm: int = 1            # early add only after the rise has been seen this many consecutive ticks
 
 
 def _omni_on_top(c, before, g, L):
     import math as _m
     p = c.pool
     h = getattr(c, "_rh", []); h.append(c.reqs); c._rh = h[-64:]
+    c._tick = getattr(c, "_tick", 0) + 1
     trend = (h[-1] - h[-1 - L.lag]) / max(h[-1 - L.lag], 1e-9) if len(h) > L.lag else 0.0
     veto = early = 0
     n0, parked0, boot0 = before
-    removed = (n0 + len(boot0)) - (p.nodes + len(p.booting))
-    if L.veto and removed > 0 and (trend > L.rise or g.last_push > L.push_hold or g.x.I_U > L.need_hold):
+    delta = (p.nodes + len(p.booting)) - (n0 + len(boot0))
+    if delta > 0:
+        c._last_add = c._tick
+    removed = -delta
+    recent = L.flip_guard > 0 and c._tick - getattr(c, "_last_add", -10 ** 9) <= L.flip_guard
+    if removed > 0 and ((L.veto and (trend > L.rise or g.last_push > L.push_hold or g.x.I_U > L.need_hold)) or recent):
         p.nodes, p.parked, p.booting = n0, parked0, list(boot0)
         veto = 1
-    if L.early and not p.booting and len(h) > L.lag:
+    c._rise = getattr(c, "_rise", 0) + 1 if len(h) > L.lag and h[-1] > h[-1 - L.lag] else 0
+    if L.early and not p.booting and len(h) > L.lag and c._rise >= L.confirm:
         slope = (h[-1] - h[-1 - L.lag]) / L.lag
         if slope > 0 and h[-1] + slope * L.lead > p.nodes * p.cores * ALLOC and p.nodes + p.parked < p.max_nodes:
             if p.parked:
