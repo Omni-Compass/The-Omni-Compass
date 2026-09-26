@@ -15,7 +15,7 @@ the muscle back, and tags every write with its muscle name in the audit log.
               scripts/latency_probe.py); pressure max(0, p95 / --slo-ms - 1) enters the engine as queue pressure
   cpu_pstate  hardware connector. pull: --rapl-cmd prints package watts (e.g. from /sys/class/powercap/intel-rapl);
               push: --cpufreq-cmd with {khz}, the frequency ceiling = max frequency x power cap (e.g. writing
-              scaling_max_freq, or `cpupower frequency-set -u {khz}kHz`); kill runs it with the maximum frequency
+              scaling_max_freq with scripts/cpufreq_ceiling.sh {khz}, see hardware/SCHEDUTIL.md, or `cpupower frequency-set -u {khz}kHz`); kill runs it with the maximum frequency
   gpu         hardware connector. pull: --gpu-query-cmd prints "watts,celsius" (e.g. `nvidia-smi
               --query-gpu=power.draw,temperature.gpu --format=csv,noheader,nounits`); GPU temperature / --gpu-temp-limit
               feeds the heat sense; push: --gpu-power-cmd with {w}, the power limit = max limit x power cap
