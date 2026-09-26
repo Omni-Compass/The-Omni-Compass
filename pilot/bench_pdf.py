@@ -24,8 +24,10 @@ def table(rows, width):
     ss = getSampleStyleSheet(); cell = ss["BodyText"].clone("cell", fontSize=7.5, leading=9)
     head = ss["BodyText"].clone("head", fontSize=7.5, leading=9, textColor=colors.white, fontName="Helvetica-Bold")
     data = [[Paragraph(inline(c), head if i == 0 else cell) for c in r] for i, r in enumerate(rows)]
-    n = len(rows[0]); first = min(0.34, 2.2 / n) if n > 3 else 0.4
-    widths = [width * first] + [width * (1 - first) / (n - 1)] * (n - 1)
+    n = len(rows[0])
+    need = [max(6, min(34, max(len(r[j]) if j < len(r) else 0 for r in rows[1:] or rows))) for j in range(n)]
+    need = [max(x, min(12, len(rows[0][j]) // 2)) for j, x in enumerate(need)]
+    widths = [width * x / sum(need) for x in need]
     t = Table(data, colWidths=widths, repeatRows=1)
     style = [("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f3a5f")), ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#b8c2cc")),
              ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("TOPPADDING", (0, 0), (-1, -1), 2), ("BOTTOMPADDING", (0, 0), (-1, -1), 2)]
