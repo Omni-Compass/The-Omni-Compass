@@ -72,7 +72,10 @@ def key(L, g):
     return (len(L), -(sum(max(0.0, x) for x in g.values()) - 3 * sum(max(0.0, -x) for x in g.values())))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--heldout" in sys.argv:
+    # resume: the settings were already frozen by SHA-256 before any held-out run
+    pre = json.load(open(ROOT / "tuning/SITE_LEAGUE_PREREGISTRATION.json")); pickB, pickC = pre["B"], pre["C"]
+elif __name__ == "__main__":
     with Pool(4) as p:
         r = p.map(_job, [(s, None, None) for s in DEV], chunksize=1)
     res = {s: (A, Bv, Cv) for s, A, Bv, Cv in r}
@@ -86,6 +89,7 @@ if __name__ == "__main__":
     pre = {"B": pickB, "C": pickC, "heldout_seeds": HELD}
     pre["sha256"] = hashlib.sha256(json.dumps(pre, sort_keys=True).encode()).hexdigest()
     (ROOT / "tuning/SITE_LEAGUE_PREREGISTRATION.json").write_text(json.dumps(pre, indent=1))
+if __name__ == "__main__":
     with Pool(4) as p:
         r = p.map(_job, [(s, pickB, pickC) for s in HELD], chunksize=1)
     res = {s: (A, Bv, Cv) for s, A, Bv, Cv in r}

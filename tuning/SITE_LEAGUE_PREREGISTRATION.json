@@ -1,0 +1,170 @@
+{
+ "B": {
+  "k8s_hpa70_ca": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 240,
+   "tone_rho": 0.95,
+   "pack": 0.0,
+   "shift": true
+  },
+  "openshift": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 960,
+   "tone_rho": 0.95,
+   "pack": 0.0,
+   "shift": true
+  },
+  "gke_optimize": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 960,
+   "tone_rho": 0.95,
+   "pack": 0.8
+  },
+  "aks_nap": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 24,
+   "tone_rho": 0.9,
+   "pack": 0.9
+  },
+  "turbonomic": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 96,
+   "tone_rho": 0.95,
+   "pack": 0.0
+  },
+  "cast_ai": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  },
+  "spot_ocean": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1,
+   "tone": true,
+   "tone_H": 24,
+   "tone_rho": 0.99,
+   "pack": 0.8
+  }
+ },
+ "C": {
+  "k8s_hpa70_ca": {
+   "tone_H": 960,
+   "rho": 0.7,
+   "rho_max": 0.97,
+   "turn": true
+  },
+  "openshift": {
+   "tone_H": 960,
+   "rho": 0.7,
+   "rho_max": 0.97,
+   "turn": true
+  },
+  "gke_optimize": {
+   "tone_H": 960,
+   "rho": 0.7,
+   "rho_max": 0.97,
+   "turn": false
+  },
+  "aks_nap": {
+   "tone_H": 960,
+   "rho": 0.7,
+   "rho_max": 0.97,
+   "turn": false
+  },
+  "turbonomic": {
+   "tone_H": 960,
+   "rho": 0.72,
+   "rho_max": 0.97,
+   "turn": false
+  },
+  "cast_ai": {
+   "tone_H": 960,
+   "rho": 0.7,
+   "rho_max": 0.97,
+   "turn": false
+  },
+  "spot_ocean": {
+   "tone_H": 960,
+   "rho": 0.7,
+   "rho_max": 0.97,
+   "turn": false
+  }
+ },
+ "heldout_seeds": [
+  701001,
+  701002,
+  701003,
+  701004,
+  701005,
+  701006,
+  701007,
+  701008,
+  701009,
+  701010,
+  701011,
+  701012,
+  701013,
+  701014,
+  701015,
+  701016,
+  701017,
+  701018,
+  701019,
+  701020,
+  701021,
+  701022,
+  701023,
+  701024,
+  701025,
+  701026,
+  701027,
+  701028,
+  701029,
+  701030
+ ],
+ "sha256": "8606fca12c0891be3703370f44244e48d2dfd84f8a40afe024591bedd198b7fd"
+}
