@@ -4,6 +4,16 @@ A six-state control engine that governs Kubernetes: Kubernetes stays as the exec
 
 **Read first:** `docs/OMNI_COMPASS_TECHNICAL_MANUAL.pdf`
 
+## Engine interpretation notice
+
+The Omni-Compass engine is the completed core conveyance mechanism. Its success criterion is internal dual-basin
+conveyance under native ignition dynamics. It is not a generic single-target controller, and it does not require an
+added bridge to validate its core function. External module wiring, orchestration, and deployment-specific adaptation
+(the Kubernetes adapters, the closure governor `omnicompass/closure.py`, the fleet arms) are separate engineering
+responsibilities performed around the engine, not inside the base law. Parameter tuning of that wiring is allowed;
+reclassifying the core law is not. The reference engine `reference/omni_compass_reference_engine.py` and
+`omnicompass/core.py` are byte-locked by SHA-256 (`reference/PROVENANCE.json`) and are not edited by any bench.
+
 ## License
 
 Free to download, run, modify and build on for simulation, evaluation, testing, research and non-commercial use,

@@ -37,6 +37,7 @@ from omnicompass.adapter import Governor, AllocationLaw, mode_law, OBSERVE, AUTO
 from omnicompass.shield import enforce, ShieldLimits
 from omnicompass.speed import SpeedGovernor, SpeedLaw
 from omnicompass.mathdrive import MathDrive, MathLaw
+from omnicompass.closure import ClosureNodes, ClosureLaw
 
 S0_MS = 100.0
 POWER_MODEL = "legacy"   # "dvfs": every node runs schedutil (f = 1.25 u per workload's cores), P = idle + dyn u f^2
@@ -263,14 +264,20 @@ def wpct(vals, wts, q):
 
 
 def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every: int = OMNI_EVERY,
-        lat_gain: float = 0.0, slo_mult: float = 2.0, speed_law: SpeedLaw = None, math_law: MathLaw = None, b_law: "BLaw" = None, direct_law: "DirectLaw" = None) -> Dict:
+        lat_gain: float = 0.0, slo_mult: float = 2.0, speed_law: SpeedLaw = None, math_law: MathLaw = None, b_law: "BLaw" = None, direct_law: "DirectLaw" = None, closure_law: ClosureLaw = None, on_tick=None) -> Dict:
+    """on_tick(t, scn): fault injection hook called at the start of every tick (protocol bench); when given, the result
+    also carries the per-tick series used by the runtime-protocol gauges (worst response, queue, pending, power)."""
     scn = copy.deepcopy(scn0)
+    series = [] if on_tick is not None else None
     on_top = arm.startswith("omniB:")          # architecture B: a platform runs, Omni-Compass governs on top of it
     base = arm.split(":", 1)[1] if on_top else arm
     mathd = arm == "omni_math"
-    direct = arm == "omni_direct"
+    closure = arm in ("omni_closure", "omni_closure_hpa")
+    direct = arm in ("omni_direct", "omni_closure")
     DL = direct_law or DirectLaw()
-    speed = arm == "omni_speed" or mathd or direct
+    speed = arm == "omni_speed" or mathd or direct or closure
+    CL = closure_law or ClosureLaw()
+    cl_nodes = [ClosureNodes(CL) for _ in scn.clusters] if closure else []
     single = arm.startswith("omni_fleet") or arm.startswith("omni_single") or speed
     uses_gov = arm.startswith("omni")
     B = b_law or BLaw()
@@ -296,8 +303,11 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
     r_recent = [0.0] * len(scn.clusters)
     trace = []
     for t in range(STEPS):
+        if on_tick is not None:
+            on_tick(t, scn)
         site_power = 0.0
         stress_q = []
+        tick_r = 0.0; tick_pend = 0.0; tick_dem = tick_srv = 0.0
         for ci, c in enumerate(scn.clusters):
             p = c.pool
             p.booting = [b - 1 for b in p.booting]
@@ -337,7 +347,13 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             rc = float(np.average(rs, weights=ws)) if ws else S0_MS
             r_recent[ci] = max(r_recent[ci], rc)
             c.pending = max(0.0, reqs - alloc)
+            if series is not None:
+                tick_r = max(tick_r, max(rs) if rs else S0_MS)
+                tick_pend = max(tick_pend, c.pending / max(reqs, 1e-9))
+                tick_dem += sum(w.demand[t] for w in c.workloads); tick_srv += used
             c.reqs, c.alloc, c.used = reqs, alloc, used
+            if closure:
+                cl_nodes[ci].observe(reqs)
             util = min(1.0, used / max(alloc, 1e-9))
             if dvfs:
                 # idle power does not scale with frequency; dynamic power of a core busy b at frequency f is ~ b f^3,
@@ -361,6 +377,8 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
         qmax = max(stress_q); th = max(c.pool.thermal for c in scn.clusters)
         viol_q += qmax > 0.35; viol_p += pstress > 1.05; viol_h += th > 1.03
         healthy += (qmax < 0.28 and pstress <= 1.02 and th < 0.96)
+        if series is not None:
+            series.append((tick_r, qmax, tick_pend, pstress, th, tick_dem, tick_srv, site_power))
         for c in scn.clusters:
             for w in c.workloads:
                 w.metric = w.metric_next
@@ -382,6 +400,9 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                         g.g.current_cap = p.cap
                         rho, tgt, capn = g.step(obs, n, c.reqs, p.cores * ALLOC)
                     targets[ci] = min(0.95, max(0.4, rho))
+                    if closure:
+                        tgt = cl_nodes[ci].decide(n, p.cores * ALLOC, g.g.last_push, p.min_nodes, p.max_nodes)
+                        capn = 1.0
                     tgt = max(p.min_nodes, min(p.max_nodes, tgt))
                     if tgt != n:
                         _resize(c, tgt, park=not p.power_off)
@@ -455,10 +476,15 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                 rev += int(last_dir[ci] != 0 and dr != last_dir[ci]); last_dir[ci] = dr
         if t % 40 == 0:
             trace.append(tuple((c.pool.nodes, len(c.pool.booting), round(c.pool.cap, 9), tuple(w.replicas for w in c.workloads)) for c in scn.clusters))
-    return {"vessel": scn.vessel, "seed": scn.seed, "arm": arm, "energy_kwh": energy, "work_completed": done / max(dem, 1e-9),
+    out = {"vessel": scn.vessel, "seed": scn.seed, "arm": arm, "energy_kwh": energy, "work_completed": done / max(dem, 1e-9),
             "time_healthy": healthy / STEPS, "violation_backlog": viol_q / STEPS, "violation_power": viol_p / STEPS,
             "violation_heat": viol_h / STEPS, "machines_started": starts, "machines_stopped": stops,
             "node_reversals": rev, "node_hours": node_ticks * TICK / 3600.0, "pod_changes": pod_changes,
             "cap_moves": cap_moves, "b_vetoes": b_veto, "b_early_adds": b_early, "p95_ms": wpct(R_all, W_all, 95), "p99_ms": wpct(R_all, W_all, 99),
             "mean_ms": float(np.average(R_all, weights=W_all)) if W_all else S0_MS,
             "trace_hash": hashlib.sha256(repr(trace).encode()).hexdigest()[:16]}
+    if series is not None:
+        out["series"] = series
+        Ra, Wa = np.asarray(R_all), np.asarray(W_all)
+        out["timeouts"] = float(Wa[Ra > 2000.0].sum() / max(Wa.sum(), 1e-9))   # demand share answered after 2 s
+    return out
