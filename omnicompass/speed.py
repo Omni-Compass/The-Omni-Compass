@@ -12,6 +12,8 @@ running pods hotter, which is where response time was lost. This law separates t
             added at once when n < n_up (a pending pod costs response time);
             removed one per decision only when n >= n_keep + band for dwell decisions, no sooner than after_add
             decisions after an addition, and only while the engine's equation (2) push <= push_release
+  ahead     while requests are rising, n_up += ceil(antic * trend * n), trend = relative rise over antic_lag
+            decisions (anticipation: machines boot before the pods that need them are created; antic = 0 disables)
   power     cap = 1 whenever work is waiting or pods are busy above cap_busy; otherwise cap_idle
             (a cap slows service: S = S0 / cap, so capping a busy machine always costs response time)
 
@@ -41,6 +43,8 @@ class SpeedLaw:
     push_release: float = 0.05
     cap_idle: float = 1.0
     cap_busy: float = 0.30
+    antic: float = 0.0          # anticipation: extra machines = ceil(antic x rising request trend x n)
+    antic_lag: int = 4          # decisions over which the trend is measured
 
 
 class SpeedGovernor:
@@ -52,6 +56,7 @@ class SpeedGovernor:
         self.streak = 0
         self.since_add = 99
         self.hist = []
+        self.rhist = []
 
     def step(self, obs, n, requests, cores_per_node):
         """Returns (hpa_target, node_target, power_cap)."""
@@ -61,6 +66,11 @@ class SpeedGovernor:
         q = obs["queue_ratio"]
         self.hist = (self.hist + [requests])[-max(1, L.window):]
         n_up = math.ceil(requests / cores_per_node * (1.0 + L.headroom_up) - 1e-9) + math.ceil(L.kq * q * n)
+        self.rhist = (self.rhist + [requests])[-64:]
+        if L.antic > 0 and len(self.rhist) > L.antic_lag:
+            past = self.rhist[-1 - L.antic_lag]
+            trend = max(0.0, requests - past) / max(past, 1e-9)
+            n_up += math.ceil(L.antic * trend * n - 1e-9)
         n_keep = math.ceil(max(self.hist) / cores_per_node * (1.0 + L.headroom) - 1e-9)
         tgt = n
         if n < n_up:

@@ -50,8 +50,52 @@ S0_MS = 100.0
 #   turbonomic     IBM Turbonomic: container requests resized every 10 min to the p99 of per-pod usage (its default
 #                  aggressiveness) over the run so far, one step of at most 50%; nodes suspended/provisioned toward
 #                  a 0.7 packing target (Karpenter-style), HPA 0.7 left in place
+#   cast_ai        CAST AI Evictor: every 60 s, a node active for more than 5 minutes is drained and deleted when its
+#                  pods fit on the remaining capacity (bin-packing); pending pods add nodes at once
+#   spot_ocean     Spot Ocean (NetApp/Flexera): automatic headroom of 5% of requested resources kept as spare
+#                  capacity; every minute the least-utilised node is scaled down when its pods fit elsewhere with the
+#                  headroom kept
 CA_PROFILES = {"openshift": (0.4, 20, 40), "gke_optimize": (0.65, 8, 40)}
-VENDOR_ARMS = ["openshift", "gke_balanced", "gke_optimize", "aks_nap", "turbonomic"]
+VENDOR_ARMS = ["openshift", "gke_balanced", "gke_optimize", "aks_nap", "turbonomic", "cast_ai", "spot_ocean"]
+
+
+def _add_for_pending(c, extra=0.0):
+    import math as _m
+    p = c.pool
+    need_cores = c.pending + extra
+    if need_cores > 0:
+        need = max(0, int(_m.ceil(need_cores / (p.cores * ALLOC))) - len(p.booting))
+        wake = min(need, p.parked); p.parked -= wake; p.nodes += wake; need -= wake
+        add = min(need, p.max_nodes - p.nodes - len(p.booting) - p.parked)
+        if add > 0:
+            p.booting += [6] * add
+            c.last_add = 0
+        return True
+    return False
+
+
+def _cast_ai(c, t):
+    p = c.pool
+    c.last_add = getattr(c, "last_add", 99) + 1
+    if _add_for_pending(c):
+        return
+    if t % 4 == 0 and c.last_add >= 20 and p.nodes > p.min_nodes and not p.booting and c.reqs <= (p.nodes - 1) * p.cores * ALLOC:
+        p.nodes -= 1
+        if not p.power_off:
+            p.parked += 1
+
+
+def _spot_ocean(c, t):
+    p = c.pool
+    c.last_add = getattr(c, "last_add", 99) + 1
+    spare = p.nodes * p.cores * ALLOC - c.reqs + len(p.booting) * p.cores * ALLOC
+    short = max(0.0, 0.05 * c.reqs - spare) if c.pending <= 0 else 0.0
+    if _add_for_pending(c, short):
+        return
+    if t % 4 == 0 and p.nodes > p.min_nodes and not p.booting and 1.05 * c.reqs <= (p.nodes - 1) * p.cores * ALLOC:
+        p.nodes -= 1
+        if not p.power_off:
+            p.parked += 1
 
 
 def _ca_profile(c, thr, unneeded, after_add):
@@ -253,6 +297,10 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                     _karpenter(c, t)
                 elif arm in CA_PROFILES:
                     _ca_profile(c, *CA_PROFILES[arm])
+                elif arm == "cast_ai":
+                    _cast_ai(c, t)
+                elif arm == "spot_ocean":
+                    _spot_ocean(c, t)
                 elif arm == "turbonomic":
                     _turbo_nodes(c, t)
                     if t % 40 == 39:
