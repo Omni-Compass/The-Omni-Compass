@@ -18,14 +18,14 @@ from tuning.league import COMPETITORS, VESSELS, LOWER, HIGHER, losses
 SL = dict(rho0=0.7, rho_min=0.7, kI=0.0, kE=0.0)
 SEEDS = list(range(700201, 700231))
 SRC = next(p for p in ("tuning/CLOSURE_FINAL_DEV.json", "tuning/CLOSURE_SEARCH2_DEV.json", "tuning/CLOSURE_SEARCH_DEV.json") if (ROOT / p).exists())
-SET = {v: {"closure": d["closure"], "direct": d["direct"]} for v, d in json.load(open(ROOT / SRC)).items()}
+SET = {v: {"closure": d["closure"], "direct": d["direct"], "speed": d.get("speed", SL)} for v, d in json.load(open(ROOT / SRC)).items()}
 
 
 def job(a):
     v, s = a
     sc = make_scenario(v, s)
     row = {c: gauges(sim_slo.run(sc, c)) for c in COMPETITORS}
-    row["omni"] = gauges(sim_slo.run(sc, "omni_closure", speed_law=SpeedLaw(**SL), omni_every=1,
+    row["omni"] = gauges(sim_slo.run(sc, "omni_closure", speed_law=SpeedLaw(**SET[v]["speed"]), omni_every=1,
                                      direct_law=DirectLaw(**SET[v]["direct"]), closure_law=ClosureLaw(**SET[v]["closure"])))
     return (v, s), row
 

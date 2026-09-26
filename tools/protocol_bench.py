@@ -103,7 +103,7 @@ def arms(vessel):
         a.append(("C", "C-hpa", "omni_speed", dict(speed_law=SpeedLaw(**cfg["law"]), omni_every=cfg["every"],
                                                      lat_gain=cfg["lat_gain"], slo_mult=cfg["slo_mult"])))
     cl = CLOSURE.get(vessel, {})
-    a.append(("C", "C-strict", "omni_closure", dict(speed_law=SpeedLaw(**SL), omni_every=1,
+    a.append(("C", "C-strict", "omni_closure", dict(speed_law=SpeedLaw(**cl.get("speed", SL)), omni_every=1,
                                                    direct_law=DirectLaw(**cl.get("direct", {})),
                                                    closure_law=ClosureLaw(**cl.get("closure", {})))))
     return a
