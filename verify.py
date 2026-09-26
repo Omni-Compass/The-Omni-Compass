@@ -219,6 +219,8 @@ def main():
     test_muscles.main(); check("live muscles: power cap, heat, security, rollout, batch, CPU frequency and GPU connectors; kill restores; observe writes nothing", True)
     from tests import test_active_nodes
     test_active_nodes.main(); check("full-engine controller options: parked and control-plane nodes excluded, kill switch restores the node pool once", True)
+    from tests import test_failsafe
+    test_failsafe.main(); check("controller fail-safe: a failed decision is skipped; three in a row restore native settings and stop", True)
     from tests import test_fleet_realdata_paths
     test_fleet_realdata_paths.main(); check("capture replay and PlanetLab vessel on inputs in the real formats", True)
     r = subprocess.run(["bash", "-n", str(ROOT / "fleet" / "capture" / "kube_capture.sh")], capture_output=True)

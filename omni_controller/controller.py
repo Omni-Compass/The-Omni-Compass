@@ -234,6 +234,7 @@ def parser():
     ap.add_argument("--max-nodes", type=int, default=1000)
     ap.add_argument("--max-node-step", type=int, default=2)
     ap.add_argument("--min-target-change", type=int, default=3)
+    ap.add_argument("--max-failures", type=int, default=3, help="consecutive failed decisions before the fail-safe restore")
     ap.add_argument("--headroom", type=float, default=0.5, help="spare capacity kept above pod requests (0.5 = 50%%, the default)")
     ap.add_argument("--active-nodes-only", action="store_true",
                     help="count only schedulable nodes (not cordoned, not tainted NoSchedule) and the pods and usage on them")
@@ -244,18 +245,41 @@ def parser():
     return ap
 
 
+def safe_step(c, fails):
+    """One decision. A failed decision is recorded and skipped; after --max-failures in a row the controller hands the
+    cluster back to native (kill-switch restore) and stops, so a dead controller never leaves its settings in place."""
+    try:
+        c.step()
+        return 0
+    except Exception as e:
+        fails += 1
+        err = getattr(e, "stderr", "") or ""
+        c.audit({"error": repr(e)[:500], "stderr": str(err)[-500:], "consecutive_failures": fails})
+        print(f"decision failed ({fails} in a row): {e!r} {err}", file=sys.stderr, flush=True)
+        if fails >= c.a.max_failures:
+            c.audit({"failsafe": "restoring native settings after repeated failures"})
+            try:
+                c.restore()
+            finally:
+                raise SystemExit(2)
+        return fails
+
+
 def main(argv=None):
     a = parser().parse_args(argv)
-    c = Controller(a); i = 0
+    c = Controller(a); i = 0; fails = 0
     while a.iterations == 0 or i < a.iterations:
-        c.step(); i += 1
+        fails = safe_step(c, fails); i += 1
         if a.iterations == 0 or i < a.iterations:
             waited = 0.0
             while waited + 1e-9 < a.interval:
                 dt = min(a.floor_interval, a.interval - waited) if a.mode == "nodepool" else a.interval - waited
                 time.sleep(dt); waited += dt
                 if a.mode == "nodepool" and waited + 1e-9 < a.interval:
-                    c.floor_step()
+                    try:
+                        c.floor_step()
+                    except Exception as e:
+                        c.audit({"error": "floor check: " + repr(e)[:500], "stderr": str(getattr(e, "stderr", "") or "")[-500:]})
 
 
 if __name__ == "__main__":

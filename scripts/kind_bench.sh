@@ -142,3 +142,12 @@ if [ "$ARM" = "omni" ]; then
 fi
 echo "rows captured: $(( $(wc -l < "$OUT_DIR/capture.csv") - 1 ))"
 ( cd "$OUT_DIR" && sha256sum $(ls -1 | grep -v '^SHA256SUMS.txt$') > SHA256SUMS.txt )
+if [ "$ARM" = "omni" ]; then
+  # Evidence discipline: the run counts only if the engine decided for the whole run.
+  decisions=$(grep -c '"decision"' "$OUT_DIR/audit.jsonl" || true); expected=$(( DURATION / 60 ))
+  errors=$(grep -c '"error"' "$OUT_DIR/audit.jsonl" || true)
+  echo "== controller: decisions $decisions of $expected, failed decisions or checks $errors"
+  echo "-- controller.log (last 40 lines)"; tail -n 40 "$OUT_DIR/controller.log" || true
+  echo "-- audit errors (last 10)"; grep '"error"\|"failsafe"' "$OUT_DIR/audit.jsonl" | tail -n 10 || true
+  [ $(( decisions * 10 )) -ge $(( expected * 8 )) ] || { echo "INVALID RUN: the controller stopped early"; exit 1; }
+fi
