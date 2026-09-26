@@ -39,6 +39,8 @@ from omnicompass.speed import SpeedGovernor, SpeedLaw
 from omnicompass.mathdrive import MathDrive, MathLaw
 
 S0_MS = 100.0
+POWER_MODEL = "legacy"   # "dvfs": every node runs schedutil (f = 1.25 u per workload's cores), P = idle + dyn u f^2
+F_MIN = 0.4
 REC = None   # when a list, run() appends each tick's per-cluster pod requests (analysis only)
 
 
@@ -186,6 +188,10 @@ class BLaw:
     lead: int = 6
     early: bool = True
     veto: bool = True
+    pack: float = 0.0           # consolidate: remove a node when the rest hold every request at this packing (0 = off)
+    pack_calm: int = 8          # ... only after requests have not risen for this many ticks
+    f_rho: float = 0.0          # dvfs: Omni-Compass frequency ceiling (scaling_max_freq) = u / f_rho when calm; 0 = off
+    f_rho_min: float = 0.8      # the engine lowers f_rho toward this as need (I_U) and energy stress (E) rise
     flip_guard: int = 0         # veto a removal within this many ticks of the platform's last addition (0 = off)
     confirm: int = 1            # early add only after the rise has been seen this many consecutive ticks
 
@@ -206,6 +212,20 @@ def _omni_on_top(c, before, g, L):
     if removed > 0 and ((L.veto and (trend > L.rise or g.last_push > L.push_hold or g.x.I_U > L.need_hold)) or recent):
         p.nodes, p.parked, p.booting = n0, parked0, list(boot0)
         veto = 1
+    if L.pack > 0 and not p.booting and p.nodes > p.min_nodes and getattr(c, "_calm", 0) >= L.pack_calm \
+            and c.reqs <= L.pack * (p.nodes - 1) * p.cores * ALLOC and g.last_push <= 0.05:
+        p.nodes -= 1
+        if not p.power_off:
+            p.parked += 1
+        c._calm = 0
+    c._calm = getattr(c, "_calm", 0) + 1 if not (len(h) > 1 and h[-1] > h[-2] * 1.001) else 0
+    if L.f_rho > 0:
+        # frequency ceiling from the engine: run the cores hotter (fewer, slower cycles) while the engine is calm;
+        # rho_f falls toward f_rho_min as unmet need I_U and energy stress E rise; any backlog releases it
+        rho_f = max(L.f_rho_min, L.f_rho - max(0.0, g.x.I_U) - max(0.0, g.x.E))
+        busy = max((w.req_now and (w.metric if w.hpa else 1.0)) for w in c.workloads) if c.workloads else 1.0
+        backlog = sum(w.backlog for w in c.workloads)
+        c.f_ceiling = 1.0 if backlog > 1e-9 else max(F_MIN, min(1.0, busy / rho_f))
     c._rise = getattr(c, "_rise", 0) + 1 if len(h) > L.lag and h[-1] > h[-1 - L.lag] else 0
     if L.early and not p.booting and len(h) > L.lag and c._rise >= L.confirm:
         slope = (h[-1] - h[-1 - L.lag]) / L.lag
@@ -222,8 +242,8 @@ def hpa_target(arm):
     return {"k8s_hpa50_ca": 0.5, "k8s_hpa60_ca": 0.6, "k8s_hpa80_ca": 0.8}.get(arm, 0.7)
 
 
-def response_ms(w, d, capw, cap, frac):
-    s = S0_MS / max(cap, 1e-9)
+def response_ms(w, d, capw, cap, frac, f=1.0):
+    s = S0_MS / max(cap * f, 1e-9)
     drain = (w.backlog / max(capw, 1e-9)) * TICK * 1000.0 if w.backlog > 1e-12 else 0.0
     if not w.hpa:
         return s + drain
@@ -291,17 +311,27 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             frac = min(1.0, alloc / reqs) if reqs > 0 else 1.0
             used = cap_rate = 0.0
             rs, ws = [], []
+            dvfs = POWER_MODEL == "dvfs"
+            ceil_f = getattr(c, "f_ceiling", 1.0) if dvfs else 1.0
+            dyn_sum = 0.0
             for w in c.workloads:
                 d = w.demand[t]
-                capw = w.req_now * frac * p.cap
+                capmax = w.req_now * frac * p.cap
+                f = 1.0
+                if dvfs:
+                    # schedutil on the cores running this workload: f = 1.25 u (u frequency-invariant), then the policy ceiling
+                    u_inv = min(1.0, (d + w.backlog) / max(capmax, 1e-9))
+                    f = min(1.0, max(F_MIN, 1.25 * u_inv), max(F_MIN, ceil_f))
+                capw = capmax * f
                 srv = min(d + w.backlog, capw)
+                dyn_sum += srv * f * f
                 w.backlog = d + w.backlog - srv
                 dem += d; done += srv; used += srv; cap_rate += max(capw, 1e-9)
                 w.metric_next = min(1.0, srv / max(w.replicas * w.request, 1e-9)) if w.hpa else 0.0
                 if base == "turbonomic" and w.hpa:
                     w.use_hist = getattr(w, "use_hist", []) + [srv / max(1, w.replicas)]
                 if d > 0:
-                    r = response_ms(w, d, capw, p.cap, frac)
+                    r = response_ms(w, d, capw, p.cap, frac, f)
                     rs.append(r); ws.append(d)
             R_all += rs; W_all += ws
             rc = float(np.average(rs, weights=ws)) if ws else S0_MS
@@ -309,8 +339,14 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             c.pending = max(0.0, reqs - alloc)
             c.reqs, c.alloc, c.used = reqs, alloc, used
             util = min(1.0, used / max(alloc, 1e-9))
-            kw = (p.nodes * p.cap * (p.idle_kw + p.dyn_kw * util) + len(p.booting) * p.idle_kw
-                  + p.parked * p.idle_kw * p.park_frac) * scn.pue
+            if dvfs:
+                # idle power does not scale with frequency; dynamic power of a core busy b at frequency f is ~ b f^3,
+                # i.e. (work served) x f^2 per core-unit of work
+                kw = (p.nodes * p.idle_kw + p.dyn_kw / (p.cores * ALLOC) * dyn_sum + len(p.booting) * p.idle_kw
+                      + p.parked * p.idle_kw * p.park_frac) * scn.pue
+            else:
+                kw = (p.nodes * p.cap * (p.idle_kw + p.dyn_kw * util) + len(p.booting) * p.idle_kw
+                      + p.parked * p.idle_kw * p.park_frac) * scn.pue
             c.kw = kw
             site_power += kw
             node_ticks += p.nodes + len(p.booting)
