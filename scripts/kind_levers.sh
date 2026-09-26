@@ -60,7 +60,7 @@ req() { kubectl get pods -l run=php-apache -o jsonpath='{range .items[*]}{.spec.
 lim() { kubectl get pods -n agents -l app=agent -o jsonpath='{range .items[*]}{.spec.containers[0].resources.limits.cpu}{" "}{end}'; }
 rep() { kubectl get deployment idle-worker -o jsonpath='{.spec.replicas}'; }
 susp() { kubectl get job train-a -o jsonpath='{.spec.suspend}'; }
-quota() { kubectl get resourcequota omni-containment -n agents --no-headers 2>/dev/null | wc -l; }
+quota() { (kubectl get resourcequota omni-containment -n agents --no-headers 2>/dev/null || true) | wc -l; }
 R0="$(req)"; L0="$(lim)"
 echo "== phase 1: no work waiting, power stress over the pace threshold, agents over budget"
 run 3 --pace-high 0 --contain-cpu-m 200
