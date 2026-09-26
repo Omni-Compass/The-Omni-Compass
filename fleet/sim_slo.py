@@ -143,6 +143,32 @@ def _turbo_nodes(c, t):
 
 
 @dataclass(frozen=True)
+class DirectLaw:
+    """Architecture C, strict: Kubernetes keeps only its muscle (scheduler places pods, kubelet runs them); the HPA,
+    Cluster Autoscaler, VPA and Karpenter are off. Omni-Compass sets every workload's replica count itself:
+      up     at once to ceil(replicas x usage / rho* + kb x backlog / request)   (no HPA tolerance band or rate limit)
+      down   to the highest recommendation of the last `window` ticks, only while the engine's push <= push_release
+    rho* is the engine's target (the speed law's), machines follow the speed law."""
+    window: int = 20
+    kb: float = 1.0
+    push_release: float = 0.05
+    tol: float = 0.0
+
+
+def omni_replicas(w, rho, push, L):
+    import math as _m
+    cur = w.replicas
+    want = max(w.min_rep, min(w.max_rep, int(_m.ceil(cur * w.metric / max(rho, 1e-9) + L.kb * w.backlog / max(w.request, 1e-9) - 1e-9))))
+    if abs(w.metric / max(rho, 1e-9) - 1.0) <= L.tol and w.backlog <= 1e-9:
+        want = cur
+    w.rec_hist = (w.rec_hist + [want])[-max(1, L.window):]
+    if want > cur:
+        w.replicas = want
+    elif want < cur and push <= L.push_release:
+        w.replicas = max(w.min_rep, max(w.rec_hist))
+
+
+@dataclass(frozen=True)
 class BLaw:
     """Architecture B (Omni-Compass on top of a platform). The platform's own controllers run unchanged; Omni-Compass
     intervenes only in two ways, each gated by the engine:
@@ -217,12 +243,14 @@ def wpct(vals, wts, q):
 
 
 def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every: int = OMNI_EVERY,
-        lat_gain: float = 0.0, slo_mult: float = 2.0, speed_law: SpeedLaw = None, math_law: MathLaw = None, b_law: "BLaw" = None) -> Dict:
+        lat_gain: float = 0.0, slo_mult: float = 2.0, speed_law: SpeedLaw = None, math_law: MathLaw = None, b_law: "BLaw" = None, direct_law: "DirectLaw" = None) -> Dict:
     scn = copy.deepcopy(scn0)
     on_top = arm.startswith("omniB:")          # architecture B: a platform runs, Omni-Compass governs on top of it
     base = arm.split(":", 1)[1] if on_top else arm
     mathd = arm == "omni_math"
-    speed = arm == "omni_speed" or mathd
+    direct = arm == "omni_direct"
+    DL = direct_law or DirectLaw()
+    speed = arm == "omni_speed" or mathd or direct
     single = arm.startswith("omni_fleet") or arm.startswith("omni_single") or speed
     uses_gov = arm.startswith("omni")
     B = b_law or BLaw()
@@ -351,7 +379,10 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             for w in c.workloads:
                 if w.hpa:
                     before = w.replicas
-                    hpa_step(w, targets[ci])
+                    if direct:
+                        omni_replicas(w, targets[ci], govs[ci].g.last_push, DL)
+                    else:
+                        hpa_step(w, targets[ci])
                     pod_changes += abs(w.replicas - before)
             n_before = c.pool.nodes + len(c.pool.booting)
             parked_before = c.pool.parked
