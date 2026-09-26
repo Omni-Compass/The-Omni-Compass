@@ -39,6 +39,62 @@ from omnicompass.speed import SpeedGovernor, SpeedLaw
 S0_MS = 100.0
 
 
+# Vendor opponents: emulations of documented behaviour (not the vendors' binaries). Declared parameters:
+#   openshift      OpenShift ClusterAutoscaler resource, documented example values: utilizationThreshold 0.4,
+#                  unneededTime 5m, delayAfterAdd 10m (HPA 0.7 on the workloads)
+#   gke_balanced   GKE default profile = upstream Cluster Autoscaler (0.5, 10 min): identical to k8s_hpa70_ca
+#   gke_optimize   GKE optimize-utilization: MostAllocated packing and more aggressive scale-down. GKE publishes no
+#                  numbers; declared here as threshold 0.65 (packing lets more nodes qualify) and unneeded time 2 min
+#   aks_nap        AKS node auto-provisioning = Karpenter, WhenEmptyOrUnderutilized, consolidateAfter 0s: identical
+#                  to k8s_hpa70_karpenter
+#   turbonomic     IBM Turbonomic: container requests resized every 10 min to the p99 of per-pod usage (its default
+#                  aggressiveness) over the run so far, one step of at most 50%; nodes suspended/provisioned toward
+#                  a 0.7 packing target (Karpenter-style), HPA 0.7 left in place
+CA_PROFILES = {"openshift": (0.4, 20, 40), "gke_optimize": (0.65, 8, 40)}
+VENDOR_ARMS = ["openshift", "gke_balanced", "gke_optimize", "aks_nap", "turbonomic"]
+
+
+def _ca_profile(c, thr, unneeded, after_add):
+    """Upstream Cluster Autoscaler logic with a profile's threshold and timers (ticks of 15 s)."""
+    import math as _m
+    p = c.pool
+    c.ca_since_add += 1
+    if c.pending > 0:
+        need = int(_m.ceil(c.pending / (p.cores * ALLOC))) - len(p.booting)
+        if need > 0:
+            wake = min(need, p.parked); p.parked -= wake; p.nodes += wake; need -= wake
+            add = min(need, p.max_nodes - p.nodes - len(p.booting) - p.parked)
+            if add > 0:
+                p.booting += [6] * add
+            if add > 0 or wake > 0:
+                c.ca_since_add = 0
+        c.ca_under = 0
+        return
+    ru = c.reqs / max(c.alloc, 1e-9)
+    c.ca_under = c.ca_under + 1 if ru < thr else 0
+    if c.ca_under >= unneeded and c.ca_since_add >= after_add and p.nodes > p.min_nodes and not p.booting:
+        p.nodes -= 1
+        if not p.power_off:
+            p.parked += 1
+        c.ca_under = 0
+
+
+def _turbo_nodes(c, t):
+    import math as _m
+    p = c.pool
+    if c.pending > 0:
+        need = max(0, int(_m.ceil(c.pending / (p.cores * ALLOC))) - len(p.booting))
+        wake = min(need, p.parked); p.parked -= wake; p.nodes += wake; need -= wake
+        add = min(need, p.max_nodes - p.nodes - len(p.booting) - p.parked)
+        if add > 0:
+            p.booting += [6] * add
+        return
+    if t % 4 == 0 and p.nodes > p.min_nodes and not p.booting and c.reqs <= 0.7 * (p.nodes - 1) * p.cores * ALLOC:
+        p.nodes -= 1
+        if not p.power_off:
+            p.parked += 1
+
+
 def hpa_target(arm):
     return {"k8s_hpa50_ca": 0.5, "k8s_hpa60_ca": 0.6, "k8s_hpa80_ca": 0.8}.get(arm, 0.7)
 
@@ -112,6 +168,8 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                 w.backlog = d + w.backlog - srv
                 dem += d; done += srv; used += srv; cap_rate += max(capw, 1e-9)
                 w.metric_next = min(1.0, srv / max(w.replicas * w.request, 1e-9)) if w.hpa else 0.0
+                if arm == "turbonomic" and w.hpa:
+                    w.use_hist = getattr(w, "use_hist", []) + [srv / max(1, w.replicas)]
                 if d > 0:
                     r = response_ms(w, d, capw, p.cap, frac)
                     rs.append(r); ws.append(d)
@@ -191,8 +249,17 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             n_before = c.pool.nodes + len(c.pool.booting)
             parked_before = c.pool.parked
             if not single:
-                if arm == "k8s_hpa70_karpenter":
+                if arm in ("k8s_hpa70_karpenter", "aks_nap"):
                     _karpenter(c, t)
+                elif arm in CA_PROFILES:
+                    _ca_profile(c, *CA_PROFILES[arm])
+                elif arm == "turbonomic":
+                    _turbo_nodes(c, t)
+                    if t % 40 == 39:
+                        for w in c.workloads:
+                            if w.hpa and getattr(w, "use_hist", None):
+                                want = max(0.05, float(np.percentile(w.use_hist, 99)))
+                                w.request = float(min(w.request * 1.5, max(w.request * 0.5, want)))
                 else:
                     _cluster_autoscaler(c)
             n_after = c.pool.nodes + len(c.pool.booting)
