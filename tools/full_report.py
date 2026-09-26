@@ -211,7 +211,9 @@ def main():
       f"parked workers kept on standby, powered and ready ({lv['standby_note']}), energy was {lv['energy_native_wh']:.0f} vs "
       f"{lv['energy_omni_wh']:.0f} Wh ({pct(lv['energy_native_wh'], lv['energy_omni_wh'])}): parking alone saves essentially nothing; "
       f"energy per unit of work {lv['epc_change']}. The -43% first reported for this run holds only if parked workers are powered "
-      f"off. Waiting pods and HPA shortfall were not significantly different. The kill switch restored the original HPA target (50) and all 6 workers.")
+      f"off. Waiting pods and HPA shortfall were not significantly different. The kill switch restored the original HPA target (50) and all 6 workers. "
+      f"**With every live muscle switched on (section 7.2) the application got slower: p95 response time 486 to 802 ms, energy per "
+      f"unit of work +46% (significant).** The cause was a missing response-time afferent; the fix is wired and the live re-run is in progress.")
     w("")
     w("**Where Omni-Compass costs something.** In the pre-registered study both B and C keep more node-hours powered than "
       "Kubernetes alone and start and stop machines more often (more wear), and move the power cap more; C also lets more work wait "
@@ -369,7 +371,25 @@ def main():
       "(three workers cordoned and drained, their pods rescheduled by Kubernetes). Kill switch: HPA target restored to 50, 6 of 6 "
       "workers back in service.")
     w("")
-    w("### 7.2 Other live runs")
+    am1 = json.loads((ROOT / "results/live/LIVE_ALLMUSCLE_1.json").read_text())
+    w("### 7.2 Live, side by side, every live muscle (run " + am1["run"] + ")")
+    w("Same two-cluster setup; the Omni arm drives " + am1["muscles"] + ". Real response times: HTTP requests to the app timed every 5 s on both clusters. **This run made the application slower.**")
+    w("")
+    w("| Gauge | Kubernetes alone | Kubernetes + Omni-Compass | Change |")
+    w("|---|---:|---:|---:|")
+    for r in am1["gauges"]:
+        w("| " + " | ".join(r) + " |")
+    w("")
+    w("| Metric (2-minute blocks) | Kubernetes alone | + Omni-Compass | Change | 95% CI | Verdict |")
+    w("|---|---:|---:|---:|---|---|")
+    for r in am1["significance"]:
+        w("| " + " | ".join(r) + " |")
+    w("")
+    w("Actions: " + ", ".join(f"{k.replace('_', ' ')} {v}" for k, v in am1["actions"].items()) + ". Kill switch: " + am1["kill_switch"] + ".")
+    w("")
+    w("**Diagnosis:** " + am1["diagnosis"])
+    w("")
+    w("### 7.3 Other live runs")
     w("| Run | Setup | Result |")
     w("|---|---|---|")
     for r in live["other_runs"]:
@@ -469,9 +489,9 @@ def main():
     for vn, v in hw["vessels"].items():
         m = v["means"]
         for k, lab in labels:
-            a = m["A"][k]
-            cell = lambda arm: f"{m[arm][k]:.3f} ({pct(a, m[arm][k])}{'*' if v['paired_vs_A'][arm][k]['significant'] else ''})"
-            w(f"| {vn} | {lab} | {a:.3f} | {cell('S')} | {cell('B')} | {cell('C')} |")
+            a0 = m["A"][k]
+            cell = lambda arm: f"{m[arm][k]:.3f} ({pct(a0, m[arm][k])}{'*' if v['paired_vs_A'][arm][k]['significant'] else ''})"
+            w(f"| {vn} | {lab} | {a0:.3f} | {cell('S')} | {cell('B')} | {cell('C')} |")
     w("")
     w("**Reading:** on GPUs Omni-Compass saves 15-19% energy across the measured range with response time 0.6-0.8% slower; a "
       "fixed cap saves about the same energy but slows responses 30-63% and misses the service target. On CPUs the native "
@@ -514,6 +534,8 @@ def main():
         ("Power-cap movement", "B and C", "inherent", "moving the cap is how capping saves energy; freezing it removed most of the saving (tested: -28% to -2%/-7%)", "none needed: electronic setting, no physical wear; reported"),
         ("CPU frequency saving 3.5%", "device plant", "physical ceiling", "the native Linux governor already follows demand", "value is in heat (-67%) and in combining with power caps"),
         ("GPU node on/off saving 3%", "fleet plant", "superseded", "training nodes cannot be switched off", "the GPU power-limit muscle (15-19%)"),
+        ("Live response time +65% (p95) and energy per unit of work +46% with every muscle", "live kind, run 36213152881", "fix wired, live re-run running",
+         "no response-time afferent; engine read idle nodes while app pods were busy; cap held at the law floor", "latency afferent (p95 over SLO as queue pressure) and cap reflex (never below pod usage x 1.3)"),
         ("Live energy with parked servers on standby ~0%", "live kind", "open", "parked servers still draw standby power", "live power cap and CPU/GPU muscles; sleep states where hardware allows"),
         ("Small clusters (<= 3 workers) never release", "live kind", "open", "fleet law release band of 3 nodes", "pool-size-aware release band (law change)"),
         ("Pages in the 24-scenario replica", "control-plane replica", "open", "longer queue triggers the page rule", "same as queue"),
