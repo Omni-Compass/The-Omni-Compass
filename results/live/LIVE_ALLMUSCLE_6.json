@@ -82,6 +82,6 @@
    "0"
   ]
  ],
- "reading": "First fully valid run with every live muscle on: fewer servers (-47%), less energy (-3.2%, standby counted), lower peak power, and faster responses at every percentile. The one significant negative is energy per core-hour (+48%): the power cap lowers CPU consumed per request, so the metric's denominator (CPU used, -31%) falls faster than energy; per request served the energy is lower (energy -3.2% with 8% more probe requests answered). A per-request energy gauge replaces it in the next report.",
+ "reading": "First fully valid run with every live muscle on: fewer servers (-47%), less energy (-3.2%, standby counted), lower peak power, and faster responses at every percentile. The one significant negative is energy per core-hour (+48%): the power cap lowers the CPU the app consumes (-31%), and that CPU is the metric's denominator. Whether energy per request served also rose is not measured (the load generator's request count is not captured); a per-request energy gauge is added to the capture next.",
  "kill_switch": "restored target 50; workers 6 of 6; pod CPU 500m; no Omni records left"
 }
