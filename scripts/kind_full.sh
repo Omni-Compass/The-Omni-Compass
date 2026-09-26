@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Full-engine live pilot on a multi-node kind cluster (deploy/kind/cluster-full.yaml): real API server, scheduler,
-# HPA and metrics-server, three workers forming the node pool.
-#   Phase A  baseline: HPA alone on all three workers; Omni-Compass observing (must write nothing).
+# HPA and metrics-server, six workers forming the node pool.
+#   Phase A  baseline: HPA alone on all workers; Omni-Compass observing (must write nothing).
 #   Phase B  full engine: Omni-Compass drives the wired muscles live -
 #              hpa        HPA CPU target (rho*)
 #              nodes      node-pool size: cordon + drain specific workers, uncordon for pending pods
 #              power_cap  senses site power (declared model, scripts/kind_power.sh) into the governor
-#   Kill     the kill switch must restore the HPA target (50) and return all three workers to service.
+#   Kill     the kill switch must restore the HPA target (50) and return every worker to service.
 # Results in $OUT_DIR.
 set -euo pipefail
 OUT_DIR="${OUT_DIR:-kind_full_out}"; PHASE_S="${PHASE_S:-600}"; mkdir -p "$OUT_DIR"
