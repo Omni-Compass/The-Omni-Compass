@@ -18,15 +18,21 @@ from omnicompass.closure import ClosureLaw
 from tuning.speed_search import gauges
 from tuning.league import COMPETITORS, SEEDS, VESSELS, losses
 
-VES = ["web", "multi"] if "--round3" in sys.argv else VESSELS
+VES = ["web", "multi", "batch"] if "--calm" in sys.argv else ["web", "multi"] if "--round3" in sys.argv else VESSELS
+INC = ["k8s_hpa70_ca", "openshift"] if "--calm" in sys.argv else None
 F = {k: v for k, v in json.load(open(ROOT / "tuning/CLOSURE_FINAL_DEV.json")).items() if not k.startswith("_")}
-R3 = "--round3" in sys.argv          # web and multi only: pods near the platforms' fill, packing to the boundary, short release look-ahead
+CALM = "--calm" in sys.argv        # against the patient platforms only (Kubernetes, OpenShift): long holds, wide release bands
+R3 = "--round3" in sys.argv or CALM          # web and multi only: pods near the platforms' fill, packing to the boundary, short release look-ahead
 WIDE = "--wide" in sys.argv or R3
-HELD = list(range(700801, 700831)) if R3 else list(range(700601, 700631)) if WIDE else list(range(700501, 700531))
-TAG = "_R3" if R3 else "_WIDE" if WIDE else ""
+HELD = list(range(700901, 700931)) if CALM else list(range(700801, 700831)) if R3 else list(range(700601, 700631)) if WIDE else list(range(700501, 700531))
+TAG = "_CALM" if CALM else "_R3" if R3 else "_WIDE" if WIDE else ""
 
 
 def variants(v):
+    if CALM:
+        rr = [0.7, 0.75] if v in ("web", "multi") else [0.7]
+        return [dict(tone_H=th, rho=r, rho_max=rm, dwell=dw, delta_rel=dr, H_rel=hr, turn=True, H_add=2, delta=0.02)
+                for th, r, rm, dw, dr, hr in itertools.product([960, 1440], rr, [0.97, 0.99], [40, 80, 160], [0.15, 0.3], [40, 160])]
     if v in ("web", "multi") and R3:
         return [dict(tone_H=th, rho=r, wq=-1.0, rho_max=rm, turn=tu, H_rel=hr, delta=0.0 if rm >= 1.0 else 0.02,
                      delta_rel=0.0 if rm >= 1.0 else 0.08, H_add=2)
@@ -42,7 +48,7 @@ def law(v, x):
     f = F[v]; cl = dict(f["closure"]); dl = dict(f["direct"]); sl = dict(f["speed"])
     if "tone_H" in x:
         cl.update(tone=x["tone_H"] > 0, tone_H=max(1, x["tone_H"]))
-    for k in ("rho_max", "delta_rel", "H_add", "delta", "turn", "H_rel"):
+    for k in ("rho_max", "delta_rel", "H_add", "delta", "turn", "H_rel", "dwell"):
         if k in x:
             cl[k] = x[k]
     if "rho" in x:
@@ -61,13 +67,13 @@ def run_omni(sc, v, x):
 def _dev(a):
     v, s = a
     sc = make_scenario(v, s)
-    return (v, s), {c: gauges(sim_slo.run(sc, c)) for c in COMPETITORS}, [run_omni(sc, v, x) for x in variants(v)]
+    return (v, s), {c: gauges(sim_slo.run(sc, c)) for c in (INC or COMPETITORS)}, [run_omni(sc, v, x) for x in variants(v)]
 
 
 def _ho(a):
     v, s, pick = a
     sc = make_scenario(v, s)
-    return (v, s), {c: gauges(sim_slo.run(sc, c)) for c in COMPETITORS}, {c: run_omni(sc, v, pick[c]) for c in COMPETITORS}
+    return (v, s), {c: gauges(sim_slo.run(sc, c)) for c in pick}, {c: run_omni(sc, v, pick[c]) for c in pick}
 
 
 if __name__ == "__main__" and sys.argv[1] == "dev":
@@ -78,7 +84,7 @@ if __name__ == "__main__" and sys.argv[1] == "dev":
     out = {}
     for v in VES:
         out[v] = {}
-        for c in COMPETITORS:
+        for c in (INC or COMPETITORS):
             best = None
             for i, x in enumerate(variants(v)):
                 rows = {(v, s): {"inc": A[(v, s)][c], "omni": O[(v, s)][i]} for s in seeds}
@@ -92,7 +98,7 @@ if __name__ == "__main__" and sys.argv[1] == "dev":
     (ROOT / f"tuning/C_VS_INCUMBENT{TAG}_DEV.json").write_text(json.dumps(out, indent=1))
 elif __name__ == "__main__":
     dev = json.load(open(ROOT / f"tuning/C_VS_INCUMBENT{TAG}_DEV.json"))
-    pick = {v: {c: dev[v][c]["var"] for c in COMPETITORS} for v in VES}
+    pick = {v: {c: dev[v][c]["var"] for c in (INC or COMPETITORS)} for v in VES}
     (ROOT / f"tuning/C_VS_INCUMBENT{TAG}_PREREGISTRATION.json").write_text(json.dumps(
         {"picks": pick, "sha256": hashlib.sha256(json.dumps(pick, sort_keys=True).encode()).hexdigest(),
          "base_settings": "tuning/CLOSURE_FINAL_DEV.json", "heldout_seeds": HELD}, indent=1))
@@ -102,7 +108,7 @@ elif __name__ == "__main__":
     out = {"seeds": HELD, "picks": pick, "cells": {}, "means": {}}
     for v in VES:
         out["cells"][v] = {}; out["means"][v] = {}
-        for c in COMPETITORS:
+        for c in (INC or COMPETITORS):
             rows = {(v, s): {"inc": A[(v, s)][c], "omni": O[(v, s)][c]} for s in HELD}
             L = losses(rows, HELD, "omni", "inc", v, np.random.default_rng(11))
             out["cells"][v][c] = L
