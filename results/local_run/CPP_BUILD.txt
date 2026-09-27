@@ -1,0 +1,5 @@
+[ 91%] Built target oc_soak
+[100%] Built target oc_smoke
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.03 sec
