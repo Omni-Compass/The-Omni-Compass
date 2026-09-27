@@ -27,7 +27,8 @@ jobs:
       - run: bash scripts/pilot_shadow.sh
         env: {DURATION: "600", OUT_DIR: shadow_out}
       - if: always()
-        run: { cat shadow_out/SHADOW_REPORT.md; cat shadow_out/rbac_shadow.txt; tail -n 30 shadow_out/controller.log; } >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+        run: |
+          { cat shadow_out/SHADOW_REPORT.md; cat shadow_out/rbac_shadow.txt; tail -n 30 shadow_out/controller.log; } >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with: {name: live-shadow, path: shadow_out}
