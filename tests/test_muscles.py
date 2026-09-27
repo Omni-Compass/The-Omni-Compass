@@ -112,7 +112,8 @@ def main():
     dec = [json.loads(l)["decision"] for l in (Path(t4) / "audit.jsonl").read_text().splitlines() if '"decision"' in l]
     assert all(d["security_block"] == 1.0 for d in dec) and all(0 <= d["thermal"] <= 1.35 for d in dec)
     assert [j["spec"]["suspend"] for j in load(p4)["jobs"]] == [True, True], "no batch admission during a live security hold"
-    # SLO reflex through the controller: p95 over the SLO -> not slo_clean -> no tighter HPA target, no power cap
+    # SLO reflex through the controller: p95 over the SLO -> not slo_clean -> no tighter HPA target, never a CPU limit
+    # below the operator's
     t5 = tempfile.mkdtemp(); p5 = state(t5)
     lf5 = Path(t5) / "lat.csv"; lf5.write_text("elapsed_seconds,latency_ms,ok\n" + "".join(f"{i},900,1\n" for i in range(60)))
     c = Controller(args(t5, mode="target", interval=0, latency_file=str(lf5), slo_ms=500.0, latency_window_s=60.0))
@@ -120,7 +121,7 @@ def main():
     dec = [json.loads(l)["decision"] for l in (Path(t5) / "audit.jsonl").read_text().splitlines() if '"decision"' in l]
     assert all(d["slo_clean"] is False for d in dec), dec
     assert next(h for h in load(p5)["hpas"])["spec"]["metrics"][0]["resource"]["target"]["averageUtilization"] <= 50, "densified during SLO breach"
-    assert cpu(p5) == "500m", "capped during SLO breach"
+    assert float(cpu(p5)[:-1]) >= 500, "capped during SLO breach"   # never below the operator's limit; idle CPU conveyed
     print("muscles: power cap, heat, security, rollout, batch, CPU frequency and GPU connectors; kill restores; observe writes nothing")
     print("PASS test_muscles")
 

@@ -222,7 +222,7 @@ def main():
           (sv_tmp / "SAVINGS.csv").read_text() == (ROOT / "results" / "SAVINGS.csv").read_text())
     if not a.quick:
         from tests import test_selfpilot
-        test_selfpilot.main(); check("end-to-end self-pilot: shipped controller, simulated cluster, capture and scoring (energy lower, no significant pending-pod increase)", True)
+        test_selfpilot.main(); check("end-to-end self-pilot: shipped controller, simulated cluster, capture and scoring (energy and machines no worse, no significant pending-pod increase)", True)
     from tests import test_pilot_score
     test_pilot_score.main(); check("pilot scoring: detects a real gain, no false gain on identical clusters, detects a service regression", True)
     from tests import test_omni_controller
@@ -251,6 +251,8 @@ def main():
     test_pod_reflex.main(); check("fast pod reflex: the HPA's own rule read from the live queue; calm writes nothing; hands back; kill restores", True)
     from tests import test_muscles_levers
     test_muscles_levers.main(); check("live levers: rightsize, coldstart, batch pace, containment, cooling; kill restores every one, also from a fresh process", True)
+    from tests import test_convey
+    test_convey.main(); check("energy to where the work is: idle machine CPU conveyed to serving pods in place, band-bounded, kill restores", True)
     from tests import test_active_nodes
     test_active_nodes.main(); check("full-engine controller options: parked and control-plane nodes excluded, kill switch restores the node pool once", True)
     from tests import test_schedutil, test_cpufreq_ceiling

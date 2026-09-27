@@ -158,6 +158,22 @@ One budget comes in, and I convey it across the body by need (`omnicompass/conve
 - organs with no work idle at their floor, and what they do not need goes where it is needed;
 - nothing leaves Ω.
 
+On each machine, I hand its idle CPU to the pods serving on it:
+
+c_i = min( max(L_i, (0.95 A_j − Q_j) / |P_j|), 0.95 A_j )
+
+- A_j is the machine's CPU.
+- Q_j is what every other pod on it has requested.
+- P_j is its serving pods.
+- L_i is the limit you gave the pod.
+
+A pod's CPU limit is a quota. A request that needs more than one quota period waits for the next one while the
+machine stands idle. That wait is energy withheld from the work, not saved, because the request spends the same
+CPU-seconds either way.
+
+I change the limit in place: the pod is not restarted, its request is untouched, and it never gets less than you gave
+it. Every fifteen seconds a new pod gets its share. The OFF switch returns every pod to your limit.
+
 ### 7. I see before I act
 
 My nervous system runs both ways:
@@ -174,9 +190,9 @@ step.
 ### Step 0. What your stack needs
 1. Kubernetes 1.34 or newer, with metrics-server (`kubectl top nodes` answers).
 2. An HPA with a CPU target on each service I govern.
-3. A PodDisruptionBudget on each service; I empty machines through the eviction API.
-4. A readiness probe and a short preStop pause on each service, so a moved pod never takes traffic before it answers and
-   never drops a request as it leaves (`deploy/kind/demo.yaml`).
+3. A PodDisruptionBudget on each service, for your own maintenance; I never evict a pod.
+4. A readiness probe and a short preStop pause on each service, so a new pod never takes traffic before it answers and
+   a pod your autoscaler removes never drops a request as it leaves (`deploy/kind/demo.yaml`).
 5. A response-time feed for each governed service, as CSV `elapsed_seconds,latency_ms,ok`. `scripts/latency_probe.py`
    writes one.
 
@@ -199,7 +215,7 @@ cannot write.
 **Pass condition.** Zero writes, and readings your operators agree with.
 
 ### Step 3. Give me the pods (on top of your autoscalers)
-1. Grant `patch horizontalpodautoscalers` (`deploy/rbac-target.yaml`).
+1. Grant `patch horizontalpodautoscalers` and `patch pods/resize` (`deploy/rbac-target.yaml`, `deploy/kind/rbac-omni.yaml`).
 2. Run me with `--mode target --latency-file <feed> --slo-ms <your p95 target>`.
 
 Your HPAs keep scaling. I may tighten a target, never loosen it, and my pod reflex raises floors ahead of the CPU
@@ -208,12 +224,12 @@ averages.
 **Pass condition.** p95, p99 and failed requests no worse than native.
 
 ### Step 4. Give me the machines
-1. Grant `patch nodes` and `create pods/eviction` (`deploy/kind/rbac-omni.yaml`).
+1. Grant `patch nodes` and `patch pods` for the first-to-go mark (`deploy/kind/rbac-omni.yaml`).
 2. Run me with `--mode nodepool --active-nodes-only --closure /app/law/closure.json --node-scale-cmd "<park/wake command with {n}>"`.
 
 | Your platform | The park/wake command |
 |---|---|
-| any cluster, kind, bare metal | `bash scripts/kind_nodepool.sh {n}` (cordon, make-before-break drain, uncordon) |
+| any cluster, kind, bare metal | `bash scripts/kind_nodepool.sh {n}` (close to new work and mark first to go; open again, warm machines first) |
 | Karpenter / EKS Auto Mode | the NodePool CPU limit at `{n} × node CPU`, parked nodes kept, not consolidated away |
 | Cluster Autoscaler node group | the group's desired size, with scale-down through parking, not deletion |
 | OpenShift | the worker MachineSet replicas, parked, not deleted |
@@ -276,4 +292,5 @@ Add `--strict-replicas`:
 | `gate: pods scaling up` | pods first, machines after |
 | `decision failed (n in a row)` | I could not reach the cluster and wrote nothing; turn me OFF if you want native now |
 | `pod reflex: floor k` | the queue needs k replicas now; I give the floor back when it drains |
+| `convey: <machine> idle CPU to its k serving pod(s), limit c` | that machine's idle CPU now reaches the work on it |
 | `Ω: machine_fill below the floor, returning` | the machines are underfilled and my move is bringing them back into the band |

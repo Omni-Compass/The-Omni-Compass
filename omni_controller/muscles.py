@@ -324,8 +324,8 @@ class Muscles:
             cap = 1.0  # SLO reflex: no power capping while service is (or was just) over its response-time target
         if getattr(self.a, "latency_file", ""):
             # a request-served workload: its work is set by arrivals, not by the cap, so throttling it saves no energy
-            # (the same CPU-seconds run later) and only adds queueing wait. Its energy comes from machines idling down.
-            cap = 1.0
+            # (the same CPU-seconds run later) and only adds wait. The energy goes where the work is: convey()
+            return self.convey(obs)
         for target in filter(None, getattr(self.a, "cap_deployments", "").split(",")):
             ns, name = ref(target)
             dep = self.k.get("get", "deployment", name, "-n", ns, "-o", "json")
@@ -350,6 +350,65 @@ class Muscles:
                 if abs(want - cur) < self.a.cap_min_change_m:
                     continue
                 self._resize(pod, ns, f"{want}m", f"power_cap: pod CPU limit to {want}m in place (cap {cap:.3f})")
+
+    def convey(self, obs=None):
+        """Energy to where the work is (omnicompass/conveyance.py, on one machine's CPU).
+
+        A serving pod's CPU limit is a quota: a request that needs more CPU than one quota period allows waits for the
+        next period, while the machine it runs on sits idle. That wait is energy withheld from the work, not saved: the
+        request uses the same CPU-seconds either way. So each machine's idle CPU is conveyed to the serving pods on it:
+
+            c_i = min( max(L_i, (0.95 A_j - Q_j) / |P_j|), 0.95 A_j )
+
+        A_j the machine's allocatable CPU, Q_j the requests of every other pod on it, P_j the serving pods on it, L_i the
+        operator's own limit. The machine's last five percent is never handed out (the living band), a pod never gets
+        less than its operator gave it, and the requests (what the scheduler and the autoscaler read) are untouched.
+        Resized in place through pods/resize: no pod restarts. No expansion during a security hold. The kill switch
+        returns every pod to L_i."""
+        from omnicompass.nervous_system import BAND
+        obs = obs or {}
+        targets = [ref(t) for t in filter(None, getattr(self.a, "cap_deployments", "").split(","))]
+        if not targets:
+            return None
+        alloc = {n["metadata"]["name"]: milli(n["status"]["allocatable"]["cpu"])
+                 for n in self.k.get("get", "nodes", "-o", "json")["items"]}
+        pods = [p for p in self.k.get("get", "pods", "-A", "-o", "json")["items"]
+                if p["status"].get("phase") in ("Running", "Pending") and p["spec"].get("nodeName")]
+        out = {}
+        for ns, name in targets:
+            dep = self.k.get("get", "deployment", name, "-n", ns, "-o", "json")
+            ann = dep["metadata"].get("annotations", {}) or {}
+            c0 = dep["spec"]["template"]["spec"]["containers"][0]
+            tmpl = c0.get("resources", {}).get("limits", {}).get("cpu")
+            if tmpl is None:
+                continue
+            base = milli(ann.get(CPU_ANN, tmpl))
+            sel = dep["spec"]["selector"]["matchLabels"]
+            mine = lambda p: p["metadata"].get("namespace", "default") == ns and all(
+                (p["metadata"].get("labels", {}) or {}).get(k) == v for k, v in sel.items())
+            serving, other = {}, {}
+            for p in pods:
+                node = p["spec"]["nodeName"]
+                if mine(p) and p["status"].get("phase") == "Running":
+                    serving.setdefault(node, []).append(p)
+                elif not mine(p):
+                    other[node] = other.get(node, 0.0) + sum(
+                        milli(c.get("resources", {}).get("requests", {}).get("cpu", "0") or "0") for c in p["spec"]["containers"])
+            if CPU_ANN not in ann and serving:
+                self.k.write(["annotate", "deployment", name, "-n", ns, f"{CPU_ANN}={int(base)}m"], "convey: record original CPU limit")
+            for node, ps in serving.items():
+                a_j = alloc.get(node, 0.0)
+                share = (BAND[1] * a_j - other.get(node, 0.0)) / len(ps)
+                want = int(min(max(base, math.floor(share / 10.0) * 10), BAND[1] * a_j))
+                for p in ps:
+                    cur = milli(p["spec"]["containers"][0].get("resources", {}).get("limits", {}).get("cpu", tmpl))
+                    if obs.get("security_block", 0.0) > 0.5 and want > cur:
+                        continue  # shield I1: no expansion during a security hold
+                    if abs(want - cur) < self.a.cap_min_change_m:
+                        continue
+                    self._resize(p, ns, f"{want}m", f"convey: {node} idle CPU to its {len(ps)} serving pod(s), limit {want}m in place")
+                    out[f"{ns}/{p['metadata']['name']}"] = want
+        return out
 
     def _hardware(self, cap, obs):
         cap = 1.0 if not obs.get("slo_clean", True) else max(self.a.cap_min, min(1.0, cap))

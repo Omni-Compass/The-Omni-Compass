@@ -70,6 +70,9 @@ def snapshot(k: Kube, active_only: bool = False):
         carrying = {p["spec"].get("nodeName") for p in pods if p["status"].get("phase") in ("Running", "Pending")
                     and all(o.get("kind") != "DaemonSet" for o in p.get("metadata", {}).get("ownerReferences", []) or [])}
         ready = [n for n in ready if schedulable(n) or (n["spec"].get("unschedulable") and n["metadata"]["name"] in carrying)]
+    # open: the machines I keep open to new work. My machine orders are counted here; a machine I closed that still
+    # carries work stays in service (in the energy count) until its work leaves on its own
+    open_n = sum(1 for n in ready if schedulable(n))
     names = {n["metadata"]["name"] for n in ready}
     alloc = sum(to_milli(n["status"]["allocatable"]["cpu"]) for n in ready)
     req = sum(to_milli(c.get("resources", {}).get("requests", {}).get("cpu", "0")) for p in pods
@@ -81,7 +84,7 @@ def snapshot(k: Kube, active_only: bool = False):
     used = sum(to_milli(line.split()[1]) for line in top.strip().splitlines()
                if line.strip() and (not active_only or line.split()[0] in names))
     hpas = k.get("get", "hpa", "-A", "-o", "json")["items"]
-    return {"nodes": len(ready), "alloc_m": alloc, "req_m": req, "used_m": used, "pending": pending, "hpas": hpas}
+    return {"nodes": len(ready), "open": open_n if active_only else len(ready), "alloc_m": alloc, "req_m": req, "used_m": used, "pending": pending, "hpas": hpas}
 
 
 def cpu_target(h):
@@ -264,12 +267,19 @@ class Controller:
         if self.killed() or self.a.mode != "nodepool" or not self.a.node_scale_cmd:
             return None
         self.pod_reflex()
+        # energy to where the work is: a new serving pod gets its machine's idle CPU within three checks, not a decision
+        self.ticks = getattr(self, "ticks", 0) + 1
+        if getattr(self.a, "latency_file", "") and self.ticks % 3 == 0:
+            try:
+                self.m.convey()
+            except Exception as e:  # a failed conveyance writes nothing more; the next one comes on time
+                self.audit({"error": f"convey: {e}"})
         # one light read every check; the full snapshot (nodes, all pods, node metrics, HPAs) only when a pod waits. The
         # controller shares CPUs with the service it protects (on kind, one 4-core runner), so its reads cost latency
         if not str(self.k.get("get", "pods", "-A", "--field-selector=status.phase=Pending", "-o", "name")).strip():
             return None
         s = snapshot(self.k, getattr(self.a, "active_nodes_only", False))
-        n = max(1, s["nodes"]); per_node = s["alloc_m"] / n
+        n = max(1, s["open"]); per_node = s["alloc_m"] / max(1, s["nodes"])
         floor = max(int(math.ceil(s["req_m"] * (1.0 + self.a.headroom) / per_node)) if s["req_m"] > 0 else self.a.min_nodes, int(math.ceil(s["used_m"] / per_node)))
         floor = min(self.a.max_nodes, floor)
         if s["pending"] > 0 and floor > n and floor > (self.rec_n or 0):
@@ -286,7 +296,8 @@ class Controller:
             self.restore()
             return self.audit({"decision": "killed", "mode": "observe"})
         s = snapshot(self.k, getattr(self.a, "active_nodes_only", False))
-        n = max(1, s["nodes"]); per_node = s["alloc_m"] / n if n else 1.0
+        # my orders are judged by the machines open to work; a machine's capacity by the machines in service
+        n = max(1, s["open"]); per_node = s["alloc_m"] / max(1, s["nodes"])
         if self.rec_n is None:
             self.rec_n = n
         repl = sum(int(h.get("status", {}).get("currentReplicas", 0) or 0) for h in s["hpas"]) or n
@@ -371,7 +382,7 @@ class Controller:
                                         "proprioception": {k: round(v, 3) for k, v in drift.items()}}})
         # the compass: where the engine stands on the wheel, whether every level is inside Omega, whether the move at a
         # boundary points inward, and the ledger step
-        fill = s["req_m"] / max(1.0, n * per_node)
+        fill = s["req_m"] / max(1.0, s["alloc_m"])
         levels = {"machine_fill": fill}
         moves = {"machine_fill": (1.0 if rec_n < n else -1.0 if rec_n > n else 0.0)}
         for o in ("cpufreq", "gpu", "power"):

@@ -185,6 +185,10 @@ if [ "$ARM" != "native" ]; then
   errors=$(grep -c '"error"' "$OUT_DIR/audit.jsonl" || true)
   echo "== controller: decisions $decisions of $expected, failed decisions or checks $errors"
   echo "-- controller's own cost (CPU of the process and every command it ran): $(grep '"overhead"' "$OUT_DIR/audit.jsonl" | tail -n 1)"
+  echo "-- my writes by muscle (count, first words of why)"
+  jq -r 'select(.write) | .why // "?" | split(":")[0] + ": " + (split(":")[1] // "" | ltrimstr(" ") | split(" ")[0:3] | join(" "))' "$OUT_DIR/audit.jsonl" | sort | uniq -c | sort -rn | head -n 20 || true
+  echo "-- conveyed CPU limits (last 8)"; grep '"convey:' "$OUT_DIR/audit.jsonl" | jq -r '.why' | tail -n 8 || true
+  echo "-- pod reflex (last 8)"; grep '"pod reflex:' "$OUT_DIR/audit.jsonl" | jq -r '.why' | tail -n 8 || true
   echo "-- controller.log (last 40 lines)"; tail -n 40 "$OUT_DIR/controller.log" || true
   echo "-- audit errors (last 10)"; grep '"error"\|"failsafe"' "$OUT_DIR/audit.jsonl" | tail -n 10 || true
   echo "-- decision trail (nodes seen -> recommended | p95 ms | SLO clean | calm | node-view calm | node gate)"
