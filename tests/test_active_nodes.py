@@ -27,6 +27,16 @@ def main():
     s = snapshot(k, active_only=True)
     assert s["nodes"] == 2 and s["alloc_m"] == 8000, s
     assert s["req_m"] == 1200 and s["used_m"] == 2000 and s["pending"] == 1, s
+    # a cordoned worker still carrying work is in service until its work is gone; a DaemonSet pod is not work
+    st = Path(os.environ["FAKE_KUBE_STATE"]); S = json.loads(st.read_text())
+    S["pods"].append({"metadata": {"ownerReferences": [{"kind": "DaemonSet"}]}, "status": {"phase": "Running"},
+                      "spec": {"nodeName": "w3", "containers": [{"resources": {"requests": {"cpu": "100m"}}}]}})
+    st.write_text(json.dumps(S)); assert snapshot(k, active_only=True)["nodes"] == 2, "a DaemonSet pod keeps no worker in service"
+    S["pods"].append({"metadata": {"ownerReferences": [{"kind": "ReplicaSet"}]}, "status": {"phase": "Running"},
+                      "spec": {"nodeName": "w3", "containers": [{"resources": {"requests": {"cpu": "200m"}}}]}})
+    st.write_text(json.dumps(S)); s3 = snapshot(k, active_only=True)
+    assert s3["nodes"] == 3 and s3["alloc_m"] == 12000, s3
+    S["pods"] = S["pods"][:-2]; st.write_text(json.dumps(S))
     s_all = snapshot(k)
     assert s_all["nodes"] == 4 and s_all["req_m"] == 2150 and s_all["used_m"] == 4000, s_all
 

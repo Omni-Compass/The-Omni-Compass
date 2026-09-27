@@ -115,31 +115,33 @@ absolute top: I never spend the last five percent.
 
 Tested over 300,000 of my states and 60,000 of my energy allocations (`tests/test_living_band.py`).
 
-### 3. Machines idle; I never switch them off
+### 3. Machines idle; I never switch them off, and I never move a pod
 
-When I need fewer machines, I park the rest:
-1. **Cordoned:** no new work lands on them.
-2. **Emptied:** replacement first (law 4).
-3. **Left powered and Ready,** gauged down to their idle floor.
+When I need fewer machines, I idle the rest by letting their work leave on its own:
+1. **Cordoned:** no new work lands on the machine.
+2. **Marked:** its pods are marked first to go (`controller.kubernetes.io/pod-deletion-cost`). When the load falls, your
+   autoscaler's own scale-down removes exactly those pods.
+3. **Idle:** once its work is gone, the machine stays powered and Ready, gauged down to its idle floor.
 
-When work returns I uncordon them, and they are in service at once. There is no boot and no power cycling.
+While it still carries work, a machine counts as in service at full power. No pod is ever evicted, moved or restarted
+to idle a machine. When work returns, I uncordon a machine, the warm ones still carrying work first; it is in service
+at once, with no boot and no power cycling.
 
-A parked machine draws `park_frac × idle power` (0.25), never zero.
+An idle machine draws `park_frac × idle power` (0.25), never zero.
 
-### 4. Make before break
+### 4. Every change is continuous
 
-I empty a machine that is serving traffic only after its replacements answer elsewhere:
-1. I raise the replica floor by the pods on that machine.
-2. I wait until that many more are ready.
-3. Then I evict, and give the floor back.
+- I idle at most one machine per decision.
+- I wake a machine within five seconds of a pod waiting for a place.
+- My pod reflex reads the queue every five seconds.
 
-Machines with no work are parked first.
+Nothing jumps, and nothing is restarted.
 
 ### 5. My fast pod reflex
 
 Your autoscaler's rule is replicas = current × busy ÷ target. It reads "busy" from CPU averages a minute old.
 
-I read it from the live queue every fifteen seconds:
+I read it from the live queue every five seconds:
 - a replica serving requests answers in R = S / (1 − u), so u = 1 − S/R;
 - S is the bare service time;
 - R is the recent mean response;

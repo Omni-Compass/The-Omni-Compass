@@ -64,11 +64,14 @@ def schedulable(n):
 def snapshot(k: Kube, active_only: bool = False):
     nodes = k.get("get", "nodes", "-o", "json")["items"]
     ready = [n for n in nodes if any(c["type"] == "Ready" and c["status"] == "True" for c in n["status"].get("conditions", []))]
+    pods = k.get("get", "pods", "-A", "-o", "json")["items"]
     if active_only:
-        ready = [n for n in ready if schedulable(n)]
+        # in service: open to new work, or still carrying work (an idling worker keeps serving until its work is gone)
+        carrying = {p["spec"].get("nodeName") for p in pods if p["status"].get("phase") in ("Running", "Pending")
+                    and all(o.get("kind") != "DaemonSet" for o in p.get("metadata", {}).get("ownerReferences", []) or [])}
+        ready = [n for n in ready if schedulable(n) or (n["spec"].get("unschedulable") and n["metadata"]["name"] in carrying)]
     names = {n["metadata"]["name"] for n in ready}
     alloc = sum(to_milli(n["status"]["allocatable"]["cpu"]) for n in ready)
-    pods = k.get("get", "pods", "-A", "-o", "json")["items"]
     req = sum(to_milli(c.get("resources", {}).get("requests", {}).get("cpu", "0")) for p in pods
               if p["status"].get("phase") in ("Running", "Pending")
               and (not active_only or p["status"].get("phase") == "Pending" or p["spec"].get("nodeName") in names)
@@ -448,7 +451,7 @@ def parser():
     ap.add_argument("--strict-window", type=int, default=5, help="decisions a scale-down waits for (highest recent recommendation)")
     ap.add_argument("--headroom", type=float, default=0.5, help="spare capacity kept above pod requests (0.5 = 50%%, the default)")
     ap.add_argument("--active-nodes-only", action="store_true",
-                    help="count only schedulable nodes (not cordoned, not tainted NoSchedule) and the pods and usage on them")
+                    help="count only nodes in service (schedulable, or cordoned but still carrying work) and the pods and usage on them")
     ap.add_argument("--node-restore-cmd", default="", help="command run once when the kill switch fires, returning the node pool to native")
     add_muscle_args(ap)
     ap.add_argument("--power-cmd", default="")

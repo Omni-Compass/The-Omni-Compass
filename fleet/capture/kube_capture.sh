@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Cluster capture for the Omni-Compass fleet harness. Read-only: uses get/top only.
 # Requires kubectl (with metrics-server) and jq. Optional: POWER_CMD printing site power in watts.
-# ACTIVE_ONLY=1 counts only schedulable nodes (not cordoned, not tainted NoSchedule), and the usage on them.
+# ACTIVE_ONLY=1 counts only nodes in service (open to work, or cordoned but still carrying work), and the usage on them.
 # Usage: OUT=capture.csv INTERVAL=15 DURATION=21600 [POWER_CMD="..."] [ACTIVE_ONLY=1] bash kube_capture.sh
 set -euo pipefail
 OUT="${OUT:-capture.csv}"; INTERVAL="${INTERVAL:-15}"; DURATION="${DURATION:-21600}"
@@ -11,14 +11,19 @@ start=$(date +%s)
 while :; do
   now=$(date +%s); el=$((now - start)); [ "$el" -gt "$DURATION" ] && break
   nodes=$(kubectl get nodes -o json)
+  pods=$(kubectl get pods -A -o json)
   if [ "${ACTIVE_ONLY:-0}" = "1" ]; then
-    nodes=$(echo "$nodes" | jq '.items |= map(select(.spec.unschedulable != true and ([.spec.taints[]? | select(.effect=="NoSchedule")] | length) == 0))')
+    # in service: open to new work, or cordoned but still carrying work (not a DaemonSet's); idle workers are not
+    carrying=$(echo "$pods" | jq -r '[.items[] | select(.status.phase=="Running" or .status.phase=="Pending")
+      | select(all(.metadata.ownerReferences[]?; .kind != "DaemonSet")) | .spec.nodeName // empty] | unique | join(" ")')
+    nodes=$(echo "$nodes" | jq --arg c " $carrying " '.items |= map(select(
+      (.spec.unschedulable != true and ([.spec.taints[]? | select(.effect=="NoSchedule")] | length) == 0)
+      or (.metadata.name as $n | .spec.unschedulable == true and ($c | contains(" " + $n + " ")))))')
   fi
   names=$(echo "$nodes" | jq -r '[.items[].metadata.name] | join(" ")')
   ready=$(echo "$nodes" | jq '[.items[] | select(any(.status.conditions[]; .type=="Ready" and .status=="True"))] | length')
   total=$(echo "$nodes" | jq '.items | length')
   alloc=$(echo "$nodes" | jq -r '.items[].status.allocatable.cpu' | to_m | awk '{s+=$1} END {printf "%.0f", s}')
-  pods=$(kubectl get pods -A -o json)
   req=$(echo "$pods" | jq -r '.items[] | select(.status.phase=="Running") | .spec.containers[].resources.requests.cpu // "0"' | to_m | awk '{s+=$1} END {printf "%.0f", s}')
   pending=$(echo "$pods" | jq '[.items[] | select(.status.phase=="Pending")] | length')
   used=$(kubectl top nodes --no-headers 2>/dev/null | awk -v names="$names" 'BEGIN{n=split(names,a," "); for(i=1;i<=n;i++) on[a[i]]=1} ($1 in on){print $2}' | to_m | awk '{s+=$1} END {printf "%.0f", s}')
