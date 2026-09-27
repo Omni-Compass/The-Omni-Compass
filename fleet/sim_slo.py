@@ -37,7 +37,7 @@ from omnicompass.adapter import Governor, AllocationLaw, mode_law, OBSERVE, AUTO
 from omnicompass.shield import enforce, ShieldLimits
 from omnicompass.speed import SpeedGovernor, SpeedLaw
 from omnicompass.mathdrive import MathDrive, MathLaw
-from omnicompass.closure import ClosureNodes, ClosureLaw
+from omnicompass.closure import ClosureNodes, ClosureLaw, AutoClosureLaw, AutoClosureNodes, stress_equilibrium
 
 S0_MS = 100.0
 POWER_MODEL = "legacy"   # "dvfs": every node runs schedutil (f = 1.25 u per workload's cores), P = idle + dyn u f^2
@@ -336,9 +336,11 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
     DL = direct_law or DirectLaw()
     speed = arm == "omni_speed" or mathd or direct or closure
     CL = closure_law or ClosureLaw()
-    cl_nodes = [ClosureNodes(CL) for _ in scn.clusters] if closure else []
+    auto = isinstance(CL, AutoClosureLaw)
+    mk = (lambda: AutoClosureNodes(CL)) if auto else (lambda: ClosureNodes(CL))
+    cl_nodes = [mk() for _ in scn.clusters] if closure else []
     site = closure and CL.site and len(scn.clusters) > 1   # whole body: one law for the site, traffic shift between clusters
-    cl_site = ClosureNodes(CL) if site else None
+    cl_site = mk() if site else None
     single = arm.startswith("omni_fleet") or arm.startswith("omni_single") or speed
     uses_gov = arm.startswith("omni")
     B = b_law or BLaw()
@@ -353,6 +355,10 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
     b_veto = b_early = 0
     if speed:
         govs = [MathDrive(math_law or MathLaw()) if mathd else SpeedGovernor(speed_law or SpeedLaw()) for _ in scn.clusters]
+        if auto:
+            gp = govs[0].g.p   # the engine's own stress equilibrium sets the unit of the margin's stress coupling
+            for nd in cl_nodes + ([cl_site] if site else []):
+                nd.s_eq = stress_equilibrium(gp.delta, gp.alpha_s, gp.beta_s)
     targets = [hpa_target(base)] * len(scn.clusters)
     energy = dem = done = 0.0
     viol_q = viol_p = viol_h = healthy = 0
@@ -471,6 +477,8 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                 w.metric = w.metric_next
         if uses_gov and t % omni_every == 0:
             if site:
+                if auto:
+                    cl_site.S = max(g.g.x.S for g in govs)
                 _site_closure(scn, cl_site, CL, max(g.g.last_push for g in govs))
             for ci, (c, g) in enumerate(zip(scn.clusters, govs)):
                 load = min(2.0, c.used / max(c.alloc * c.pool.cap, 1e-9)) if c.alloc > 0 else 2.0
@@ -493,6 +501,8 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                         p.cap = 1.0
                         continue
                     if closure:
+                        if auto:
+                            cl_nodes[ci].S = g.g.x.S
                         tgt = cl_nodes[ci].decide(n, p.cores * ALLOC, g.g.last_push, p.min_nodes, p.max_nodes)
                         capn = 1.0
                     tgt = max(p.min_nodes, min(p.max_nodes, tgt))

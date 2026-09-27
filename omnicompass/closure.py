@@ -98,3 +98,97 @@ class ClosureNodes:
             self.calm = 0
             return n - 1
         return n
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Self-calibrating closure law: every margin is derived, none is tuned per workload.
+#
+#   tracker      dual bath with the critically damped alpha-beta relation (Benedict-Bordner): b = a^2 / (2 - a), a = 1/2
+#   noise        sigma^2 = running variance of the tracker's one-step innovation (the deviation bath of Chapter 31)
+#   add horizon  H_add = boot delay + 1 tick: a machine ordered now is serving when the projection arrives
+#   release hor. H_rel = boot delay / park fraction: the energy break-even between keeping a machine parked and booting
+#                it cold again (a parked machine draws park_frac x idle per tick, a cold start draws boot x idle)
+#   boundary     requested cores <= allocatable cores (rho_max = 1, the physical limit); no fixed margin
+#   margin       z(t) sigma sqrt(H): the forecast error over the horizon at confidence z;
+#                z(t) = z95 x max(1, S / S*), S the six-state engine's stress (equation 6) and S* its equilibrium,
+#                delta - alpha_s S* - (3/4) beta_s S*^2 = 0: the engine widens the margin when it is stressed
+#   Gc (add)     if projected peak over H_add + margin > n c: add ceil((peak + margin) / c) - n machines
+#   G0 (release) one machine, only if projected peak over H_rel + margin <= (n - 1) c, after the turn (v <= 0), and while
+#                the engine's push <= push_release; the released machine is parked; parked machines beyond what the
+#                projection over H_rel needs are powered off
+# ---------------------------------------------------------------------------------------------------------------------
+@dataclass(frozen=True)
+class AutoClosureLaw:
+    boot: int = 6                  # boot delay of a cold machine (ticks): a property of the plant
+    park_frac: float = 0.25        # parked power / idle power: a property of the hardware
+    z95: float = 1.6449            # one-sided 95% normal quantile
+    a: float = 0.5
+    push_release: float = 0.2
+    site: bool = False
+    # read by the plant (same interface as ClosureLaw)
+    tone: bool = True
+    rho_max: float = 1.0
+    delta: float = 0.0
+
+    @property
+    def b(self) -> float:
+        return self.a * self.a / (2.0 - self.a)
+
+    @property
+    def H_add(self) -> int:
+        return self.boot + 1
+
+    @property
+    def H_rel(self) -> int:
+        return int(math.ceil(self.boot / self.park_frac))
+
+    @property
+    def tone_H(self) -> int:
+        return self.H_rel
+
+
+def stress_equilibrium(delta: float, alpha_s: float, beta_s: float) -> float:
+    """Positive root of delta - alpha_s S - (3/4) beta_s S^2 = 0 (the engine's stress equilibrium, equation 6)."""
+    qa = 0.75 * beta_s
+    return (-alpha_s + math.sqrt(alpha_s * alpha_s + 4.0 * qa * delta)) / (2.0 * qa) if qa > 0 else delta / alpha_s
+
+
+class AutoClosureNodes:
+    def __init__(self, law: AutoClosureLaw = AutoClosureLaw(), s_eq: float = None):
+        self.law = law; self.L = None; self.v = 0.0; self.s2 = 0.0; self.n_obs = 0
+        self.S = 0.0; self.s_eq = s_eq if s_eq else stress_equilibrium(0.5, 0.12, 0.10)
+        self.hist = []
+
+    def observe(self, r: float, dt: float = 1.0) -> None:
+        a, b = self.law.a, self.law.b
+        if self.L is None:
+            self.L = r; return
+        pred = self.L + self.v * dt
+        e = r - pred
+        self.n_obs += 1
+        w = max(1.0 / self.n_obs, 0.02)            # running mean first, then a 50-tick exponential window
+        self.s2 = (1.0 - w) * self.s2 + w * e * e
+        self.L = pred + a * e
+        self.v = self.v + b * e / dt
+
+    def z(self) -> float:
+        return self.law.z95 * max(1.0, self.S / self.s_eq) if self.s_eq > 0 else self.law.z95
+
+    def peak(self, H: int) -> float:
+        if self.L is None:
+            return 0.0
+        return max(self.L + self.v * tau for tau in range(0, H + 1)) + self.z() * math.sqrt(self.s2 * H)
+
+    def reserve(self, c: float) -> int:
+        return int(math.ceil(max(self.peak(self.law.H_rel), 0.0) / c - 1e-9))
+
+    def decide(self, n: int, c: float, push: float, n_min: int, n_max: int) -> int:
+        L = self.law
+        if self.L is None:
+            return n
+        need = int(math.ceil(max(self.peak(L.H_add), 0.0) / c - 1e-9))
+        if n <= 0 or need > n:
+            return int(min(n_max, max(n_min, need)))
+        if n - 1 >= n_min and self.peak(L.H_rel) <= (n - 1) * c and self.v <= 0.0 and push <= L.push_release:
+            return n - 1
+        return n
