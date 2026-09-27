@@ -1,6 +1,6 @@
 # Omni-Compass: buyer edition
 
-Commit 2f64761. Every number below is generated from result files in the repository by `python tools/buyer_report.py`. Simulated results use the repository's fleet plant; live results come from real Kubernetes (kind) in GitHub Actions. Competitors are reproduced from their public documentation, not their binaries.
+Commit 3d2bf96. Every number below is generated from result files in the repository by `python tools/buyer_report.py`. Simulated results use the repository's fleet plant; live results come from real Kubernetes (kind) in GitHub Actions. Competitors are reproduced from their public documentation, not their binaries.
 
 ## What Omni-Compass is
 
@@ -118,6 +118,15 @@ Machines dying, load spikes, crash-looping services and noisy neighbours were in
 - **Coordination:** pods move first, and a machine move opposite to the pod move is vetoed. Controller contradictions per day (fighting, or a reversal within one boot time):
   - web: 2.10 to 0.10;
   - four-cluster: 5.30 to 1.03, below Kubernetes' 2.10.
+
+**Coordination, confirmatory on fresh seeds 712001-712100** (frozen first in `tuning/COORD_PREREGISTRATION.json`, same 364 cells, same Holm rule): 151 better, 173 equal, 40 worse.
+
+| Workload | Better | Equal | Worse | Contradictions per day: Omni-Compass / Kubernetes |
+|---|---:|---:|---:|---|
+| Web services | 40 | 41 | 10 | 0.07 / 0.52 |
+| Four clusters, one site | 45 | 37 | 9 | 0.56 / 1.77 |
+| Batch jobs | 35 | 49 | 7 | 0.11 / 0.00 |
+| GPU training | 31 | 46 | 14 | 0.11 / 0.04 |
 
 **Mechanism ablation** (`tuning/ABLATION.json`, fresh seeds 711001-711030): each part of the law removed in turn, against the full law. Listed: the gauges that get significantly worse (95% interval excludes 0, more than 0.5%).
 
