@@ -45,9 +45,9 @@ def main(root):
             half = T95.get(len(d) - 1, 1.96) * (d.std(ddof=1) / math.sqrt(len(d))) if len(d) > 1 else float("nan")
             sig = len(d) > 1 and (d.mean() - half > 0 or d.mean() + half < 0)
             better = (d.mean() < 0) == (k in LOWER_BETTER)
-            ch = (ob - nb) / abs(nb) * 100 if abs(nb) > 1e-12 else 0.0
+            ch = (ob - nb) / abs(nb) * 100 if abs(nb) > 1e-12 else None
             out["paired"][a][k] = {"native": nb, "omni": ob, "diff": float(d.mean()), "ci95": [float(d.mean() - half), float(d.mean() + half)], "significant": bool(sig)}
-            L.append(f"| {k} | {nb:.4g} | {ob:.4g} | {ch:+.1f}% | {d.mean() - half:+.4g} to {d.mean() + half:+.4g} | "
+            L.append(f"| {k} | {nb:.4g} | {ob:.4g} | {f"{ch:+.1f}%" if ch is not None else f"{ob - nb:+.3g} (native is 0)"} | {d.mean() - half:+.4g} to {d.mean() + half:+.4g} | "
                      f"{('yes, better' if better else 'yes, worse') if sig else 'no'} |")
         L.append("")
     (root / "LIVE_REPS.json").write_text(json.dumps(out, indent=1)); (root / "LIVE_REPS.md").write_text("\n".join(L))

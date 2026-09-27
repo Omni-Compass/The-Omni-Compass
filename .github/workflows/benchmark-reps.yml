@@ -34,7 +34,7 @@ jobs:
         with: {name: "bench-${{ matrix.arm }}-${{ matrix.rep }}", path: "bench-${{ matrix.arm }}-${{ matrix.rep }}"}
   aggregate:
     needs: run
-    if: always()
+    if: always() && needs.run.result != 'skipped'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

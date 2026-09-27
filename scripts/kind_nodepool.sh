@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Node-pool actuator for a kind cluster: keep exactly N worker nodes schedulable.
 # Scale-down cordons and drains specific workers (fewest non-DaemonSet pods first) so their pods are rescheduled;
-# scale-up uncordons parked workers. A parked kind node is still a running container: it is counted as off because it
+# scale-up uncordons parked workers. Drains go through the eviction API, so PodDisruptionBudgets are honoured: a drain
+# that would take the last ready replica times out after DRAIN_TIMEOUT and the node goes back into service.
+# A parked kind node is still a running container: it is counted as off because it
 # carries no workload, as a removed node in a cloud node pool would. Usage: bash scripts/kind_nodepool.sh N
 set -euo pipefail
 KUBECTL="${KUBECTL:-kubectl}"   # kind_bench.sh sets this to scripts/kubectl_omni.sh (least privilege)
@@ -26,7 +28,7 @@ elif (( want < n )); then
     done | sort -n | head -n $((n - want)) | awk '{print $2}')
   for node in "${order[@]}"; do
     $KUBECTL cordon "$node"
-    if ! $KUBECTL drain "$node" --ignore-daemonsets --delete-emptydir-data --timeout=120s; then
+    if ! $KUBECTL drain "$node" --ignore-daemonsets --delete-emptydir-data --timeout="${DRAIN_TIMEOUT:-120s}"; then
       echo "drain of $node failed; returning it to service" >&2
       $KUBECTL uncordon "$node"
     fi

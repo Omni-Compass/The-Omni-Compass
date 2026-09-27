@@ -20,6 +20,7 @@ ARM="${ARM:?set ARM=native, ARM=omni (B: Omni on top) or ARM=strict (C: Omni dec
 STRICT=""; [ "$ARM" = "strict" ] && STRICT="--strict-replicas"
 OUT_DIR="${OUT_DIR:-bench_$ARM}"; DURATION="${DURATION:-1200}"; WARMUP="${WARMUP:-120}"
 LOAD_STEPS="${LOAD_STEPS:-1 2 3 1 2 1}"
+export DRAIN_TIMEOUT="${DRAIN_TIMEOUT:-45s}"   # a drain blocked by the disruption budget gives up and the node stays in service
 IDLE_W="${IDLE_W:-100}"; DYN_W="${DYN_W:-150}"; export IDLE_W DYN_W
 mkdir -p "$OUT_DIR"
 WORKERS=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' --no-headers | wc -l)
@@ -48,7 +49,13 @@ kubectl -n kube-system patch deployment coredns -p "$pin"
 kubectl -n kube-system rollout status deployment/metrics-server --timeout=300s
 kubectl -n kube-system rollout status deployment/coredns --timeout=300s
 kubectl apply -f deploy/kind/demo.yaml
+kubectl apply -f deploy/kind/bench-serving.yaml
 kubectl rollout status deployment/php-apache --timeout=300s
+EDGE_IP=$(kubectl get nodes -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+PROBE_URL="http://${EDGE_IP}:30080/"
+for i in $(seq 1 30); do curl -fsS -m 5 "$PROBE_URL" >/dev/null && break; sleep 2; done
+curl -fsS -m 5 "$PROBE_URL" >/dev/null || { echo "serving path $PROBE_URL not reachable"; exit 1; }
+echo "probe_url=$PROBE_URL (Service via kube-proxy on the control plane)" | tee -a "$OUT_DIR/preflight.txt"
 kubectl create configmap omni-security --from-literal=hold=false --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f deploy/kind/loadgen.yaml
 kubectl rollout status deployment/load-generator --timeout=300s
@@ -97,11 +104,9 @@ step_s=$(( DURATION / ${#steps[@]} ))
   done ) > "$OUT_DIR/load_schedule.log" 2>&1 &
 load_pid=$!
 
-# The probe reaches the app through kubectl port-forward, which attaches to ONE pod. When that pod is moved (a drain,
-# a scale-down) the tunnel dies; restart it at once, on both arms alike, and log each restart so tunnel gaps are visible.
-( while true; do kubectl port-forward svc/php-apache 18080:80 >/dev/null 2>&1; echo "$(date -u +%H:%M:%S) port-forward restarted" >> "$OUT_DIR/port_forward.log"; sleep 0.2; done ) &
-pf_pid=$!; sleep 3
-INTERVAL=5 DURATION="$DURATION" python scripts/latency_probe.py http://127.0.0.1:18080/ "$OUT_DIR/latency.csv" &
+# The probe reaches the app through the Service (NodePort on the control plane, deploy/kind/bench-serving.yaml), so a
+# drain that moves a pod is seen exactly as a client sees it: kube-proxy sends the request to another ready endpoint.
+INTERVAL=5 DURATION="$DURATION" python scripts/latency_probe.py "$PROBE_URL" "$OUT_DIR/latency.csv" &
 probe_pid=$!
 omni_pid=""
 if [ "$ARM" != "native" ]; then
@@ -121,8 +126,7 @@ fi
 ACTIVE_ONLY=1 INTERVAL=15 DURATION="$DURATION" POWER_CMD="bash scripts/kind_power.sh" OUT="$OUT_DIR/capture.csv" \
   bash fleet/capture/kube_capture.sh
 wait "$load_pid" || true
-wait "$probe_pid" || true; kill "$pf_pid" 2>/dev/null || true; pkill -f "port-forward svc/php-apache" 2>/dev/null || true
-echo "port-forward restarts: $(wc -l < "$OUT_DIR/port_forward.log" 2>/dev/null || echo 0)"
+wait "$probe_pid" || true
 [ -n "$omni_pid" ] && { wait "$omni_pid" || true; }
 kubectl get nodes -o wide > "$OUT_DIR/nodes_end.txt"
 kubectl get hpa php-apache -o json > "$OUT_DIR/hpa_end.json"

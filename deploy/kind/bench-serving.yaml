@@ -1,0 +1,21 @@
+# Serving path for the live benchmark (applied in BOTH arms by scripts/kind_bench.sh).
+# 1. A NodePort in front of php-apache. The response-time probe reaches the app the way a client does: through the
+#    Service, via kube-proxy on the control-plane node (never parked), load-balanced across every ready endpoint.
+#    The earlier probe used `kubectl port-forward`, which pins ONE pod; when a drain moved that pod the tunnel hung
+#    and every later request counted as failed, in the arm that drains only (results/live/LIVE_REPS_PROBE_DEFECT.md).
+# 2. A PodDisruptionBudget, the standard Kubernetes guard for voluntary disruption: a drain may never evict the last
+#    ready replica. Kubernetes alone never evicts in this benchmark, so the budget binds only when nodes are drained.
+apiVersion: v1
+kind: Service
+metadata: {name: php-apache-edge, labels: {run: php-apache}}
+spec:
+  type: NodePort
+  ports: [{port: 80, nodePort: 30080}]
+  selector: {run: php-apache}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: {name: php-apache}
+spec:
+  minAvailable: 1
+  selector: {matchLabels: {run: php-apache}}
