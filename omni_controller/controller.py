@@ -390,7 +390,7 @@ class Controller:
             if env:
                 levels[f"{o}_ceiling"] = env[1]
         forced = obs["queue_ratio"] > 0.0 or s["pending"] > 0
-        self.audit({"compass": self.compass.read(d["state"]["E"], d["state"]["S"], levels, moves, forced)})
+        self.audit({"compass": self.compass.read(d["state"]["E"], d["state"]["S"], levels, moves, forced, x=self.g.x, p=self.g.p)})
         out = self.audit({"decision": {"nodes_observed": n, "nodes_recommended": rec_n, "law": "closure" if self.cl is not None else "governor", "hpa_target_recommended": round(rho, 3),
                                        "E": d["state"]["E"], "U": d["state"]["U"], "pending": s["pending"],
                                        "power_cap": round(float(d["power_cap"]), 3), "change_permitted": bool(d["change_permitted"]),

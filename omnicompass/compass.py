@@ -29,7 +29,8 @@ The axle is the structural basin S. Its rest point S* solves equation (6): delta
 Closing the circle (Chapter 1, the Unified Circle Principle):
     X' = G(X),  X(0) in Omega           Omega is the living band: every level inside [0.05, 0.95]
     G(X) . n(X) <= 0 on the boundary    at a boundary the next move points inward, never outward
-    grad L(X) . G(X) <= 0               the ledger L = E^2 / 2 + Phi(S) - Phi(S*) descends when nothing is forcing it
+    grad L(X) . G(X) <= 0               the ledger L, the engine's composite storage over all six states
+                                        (omnicompass.storage.composite_V), descends when nothing is forcing it
     => lim X(t) in M*                   the state settles into the basin
 I check all three every decision and report them. The ledger may rise while outside load forces me; I report that as
 forcing, never hide it.
@@ -106,7 +107,9 @@ class Compass:
     trail: List[str] = field(default_factory=list)
 
     def read(self, E: float, S: float, levels: Dict[str, float] = None, moves: Dict[str, float] = None,
-             forced: bool = False) -> Dict:
+             forced: bool = False, x=None, p=None) -> Dict:
+        """x, p: the engine's full state and parameters; with them the ledger is the composite storage of all six
+        states. Without them it is the storage of the two the reading names, E^2/2 + Phi(S) - Phi(S*)."""
         e = E / max(self.E_max, 1e-12)
         raw = 0.0 if self.prev_e is None else e - self.prev_e
         self.scale = raw * raw if self.scale == 0.0 else 0.9 * self.scale + 0.1 * raw * raw
@@ -118,7 +121,14 @@ class Compass:
         pt, meaning = POINTS[int(((h + 22.5) % 360) // 45)]
         letter = RIM[int(((h + 7.5) % 360) // 15)]
         s_star = axle(self.alpha_s, self.beta_s, self.delta)
-        L = 0.5 * e * e + phi(S, self.alpha_s, self.beta_s, self.delta) - phi(s_star, self.alpha_s, self.beta_s, self.delta)
+        parts = {}
+        if x is not None and p is not None:
+            from omnicompass.storage import composite_V
+            cv = composite_V(x, p, 1)
+            L = cv["V"]; parts = {k: round(v, 5) for k, v in cv.items() if k.startswith("V_")}
+            s_star = cv["S_star"]
+        else:
+            L = 0.5 * e * e + phi(S, self.alpha_s, self.beta_s, self.delta) - phi(s_star, self.alpha_s, self.beta_s, self.delta)
         dL = None if self.prev_L is None else L - self.prev_L
         levels = levels or {}; moves = moves or {}
         omega = in_omega(levels)
@@ -129,7 +139,7 @@ class Compass:
         r = {"heading_deg": round(h, 1), "letter": letter, "point": pt, "meaning": meaning,
              "quadrant": q, "stroke": QUADRANTS[q], "e": round(e, 4), "rate": round(rate, 3),
              "axle_S": round(S, 4), "axle_rest": round(s_star, 4), "ledger": round(L, 5),
-             "ledger_step": None if dL is None else round(dL, 5),
+             "ledger_step": None if dL is None else round(dL, 5), "ledger_parts": parts,
              "descent": None if dL is None else (dL <= 1e-9 or forced), "forced": forced,
              "omega_held": all(omega.values()) if omega else True, "inward": all(inw.values()) if inw else True,
              "outside": outside, "returning": heading_in,

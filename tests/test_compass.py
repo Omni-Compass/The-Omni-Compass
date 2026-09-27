@@ -39,6 +39,18 @@ def main():
     assert all(x <= 1e-9 for x in steps), max(steps)
     print("compass: 8 points and 24 letters where the face puts them; axle solves (6); 2 turns = 2 circles closed;"
           " inward on both boundaries; ledger descends on an unforced return")
+    # the composite ledger over all six states descends at every step while the engine's own regulation (equation (2),
+    # target basin +1) closes the circle from far outside it, with no outside forcing
+    from dataclasses import asdict
+    from omnicompass.core import State, Params, macro_step
+    from omnicompass.adapter import STACK_PARAMS
+    pp = Params(**asdict(STACK_PARAMS)); xx = State(E=0.6, U=0.2, I_U=0.8, S=0.5, B=0.3, B_dot=0.1)
+    cc = Compass(E_max=pp.E_max, alpha_s=pp.alpha_s, beta_s=pp.beta_s, delta=pp.delta); tt = 0.0; Ls = []
+    for _ in range(60):
+        r = cc.read(xx.E, xx.S, x=xx, p=pp); Ls.append(r["ledger"]); assert set(r["ledger_parts"]) == {"V_U", "V_W", "V_E", "V_S", "V_I", "V_B"}
+        xx, _ = macro_step(xx, pp, tt, target=1); tt += 0.1
+    assert all(b <= a + 1e-9 for a, b in zip(Ls, Ls[1:])) and Ls[-1] < 0.05 * Ls[0], (Ls[0], Ls[-1])
+    print(f"composite ledger: {Ls[0]:.1f} -> {Ls[-1]:.2f} over 60 regulated steps, no rise")
     print("PASS test_compass")
 
 

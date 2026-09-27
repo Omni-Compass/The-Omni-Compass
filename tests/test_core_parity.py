@@ -67,6 +67,20 @@ def main():
             mism += int(d > 5e-12 and d / max(abs(ev), 1e-300) > 5e-11)
     print(f"fixture parity (500 frozen fixtures): max |diff| = {mx:.3e}, mismatches = {mism}")
     assert mism == 0
+    # the composite storage (the ledger that closes the circle) against the reference certificate
+    rng = np.random.default_rng(11); worst = 0.0
+    for _ in range(5000):
+        xs = C.sample_state(rng); ps = C.sample_params(rng); sg = 1 if rng.uniform() < 0.5 else -1
+        try:
+            ref = E.composite_practical_lyapunov_value(E.OCState(**xs.__dict__), E.OCParameters(**ps.__dict__), sg)
+        except RuntimeError:
+            continue
+        from omnicompass.storage import composite_V
+        got = composite_V(xs, ps, sg)
+        for k in ("V", "V_U", "V_W", "V_E", "V_S", "V_I", "V_B"):
+            worst = max(worst, abs(got[k] - ref[k]) / max(1.0, abs(ref[k])))
+    print(f"composite storage parity (5000 states): max rel diff {worst:.2e}")
+    assert worst <= 1e-9
     print("PASS test_core_parity")
 
 
