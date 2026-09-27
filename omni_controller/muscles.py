@@ -322,6 +322,11 @@ class Muscles:
         enforces it. The deployment template is not changed, so no rollout is triggered."""
         if not obs.get("slo_clean", True):
             cap = 1.0  # SLO reflex: no power capping while service is (or was just) over its response-time target
+        if getattr(self.a, "latency_file", ""):
+            # a request-served workload: its work is set by arrivals, not by the cap, so throttling it saves no energy
+            # (the same CPU-seconds run later) and only adds queueing wait (live set 9: every return to a clean SLO
+            # capped the pods and the next decision breached, 414 -> 598, 464 -> 798 ms). Energy comes from machines.
+            cap = 1.0
         for target in filter(None, getattr(self.a, "cap_deployments", "").split(",")):
             ns, name = ref(target)
             dep = self.k.get("get", "deployment", name, "-n", ns, "-o", "json")

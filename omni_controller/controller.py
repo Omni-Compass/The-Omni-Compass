@@ -81,24 +81,6 @@ def snapshot(k: Kube, active_only: bool = False):
     return {"nodes": len(ready), "alloc_m": alloc, "req_m": req, "used_m": used, "pending": pending, "hpas": hpas}
 
 
-def queue_matched_target(busy, orig_u, cap_u):
-    """Highest CPU target u (orig_u <= u <= cap_u) whose M/M/c queueing wait at the resulting replica count is no longer
-    than the wait the operator's own target orig_u gives at the same load (Sakasegawa, as fleet/sim_slo.py): the same
-    latency promise, fewer pods only where the service is large enough for the square-root staffing effect."""
-    import math as _m
-    if busy <= 1e-9 or cap_u <= orig_u:
-        return orig_u
-    def wait(u):
-        c = max(1, int(_m.ceil(busy / u - 1e-9))); x = min(0.99, busy / c)
-        return x ** (_m.sqrt(2.0 * (c + 1.0)) - 1.0) / (c * (1.0 - x))
-    ref, best, u = wait(orig_u), orig_u, orig_u
-    while u + 0.01 <= cap_u + 1e-9:
-        u += 0.01
-        if wait(u) <= ref + 1e-12:
-            best = u
-    return best
-
-
 def cpu_target(h):
     for i, m in enumerate(h["spec"].get("metrics", [])):
         if m.get("type") == "Resource" and m["resource"]["name"] == "cpu" and "averageUtilization" in m["resource"]["target"]:
@@ -318,13 +300,10 @@ class Controller:
                     continue
                 ns, name = h["metadata"]["namespace"], h["metadata"]["name"]
                 orig = int(h["metadata"].get("annotations", {}).get(ANNOTATION, cur))
-                st = h.get("status", {})
-                util = next((m["resource"].get("current", {}).get("averageUtilization") for m in st.get("currentMetrics", []) or []
-                             if m.get("type") == "Resource" and m["resource"].get("name") == "cpu"), None)
-                busy = (int(st.get("currentReplicas", 0) or 0) * util / 100.0) if util is not None else 0.0
-                # queue-matched: the engine's rho* is the ceiling; the operator's own latency promise is the floor
-                u = rho if rho < orig / 100.0 else queue_matched_target(busy, orig / 100.0, rho)   # more headroom: always allowed
-                want = int(round(100 * u))
+                # more headroom is always allowed; less never: at a given load fewer pods always means a longer M/M/c wait
+                # (no target above the operator's keeps the wait), so a raise only spends latency (live set 9: +27% p95).
+                # Omni on top earns its keep on machines, not by packing the operator's pods tighter
+                want = int(round(100 * min(rho, orig / 100.0)))
                 want_h = want if obs["slo_clean"] else min(want, orig)
                 if abs(cur - want_h) < self.a.min_target_change and not (not obs["slo_clean"] and cur > orig):
                     continue
