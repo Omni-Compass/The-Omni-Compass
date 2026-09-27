@@ -106,7 +106,11 @@ class Controller:
             from omnicompass.closure import ClosureLaw, ClosureNodes
             law = json.load(open(a.closure))
             law = law.get("setting", law).get("closure", law)
-            self.cl = ClosureNodes(ClosureLaw(**{k: v for k, v in law.items() if k != "site"}))
+            law = {k: v for k, v in law.items() if k != "site"}
+            # live decisions are 60 s apart, not simulator ticks: a rise the release band absorbs over the release horizon
+            # does not veto a release (derived from the band itself, no new constant)
+            law.setdefault("turn_rise", law.get("delta_rel", -1.0) if law.get("delta_rel", -1.0) >= 0 else law.get("delta", 0.05))
+            self.cl = ClosureNodes(ClosureLaw(**law))
         self.lp_hist = []
         self.cmd_nodes = None          # efferent record: the node count last commanded (proprioception reads it back)
         self.cmd_hpa = {}              # efferent record: HPA targets last written
@@ -254,12 +258,6 @@ class Controller:
         d = self.g.step(obs, 0)
         floor = max(int(math.ceil(s["req_m"] * (1.0 + self.a.headroom) / per_node)) if s["req_m"] > 0 else self.a.min_nodes, int(math.ceil(s["used_m"] / per_node)))
         rec_n = max(self.a.min_nodes, min(self.a.max_nodes, max(self.rec_n + int(d["node_delta"]), floor)))
-        if self.cl is not None:
-            # the benchmarked law drives the machines: the closure law on requested cores (omnicompass/closure.py), the
-            # scheduling floor stays underneath it
-            self.cl.observe(s["req_m"] / 1000.0)
-            cl_n = self.cl.decide(n, per_node / 1000.0, self.g.last_push, self.a.min_nodes, self.a.max_nodes)
-            rec_n = max(self.a.min_nodes, min(self.a.max_nodes, max(cl_n, floor)))
         rho = max(0.5, min(0.95, float(d["demand"])))
         from omnicompass.nervous_system import from_governor, node_release_gate
         mode = "autopilot" if self.a.mode in ("target", "nodepool") else "observe"
@@ -274,6 +272,14 @@ class Controller:
         self.gn.nodes = self.rec_n; self.gn.current_cap = 1.0
         dn = self.gn.step(obs_n, 0)
         auth_n = from_governor(self.gn, obs_n, dn, mode=mode)
+        if self.cl is not None:
+            # the benchmarked law drives the machines: the closure law on requested cores (omnicompass/closure.py), the
+            # scheduling floor stays underneath it
+            self.cl.observe(s["req_m"] / 1000.0)
+            # the machine organ's own pressure (as its release gate): pods waiting and live breaches, not modelled heat
+            # or the whole body's latency push, which a machine release does not cause
+            cl_n = self.cl.decide(n, per_node / 1000.0, self.gn.last_push, self.a.min_nodes, self.a.max_nodes)
+            rec_n = max(self.a.min_nodes, min(self.a.max_nodes, max(cl_n, floor)))
         scaling_up = any(int(h.get("status", {}).get("desiredReplicas", 0) or 0) > int(h.get("status", {}).get("currentReplicas", 0) or 0)
                          for h in s["hpas"])
         gate = node_release_gate(n, per_node, s["used_m"], s["pending"], scaling_up, breach_now, rho, auth_n,

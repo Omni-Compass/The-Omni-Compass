@@ -54,6 +54,10 @@ class ClosureLaw:
                                # boots one (traffic shift carries the load; a wake costs no start, a boot costs one)
     dwell: int = 0             # release only after this many consecutive calm decisions (resource-aware envelope,
                                # Proposition 2: no release outside the calm set; 0 = no dwell requirement)
+    turn_rise: float = 0.0     # the turning-point veto binds only for a rise larger than this share of one machine over
+                               # the release horizon (v * H_rel > turn_rise * c); 0 = any rise vetoes (the benchmarked
+                               # law). A rise smaller than the release band cannot carry demand through the band, so it
+                               # is no reason to hold a machine (live: one early pod left v > 0 for a whole 15-min run)
 
 
 class ClosureNodes:
@@ -96,7 +100,7 @@ class ClosureNodes:
         peak_rel = max(self.fwd_max(L.H_rel), 0.0) + L.z * math.sqrt(self.s2 * max(1, L.H_rel)) * L.a
         band = L.delta if L.delta_rel < 0 else L.delta_rel
         calm = n - 1 >= n_min and peak_rel / ((n - 1) * c) <= L.rho_max - band \
-            and (not L.turn or self.v <= 0.0) and push <= L.push_release
+            and (not L.turn or self.v * L.H_rel <= L.turn_rise * c) and push <= L.push_release
         self.calm = self.calm + 1 if calm else 0
         if calm and self.calm > L.dwell:
             self.calm = 0
