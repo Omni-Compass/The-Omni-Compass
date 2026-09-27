@@ -1,0 +1,192 @@
+{
+ "note": "THEORETICAL SIMULATION; hardware/site_exchange.py",
+ "seed": 818181,
+ "scenarios": 24,
+ "budget_frac": 0.7,
+ "means": {
+  "A": {
+   "work": 702.0355351931865,
+   "backlog_min": 0.3333333333333333,
+   "p95_latency_x": 1.0,
+   "energy_kwh": 142.55262588193324,
+   "site_violation_min": 7.875,
+   "peak_kw": 31.98983013971221
+  },
+  "S": {
+   "work": 701.5826775570105,
+   "backlog_min": 25.541666666666668,
+   "p95_latency_x": 1.1793105238806452,
+   "energy_kwh": 117.4505559032156,
+   "site_violation_min": 0.0,
+   "peak_kw": 25.671970104818996
+  },
+  "I": {
+   "work": 702.0355351931865,
+   "backlog_min": 0.125,
+   "p95_latency_x": 1.0,
+   "energy_kwh": 106.73644456585721,
+   "site_violation_min": 1.2916666666666667,
+   "peak_kw": 29.160264638103467
+  },
+  "X": {
+   "work": 702.0355351931865,
+   "backlog_min": 0.375,
+   "p95_latency_x": 1.0,
+   "energy_kwh": 106.35967124704791,
+   "site_violation_min": 0.0,
+   "peak_kw": 27.45786251585639
+  }
+ },
+ "paired_X_vs": {
+  "A": {
+   "work": {
+    "delta": -2.842170943040401e-14,
+    "ci95": [
+     -8.052817671947803e-14,
+     9.473903143468002e-15
+    ],
+    "significant": false
+   },
+   "backlog_min": {
+    "delta": 0.041666666666666664,
+    "ci95": [
+     -0.16666666666666666,
+     0.25
+    ],
+    "significant": false
+   },
+   "p95_latency_x": {
+    "delta": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "significant": false
+   },
+   "energy_kwh": {
+    "delta": -36.19295463488533,
+    "ci95": [
+     -38.1747496406742,
+     -34.29639146576716
+    ],
+    "significant": true
+   },
+   "site_violation_min": {
+    "delta": -7.875,
+    "ci95": [
+     -11.75,
+     -4.375
+    ],
+    "significant": true
+   },
+   "peak_kw": {
+    "delta": -4.531967623855817,
+    "ci95": [
+     -4.813684555659903,
+     -4.244097756148456
+    ],
+    "significant": true
+   }
+  },
+  "S": {
+   "work": {
+    "delta": 0.4528576361761196,
+    "ci95": [
+     0.10721383791078871,
+     0.8853062807494202
+    ],
+    "significant": true
+   },
+   "backlog_min": {
+    "delta": -25.166666666666668,
+    "ci95": [
+     -35.584375,
+     -16.208333333333332
+    ],
+    "significant": true
+   },
+   "p95_latency_x": {
+    "delta": -0.1793105238806452,
+    "ci95": [
+     -0.35612729111367475,
+     -0.07169245057036748
+    ],
+    "significant": true
+   },
+   "energy_kwh": {
+    "delta": -11.090884656167686,
+    "ci95": [
+     -12.915229609260832,
+     -9.314794106437938
+    ],
+    "significant": true
+   },
+   "site_violation_min": {
+    "delta": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "significant": false
+   },
+   "peak_kw": {
+    "delta": 1.785892411037401,
+    "ci95": [
+     1.496517592425147,
+     2.0775684576667484
+    ],
+    "significant": true
+   }
+  },
+  "I": {
+   "work": {
+    "delta": 0.0,
+    "ci95": [
+     -2.3684757858670007e-14,
+     2.842170943040401e-14
+    ],
+    "significant": false
+   },
+   "backlog_min": {
+    "delta": 0.25,
+    "ci95": [
+     0.0,
+     0.6666666666666666
+    ],
+    "significant": false
+   },
+   "p95_latency_x": {
+    "delta": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "significant": false
+   },
+   "energy_kwh": {
+    "delta": -0.3767733188093126,
+    "ci95": [
+     -0.5915756772855403,
+     -0.2046092946459994
+    ],
+    "significant": true
+   },
+   "site_violation_min": {
+    "delta": -1.2916666666666667,
+    "ci95": [
+     -2.4583333333333335,
+     -0.3333333333333333
+    ],
+    "significant": true
+   },
+   "peak_kw": {
+    "delta": -1.702402122247068,
+    "ci95": [
+     -2.312242483561632,
+     -1.1010271502283409
+    ],
+    "significant": true
+   }
+  }
+ }
+}

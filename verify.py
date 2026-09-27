@@ -231,6 +231,8 @@ def main():
     test_muscles.main(); check("live muscles: power cap, heat, security, rollout, batch, CPU frequency and GPU connectors; kill restores; observe writes nothing", True)
     from tests import test_nervous_system
     test_nervous_system.main(50_000 if a.quick else 300_000); check("nervous system: observe executes nothing, kill removes authority, security blocks capacity expansion, stress never grants contraction, envelopes in hardware range, deterministic", True)
+    from tests import test_conveyance
+    test_conveyance.main(); check("conveyance law: budget conserved, Lyapunov ascent, exact exponential convergence, bounds, budget never exceeded", True)
     from tests import test_two_way
     test_two_way.main(); check("two-way nervous system: blind senses never grant contraction, frozen probe detected, failures read as pressure, no new order before the last one landed", True)
     from tests import test_node_release_gate
