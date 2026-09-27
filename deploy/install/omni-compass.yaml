@@ -1,0 +1,55 @@
+# Omni-Compass: one-file install. Stage 1 (shadow): read-only identity, observe mode. It cannot write to the cluster.
+# Image: build with `docker build -f deploy/Dockerfile -t <registry>/omni-compass:<tag> .` and set it below.
+# Kill switch, any time: kubectl -n omni-compass exec deploy/omni-compass -- touch /tmp/omni.kill
+# Promote to stage 2/3 only by the steps in docs/WIRING_GUIDE.md (each adds exactly the permissions that stage needs).
+apiVersion: v1
+kind: Namespace
+metadata: {name: omni-compass}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: omni-compass, namespace: omni-compass}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata: {name: omni-compass-observe}
+rules:
+  - apiGroups: [""]
+    resources: [nodes, pods, configmaps]
+    verbs: [get, list]
+  - apiGroups: [metrics.k8s.io]
+    resources: [nodes, pods]
+    verbs: [get, list]
+  - apiGroups: [autoscaling]
+    resources: [horizontalpodautoscalers]
+    verbs: [get, list]
+  - apiGroups: [apps]
+    resources: [deployments]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata: {name: omni-compass-observe}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: omni-compass-observe}
+subjects: [{kind: ServiceAccount, name: omni-compass, namespace: omni-compass}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: omni-compass, namespace: omni-compass, labels: {app: omni-compass}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: omni-compass}}
+  template:
+    metadata: {labels: {app: omni-compass}}
+    spec:
+      serviceAccountName: omni-compass
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: controller
+          image: omni-compass:local            # <- your registry image
+          args: ["--mode", "observe", "--interval", "60", "--closure", "/app/law/closure.json",
+                 "--audit", "/var/log/omni/audit.jsonl", "--kill-file", "/tmp/omni.kill"]
+          resources: {requests: {cpu: 50m, memory: 128Mi}, limits: {cpu: 500m, memory: 256Mi}}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          volumeMounts: [{name: audit, mountPath: /var/log/omni}, {name: tmp, mountPath: /tmp}]
+      volumes: [{name: audit, emptyDir: {}}, {name: tmp, emptyDir: {}}]

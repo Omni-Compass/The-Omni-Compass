@@ -1,0 +1,1 @@
+Image omni-compass:local built from deploy/Dockerfile (proof build with local kubectl + pre-fetched wheels: this sandbox blocks registry.k8s.io and PyPI inside builds). Container starts, runs as uid 10001, carries /app/law/closure.json.
