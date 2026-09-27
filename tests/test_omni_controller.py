@@ -69,6 +69,15 @@ def main():
     ns = [int(x) for x in marker.read_text().split()] if marker.exists() else []
     assert all(18 <= v <= 22 for v in ns), ns
     print(f"nodepool live: {len(ns)} node commands executed, targets {ns} (within the 2-node step of 20, above the request floor)")
+    # the 15 s floor check: one light read while nothing waits (no full snapshot), a node command once a pod waits
+    S = json.loads(st.read_text()); S["pods"] = [p for p in S["pods"] if p["status"]["phase"] != "Pending"]; st.write_text(json.dumps(S))
+    calls = Path(t) / "calls"; spy = Path(t) / "spy"
+    spy.write_text(f"#!/usr/bin/env bash\necho \"$*\" >> {calls}\nexec {FAKE} \"$@\"\n"); spy.chmod(0o755)
+    c = run(t, "--mode", "nodepool", "--kubectl", str(spy), "--node-scale-cmd", cmd, iterations=1)
+    calls.write_text(""); assert c.floor_step() is None and len(calls.read_text().splitlines()) == 1, calls.read_text()
+    S["pods"].append({"status": {"phase": "Pending"}, "spec": {"containers": [{"resources": {"requests": {"cpu": "1000"}}}]}}); st.write_text(json.dumps(S))
+    calls.write_text(""); assert c.floor_step() is not None and len(calls.read_text().splitlines()) > 1
+    print("floor check: 1 light read while no pod waits; full snapshot and a node command once one does")
     print("PASS test_omni_controller")
 
 

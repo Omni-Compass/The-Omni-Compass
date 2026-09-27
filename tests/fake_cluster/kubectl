@@ -13,7 +13,13 @@ elif a[:2] == ["get", "pods"]:
     if "-l" in a:
         k, v = a[a.index("-l") + 1].split("=", 1)
         items = [p for p in items if p.get("metadata", {}).get("labels", {}).get(k) == v]
-    print(json.dumps({"items": items}))
+    for x in a:
+        if x.startswith("--field-selector=status.phase="):
+            items = [p for p in items if p.get("status", {}).get("phase") == x.split("=", 2)[2]]
+    if "-o" in a and a[a.index("-o") + 1] == "name":
+        print("\n".join(f"pod/{p.get('metadata', {}).get('name', 'p')}" for p in items))
+    else:
+        print(json.dumps({"items": items}))
 elif a[:2] == ["patch", "pod"]:
     log(); p = next(p for p in st["pods"] if p.get("metadata", {}).get("name") == a[2]); ops = json.loads(a[a.index("-p") + 1])
     for op in ops:

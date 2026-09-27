@@ -150,10 +150,13 @@ class Controller:
             self.nodes_restored = True
 
     def strict_step(self, s, obs):
-        """Strict C: Omni-Compass decides each deployment's replica count itself (the HPA no longer decides): replicas =
-        ceil(current x measured utilisation / target utilisation), up at once, down only to the highest recommendation
-        of the last --strict-window decisions; the HPA is pinned to that count (minReplicas = maxReplicas), within its
-        original range; the kill switch restores the original range."""
+        """Strict C: Omni-Compass decides each deployment's replica floor itself: replicas = ceil(current x measured
+        utilisation / target utilisation), up at once, down only to the highest recommendation of the last
+        --strict-window decisions; the HPA's minReplicas is set to that count, within its original range. Growth is never
+        blocked: maxReplicas stays the operator's, so the HPA remains the fast up-reflex between Omni's decisions (a pin
+        min = max froze the count for a whole 60 s decision while the HPA reacts every 15 s: about 45 s late at each load
+        step, ~135 slow probe samples per run against the ~40 that set the 95th percentile, live sets 7 and 9). The kill
+        switch restores the original range."""
         hist = getattr(self, "_rec_hist", {}); self._rec_hist = hist
         for h in s["hpas"]:
             ns, name = h["metadata"]["namespace"], h["metadata"]["name"]
@@ -175,13 +178,17 @@ class Controller:
                 want = min(want, cur)                     # shield I1: no expansion during a security hold
             if RANGE_ANN not in ann:
                 self.k.write(["annotate", "hpa", name, "-n", ns, "--overwrite", f"{RANGE_ANN}={lo0},{hi0}"], "strict: record original replica range")
-            if h["spec"].get("minReplicas") != want or h["spec"]["maxReplicas"] != want:
-                self.k.write(["patch", "hpa", name, "-n", ns, "--type=merge", "-p", json.dumps({"spec": {"minReplicas": want, "maxReplicas": want}})],
-                             f"strict: replicas {cur} -> {want} decided by Omni-Compass (utilisation {util}%, target {orig_t}%)")
+            if h["spec"].get("minReplicas") != want or h["spec"]["maxReplicas"] != hi0:
+                self.k.write(["patch", "hpa", name, "-n", ns, "--type=merge", "-p", json.dumps({"spec": {"minReplicas": want, "maxReplicas": hi0}})],
+                             f"strict: replica floor {cur} -> {want} decided by Omni-Compass (utilisation {util}%, target {orig_t}%); growth stays free up to {hi0}")
 
     def floor_step(self):
         """Fast path between governor decisions: add the nodes that pending and running pod requests need (nodepool mode)."""
         if self.killed() or self.a.mode != "nodepool" or not self.a.node_scale_cmd:
+            return None
+        # one light read every check; the full snapshot (nodes, all pods, node metrics, HPAs) only when a pod waits. The
+        # controller shares CPUs with the service it protects (on kind, one 4-core runner), so its reads cost latency
+        if not str(self.k.get("get", "pods", "-A", "--field-selector=status.phase=Pending", "-o", "name")).strip():
             return None
         s = snapshot(self.k, getattr(self.a, "active_nodes_only", False))
         n = max(1, s["nodes"]); per_node = s["alloc_m"] / n
@@ -383,6 +390,14 @@ def safe_step(c, fails):
 def main(argv=None):
     a = parser().parse_args(argv)
     c = Controller(a); i = 0; fails = 0
+    import atexit, resource
+    t0 = time.time()
+    def overhead():   # the controller's own cost: CPU seconds of this process and every kubectl/script it ran
+        me, kids = resource.getrusage(resource.RUSAGE_SELF), resource.getrusage(resource.RUSAGE_CHILDREN)
+        cpu = me.ru_utime + me.ru_stime + kids.ru_utime + kids.ru_stime
+        c.audit({"overhead": {"cpu_s": round(cpu, 2), "wall_s": round(time.time() - t0, 1),
+                              "cores_mean": round(cpu / max(1e-9, time.time() - t0), 4)}})
+    atexit.register(overhead)
     while a.iterations == 0 or i < a.iterations:
         fails = safe_step(c, fails); i += 1
         if a.iterations == 0 or i < a.iterations:

@@ -8,6 +8,12 @@
 #               (ConfigMap hold), rollout guard, and the latency afferent: 95th-percentile response time over SLO_MS
 #               (declared before the run, default 500 ms) enters the engine as queue pressure. The power cap never goes
 #               below pod usage x 1.3. Parked workers count at standby power (STANDBY_W, default = idle).
+#   ARM=watch   Omni-Compass runs exactly as in ARM=omni (same process, same reads, same senses, same decisions) with
+#               --dry-run: every write is logged, none is executed. Any difference from native in this arm is the cost of
+#               Omni-Compass being there (its CPU on the shared runner, its API reads) plus run-to-run noise, never a
+#               decision. The run fails if one write reached the cluster.
+# The controller runs at the lowest CPU priority (nice 19) in every Omni arm: on a real cluster it runs on its own node,
+# here all seven kind nodes share one 4-core runner with the service being measured.
 # Both arms: a real response-time probe times HTTP requests to php-apache every 5 s (latency.csv).
 # Load schedule: the load-generator replica count steps through LOAD_STEPS, each step DURATION/steps seconds,
 # identical in both arms. Results in $OUT_DIR: capture.csv (every 15 s), nodes timeline, Omni audit (omni arm).
@@ -16,8 +22,9 @@
 # account (deploy/kind/rbac-omni.yaml) with `kubectl auth can-i` receipts for what it can and cannot do; the run fails if
 # Omni made no write or if the kill switch leaves any record behind; SHA256SUMS.txt fingerprints every output file.
 set -euo pipefail
-ARM="${ARM:?set ARM=native, ARM=omni (B: Omni on top) or ARM=strict (C: Omni decides replicas and nodes)}"
+ARM="${ARM:?set ARM=native, ARM=watch (Omni watches, writes nothing), ARM=omni (B: Omni on top) or ARM=strict (C: Omni decides replicas and nodes)}"
 STRICT=""; [ "$ARM" = "strict" ] && STRICT="--strict-replicas"
+DRY=""; [ "$ARM" = "watch" ] && DRY="--dry-run"
 OUT_DIR="${OUT_DIR:-bench_$ARM}"; DURATION="${DURATION:-1200}"; WARMUP="${WARMUP:-120}"
 LOAD_STEPS="${LOAD_STEPS:-1 2 3 1 2 1}"
 export DRAIN_TIMEOUT="${DRAIN_TIMEOUT:-45s}"   # a drain blocked by the disruption budget gives up and the node stays in service
@@ -113,8 +120,8 @@ INTERVAL=5 DURATION="$DURATION" python scripts/latency_probe.py "$PROBE_URL" "$O
 probe_pid=$!
 omni_pid=""
 if [ "$ARM" != "native" ]; then
-  echo "== ARM omni: Omni-Compass driving HPA target + node pool + power sensing"
-  python -m omni_controller.controller --kubectl "$KUBECTL" --mode nodepool --active-nodes-only --interval 60 --floor-interval 15 \
+  echo "== ARM $ARM: Omni-Compass driving HPA target + node pool + power sensing${DRY:+ (dry run: watches only, writes nothing)}"
+  nice -n 19 python -m omni_controller.controller $DRY --kubectl "$KUBECTL" --mode nodepool --active-nodes-only --interval 60 --floor-interval 15 \
     --iterations $(( DURATION / 60 )) --min-nodes 1 --max-nodes "$WORKERS" --max-node-step 1 \
     --node-scale-cmd "bash scripts/kind_nodepool.sh {n}" --node-restore-cmd "bash scripts/kind_nodepool.sh $WORKERS" \
     --power-cmd "bash scripts/kind_power.sh" --site-limit-w "$SITE_LIMIT_W" \
@@ -134,7 +141,18 @@ wait "$probe_pid" || true
 kubectl get nodes -o wide > "$OUT_DIR/nodes_end.txt"
 kubectl get hpa php-apache -o json > "$OUT_DIR/hpa_end.json"
 
-if [ "$ARM" != "native" ]; then
+if [ "$ARM" = "watch" ]; then
+  echo "== watch arm: nothing may have reached the cluster"
+  executed=$(grep '"write"' "$OUT_DIR/audit.jsonl" | grep -c '"dry_run": false' || true)
+  logged=$(grep -c '"write"' "$OUT_DIR/audit.jsonl" || true)
+  echo "writes Omni would have made: $logged; writes executed: $executed" | tee "$OUT_DIR/omni_writes.txt"
+  cpu_limit=$(kubectl get pods -l run=php-apache -o jsonpath='{range .items[*]}{.spec.containers[0].resources.limits.cpu}{"\n"}{end}' | sort -u | tr '\n' ' ' | sed 's/ $//')
+  target=$(kubectl get hpa php-apache -o jsonpath='{.spec.metrics[0].resource.target.averageUtilization}')
+  range_now=$(kubectl get hpa php-apache -o jsonpath='{.spec.minReplicas},{.spec.maxReplicas}')
+  back=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' -o json | jq '[.items[] | select(.spec.unschedulable != true)] | length')
+  echo "cluster after the run: target $target, range $range_now, CPU limits $cpu_limit, workers $back of $WORKERS" | tee "$OUT_DIR/kill_switch.txt"
+  test "$executed" = "0" && test "$target" = "50" && test "$range_now" = "1,10" && test "$cpu_limit" = "500m" && test "$back" = "$WORKERS"
+elif [ "$ARM" != "native" ]; then
   echo "== kill switch"
   touch "$OUT_DIR/kill"
   omni_writes=$(grep -c '"write"' "$OUT_DIR/audit.jsonl" || true)
@@ -162,6 +180,7 @@ if [ "$ARM" != "native" ]; then
   decisions=$(grep -c '"decision"' "$OUT_DIR/audit.jsonl" || true); expected=$(( DURATION / 60 ))
   errors=$(grep -c '"error"' "$OUT_DIR/audit.jsonl" || true)
   echo "== controller: decisions $decisions of $expected, failed decisions or checks $errors"
+  echo "-- controller's own cost (CPU of the process and every command it ran): $(grep '"overhead"' "$OUT_DIR/audit.jsonl" | tail -n 1)"
   echo "-- controller.log (last 40 lines)"; tail -n 40 "$OUT_DIR/controller.log" || true
   echo "-- audit errors (last 10)"; grep '"error"\|"failsafe"' "$OUT_DIR/audit.jsonl" | tail -n 10 || true
   echo "-- decision trail (nodes seen -> recommended | p95 ms | SLO clean | calm | node-view calm | node gate)"

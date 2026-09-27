@@ -1,6 +1,6 @@
 """Strict C on the fake cluster: Omni-Compass sets the replica count from measured utilisation (up at once, down only to
-the highest recent recommendation), pins the HPA to it within the HPA's own range, and the kill switch restores the
-range and leaves no record."""
+the highest recent recommendation), sets it as the HPA's floor within the HPA's own range (growth stays free up to the
+operator's maximum), and the kill switch restores the range and leaves no record."""
 import json, os, sys, tempfile
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]; sys.path.insert(0, str(ROOT))
@@ -19,7 +19,7 @@ def main():
     a = parser().parse_args(["--kubectl", FAKE, "--mode", "target", "--strict-replicas", "--interval", "0", "--audit", str(t / "a.jsonl"), "--kill-file", str(t / "kill")])
     c = Controller(a)
     hpa = lambda: json.loads(p.read_text())["hpas"][0]
-    c.step(); assert (hpa()["spec"]["minReplicas"], hpa()["spec"]["maxReplicas"]) == (6, 6), hpa()["spec"]   # 2 x 150/50
+    c.step(); assert (hpa()["spec"]["minReplicas"], hpa()["spec"]["maxReplicas"]) == (6, 10), hpa()["spec"]   # 2 x 150/50; the max stays free
     assert hpa()["metadata"]["annotations"][RANGE_ANN] == "1,10"
     s = json.loads(p.read_text()); s["hpas"][0]["status"] = {"currentReplicas": 6, "currentMetrics": [{"type": "Resource", "resource": {"name": "cpu", "current": {"averageUtilization": 20}}}]}
     p.write_text(json.dumps(s))
