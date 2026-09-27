@@ -349,12 +349,34 @@ class Muscles:
             cap = min(cap, getattr(self, "_last_cap", 1.0))  # shield I1: no expansion during a security hold
         if abs(cap - getattr(self, "_last_cap", 1.0)) < 0.02:
             return
+        if getattr(self.a, "cpufreq_policy_root", ""):
+            self._cpufreq_sysfs(cap, obs)
         if getattr(self.a, "cpufreq_cmd", "") and self.a.cpu_max_khz:
             lo, hi = self._envelope("cpufreq", [0.0, 1.0]); cap = min(max(cap, lo), hi)
             self._hw(self.a.cpufreq_cmd, self.a.cpu_max_khz * cap, f"cpu_pstate: frequency ceiling {int(self.a.cpu_max_khz * cap)} kHz (cap {cap:.3f})")
         if getattr(self.a, "gpu_power_cmd", "") and self.a.gpu_max_w:
             self._hw(self.a.gpu_power_cmd, self.a.gpu_max_w * cap, f"gpu: power limit {int(self.a.gpu_max_w * cap)} W (cap {cap:.3f})")
         self._last_cap = cap
+
+    def _cpufreq_sysfs(self, cap, obs):
+        """CPU frequency ceiling through the kernel's own policy files (hardware/cpufreq.py).
+        ceiling = min(max(cap, envelope floor, schedutil request), envelope ceiling), where the schedutil request is
+        min(1, 1.25 u) at the current CPU utilisation u: the ceiling never cuts below the frequency schedutil itself
+        would ask for, so it only removes headroom the scheduler is not using. The envelope ceiling (heat) wins last.
+        The first write snapshots every policy; the kill switch restores those exact values."""
+        from hardware.cpufreq import CpuFreqPolicies, schedutil_frequency_invariant
+        if getattr(self, "_cf", None) is None:
+            self._cf = CpuFreqPolicies(self.a.cpufreq_policy_root)
+            snap = self._cf.capture_original()
+            if getattr(self.a, "cpufreq_require_schedutil", False):
+                self._cf.assert_schedutil()
+            self.audit({"cpu_pstate_snapshot": [r.as_dict() for r in snap]})
+        lo, hi = self._envelope("cpufreq", [0.0, 1.0])
+        u = float(obs.get("cpu_util", obs.get("load_ratio", 1.0)))
+        c = min(max(cap, lo, schedutil_frequency_invariant(u)), hi)
+        w = self._cf.apply_cap(c, dry_run=self.a.dry_run)
+        self.audit({"cpu_pstate_write": w, "why": f"cpu_pstate: ceiling {c:.3f} (cap {cap:.3f}, envelope [{lo:.3f}, {hi:.3f}], "
+                                                  f"schedutil request {schedutil_frequency_invariant(u):.3f} at u {u:.3f})"})
 
     def _rollout(self, permitted, rollback):
         for target in filter(None, getattr(self.a, "rollout_guard", "").split(",")):
@@ -440,6 +462,8 @@ class Muscles:
                 self.k.write(["annotate", "deployment", name, "-n", ns, f"{REQ_ANN}-"], "kill switch: remove request record")
 
     def _restore_core(self):
+        if getattr(self, "_cf", None) is not None:
+            self.audit({"cpu_pstate_restore": self._cf.restore(dry_run=self.a.dry_run), "why": "kill switch: exact pre-Omni CPU ceilings"})
         if getattr(self.a, "cpufreq_cmd", "") and self.a.cpu_max_khz and getattr(self, "_last_cap", 1.0) != 1.0:
             self._hw(self.a.cpufreq_cmd, self.a.cpu_max_khz, "kill switch: restore maximum CPU frequency")
         if getattr(self.a, "gpu_power_cmd", "") and self.a.gpu_max_w and getattr(self, "_last_cap", 1.0) != 1.0:
@@ -495,6 +519,8 @@ def add_args(ap):
     ap.add_argument("--batch-power-max", type=float, default=0.9)
     ap.add_argument("--rapl-cmd", default="", help="cpu_pstate pull: prints CPU package watts")
     ap.add_argument("--cpufreq-cmd", default="", help="cpu_pstate push: command template with {khz}")
+    ap.add_argument("--cpufreq-policy-root", default="", help="cpu_pstate push through sysfs policies (e.g. /sys/devices/system/cpu/cpufreq); exact restore on kill")
+    ap.add_argument("--cpufreq-require-schedutil", action="store_true", help="refuse to act unless every policy runs schedutil")
     ap.add_argument("--cpu-max-khz", type=float, default=0.0)
     ap.add_argument("--gpu-query-cmd", default="", help="gpu pull: prints 'watts,celsius'")
     ap.add_argument("--gpu-power-cmd", default="", help="gpu push: command template with {w}")
