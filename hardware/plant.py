@@ -110,10 +110,14 @@ def run(v, family, seed, arm, steps=360):
             s = native if backlog > 0.05 * dem[i] else min(native, max(v.f_min, cap))   # release on backlog
         elif backlog > 0.05 * dem[i]:
             s = 1.0                                       # release on backlog (the engine's guard_queue rule)
-        elif v.kind == "cpu":
-            s = min(max(v.f_min, cap), max(v.f_min, min(1.0, want / max(rho, 1e-3))))
         else:
-            s = max(v.f_min, cap)
+            # C: the setting that delivers the wanted work at the engine's utilisation target rho, from the device's own
+            # performance law (capacity = setting^gamma; gamma = 1 for CPU clocks, the MLPerf-measured gamma for GPU
+            # power limits), and never above the engine's cap (its power and heat reflex). For a GPU the vendor default
+            # is always TDP, so without the sizing term C would equal B (found by the Grok review, WIRING.md).
+            gam = v.gamma if v.kind == "gpu" else 1.0
+            need = max(v.f_min, min(1.0, (want / max(rho, 1e-3)) ** (1.0 / max(gam, 1e-6))))
+            s = min(max(v.f_min, cap), need)
         pw1, capf = device(v, s, 1.0)
         served = min(want, capf)
         u = served / max(capf, 1e-9)

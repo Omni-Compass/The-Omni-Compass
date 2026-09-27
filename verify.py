@@ -231,6 +231,8 @@ def main():
     test_muscles.main(); check("live muscles: power cap, heat, security, rollout, batch, CPU frequency and GPU connectors; kill restores; observe writes nothing", True)
     from tests import test_nervous_system
     test_nervous_system.main(50_000 if a.quick else 300_000); check("nervous system: observe executes nothing, kill removes authority, security blocks capacity expansion, stress never grants contraction, envelopes in hardware range, deterministic", True)
+    from tests import test_hardware_plant
+    test_hardware_plant.main(); check("hardware plant: GPU arms B and C distinct; C = min(engine cap, (want/rho)^(1/gamma)); no lost work, no extra heat", True)
     from tests import test_cpufreq_contract
     test_cpufreq_contract.main(); check("CPU-frequency lever via kernel policy files: schedutil floor, nervous envelope, never above the operator ceiling, exact restore on kill", True)
     from tests import test_strict_replicas
