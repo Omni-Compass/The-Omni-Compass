@@ -45,8 +45,18 @@ def main():
     pyver = ".".join(platform.python_version_tuple()[:2])
     check("reference engine SHA-256", sha(ref) == prov["reference_engine_sha256"])
     reg = json.loads((ROOT / "results" / "PREREGISTRATION.json").read_text())
+    amend = {a["file"]: a for a in json.loads((ROOT / "results" / "LOCK_AMENDMENTS.json").read_text())["amendments"]}
+
+    def locked(f, h):   # unchanged, or changed exactly as a recorded amendment (bug fix) says
+        cur = sha(ROOT / f)
+        if cur == h:
+            return True, ""
+        a = amend.get(f)
+        ok = a is not None and h in a["from_sha256"] and cur == a["to_sha256"]
+        return ok, (f"amended in {a['commit']}: {a['reason'][:60]}..." if ok else "")
     for f, h in reg["sha256"].items():
-        check(f"pre-registered file unchanged (SHA-256): {f}", sha(ROOT / f) == h)
+        ok, note = locked(f, h)
+        check(f"pre-registered file unchanged or amended on record (SHA-256): {f}", ok, note)
     if pyver == reg.get("fingerprint_python", ""):
         check("reference engine program fingerprint", fingerprint(ref) == prov["program_fingerprint"])
         for f, h in reg["code_fingerprint"].items():
@@ -119,12 +129,8 @@ def main():
             check(f"soak test ({mode}) reproduces results/SOAK.json (decisions, failures, state ranges)", same)
     hdr = (ROOT / "cpp" / "include" / "omnicompass" / "governor.hpp").read_text()
     mut = tmp / "mut" / "omnicompass"; mut.mkdir(parents=True)
-    (mut / "core.hpp").write_text((ROOT / "cpp" / "include" / "omnicompass" / "core.hpp").read_text())
-    for extra in ("shield.hpp", "hpa.hpp"):
-        src_h = ROOT / "cpp" / "include" / "omnicompass" / extra
-        if src_h.exists():
-            (mut / extra).write_text(src_h.read_text())
-    (mut / "shield.hpp").write_text((ROOT / "cpp" / "include" / "omnicompass" / "shield.hpp").read_text())
+    for src_h in (ROOT / "cpp" / "include" / "omnicompass").glob("*.hpp"):   # every header, so new modules compile too
+        (mut / src_h.name).write_text(src_h.read_text())
     (mut / "governor.hpp").write_text(hdr.replace("down_dwell{4}", "down_dwell{3}"))
     cxx = shutil.which("g++") or shutil.which("clang++")
     subprocess.run([cxx, "-std=c++20", "-O2", "-I", str(tmp / "mut"), *[str(p) for p in (ROOT / "cpp" / "src").glob("*.cpp")],
@@ -178,7 +184,8 @@ def main():
     freg = json.loads((ROOT / "results" / "fleet" / "PREREGISTRATION.json").read_text())
     for f, h in freg["sha256"].items():
         if f != "omnicompass/adapter.py":
-            check(f"fleet pre-registered file unchanged (SHA-256): {f}", sha(ROOT / f) == h)
+            ok, note = locked(f, h)
+            check(f"fleet pre-registered file unchanged or amended on record (SHA-256): {f}", ok, note)
     from fleet.sim import run as frun, arms_for
     from fleet.harness import make_scenario
     frows = list(csv.DictReader(open(ROOT / "results" / "fleet" / "heldout" / "RUNS.csv")))
