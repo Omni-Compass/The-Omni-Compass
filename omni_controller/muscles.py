@@ -128,6 +128,17 @@ class Muscles:
                          ("cooling", lambda: self._cooling(obs))):
             self._guard(name, fn)
 
+    def _may(self, organ, what):
+        """Nervous-system authority for an organ ("expand", "contract", "admit", "pause"); without it, everything allowed."""
+        a = getattr(self, "auth", None)
+        if not a:
+            return True
+        return bool(a.get("organs", {}).get(organ, {}).get(what, False))
+
+    def _envelope(self, organ, default):
+        a = getattr(self, "auth", None)
+        return (a or {}).get("organs", {}).get(organ, {}).get("envelope", default)
+
     def _guard(self, name, fn):
         """One lever failing is logged and never stops the others (nor the kill switch)."""
         try:
@@ -166,8 +177,8 @@ class Muscles:
                 cur = milli(res.get("requests", {}).get("cpu", base))
                 lim = milli(res.get("limits", {}).get("cpu", "1000000m"))
                 want = int(min(lim, max(self.a.rightsize_min_m, math.ceil(use[pn] * (1.0 + self.a.rightsize_headroom) / 10.0) * 10)))
-                if want < cur and not obs.get("slo_clean", True):
-                    continue  # SLO reflex: never shrink while service is over its target
+                if want < cur and (not obs.get("slo_clean", True) or not self._may("pods", "contract")):
+                    continue  # SLO reflex / nervous system: no shrinking without contraction authority
                 if want > cur and obs.get("security_block", 0.0) > 0.5:
                     continue  # shield I1: no expansion during a security hold
                 if abs(want - cur) < self.a.cap_min_change_m:
@@ -193,14 +204,15 @@ class Muscles:
             rep = int(dep["spec"].get("replicas", 1))
             if q > 0 and rep == 0 and REPL_ANN in ann:
                 self.k.write(["scale", "deployment", name, "-n", ns, f"--replicas={ann[REPL_ANN]}"], f"coldstart: wake to {ann[REPL_ANN]} (queue {q:g})")
-            elif self._idle >= self.a.coldstart_idle and rep > 0:
+            elif self._idle >= self.a.coldstart_idle and rep > 0 and self._may("pods", "contract"):
                 self.k.write(["annotate", "deployment", name, "-n", ns, "--overwrite", f"{REPL_ANN}={rep}"], "coldstart: record replicas")
                 self.k.write(["scale", "deployment", name, "-n", ns, "--replicas=0"], f"coldstart: scale to zero (idle {self._idle} decisions)")
 
     def _batch_pace(self, obs):
         if not getattr(self.a, "batch_pace", False):
             return
-        hot = obs.get("power_stress", 0.0) >= self.a.pace_high or obs.get("thermal", 0.0) >= self.a.pace_heat
+        hot = obs.get("power_stress", 0.0) >= self.a.pace_high or obs.get("thermal", 0.0) >= self.a.pace_heat \
+            or (getattr(self, "auth", None) is not None and self._may("batch", "pause"))
         calm = obs.get("power_stress", 1.0) <= self.a.pace_low and obs.get("thermal", 1.0) < self.a.pace_heat - 0.06
         jobs = self.k.get("get", "jobs", "-A", "-l", PAUSABLE_LABEL, "-o", "json")["items"]
         if hot:
@@ -279,6 +291,7 @@ class Muscles:
         th = obs.get("thermal", 0.5)
         x = min(1.0, max(0.0, (th - 0.5) / 0.5))
         c = round(self.a.cooling_max_c - (self.a.cooling_max_c - self.a.cooling_min_c) * x, 1)
+        c = round(min(c, max(self.a.cooling_min_c, self._envelope("cooling", [0, 99])[1])), 1)   # nervous-system envelope
         if abs(c - getattr(self, "_setpoint", -99.0)) >= 0.5:
             self._hw(cmd.replace("{c}", "{v}"), c, f"cooling: supply-air setpoint {c} C (heat {th:.2f})")
             self._setpoint = c
@@ -337,6 +350,7 @@ class Muscles:
         if abs(cap - getattr(self, "_last_cap", 1.0)) < 0.02:
             return
         if getattr(self.a, "cpufreq_cmd", "") and self.a.cpu_max_khz:
+            lo, hi = self._envelope("cpufreq", [0.0, 1.0]); cap = min(max(cap, lo), hi)
             self._hw(self.a.cpufreq_cmd, self.a.cpu_max_khz * cap, f"cpu_pstate: frequency ceiling {int(self.a.cpu_max_khz * cap)} kHz (cap {cap:.3f})")
         if getattr(self.a, "gpu_power_cmd", "") and self.a.gpu_max_w:
             self._hw(self.a.gpu_power_cmd, self.a.gpu_max_w * cap, f"gpu: power limit {int(self.a.gpu_max_w * cap)} W (cap {cap:.3f})")
@@ -366,6 +380,8 @@ class Muscles:
         if not permitted or obs.get("security_block", 0.0) > 0.5:
             return
         if obs.get("load_ratio", 1.0) >= self.a.batch_load_max or obs.get("power_stress", 1.0) >= self.a.batch_power_max:
+            return
+        if not self._may("batch", "admit"):
             return
         jobs = self.k.get("get", "jobs", "-A", "-l", BATCH_LABEL, "-o", "json")["items"]
         held = sorted((j for j in jobs if j["spec"].get("suspend")), key=lambda j: j["metadata"].get("creationTimestamp", ""))

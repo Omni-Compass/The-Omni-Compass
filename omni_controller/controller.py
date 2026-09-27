@@ -230,6 +230,13 @@ class Controller:
             cl_n = self.cl.decide(n, per_node / 1000.0, self.g.last_push, self.a.min_nodes, self.a.max_nodes)
             rec_n = max(self.a.min_nodes, min(self.a.max_nodes, max(cl_n, floor)))
         rho = max(0.5, min(0.95, float(d["demand"])))
+        from omnicompass.nervous_system import from_governor
+        auth = from_governor(self.g, obs, d, mode="autopilot" if self.a.mode in ("target", "nodepool") else "observe")
+        self.m.auth = auth
+        if rec_n < n and not auth["organs"].get("nodes", {}).get("contract", False):
+            rec_n = n            # nervous system: the node organ has no authority to give machines back now
+        out = self.audit({"authority": {"calm": round(auth["scalars"]["calm"], 3), "execute": auth["execute"],
+                                        "contract": {o: v.get("contract") for o, v in auth["organs"].items()}}})
         out = self.audit({"decision": {"nodes_observed": n, "nodes_recommended": rec_n, "law": "closure" if self.cl is not None else "governor", "hpa_target_recommended": round(rho, 3),
                                        "E": d["state"]["E"], "U": d["state"]["U"], "pending": s["pending"],
                                        "power_cap": round(float(d["power_cap"]), 3), "change_permitted": bool(d["change_permitted"]),

@@ -1,0 +1,116 @@
+"""The supervisory nervous system: one evolving engine state grants authority to every organ family.
+
+Omni-Compass does not replace the specialist controllers. Each keeps its own mechanism:
+- the HPA and VPA size pods;
+- the Cluster Autoscaler and Karpenter size node pools;
+- Linux schedutil picks CPU frequency;
+- NVIDIA DCGM manages GPUs;
+- rollout controllers and routers do their own work.
+
+The nervous system decides, from one shared state, the envelope inside which each of them may act.
+
+Inputs, all from the six-state engine (omnicompass/core.py, via the governor), and nothing tuned per organ:
+  kappa  convergence   = 1 if push <= push_release, else push_release / push. This is the equation-(2) gate made
+                         continuous: the further the engine is from its basin, the less it may give back.
+  h      basin health  = clamp((U - U_gate) / (1 - U_gate), 0, 1)
+  sigma  stress ratio  = S / S*, where S* solves delta - alpha_s S - (3/4) beta_s S^2 = 0 (equation 6)
+  nu     unmet need    = max(0, I_U) (equation 3)
+  calm                 = kappa * h * (1 - clamp(sigma - 1, 0, 1)) * (1 - clamp(nu, 0, 1))
+                         in [0, 1]; 1 means fully settled
+
+Authority per organ:
+  expand     may the organ add capacity or performance. Always yes, except during a security hold.
+  contract   may it give capacity or performance back. Only when calm >= the organ's reversibility threshold
+             (theta_pods 0.5, theta_nodes 0.7: a node costs a boot to reverse) and the SLO is clean.
+  step       fraction of the organ's surplus it may shed this decision. Equals calm.
+  envelope   for continuous organs, the allowed range:
+               cpufreq ceiling (fraction of cpuinfo_max) in [1 - 0.35 calm, 1];
+               GPU power limit (fraction of max) in [1 - 0.30 calm, 1];
+               site power cap in [0.65, 1];
+               traffic-shift fraction in [0, 0.5 calm];
+               cooling supply-air setpoint (C) in [18, 18 + 9 calm].
+             Heat above 0.96 forces the frequency and GPU ceilings down to 1 - 0.35 x excess.
+  batch      admit held work only if calm >= 0.5 and power stress < 0.9; pause pausable work if sigma > 1, power
+             stress >= 0.95, or heat >= 0.96.
+  rollback   the engine's rollback authorisation (S high, U falling, or a security hold).
+
+Global rules, applied last:
+  - observe: every authority is computed and logged; execute is False everywhere.
+  - kill: no authority at all.
+  - security hold: no capacity organ may expand. Cooling is the one protective organ: "expand" there means more
+    cooling, which adds protection and no capacity, so it stays allowed.
+The safety shield (omnicompass/shield.py) stays downstream and can still veto any action.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any, Dict
+
+from omnicompass.closure import stress_equilibrium
+
+ORGANS = ("pods", "nodes", "cpufreq", "gpu", "power", "batch", "routing", "rollback")
+THETA = {"pods": 0.5, "nodes": 0.7, "cpufreq": 0.3, "gpu": 0.3, "power": 0.3, "routing": 0.5}
+
+
+def clamp(x, lo, hi):
+    return lo if x < lo else hi if x > hi else x
+
+
+@dataclass(frozen=True)
+class NervousInputs:
+    E: float; U: float; I_U: float; S: float
+    push: float
+    push_release: float = 0.2
+    U_gate: float = 0.5
+    s_eq: float = 1.0
+    security_block: float = 0.0
+    slo_clean: bool = True
+    power_stress: float = 0.0
+    thermal: float = 0.0
+    rollback: bool = False
+    mode: str = "autopilot"          # "observe" or "autopilot"
+    killed: bool = False
+
+
+def scalars(i: NervousInputs) -> Dict[str, float]:
+    kappa = 1.0 if i.push <= i.push_release else i.push_release / max(i.push, 1e-12)
+    h = clamp((i.U - i.U_gate) / max(1.0 - i.U_gate, 1e-12), 0.0, 1.0)
+    sigma = i.S / i.s_eq if i.s_eq > 0 else 0.0
+    nu = max(0.0, i.I_U)
+    calm = kappa * h * (1.0 - clamp(sigma - 1.0, 0.0, 1.0)) * (1.0 - clamp(nu, 0.0, 1.0))
+    return {"kappa": kappa, "h": h, "sigma": sigma, "nu": nu, "calm": clamp(calm, 0.0, 1.0)}
+
+
+def authority(i: NervousInputs) -> Dict[str, Any]:
+    if i.killed:
+        return {"execute": False, "killed": True, "organs": {}}
+    sc = scalars(i); calm = sc["calm"]
+    sec = i.security_block > 0.5
+    hot = i.thermal >= 0.96
+    excess = clamp(i.thermal - 0.96, 0.0, 1.0)
+    org: Dict[str, Dict[str, Any]] = {}
+    for o, th in THETA.items():
+        org[o] = {"expand": not sec, "contract": calm >= th and i.slo_clean, "step": calm if (calm >= th and i.slo_clean) else 0.0}
+    cf_lo = 1.0 - 0.35 * calm; gp_lo = 1.0 - 0.30 * calm
+    cf_hi = 1.0 - 0.35 * excess if hot else 1.0; gp_hi = 1.0 - 0.35 * excess if hot else 1.0
+    org["cpufreq"]["envelope"] = [min(cf_lo, cf_hi), cf_hi]
+    org["gpu"]["envelope"] = [min(gp_lo, gp_hi), gp_hi]
+    org["power"]["envelope"] = [0.65, 1.0]
+    org["routing"]["envelope"] = [0.0, 0.5 * calm if not sec else 0.0]
+    org["cooling"] = {"expand": True, "protective": True, "contract": calm >= 0.3, "step": calm, "envelope": [18.0, 18.0 + 9.0 * calm]}
+    org["batch"] = {"expand": (not sec) and calm >= 0.5 and i.power_stress < 0.9, "contract": True,
+                    "admit": (not sec) and calm >= 0.5 and i.power_stress < 0.9,
+                    "pause": sc["sigma"] > 1.0 or i.power_stress >= 0.95 or hot, "step": calm}
+    org["rollback"] = {"expand": False, "contract": False, "authorized": bool(i.rollback or sec), "step": 0.0}
+    return {"execute": i.mode == "autopilot", "killed": False, "security_hold": sec, "scalars": sc, "organs": org}
+
+
+def from_governor(g, obs: Dict[str, Any], d: Dict[str, Any] = None, mode: str = None) -> Dict[str, Any]:
+    """Authority from a live omnicompass.adapter.Governor after its step (d = the step's directive)."""
+    x = g.x; p = g.p; L = g.law
+    return authority(NervousInputs(
+        E=x.E, U=x.U, I_U=x.I_U, S=x.S, push=g.last_push, push_release=getattr(L, "push_release", 0.2),
+        U_gate=getattr(L, "U_gate", 0.5), s_eq=stress_equilibrium(p.delta, p.alpha_s, p.beta_s),
+        security_block=float(obs.get("security_block", 0.0)), slo_clean=bool(obs.get("slo_clean", True)),
+        power_stress=float(obs.get("power_stress", 0.0)), thermal=float(obs.get("thermal", 0.0)),
+        rollback=bool((d or {}).get("rollback_authorized", False)), mode=mode or g.mode, killed=g.killed))
