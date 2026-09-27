@@ -7,7 +7,8 @@
 #               power cap (CPU limit of php-apache, enforced by the kernel), heat (harness law on live power), security
 #               (ConfigMap hold), rollout guard, and the latency afferent: 95th-percentile response time over SLO_MS
 #               (declared before the run, default 500 ms) enters the engine as queue pressure. The power cap never goes
-#               below pod usage x 1.3. Parked workers count at standby power (STANDBY_W, default = idle).
+#               below pod usage x 1.3. Parked workers stay powered and Ready at their idle floor (STANDBY_W =
+#               park_frac x idle, never off).
 #   ARM=watch   Omni-Compass runs exactly as in ARM=omni (same process, same reads, same senses, same decisions) with
 #               --dry-run: every write is logged, none is executed. Any difference from native in this arm is the cost of
 #               Omni-Compass being there (its CPU on the shared runner, its API reads) plus run-to-run noise, never a
@@ -29,9 +30,11 @@ OUT_DIR="${OUT_DIR:-bench_$ARM}"; DURATION="${DURATION:-1200}"; WARMUP="${WARMUP
 LOAD_STEPS="${LOAD_STEPS:-1 2 3 1 2 1}"
 export DRAIN_TIMEOUT="${DRAIN_TIMEOUT:-45s}"   # a drain blocked by the disruption budget gives up and the node stays in service
 IDLE_W="${IDLE_W:-100}"; DYN_W="${DYN_W:-150}"
-# a released (cordoned, drained) worker counts as removed from the node pool, 0 W, as the Cluster Autoscaler or Karpenter
-# delete a node in a cloud pool; the same accounting in every arm (Kubernetes alone never releases one here)
-STANDBY_W="${STANDBY_W:-0}"; export IDLE_W DYN_W STANDBY_W
+# no machine is ever powered off: a parked worker (cordoned, drained) stays Ready and powered, gauged down to its idle
+# floor, and is back in service the instant it is uncordoned (muscle tone). It draws park_frac x idle power, the
+# simulator's declared hardware property (fleet/harness.py park_frac = 0.25); the same accounting in every arm
+PARK_FRAC="${PARK_FRAC:-0.25}"
+STANDBY_W="${STANDBY_W:-$(python -c "print($IDLE_W * $PARK_FRAC)")}"; export IDLE_W DYN_W STANDBY_W
 mkdir -p "$OUT_DIR"
 WORKERS=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' --no-headers | wc -l)
 SITE_LIMIT_W=$(( WORKERS * (IDLE_W + DYN_W) ))

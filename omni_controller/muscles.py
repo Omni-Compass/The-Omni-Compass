@@ -517,6 +517,21 @@ def latency_sense(path, window_s, now=None):
     return {"p95": p95, "ok": len(ms), "fail": fails, "age_s": age, "blind": age > 2.0 * window_s or not ms}
 
 
+def latency_window(path, window_s, now=None):
+    """The last window_s seconds of successful probe samples (ms), with the same integrity rule as latency_sense."""
+    import os, time
+    try:
+        age = (now if now is not None else time.time()) - os.path.getmtime(path)
+        rows = list(csv.DictReader(open(path)))
+    except OSError:
+        return {"ms": [], "blind": True}
+    if not rows:
+        return {"ms": [], "blind": True}
+    t_end = float(rows[-1]["elapsed_seconds"])
+    ms = [float(r["latency_ms"]) for r in rows if r.get("ok") == "1" and float(r["elapsed_seconds"]) >= t_end - window_s]
+    return {"ms": ms, "blind": age > 2.0 * window_s or not ms}
+
+
 def latency_p95(path, window_s):
     """95th-percentile response time (ms) of successful requests in the last window_s seconds of the probe CSV."""
     try:

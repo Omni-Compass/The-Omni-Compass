@@ -114,6 +114,9 @@ class Controller:
         self.lp_hist = []
         self.cmd_nodes = None          # efferent record: the node count last commanded (proprioception reads it back)
         self.cmd_hpa = {}              # efferent record: HPA targets last written
+        self.s_floor = None            # bare service time (ms): the fastest a request is served with no queue ahead of it
+        self.reflex = {}               # (ns, name) -> replica floor the pod reflex holds while the queue says it is needed
+        self.pod_cap = {}              # (ns, name) -> request / limit share: what the HPA's target means in queue terms
 
     def audit(self, rec):
         rec = {"time": time.time(), **rec}
@@ -178,6 +181,7 @@ class Controller:
             rec = max(lo0, min(hi0, int(math.ceil(cur * float(util) / orig_t - 1e-9))))
             hh = (hist.get((ns, name), []) + [rec])[-self.a.strict_window:]; hist[(ns, name)] = hh
             want = rec if rec >= cur else max(hh)
+            want = max(want, min(hi0, self.reflex.get((ns, name), 0)))   # the fast pod reflex's floor stands while held
             if obs.get("security_block", 0.0) > 0.5:
                 want = min(want, cur)                     # shield I1: no expansion during a security hold
             if RANGE_ANN not in ann:
@@ -186,10 +190,73 @@ class Controller:
                 self.k.write(["patch", "hpa", name, "-n", ns, "--type=merge", "-p", json.dumps({"spec": {"minReplicas": want, "maxReplicas": hi0}})],
                              f"strict: replica floor {cur} -> {want} decided by Omni-Compass (utilisation {util}%, target {orig_t}%); growth stays free up to {hi0}")
 
+    def pod_reflex(self):
+        """The fast pod reflex (manuscript Section 5.3, preemptive coherence): the HPA's own staffing rule,
+        replicas = current x busy / target, read from the live queue instead of CPU averages a minute old.
+
+        Busy comes from queueing physics: a replica serving requests in processor sharing answers in R = S / (1 - u),
+        so u = 1 - S / R, with S the bare service time (the fastest window seen, requests with no queue ahead) and R the
+        mean response of the last window. The operator's target is a share of the pod's CPU request; the queue runs on
+        its limit, so the same promise in queue terms is target x request / limit. The reflex only raises the replica
+        floor to what that rule needs now and hands it back the moment the queue no longer needs it: no padding, no new
+        target, the operator's own promise met sooner. Zero cluster reads while the queue is calm."""
+        lf = getattr(self.a, "latency_file", "")
+        if not lf or self.killed() or self.a.mode not in ("target", "nodepool"):
+            return None
+        from omni_controller.muscles import latency_window
+        w = latency_window(lf, getattr(self.a, "reflex_window_s", 30.0))
+        if w["blind"] or len(w["ms"]) < 5:
+            return None
+        p10 = sorted(w["ms"])[len(w["ms"]) // 10]
+        self.s_floor = p10 if self.s_floor is None else min(self.s_floor, p10)
+        R = sum(w["ms"]) / len(w["ms"])
+        u = max(0.0, min(0.99, 1.0 - self.s_floor / R)) if R > 0 else 0.0
+        if u <= 0.0 and not self.reflex:
+            return None                          # calm and nothing held: no read, no write
+        out = {}
+        for h in self.k.get("get", "hpa", "-A", "-o", "json")["items"]:
+            idx, tgt = cpu_target(h)
+            if tgt is None:
+                continue
+            ns, name = h["metadata"]["namespace"], h["metadata"]["name"]
+            ann = h["metadata"].get("annotations", {}) or {}
+            lo0, hi0 = (int(x) for x in ann.get(RANGE_ANN, f"{h['spec'].get('minReplicas', 1)},{h['spec']['maxReplicas']}").split(","))
+            orig_t = int(ann.get(ANNOTATION, tgt)) / 100.0
+            key = (ns, name)
+            if key not in self.pod_cap:
+                ref = h["spec"]["scaleTargetRef"]
+                c0 = self.k.get("get", ref["kind"].lower(), ref["name"], "-n", ns, "-o", "json")["spec"]["template"]["spec"]["containers"][0]
+                req = to_milli(c0.get("resources", {}).get("requests", {}).get("cpu", "0") or "0")
+                lim = to_milli(c0.get("resources", {}).get("limits", {}).get("cpu", "0") or "0")
+                self.pod_cap[key] = (req / lim) if req > 0 and lim > 0 else 1.0
+            u_star = max(0.05, orig_t * self.pod_cap[key])       # the operator's promise in queue terms
+            cur = int(h.get("status", {}).get("currentReplicas", 0) or lo0)
+            desired = int(h.get("status", {}).get("desiredReplicas", 0) or cur)
+            need = min(hi0, int(math.ceil(cur * u / u_star - 1e-9)))
+            held = self.reflex.get(key)
+            if need > max(cur, desired, h["spec"].get("minReplicas", 1) or 1):
+                if RANGE_ANN not in ann:
+                    self.k.write(["annotate", "hpa", name, "-n", ns, "--overwrite", f"{RANGE_ANN}={lo0},{hi0}"], "pod reflex: record original replica range")
+                self.k.write(["patch", "hpa", name, "-n", ns, "--type=merge", "-p", json.dumps({"spec": {"minReplicas": need}})],
+                             f"pod reflex: floor {need} (queue busy {u:.2f} vs promise {u_star:.2f}, R {R:.0f} ms, S {self.s_floor:.0f} ms)")
+                self.reflex[key] = need; out[key] = need
+            elif held is not None and need <= max(desired, lo0):
+                # the queue no longer needs the floor (or the HPA has caught up): hand it back. On top, the operator's
+                # own minimum returns; in strict C the floor is Omni's own replica decision again (strict_step)
+                del self.reflex[key]; out[key] = None
+                if not getattr(self.a, "strict_replicas", False) and h["spec"].get("minReplicas") == held:
+                    self.k.write(["patch", "hpa", name, "-n", ns, "--type=merge", "-p", json.dumps({"spec": {"minReplicas": lo0}})],
+                                 f"pod reflex: release floor {held} -> {lo0} (queue busy {u:.2f})")
+                    out[key] = lo0
+        if out:
+            self.audit({"pod_reflex": {f"{k[0]}/{k[1]}": v for k, v in out.items()}, "busy": round(u, 3), "R_ms": round(R, 1), "S_ms": round(self.s_floor, 1)})
+        return out
+
     def floor_step(self):
         """Fast path between governor decisions: add the nodes that pending and running pod requests need (nodepool mode)."""
         if self.killed() or self.a.mode != "nodepool" or not self.a.node_scale_cmd:
             return None
+        self.pod_reflex()
         # one light read every check; the full snapshot (nodes, all pods, node metrics, HPAs) only when a pod waits. The
         # controller shares CPUs with the service it protects (on kind, one 4-core runner), so its reads cost latency
         if not str(self.k.get("get", "pods", "-A", "--field-selector=status.phase=Pending", "-o", "name")).strip():
@@ -329,6 +396,8 @@ class Controller:
                              f"HPA target to rho* = {want_h}%" + ("" if obs["slo_clean"] else " (SLO reflex: not tighter than native)"))
                 self.cmd_hpa[(ns, name)] = want_h
             self.m.push(d, obs)
+        if self.a.mode in ("target", "nodepool"):
+            self.pod_reflex()
         if self.a.mode == "nodepool" and self.a.node_scale_cmd and rec_n != n:
             cfg = SimpleNamespace(minimum_nodes=self.a.min_nodes, maximum_nodes=self.a.max_nodes)
             acts, hits = enforce([{"action": "nodes", "target": rec_n, "direction": 1 if rec_n > n else -1}],
@@ -361,6 +430,7 @@ def parser():
     ap.add_argument("--min-target-change", type=int, default=3)
     ap.add_argument("--closure", default="", help="JSON with the closure-law setting (e.g. tuning/GLOBAL_LEAGUE_PREREGISTRATION.json): the benchmarked law decides the node count")
     ap.add_argument("--strict-replicas", action="store_true", help="strict C: Omni-Compass sets replica counts; the HPA is pinned")
+    ap.add_argument("--reflex-window-s", type=float, default=30.0, help="window of probe samples the fast pod reflex reads")
     ap.add_argument("--strict-window", type=int, default=5, help="decisions a scale-down waits for (highest recent recommendation)")
     ap.add_argument("--max-failures", type=int, default=3, help="consecutive failed decisions before the fail-safe restore")
     ap.add_argument("--headroom", type=float, default=0.5, help="spare capacity kept above pod requests (0.5 = 50%%, the default)")

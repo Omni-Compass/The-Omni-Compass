@@ -1,12 +1,13 @@
 name: benchmark-reps
-# Repeated live runs: native, watch (Omni-Compass runs but writes nothing: its cost of being there), omni (B: on top)
-# and strict (C: Omni-Compass decides replicas and nodes) on identical
-# six-worker kind clusters, several repetitions each, aggregated with paired intervals (tools/live_reps.py).
+# Repeated live runs, paired on one runner: each repetition runs native, omni (B: on top) and strict (C: Omni-Compass
+# decides replicas and nodes) back to back on the SAME runner, each on a fresh six-worker kind cluster, in an order
+# rotated by repetition (scripts/kind_paired.sh). Aggregated with paired intervals (tools/live_reps.py).
 # Started by hand or by a pushed commit whose message contains [reps].
 on:
   workflow_dispatch:
     inputs:
       duration_s: {description: "Measured seconds per run", default: "900"}
+      arms: {description: "Arms, in rotation order", default: "native omni strict"}
   push:
 jobs:
   run:
@@ -14,25 +15,25 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 20
-      matrix: {arm: [native, watch, omni, strict], rep: [1, 2, 3, 4, 5]}
+      matrix: {rep: [1, 2, 3, 4, 5]}
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
       - run: pip install -r requirements.txt
       - uses: helm/kind-action@v1
-        with: {cluster_name: "omni-bench", config: deploy/kind/cluster-full.yaml}
-      - run: bash scripts/kind_bench.sh
+        with: {install_only: true}
+      - run: bash scripts/kind_paired.sh
         env:
-          ARM: ${{ matrix.arm }}
-          OUT_DIR: bench-${{ matrix.arm }}-${{ matrix.rep }}
+          REP: ${{ matrix.rep }}
+          ARMS: ${{ github.event.inputs.arms || 'native omni strict' }}
           DURATION: ${{ github.event.inputs.duration_s || '900' }}
           CLOSURE: tuning/GLOBAL_LEAGUE_PREREGISTRATION.json
       - uses: actions/upload-artifact@v4
         if: always()
-        with: {name: "bench-${{ matrix.arm }}-${{ matrix.rep }}", path: "bench-${{ matrix.arm }}-${{ matrix.rep }}"}
+        with: {name: "paired-${{ matrix.rep }}", path: "bench-*-${{ matrix.rep }}"}
   aggregate:
     needs: run
     if: always() && needs.run.result != 'skipped'
@@ -43,8 +44,8 @@ jobs:
         with: {python-version: "3.12"}
       - run: pip install -r requirements.txt
       - uses: actions/download-artifact@v4
-        with: {pattern: "bench-*", path: reps}
-      - run: python tools/live_reps.py reps
+        with: {pattern: "paired-*", path: reps, merge-multiple: true}
+      - run: ls reps && python tools/live_reps.py reps
       - run: cat reps/LIVE_REPS.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with: {name: live-reps, path: "reps/LIVE_REPS.*"}

@@ -23,7 +23,7 @@ def main(root):
     root = Path(root); runs = {}
     for d in sorted(root.glob("bench-*-*")):
         _, arm, rep = d.name.split("-", 2)
-        if (d / "capture.csv").exists():
+        if (d / "capture.csv").exists() and not (d / "INVALID").exists():
             runs.setdefault(arm, {})[rep] = arm_gauges(d)
     out = {"repetitions": {a: sorted(r) for a, r in runs.items()}, "means": {}, "paired": {}}
     for a, r in runs.items():
