@@ -67,6 +67,7 @@ class Muscles:
     def __init__(self, k, a, audit):
         self.k, self.a, self.audit = k, a, audit
         self.gain = {}       # (ns, deployment) -> mean conveyed CPU limit / operator's limit
+        self.base = {}       # (ns, deployment) -> operator's CPU limit (millicores)
         self.thermal = 0.32  # harness initial thermal state
 
     # ---- afferent ---------------------------------------------------------------------------------------------------
@@ -413,6 +414,7 @@ class Muscles:
             # the gain g = mean conveyed limit / operator's limit: the replica organ reads it to keep the operator's
             # promise in queue terms (target x request / limit) while the limit is larger
             self.gain[(ns, name)] = (sum(got) / len(got) / base) if got and base > 0 else 1.0
+            self.base[(ns, name)] = base
         return out
 
     def _hardware(self, cap, obs):

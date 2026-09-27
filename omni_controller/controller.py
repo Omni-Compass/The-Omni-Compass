@@ -177,9 +177,20 @@ class Controller:
             self.nodes_restored = True
 
     def _gain(self, h):
-        """Mean conveyed CPU limit over the operator's limit for the HPA's target deployment (1 when nothing conveyed)."""
-        ref_ = h.get("spec", {}).get("scaleTargetRef", {}) or {}
-        return max(1.0, self.m.gain.get((h["metadata"]["namespace"], ref_.get("name", "")), 1.0))
+        """The CPU each pod of the HPA's deployment is guaranteed, over the operator's limit (1 when nothing conveyed):
+        g = min(mean conveyed limit, 0.95 A / ceil(maxReplicas / machines in service)) / L. The guaranteed share is the
+        one each pod keeps with the autoscaler's largest count spread over the machines in service, so the target it
+        sets moves only when a machine idles or wakes, never each time a pod starts or leaves."""
+        from omnicompass.nervous_system import BAND
+        ns = h["metadata"]["namespace"]; ref_ = h.get("spec", {}).get("scaleTargetRef", {}) or {}
+        key = (ns, ref_.get("name", ""))
+        g = self.m.gain.get(key, 1.0); base = self.m.base.get(key, 0.0); s = getattr(self, "_snap", None)
+        if base > 0 and s and s.get("nodes"):
+            ann = h["metadata"].get("annotations", {}) or {}
+            hi0 = int(ann.get(RANGE_ANN, f"1,{h['spec'].get('maxReplicas', 1)}").split(",")[1])
+            per_node = s["alloc_m"] / s["nodes"]
+            g = min(g, BAND[1] * per_node / math.ceil(hi0 / s["nodes"]) / base)
+        return max(1.0, g)
 
     def strict_step(self, s, obs):
         """Strict C: Omni-Compass decides each deployment's replica floor itself: replicas = ceil(current x measured
@@ -260,6 +271,13 @@ class Controller:
             desired = int(h.get("status", {}).get("desiredReplicas", 0) or cur)
             need = min(hi0, int(math.ceil(cur * u / u_star - 1e-9)))
             held = self.reflex.get(key)
+            if not getattr(self.a, "pod_reflex_writes", False):
+                # the autoscaler is the muscle that makes and removes pods; I gauge what the queue needs and write
+                # nothing, so no pod is started or stopped that the muscle itself would not start or stop
+                if need > max(cur, desired):
+                    self.audit({"pod_reflex_reading": {f"{ns}/{name}": need}, "replicas": cur, "busy": round(u, 3),
+                                "promise": round(u_star, 3), "R_ms": round(R, 1), "S_ms": round(self.s_floor, 1)})
+                continue
             if need > max(cur, desired, h["spec"].get("minReplicas", 1) or 1):
                 if RANGE_ANN not in ann:
                     self.k.write(["annotate", "hpa", name, "-n", ns, "--overwrite", f"{RANGE_ANN}={lo0},{hi0}"], "pod reflex: record original replica range")
@@ -311,7 +329,7 @@ class Controller:
         if self.killed():
             self.restore()
             return self.audit({"decision": "killed", "mode": "observe"})
-        s = snapshot(self.k, getattr(self.a, "active_nodes_only", False))
+        s = snapshot(self.k, getattr(self.a, "active_nodes_only", False)); self._snap = s
         # my orders are judged by the machines open to work; a machine's capacity by the machines in service
         n = max(1, s["open"]); per_node = s["alloc_m"] / max(1, s["nodes"])
         if self.rec_n is None:
@@ -476,6 +494,8 @@ def parser():
     ap.add_argument("--min-target-change", type=int, default=3)
     ap.add_argument("--closure", default="", help="JSON with the closure-law setting (e.g. tuning/GLOBAL_LEAGUE_PREREGISTRATION.json): the benchmarked law decides the node count")
     ap.add_argument("--strict-replicas", action="store_true", help="strict C: Omni-Compass sets replica counts; the HPA is pinned")
+    ap.add_argument("--pod-reflex-writes", action="store_true",
+                    help="let the pod reflex raise the HPA's replica floor itself (default: it gauges and writes nothing)")
     ap.add_argument("--reflex-window-s", type=float, default=30.0, help="window of probe samples the fast pod reflex reads")
     ap.add_argument("--strict-window", type=int, default=5, help="decisions a scale-down waits for (highest recent recommendation)")
     ap.add_argument("--headroom", type=float, default=0.5, help="spare capacity kept above pod requests (0.5 = 50%%, the default)")

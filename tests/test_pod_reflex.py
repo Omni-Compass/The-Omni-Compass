@@ -30,7 +30,7 @@ def main():
     lat = t / "latency.csv"
     a = parser().parse_args(["--kubectl", FAKE, "--mode", "target", "--interval", "0", "--audit", str(t / "a.jsonl"),
                              "--kill-file", str(t / "kill"), "--latency-file", str(lat), "--slo-ms", "500"])
-    c = Controller(a)
+    c = Controller(a); a.pod_reflex_writes = True   # the writing reflex; by default it gauges only (tested below)
     H = lambda: json.loads(p.read_text())["hpas"][0]
     writes = lambda: (t / "w.log").read_text().splitlines() if (t / "w.log").exists() else []
     probe(lat, [100.0] * 40)                                  # calm: R = S, busy 0
@@ -50,6 +50,14 @@ def main():
     assert H()["spec"]["minReplicas"] == 1 and c.reflex == {}, H()["spec"]
     (t / "kill").touch(); c.step()
     assert (H()["spec"]["minReplicas"], H()["spec"]["maxReplicas"]) == (1, 10) and RANGE_ANN not in H()["metadata"].get("annotations", {})
+    # by default the reflex gauges only: the autoscaler makes and removes pods, I write nothing
+    t2 = Path(tempfile.mkdtemp()); p2 = t2 / "state.json"; p2.write_text(json.dumps(st)); os.environ["FAKE_KUBE_STATE"] = str(p2)
+    os.environ["FAKE_KUBE_LOG"] = str(t2 / "w.log"); lat2 = t2 / "latency.csv"
+    a2 = parser().parse_args(["--kubectl", FAKE, "--mode", "target", "--interval", "0", "--audit", str(t2 / "a.jsonl"),
+                              "--kill-file", str(t2 / "kill"), "--latency-file", str(lat2), "--slo-ms", "500"])
+    c2 = Controller(a2); probe(lat2, [100.0] * 5 + [250.0] * 35); c2.pod_reflex()
+    assert not (t2 / "w.log").exists(), "the gauging reflex must write nothing"
+    assert any('"pod_reflex_reading"' in l for l in (t2 / "a.jsonl").read_text().splitlines()), "the reading is recorded"
     print(f"pod reflex: calm 0 writes; queue R {R:.0f} ms vs S 100 ms -> busy {u:.2f} -> floor 2 -> {need} (HPA rule, target 0.5 x 200m/500m);"
           " drained -> handed back to 1; kill restores 1,10")
     print("PASS test_pod_reflex")

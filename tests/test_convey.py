@@ -91,8 +91,10 @@ def main():
     S["pods"] = [q for q in S["pods"] if q["spec"]["nodeName"] != "w2"]; Path(p).write_text(json.dumps(S))
     s = snapshot(Kube(FAKE, audit=lambda r: r), active_only=True)
     assert s["nodes"] == 2 and s["open"] == 2, s
-    # on top, with response time clean: the HPA target keeps the operator's promise in queue terms at the conveyed
-    # limit, 50% x 3.55 = 178%; while it is not yet clean (the first decisions), the operator's own 50% stands
+    # on top, with response time clean: the HPA target keeps the operator's promise in queue terms at the CPU each pod
+    # is guaranteed: the autoscaler's largest count (10) over the 3 machines in service is 4 pods a machine, 0.95 x 4000m
+    # / 4 = 950m, g = 1.9 (below the momentary mean 3.55), so 50% -> 95%; while response time is not yet clean (the
+    # first decisions), the operator's own 50% stands
     t3 = tempfile.mkdtemp(); p3 = state(t3); S = json.loads(Path(p3).read_text())
     S["hpas"] = [{"metadata": {"name": "web", "namespace": "default"}, "spec": {"minReplicas": 1, "maxReplicas": 10,
                   "scaleTargetRef": {"kind": "Deployment", "name": "web"}, "metrics": [{"type": "Resource", "resource": {
@@ -104,9 +106,9 @@ def main():
     for _ in range(4):
         os.utime(lf); c3.step()
         seen.append(json.loads(Path(p3).read_text())["hpas"][0]["spec"]["metrics"][0]["resource"]["target"]["averageUtilization"])
-    assert seen[0] == 50 and seen[-1] == 178, seen
+    assert seen[0] == 50 and seen[-1] == 95, seen
     print("convey: w0 1900m x2, w1 2800m, w2 left at 500m (crowded); requests untouched; no rollout; kill restored 500m; "
-          "hold blocks expansion; HPA target 50 -> 178 once clean (same queue promise); closed machine with work: in service 3, open 2")
+          "hold blocks expansion; HPA target 50 -> 95 once clean (the guaranteed share, same queue promise); closed machine with work: in service 3, open 2")
     print("PASS test_convey")
 
 

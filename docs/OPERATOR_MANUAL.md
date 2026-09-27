@@ -139,18 +139,24 @@ An idle machine draws `park_frac × idle power` (0.25), never zero.
 
 Nothing jumps, and nothing is restarted.
 
-### 5. My fast pod reflex
+### 5. My pod sense: the muscle makes the pods
 
-Your autoscaler's rule is replicas = current × busy ÷ target. It reads "busy" from CPU averages a minute old.
+Your autoscaler is the muscle that makes and removes pods. I never start or stop a pod it would not.
 
-I read it from the live queue every five seconds:
+Its rule is replicas = current × busy ÷ target. I read the same rule from the live queue every five seconds:
 - a replica serving requests answers in R = S / (1 − u), so u = 1 − S/R;
-- S is the bare service time;
-- R is the recent mean response;
+- S is the bare service time: the fastest tenth of the recent requests;
+- R is the recent mean response, over the same window;
 - your target, in queue terms, is target × request ÷ limit.
 
-I raise the replica floor to exactly what that rule needs now, and give it back when the queue drains. There is no
-padding and no new target: your own promise, met sooner. While the queue is calm I read nothing from the cluster.
+I record what the queue needs (`pod_reflex_reading`) and act only through the energy I give the pods and the target I
+hold for the muscle.
+
+**The target I hold.** g is the CPU each pod is guaranteed with your autoscaler's largest count spread over the
+machines in service, divided by your limit. That target moves only when a machine idles or wakes, never each time a pod
+starts or leaves.
+
+The reflex that raises the floor itself exists (`--pod-reflex-writes`); it is off unless you turn it on.
 
 ### 6. My energy is moved, never created
 
@@ -223,7 +229,7 @@ cannot write.
 Your HPAs keep scaling. My pod reflex raises floors ahead of the CPU averages.
 
 **Targets.** I hold your promise in queue terms: busy = target × request ÷ limit.
-- While I convey a pod g times your limit, the target that keeps it exactly as busy is g times yours.
+- g is the CPU each pod is guaranteed (section II.5), divided by your limit; the target that keeps each pod exactly as busy is g times yours.
 - The pod answers faster, because it has g times the CPU, at the same busy share.
 - Apart from that, I only tighten, never loosen.
 - While response time is over your target, and for three decisions after, your own target stands.
@@ -298,6 +304,6 @@ Add `--strict-replicas`:
 | `gate: a sense is blind` | I cannot see, so I give nothing back until I can |
 | `gate: pods scaling up` | pods first, machines after |
 | `decision failed (n in a row)` | I could not reach the cluster and wrote nothing; turn me OFF if you want native now |
-| `pod reflex: floor k` | the queue needs k replicas now; I give the floor back when it drains |
+| `pod_reflex_reading` | what the queue needs now; the autoscaler decides the pods |
 | `convey: <machine> idle CPU to its k serving pod(s), limit c` | that machine's idle CPU now reaches the work on it |
 | `Ω: machine_fill below the floor, returning` | the machines are underfilled and my move is bringing them back into the band |
