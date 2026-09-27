@@ -28,6 +28,7 @@ jobs:
           ARM: ${{ matrix.arm }}
           OUT_DIR: bench-${{ matrix.arm }}-${{ matrix.rep }}
           DURATION: ${{ github.event.inputs.duration_s || '900' }}
+          CLOSURE: tuning/GLOBAL_LEAGUE_PREREGISTRATION.json
       - uses: actions/upload-artifact@v4
         if: always()
         with: {name: "bench-${{ matrix.arm }}-${{ matrix.rep }}", path: "bench-${{ matrix.arm }}-${{ matrix.rep }}"}

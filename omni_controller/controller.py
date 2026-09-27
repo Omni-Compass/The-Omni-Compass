@@ -99,6 +99,12 @@ class Controller:
         self.changed = {}
         self.nodes_restored = False
         self.m = Muscles(self.k, a, self.audit)
+        self.cl = None
+        if getattr(a, "closure", ""):
+            from omnicompass.closure import ClosureLaw, ClosureNodes
+            law = json.load(open(a.closure))
+            law = law.get("setting", law).get("closure", law)
+            self.cl = ClosureNodes(ClosureLaw(**{k: v for k, v in law.items() if k != "site"}))
         self.lp_hist = []
 
     def audit(self, rec):
@@ -217,8 +223,14 @@ class Controller:
         d = self.g.step(obs, 0)
         floor = max(int(math.ceil(s["req_m"] * (1.0 + self.a.headroom) / per_node)) if s["req_m"] > 0 else self.a.min_nodes, int(math.ceil(s["used_m"] / per_node)))
         rec_n = max(self.a.min_nodes, min(self.a.max_nodes, max(self.rec_n + int(d["node_delta"]), floor)))
+        if self.cl is not None:
+            # the benchmarked law drives the machines: the closure law on requested cores (omnicompass/closure.py), the
+            # scheduling floor stays underneath it
+            self.cl.observe(s["req_m"] / 1000.0)
+            cl_n = self.cl.decide(n, per_node / 1000.0, self.g.last_push, self.a.min_nodes, self.a.max_nodes)
+            rec_n = max(self.a.min_nodes, min(self.a.max_nodes, max(cl_n, floor)))
         rho = max(0.5, min(0.95, float(d["demand"])))
-        out = self.audit({"decision": {"nodes_observed": n, "nodes_recommended": rec_n, "hpa_target_recommended": round(rho, 3),
+        out = self.audit({"decision": {"nodes_observed": n, "nodes_recommended": rec_n, "law": "closure" if self.cl is not None else "governor", "hpa_target_recommended": round(rho, 3),
                                        "E": d["state"]["E"], "U": d["state"]["U"], "pending": s["pending"],
                                        "power_cap": round(float(d["power_cap"]), 3), "change_permitted": bool(d["change_permitted"]),
                                        "rollback_authorized": bool(d["rollback_authorized"]),
@@ -276,6 +288,7 @@ def parser():
     ap.add_argument("--max-nodes", type=int, default=1000)
     ap.add_argument("--max-node-step", type=int, default=2)
     ap.add_argument("--min-target-change", type=int, default=3)
+    ap.add_argument("--closure", default="", help="JSON with the closure-law setting (e.g. tuning/GLOBAL_LEAGUE_PREREGISTRATION.json): the benchmarked law decides the node count")
     ap.add_argument("--strict-replicas", action="store_true", help="strict C: Omni-Compass sets replica counts; the HPA is pinned")
     ap.add_argument("--strict-window", type=int, default=5, help="decisions a scale-down waits for (highest recent recommendation)")
     ap.add_argument("--max-failures", type=int, default=3, help="consecutive failed decisions before the fail-safe restore")

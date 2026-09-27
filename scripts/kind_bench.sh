@@ -112,7 +112,7 @@ if [ "$ARM" != "native" ]; then
     --power-cmd "bash scripts/kind_power.sh" --site-limit-w "$SITE_LIMIT_W" \
     --cap-deployments default/php-apache --thermal-model --security-configmap default/omni-security \
     --rollout-guard default/php-apache --latency-file "$OUT_DIR/latency.csv" --slo-ms "${SLO_MS:-500}" \
-    --audit "$OUT_DIR/audit.jsonl" --kill-file "$OUT_DIR/kill" $STRICT > "$OUT_DIR/controller.log" 2>&1 &
+    --audit "$OUT_DIR/audit.jsonl" --kill-file "$OUT_DIR/kill" $STRICT ${CLOSURE:+--closure "$CLOSURE"} > "$OUT_DIR/controller.log" 2>&1 &
   omni_pid=$!
 else
   echo "== ARM native: Omni-Compass not running; Kubernetes alone"

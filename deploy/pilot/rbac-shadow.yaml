@@ -1,0 +1,31 @@
+# Shadow pilot identity: read-only. Omni-Compass observes and recommends; it cannot change anything in the cluster.
+apiVersion: v1
+kind: Namespace
+metadata: {name: omni-shadow}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: omni-shadow, namespace: omni-shadow}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata: {name: omni-shadow-read}
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "pods"]
+    verbs: ["get", "list"]
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["nodes", "pods"]
+    verbs: ["get", "list"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata: {name: omni-shadow-read}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: omni-shadow-read}
+subjects: [{kind: ServiceAccount, name: omni-shadow, namespace: omni-shadow}]
