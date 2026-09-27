@@ -13,8 +13,9 @@ def cluster(tmp):
     pods = [{"status": {"phase": "Running"}, "spec": {"containers": [{"resources": {"requests": {"cpu": "2"}}}]}} for _ in range(10)]
     cpu = lambda v: {"type": "Resource", "resource": {"name": "cpu", "target": {"type": "Utilization", "averageUtilization": v}}}
     mem = {"type": "Resource", "resource": {"name": "memory", "target": {"type": "Utilization", "averageUtilization": 80}}}
-    hpas = [{"metadata": {"name": "web", "namespace": "a"}, "spec": {"metrics": [cpu(70)]}, "status": {"currentReplicas": 4}},
-            {"metadata": {"name": "api", "namespace": "b"}, "spec": {"metrics": [mem, cpu(60)]}, "status": {"currentReplicas": 3}},
+    cur = lambda v: [{"type": "Resource", "resource": {"name": "cpu", "current": {"averageUtilization": v}}}]
+    hpas = [{"metadata": {"name": "web", "namespace": "a"}, "spec": {"metrics": [cpu(70)]}, "status": {"currentReplicas": 4, "currentMetrics": cur(60)}},
+            {"metadata": {"name": "api", "namespace": "b"}, "spec": {"metrics": [mem, cpu(60)]}, "status": {"currentReplicas": 3, "currentMetrics": cur(50)}},
             {"metadata": {"name": "mem-only", "namespace": "c"}, "spec": {"metrics": [mem]}, "status": {"currentReplicas": 2}}]
     st = Path(tmp) / "state.json"; st.write_text(json.dumps({"nodes": nodes, "pods": pods, "hpas": hpas, "used_per_node": "1500m"}))
     os.environ["FAKE_KUBE_STATE"] = str(st); os.environ["FAKE_KUBE_LOG"] = str(Path(tmp) / "writes.log")
@@ -44,6 +45,10 @@ def main():
     web = S["hpas"][0]["spec"]["metrics"][0]["resource"]["target"]["averageUtilization"]
     api = S["hpas"][1]["spec"]["metrics"][1]["resource"]["target"]["averageUtilization"]
     assert 50 <= web <= 95 and 50 <= api <= 95 and web != 70
+    # queue-matched: web (2.4 busy pods) keeps 4 replicas up to a 79% target, api (1.5 busy) keeps 3 up to 74%, so the
+    # target rises only where the replica count, and so the queueing wait, is unchanged (engine rho* above both)
+    from omni_controller.controller import queue_matched_target
+    assert round(100 * queue_matched_target(2.4, 0.70, 0.95)) == 79 and round(100 * queue_matched_target(1.5, 0.60, 0.95)) == 74
     assert S["hpas"][0]["metadata"]["annotations"][ANNOTATION] == "70" and S["hpas"][1]["metadata"]["annotations"][ANNOTATION] == "60"
     assert S["hpas"][1]["spec"]["metrics"][0]["resource"]["target"]["averageUtilization"] == 80
     assert "annotations" not in S["hpas"][2]["metadata"]

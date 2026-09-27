@@ -21,7 +21,10 @@ STRICT=""; [ "$ARM" = "strict" ] && STRICT="--strict-replicas"
 OUT_DIR="${OUT_DIR:-bench_$ARM}"; DURATION="${DURATION:-1200}"; WARMUP="${WARMUP:-120}"
 LOAD_STEPS="${LOAD_STEPS:-1 2 3 1 2 1}"
 export DRAIN_TIMEOUT="${DRAIN_TIMEOUT:-45s}"   # a drain blocked by the disruption budget gives up and the node stays in service
-IDLE_W="${IDLE_W:-100}"; DYN_W="${DYN_W:-150}"; export IDLE_W DYN_W
+IDLE_W="${IDLE_W:-100}"; DYN_W="${DYN_W:-150}"
+# a released (cordoned, drained) worker counts as removed from the node pool, 0 W, as the Cluster Autoscaler or Karpenter
+# delete a node in a cloud pool; the same accounting in every arm (Kubernetes alone never releases one here)
+STANDBY_W="${STANDBY_W:-0}"; export IDLE_W DYN_W STANDBY_W
 mkdir -p "$OUT_DIR"
 WORKERS=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' --no-headers | wc -l)
 SITE_LIMIT_W=$(( WORKERS * (IDLE_W + DYN_W) ))
