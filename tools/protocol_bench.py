@@ -50,6 +50,10 @@ C_PICK = json.load(open(ROOT / "tuning/LEAGUE_HELDOUT.json"))["omni_per_vessel"]
 CANDS = candidates()
 _cs = [ROOT / "tuning/CLOSURE_FINAL_DEV.json", ROOT / "tuning/CLOSURE_SEARCH2_DEV.json", ROOT / "tuning/CLOSURE_SEARCH_DEV.json"]
 CLOSURE = next((json.load(open(p)) for p in _cs if p.exists()), {})
+_g = ROOT / "tuning/GLOBAL_LEAGUE_PREREGISTRATION.json"
+if _g.exists():                                   # one global setting for every workload (the confirmatory setting)
+    _s = json.load(open(_g))["setting"]
+    CLOSURE = {v: {"closure": dict(_s["closure"], site=(v == "multi")), "direct": _s["direct"], "speed": _s["speed"]} for v in VESSELS}
 SL = dict(rho0=0.7, rho_min=0.7, kI=0.0, kE=0.0)
 
 
