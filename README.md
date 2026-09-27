@@ -2,7 +2,18 @@
 
 A six-state control engine that governs Kubernetes: Kubernetes stays as the execution layer, Omni-Compass is the single authority above it.
 
-**Read first:** `docs/OMNI_COMPASS_TECHNICAL_MANUAL.pdf`
+## Start here (evaluators, pilots, licensees)
+
+1. **`STATE_OF_PLAY.md`**: every claim, where its evidence is, and what still loses. Simulation results and live
+   results are labelled separately.
+2. **Reproduce everything:** `pip install -r requirements.txt && python verify.py` must end `VERIFICATION: PASS`. It
+   reruns every held-out result byte for byte, the C++ twin parity check and the property tests.
+3. **Run it live on your Kubernetes:** `bash RUN_LIVE.sh 3` on any machine with Docker and kind. It compares native,
+   Omni-Compass on top and Omni-Compass alone on real 7-node clusters. On a production cluster, start with the
+   read-only shadow kit (`docs/PILOT_KIT.md`), which can make no changes.
+4. **Three-column simulation summary:** `results/THREE_WAY.md`.
+
+**Background:** `docs/OMNI_COMPASS_TECHNICAL_MANUAL.pdf`
 
 ## Engine interpretation notice
 
