@@ -75,6 +75,8 @@ def main():
     from tests import test_cpp_shield_adversarial, test_shield_properties
     test_shield_properties.main(100_000 if a.quick else 1_000_000); check("shield properties: no invariant violated, idempotent, no invented action, minimal intervention (random + adversarial)", True)
     test_cpp_shield_adversarial.main(str(b / "oc_shield"), 50_000 if a.quick else 200_000); check("C++ shield vs Python shield on the adversarial generator", True)
+    from tests import test_cpp_closure_parity
+    test_cpp_closure_parity.main(str(b / "oc_closure"), 1 if a.quick else 3); check("C++ closure law vs Python closure law, every decision and reserve", True)
     src = (ROOT / "cpp" / "src" / "shield.cpp").read_text()
     mut_src = tmp / "shield_mut.cpp"
     mut_src.write_text(src.replace('return k == "nodes" || k == "terraform_plan" || k == "rollout"; }', 'return k == "nodes" || k == "terraform_plan"; }'))

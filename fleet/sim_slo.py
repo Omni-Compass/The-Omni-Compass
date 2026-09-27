@@ -40,6 +40,8 @@ from omnicompass.mathdrive import MathDrive, MathLaw
 from omnicompass.closure import ClosureNodes, ClosureLaw, AutoClosureLaw, AutoClosureNodes, stress_equilibrium
 
 S0_MS = 100.0
+PACKING = "fluid"     # "bins": whole pods placed first-fit-decreasing on each machine's allocatable cores; capacity a
+                      # machine cannot fill with a whole pod is stranded (fragmentation), as with a real scheduler
 POWER_MODEL = "legacy"   # "dvfs": every node runs schedutil (f = 1.25 u per workload's cores), P = idle + dyn u f^2
 F_MIN = 0.4
 REC = None   # when a list, run() appends each tick's per-cluster pod requests (analysis only)
@@ -298,6 +300,40 @@ def _site_closure(scn, cl, L, push):
             cs[j].pool.parked -= 1; cs[j]._single_dn = getattr(cs[j], "_single_dn", 0) - 1; tot -= 1
 
 
+def _bin_fracs(c, p, alloc):
+    """Whole-pod placement, first-fit decreasing by size class on machines of p.cores x ALLOC allocatable cores. Service
+    pods are placed as whole units; job workloads (no pods) take the remaining capacity fluidly. Returns, per workload, the
+    fraction of its requested cores that is placed."""
+    import math as _m
+    C = p.cores * ALLOC
+    n_nodes = int(round(alloc / C)) if C > 0 else 0
+    frac_nodes = alloc / C - n_nodes if C > 0 else 0.0          # traffic-shift capacity arrives as a fraction of a node
+    classes = {}
+    for i, w in enumerate(c.workloads):
+        if w.hpa and w.replicas > 0:
+            classes.setdefault(w.request, []).append(i)
+    count = {s: sum(c.workloads[i].replicas for i in ix) for s, ix in classes.items()}
+    placed = {s: 0 for s in classes}
+    bins = [C] * n_nodes + ([frac_nodes * C] if frac_nodes > 1e-9 else [])
+    for rem in bins:
+        for s in sorted(classes, reverse=True):
+            k = min(count[s] - placed[s], int(_m.floor(rem / s + 1e-9)))
+            if k > 0:
+                placed[s] += k; rem -= k * s
+    out = [1.0] * len(c.workloads)
+    used = 0.0
+    for s, ix in classes.items():
+        f = placed[s] / count[s] if count[s] else 1.0
+        for i in ix:
+            out[i] = f; used += c.workloads[i].replicas * s * f
+    jobs = [i for i, w in enumerate(c.workloads) if not (w.hpa and w.replicas > 0)]
+    jreq = sum(c.workloads[i].req_now for i in jobs)
+    jf = min(1.0, max(0.0, alloc - used) / jreq) if jreq > 0 else 1.0
+    for i in jobs:
+        out[i] = jf
+    return out
+
+
 def hpa_target(arm):
     return {"k8s_hpa50_ca": 0.5, "k8s_hpa60_ca": 0.6, "k8s_hpa80_ca": 0.8}.get(arm, 0.7)
 
@@ -404,14 +440,18 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                 w.req_now = w.replicas * w.request if w.hpa else w.demand[t] + w.backlog
                 reqs += w.req_now
             frac = min(1.0, alloc / reqs) if reqs > 0 else 1.0
+            fw = _bin_fracs(c, p, alloc) if PACKING == "bins" else None
+            if fw is not None:
+                placed = sum(w.req_now * fw[i] for i, w in enumerate(c.workloads))
+                c._stranded = max(0.0, alloc - placed) if placed < reqs else 0.0
             used = cap_rate = 0.0
             rs, ws = [], []
             dvfs = POWER_MODEL == "dvfs"
             ceil_f = getattr(c, "f_ceiling", 1.0) if dvfs else 1.0
             dyn_sum = 0.0
-            for w in c.workloads:
+            for wi, w in enumerate(c.workloads):
                 d = w.demand[t]
-                capmax = w.req_now * frac * p.cap
+                capmax = w.req_now * (fw[wi] if fw is not None else frac) * p.cap
                 f = 1.0
                 if dvfs:
                     # schedutil on the cores running this workload: f = 1.25 u (u frequency-invariant), then the policy ceiling
@@ -434,6 +474,8 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             rc = float(np.average(rs, weights=ws)) if ws else S0_MS
             r_recent[ci] = max(r_recent[ci], rc)
             c.pending = max(0.0, reqs - alloc)
+            if fw is not None:
+                c.pending = max(0.0, reqs - sum(w.req_now * fw[i] for i, w in enumerate(c.workloads)))
             if series is not None:
                 tick_r = max(tick_r, max(rs) if rs else S0_MS)
                 tick_pend = max(tick_pend, c.pending / max(reqs, 1e-9))
