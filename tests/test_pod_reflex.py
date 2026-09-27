@@ -35,7 +35,10 @@ def main():
     writes = lambda: (t / "w.log").read_text().splitlines() if (t / "w.log").exists() else []
     probe(lat, [100.0] * 40)                                  # calm: R = S, busy 0
     assert c.pod_reflex() is None and writes() == [], "calm queue must not read or write"
-    probe(lat, [100.0] * 5 + [250.0] * 35)                    # S stays 100 (fastest window seen): R ~ 231, u ~ 0.57
+    probe(lat, [40.0] * 40); c.pod_reflex()                    # a pod given more CPU answers in 40 ms, calm
+    probe(lat, [100.0] * 40)                                  # back at its own limit, still calm: no queue is read
+    assert c.pod_reflex() is None and writes() == [], "a change of the pods' CPU limit is not a queue"
+    probe(lat, [100.0] * 5 + [250.0] * 35)                    # S = fastest tenth of this window, 100: R ~ 231, u ~ 0.57
     c.s_floor = 100.0
     out = c.pod_reflex()
     R = (5 * 100 + 35 * 250) / 40; u = 1 - 100 / R; need = int(-(-2 * u / (0.5 * 200 / 500) // 1))

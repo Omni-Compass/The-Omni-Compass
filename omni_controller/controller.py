@@ -219,8 +219,8 @@ class Controller:
         replicas = current x busy / target, read from the live queue instead of CPU averages a minute old.
 
         Busy comes from queueing physics: a replica serving requests in processor sharing answers in R = S / (1 - u),
-        so u = 1 - S / R, with S the bare service time (the fastest window seen, requests with no queue ahead) and R the
-        mean response of the last window. The operator's target is a share of the pod's CPU request; the queue runs on
+        so u = 1 - S / R, with S the bare service time (the fastest tenth of the window's requests, those with no queue
+        ahead) and R the mean response of the same window. The operator's target is a share of the pod's CPU request; the queue runs on
         its limit, so the same promise in queue terms is target x request / limit. The reflex only raises the replica
         floor to what that rule needs now and hands it back the moment the queue no longer needs it: no padding, no new
         target, the operator's own promise met sooner. Zero cluster reads while the queue is calm."""
@@ -232,7 +232,9 @@ class Controller:
         if w["blind"] or len(w["ms"]) < 5:
             return None
         p10 = sorted(w["ms"])[len(w["ms"]) // 10]
-        self.s_floor = p10 if self.s_floor is None else min(self.s_floor, p10)
+        # S and R from the same window: the fastest tenth of the requests answered now, at the CPU the pods have now. An
+        # all-time fastest would read every later change of a pod's CPU limit (convey) as a queue that is not there
+        self.s_floor = p10
         R = sum(w["ms"]) / len(w["ms"])
         u = max(0.0, min(0.99, 1.0 - self.s_floor / R)) if R > 0 else 0.0
         if u <= 0.0 and not self.reflex:

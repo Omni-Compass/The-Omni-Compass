@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       duration_s: {description: "Measured seconds per run", default: "900"}
-      arms: {description: "Arms, in rotation order", default: "native omni strict"}
+      arms: {description: "Arms, in rotation order", default: "native omni"}
   push:
 jobs:
   run:
@@ -28,7 +28,7 @@ jobs:
       - run: bash scripts/kind_paired.sh
         env:
           REP: ${{ matrix.rep }}
-          ARMS: ${{ github.event.inputs.arms || 'native omni strict' }}
+          ARMS: ${{ github.event.inputs.arms || 'native omni' }}
           DURATION: ${{ github.event.inputs.duration_s || '900' }}
           CLOSURE: tuning/GLOBAL_LEAGUE_PREREGISTRATION.json
       - uses: actions/upload-artifact@v4
