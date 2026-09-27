@@ -31,7 +31,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from fleet.harness import TICK, STEPS, Scenario, hpa_step
+from fleet.harness import TICK, STEPS, Scenario, hpa_step, BOOT_TICKS as BOOT
 from fleet.sim import ALLOC, OMNI_EVERY, _resize, _cluster_autoscaler, _karpenter
 from omnicompass.adapter import Governor, AllocationLaw, mode_law, OBSERVE, AUTOPILOT
 from omnicompass.shield import enforce, ShieldLimits
@@ -404,6 +404,7 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
     pod_changes = 0
     cap_moves = 0
     park_moves = 0
+    contra = 0
     R_all, W_all = [], []
     r_recent = [0.0] * len(scn.clusters)
     trace = []
@@ -584,6 +585,7 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                         elif a["action"] == "power_cap":
                             p.cap = float(a["target"]); cap_moves += 1
         for ci, c in enumerate(scn.clusters):
+            c._dpods = 0
             for w in c.workloads:
                 if w.hpa:
                     before = w.replicas
@@ -592,6 +594,7 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                     else:
                         hpa_step(w, targets[ci])
                     pod_changes += abs(w.replicas - before)
+                    c._dpods += w.replicas - before
             n_before = c.pool.nodes + len(c.pool.booting)
             parked_before = c.pool.parked
             if not single:
@@ -626,13 +629,19 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             if dn:
                 dr = 1 if dn > 0 else -1
                 rev += int(last_dir[ci] != 0 and dr != last_dir[ci]); last_dir[ci] = dr
+                # contradiction gauge: controllers fighting (machines and pods moved in opposite directions this tick)
+                # or a machine change undone within one boot delay of the opposite change
+                fight = (dr > 0 and c._dpods < 0) or (dr < 0 and c._dpods > 0)
+                quick = getattr(c, "_last_dn_t", -10 ** 9) >= t - BOOT and getattr(c, "_last_dn_dir", 0) == -dr
+                contra += int(fight or quick)
+                c._last_dn_t, c._last_dn_dir = t, dr
         if t % 40 == 0:
             trace.append(tuple((c.pool.nodes, len(c.pool.booting), round(c.pool.cap, 9), tuple(w.replicas for w in c.workloads)) for c in scn.clusters))
     out = {"vessel": scn.vessel, "seed": scn.seed, "arm": arm, "energy_kwh": energy, "work_completed": done / max(dem, 1e-9),
             "time_healthy": healthy / STEPS, "violation_backlog": viol_q / STEPS, "violation_power": viol_p / STEPS,
             "violation_heat": viol_h / STEPS, "machines_started": starts, "machines_stopped": stops,
             "node_reversals": rev, "node_hours": node_ticks * TICK / 3600.0, "pod_changes": pod_changes,
-            "cap_moves": cap_moves, "park_moves": park_moves, "b_vetoes": b_veto, "b_early_adds": b_early, "p95_ms": wpct(R_all, W_all, 95), "p99_ms": wpct(R_all, W_all, 99),
+            "cap_moves": cap_moves, "park_moves": park_moves, "contradictions": contra, "b_vetoes": b_veto, "b_early_adds": b_early, "p95_ms": wpct(R_all, W_all, 95), "p99_ms": wpct(R_all, W_all, 99),
             "mean_ms": float(np.average(R_all, weights=W_all)) if W_all else S0_MS,
             "trace_hash": hashlib.sha256(repr(trace).encode()).hexdigest()[:16]}
     if series is not None:
