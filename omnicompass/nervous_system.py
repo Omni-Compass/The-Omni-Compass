@@ -68,6 +68,7 @@ class NervousInputs:
     power_stress: float = 0.0
     thermal: float = 0.0
     rollback: bool = False
+    stale: float = 0.0               # fraction of declared senses that are blind (dropout, frozen, unreadable)
     mode: str = "autopilot"          # "observe" or "autopilot"
     killed: bool = False
 
@@ -89,17 +90,19 @@ def authority(i: NervousInputs) -> Dict[str, Any]:
     hot = i.thermal >= 0.96
     excess = clamp(i.thermal - 0.96, 0.0, 1.0)
     org: Dict[str, Dict[str, Any]] = {}
+    seeing = i.stale <= 0.0          # never give capacity back on a blind sense; expanding stays allowed (the safe side)
     for o, th in THETA.items():
-        org[o] = {"expand": not sec, "contract": calm >= th and i.slo_clean, "step": calm if (calm >= th and i.slo_clean) else 0.0}
+        ok = calm >= th and i.slo_clean and seeing
+        org[o] = {"expand": not sec, "contract": ok, "step": calm if ok else 0.0}
     cf_lo = 1.0 - 0.35 * calm; gp_lo = 1.0 - 0.30 * calm
     cf_hi = 1.0 - 0.35 * excess if hot else 1.0; gp_hi = 1.0 - 0.35 * excess if hot else 1.0
     org["cpufreq"]["envelope"] = [min(cf_lo, cf_hi), cf_hi]
     org["gpu"]["envelope"] = [min(gp_lo, gp_hi), gp_hi]
     org["power"]["envelope"] = [0.65, 1.0]
     org["routing"]["envelope"] = [0.0, 0.5 * calm if not sec else 0.0]
-    org["cooling"] = {"expand": True, "protective": True, "contract": calm >= 0.3, "step": calm, "envelope": [18.0, 18.0 + 9.0 * calm]}
-    org["batch"] = {"expand": (not sec) and calm >= 0.5 and i.power_stress < 0.9, "contract": True,
-                    "admit": (not sec) and calm >= 0.5 and i.power_stress < 0.9,
+    org["cooling"] = {"expand": True, "protective": True, "contract": calm >= 0.3 and seeing, "step": calm, "envelope": [18.0, 18.0 + 9.0 * calm]}
+    org["batch"] = {"expand": (not sec) and seeing and calm >= 0.5 and i.power_stress < 0.9, "contract": True, "protective_contract": True,
+                    "admit": (not sec) and seeing and calm >= 0.5 and i.power_stress < 0.9,
                     "pause": sc["sigma"] > 1.0 or i.power_stress >= 0.95 or hot, "step": calm}
     org["rollback"] = {"expand": False, "contract": False, "authorized": bool(i.rollback or sec), "step": 0.0}
     return {"execute": i.mode == "autopilot", "killed": False, "security_hold": sec, "scalars": sc, "organs": org}
@@ -113,11 +116,13 @@ def from_governor(g, obs: Dict[str, Any], d: Dict[str, Any] = None, mode: str = 
         U_gate=getattr(L, "U_gate", 0.5), s_eq=stress_equilibrium(p.delta, p.alpha_s, p.beta_s),
         security_block=float(obs.get("security_block", 0.0)), slo_clean=bool(obs.get("slo_clean", True)),
         power_stress=float(obs.get("power_stress", 0.0)), thermal=float(obs.get("thermal", 0.0)),
-        rollback=bool((d or {}).get("rollback_authorized", False)), mode=mode or g.mode, killed=g.killed))
+        rollback=bool((d or {}).get("rollback_authorized", False)), stale=float(obs.get("stale", 0.0)),
+        mode=mode or g.mode, killed=g.killed))
 
 
 def node_release_gate(n: int, per_node_m: float, used_m: float, pending: int, pods_scaling_up: bool,
-                      latency_breach_now: bool, rho: float, node_auth: Dict[str, Any]) -> Dict[str, Any]:
+                      latency_breach_now: bool, rho: float, node_auth: Dict[str, Any],
+                      senses_live: bool = True, last_command_landed: bool = True) -> Dict[str, Any]:
     """May the machine organ give one machine back now? Attribution: an organ is held back only by stress it can cause
     or cure. The node organ reads its own engine view (fed with machine-attributable pressure: pods waiting for a
     place), and the release must also pass:
@@ -126,10 +131,14 @@ def node_release_gate(n: int, per_node_m: float, used_m: float, pending: int, po
       headroom      nothing is pending, and after the release the remaining machines run at or below the engine's own
                     utilisation target rho: used / ((n - 1) x per_node) <= rho
       authority     the node organ's own calm, security and stress gates (authority() above) grant contraction
+      senses        every declared sense is live (afferent integrity)
+      proprioception the node organ's last command landed (efferent feedback: no new order to a muscle that did not
+                    carry out the previous one)
     Returns {"ok": bool, "reason": str, "util_after": float}."""
     util_after = used_m / max((n - 1) * per_node_m, 1e-9) if n > 1 else float("inf")
     checks = [("one machine left", n > 1), ("pods waiting", pending == 0), ("pods scaling up", not pods_scaling_up),
               ("latency breached now", not latency_breach_now), (f"util after {util_after:.2f} > rho {rho:.2f}", util_after <= rho),
-              ("node organ has no contraction authority", bool(node_auth.get("organs", {}).get("nodes", {}).get("contract", False)))]
+              ("node organ has no contraction authority", bool(node_auth.get("organs", {}).get("nodes", {}).get("contract", False))),
+              ("a sense is blind", senses_live), ("last node command did not land", last_command_landed)]
     failed = [name for name, ok in checks if not ok]
     return {"ok": not failed, "reason": "; ".join(failed) or "release permitted", "util_after": util_after}

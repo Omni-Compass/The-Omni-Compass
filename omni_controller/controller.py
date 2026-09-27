@@ -108,6 +108,8 @@ class Controller:
             law = law.get("setting", law).get("closure", law)
             self.cl = ClosureNodes(ClosureLaw(**{k: v for k, v in law.items() if k != "site"}))
         self.lp_hist = []
+        self.cmd_nodes = None          # efferent record: the node count last commanded (proprioception reads it back)
+        self.cmd_hpa = {}              # efferent record: HPA targets last written
 
     def audit(self, rec):
         rec = {"time": time.time(), **rec}
@@ -203,24 +205,44 @@ class Controller:
         if self.rec_n is None:
             self.rec_n = n
         repl = sum(int(h.get("status", {}).get("currentReplicas", 0) or 0) for h in s["hpas"]) or n
-        power_stress = 0.0
+        power_stress = 0.0; blind = {}
         if self.a.power_cmd and self.a.site_limit_w:
             try:
                 power_stress = float(subprocess.run(self.a.power_cmd, shell=True, capture_output=True, text=True).stdout.strip()) / self.a.site_limit_w
+                blind["power"] = False
             except ValueError:
-                power_stress = 0.0
+                power_stress = 0.0; blind["power"] = True
+        # proprioception (efferent -> afferent): did the last commands land? drift = |observed - commanded| / commanded
+        drift = {}
+        if self.cmd_nodes is not None:
+            drift["nodes"] = abs(n - self.cmd_nodes) / max(1, self.cmd_nodes)
+        for h in s["hpas"]:
+            key = (h["metadata"]["namespace"], h["metadata"]["name"])
+            if key in self.cmd_hpa:
+                _, cur_t = cpu_target(h)
+                if cur_t is not None:
+                    drift["hpa " + "/".join(key)] = abs(cur_t - self.cmd_hpa[key]) / max(1, self.cmd_hpa[key])
+        nodes_landed = drift.get("nodes", 0.0) == 0.0
+        self.cmd_nodes = None; self.cmd_hpa = {}
         obs = {"queue_ratio": min(2.0, s["pending"] / max(1, repl)), "load_ratio": min(2.0, s["used_m"] / max(1.0, self.rec_n * per_node)),
-               "power_stress": power_stress, "thermal": 0.0, "network_stress": 0.0, "drift_ratio": 0.0, "stale": 0.0, "security_block": 0.0}
+               "power_stress": power_stress, "thermal": 0.0, "network_stress": 0.0, "drift_ratio": max(drift.values(), default=0.0),
+               "stale": 0.0, "security_block": 0.0}
         extra = self.m.sense(power_stress)
         lp = extra.pop("latency_pressure", 0.0); p95 = extra.pop("latency_p95_ms", None)
+        if getattr(self.a, "latency_file", "") and getattr(self.a, "slo_ms", 0):
+            blind["latency"] = bool(extra.pop("latency_blind", 0.0))
+        age = extra.pop("latency_age_s", None)
         obs.update(extra)
+        # afferent integrity: the share of declared senses that are blind enters the engine as its stale channel
+        obs["stale"] = (sum(blind.values()) / len(blind)) if blind else 0.0
         obs["queue_ratio"] = min(2.0, max(obs["queue_ratio"], lp))
         # SLO reflex: while the response-time target is breached, and for --slo-clear decisions after, Omni-Compass may
         # not pack replicas tighter than the workload's own HPA target and may not cap power (no energy at service's cost)
         self.lp_hist.append(lp)
         guarded = bool(getattr(self.a, "latency_file", "")) and getattr(self.a, "slo_ms", 0)
         n_clear = getattr(self.a, "slo_clear", 3)
-        obs["slo_clean"] = (not guarded) or (len(self.lp_hist) >= n_clear and all(x == 0.0 for x in self.lp_hist[-n_clear:]))
+        obs["slo_clean"] = (not guarded) or (not blind.get("latency", False) and len(self.lp_hist) >= n_clear
+                                             and all(x == 0.0 for x in self.lp_hist[-n_clear:]))
         self.g.nodes = self.rec_n; self.g.current_cap = 1.0
         d = self.g.step(obs, 0)
         floor = max(int(math.ceil(s["req_m"] * (1.0 + self.a.headroom) / per_node)) if s["req_m"] > 0 else self.a.min_nodes, int(math.ceil(s["used_m"] / per_node)))
@@ -236,14 +258,15 @@ class Controller:
         mode = "autopilot" if self.a.mode in ("target", "nodepool") else "observe"
         auth = from_governor(self.g, obs, d, mode=mode)
         self.m.auth = auth
-        breach_now = lp > 0.0
+        breach_now = lp > 0.0 or blind.get("latency", False)
         obs_n = dict(obs, queue_ratio=min(2.0, s["pending"] / max(1, repl)), slo_clean=not breach_now)
         self.gn.nodes = self.rec_n; self.gn.current_cap = 1.0
         dn = self.gn.step(obs_n, 0)
         auth_n = from_governor(self.gn, obs_n, dn, mode=mode)
         scaling_up = any(int(h.get("status", {}).get("desiredReplicas", 0) or 0) > int(h.get("status", {}).get("currentReplicas", 0) or 0)
                          for h in s["hpas"])
-        gate = node_release_gate(n, per_node, s["used_m"], s["pending"], scaling_up, breach_now, rho, auth_n)
+        gate = node_release_gate(n, per_node, s["used_m"], s["pending"], scaling_up, breach_now, rho, auth_n,
+                                 senses_live=not any(blind.values()), last_command_landed=nodes_landed)
         if rec_n < n and not gate["ok"]:
             rec_n = n            # nervous system: the machine organ may not give a machine back now (reason audited)
         elif rec_n < n:
@@ -253,7 +276,9 @@ class Controller:
                                         "scalars": {k: round(v, 3) for k, v in auth["scalars"].items()},
                                         "node_view": {"calm": round(auth_n["scalars"]["calm"], 3),
                                                       "scalars": {k: round(v, 3) for k, v in auth_n["scalars"].items()}},
-                                        "node_gate": {"ok": gate["ok"], "reason": gate["reason"], "util_after": round(gate["util_after"], 3)}}})
+                                        "node_gate": {"ok": gate["ok"], "reason": gate["reason"], "util_after": round(gate["util_after"], 3)},
+                                        "senses": {"blind": blind, "latency_age_s": None if age is None else round(age, 1), "stale": obs["stale"]},
+                                        "proprioception": {k: round(v, 3) for k, v in drift.items()}}})
         out = self.audit({"decision": {"nodes_observed": n, "nodes_recommended": rec_n, "law": "closure" if self.cl is not None else "governor", "hpa_target_recommended": round(rho, 3),
                                        "E": d["state"]["E"], "U": d["state"]["U"], "pending": s["pending"],
                                        "power_cap": round(float(d["power_cap"]), 3), "change_permitted": bool(d["change_permitted"]),
@@ -282,6 +307,7 @@ class Controller:
                 self.k.write(["patch", "hpa", name, "-n", ns, "--type=json", "-p",
                               json.dumps([{"op": "replace", "path": f"/spec/metrics/{idx}/resource/target/averageUtilization", "value": want_h}])],
                              f"HPA target to rho* = {want_h}%" + ("" if obs["slo_clean"] else " (SLO reflex: not tighter than native)"))
+                self.cmd_hpa[(ns, name)] = want_h
             self.m.push(d, obs)
         if self.a.mode == "nodepool" and self.a.node_scale_cmd and rec_n != n:
             cfg = SimpleNamespace(minimum_nodes=self.a.min_nodes, maximum_nodes=self.a.max_nodes)
@@ -293,6 +319,7 @@ class Controller:
                 self.audit({"write": shlex.split(cmd), "why": "node pool size", "dry_run": self.a.dry_run, "shield_interventions": hits})
                 if not self.a.dry_run:
                     subprocess.run(shlex.split(cmd), check=True)
+                    self.cmd_nodes = int(act["target"])
         self.rec_n = rec_n
         return out
 

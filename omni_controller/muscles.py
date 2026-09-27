@@ -86,10 +86,14 @@ class Muscles:
                 pass
         lf = getattr(self.a, "latency_file", "")
         if lf and getattr(self.a, "slo_ms", 0):
-            p95 = latency_p95(lf, self.a.latency_window_s)
-            if p95 == p95:
-                o["latency_p95_ms"] = p95
-                o["latency_pressure"] = max(0.0, p95 / self.a.slo_ms - 1.0)
+            ls = latency_sense(lf, self.a.latency_window_s)
+            o["latency_blind"] = 1.0 if ls["blind"] else 0.0
+            o["latency_age_s"] = ls["age_s"]
+            if not ls["blind"]:
+                o["latency_p95_ms"] = ls["p95"]
+                o["latency_pressure"] = max(0.0, ls["p95"] / self.a.slo_ms - 1.0)
+                if ls["fail"]:        # failed requests in a live window are real service failures: full pressure share
+                    o["latency_pressure"] = max(o["latency_pressure"], ls["fail"] / (ls["ok"] + ls["fail"]))
         cm = getattr(self.a, "security_configmap", "")
         if cm:
             ns, name = ref(cm)
@@ -484,6 +488,28 @@ class Muscles:
             if (dep["metadata"].get("annotations", {}) or {}).get(PAUSE_ANN) == "true":
                 self.k.write(["rollout", "resume", f"deployment/{name}", "-n", ns], "kill switch: resume rollout")
                 self.k.write(["annotate", "deployment", name, "-n", ns, f"{PAUSE_ANN}-"], "kill switch: clear pause record")
+
+
+def latency_sense(path, window_s, now=None):
+    """The latency afferent with its integrity (manuscript Appendix J: the nervous system owns delay and dropout
+    handling). Returns p95 of successful requests in the last window, the ok and failed counts in it, and the age of
+    the newest sample against the wall clock. The sense is blind when its newest sample is older than two windows, or
+    when the window holds no successful request: a hung probe stops writing, and its last clean window must not be read
+    as the present (the set 1-2 failure)."""
+    import os, time
+    try:
+        age = (now if now is not None else time.time()) - os.path.getmtime(path)
+        rows = list(csv.DictReader(open(path)))
+    except OSError:
+        return {"p95": float("nan"), "ok": 0, "fail": 0, "age_s": float("inf"), "blind": True}
+    if not rows:
+        return {"p95": float("nan"), "ok": 0, "fail": 0, "age_s": age, "blind": True}
+    t_end = float(rows[-1]["elapsed_seconds"])
+    win = [r for r in rows if float(r["elapsed_seconds"]) >= t_end - window_s]
+    ms = sorted(float(r["latency_ms"]) for r in win if r.get("ok") == "1")
+    fails = sum(1 for r in win if r.get("ok") != "1")
+    p95 = ms[min(len(ms) - 1, int(0.95 * len(ms)))] if ms else float("nan")
+    return {"p95": p95, "ok": len(ms), "fail": fails, "age_s": age, "blind": age > 2.0 * window_s or not ms}
 
 
 def latency_p95(path, window_s):

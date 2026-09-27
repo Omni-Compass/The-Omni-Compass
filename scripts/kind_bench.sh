@@ -173,7 +173,8 @@ for line in open(sys.argv[1]):
         d = r["decision"]; a = auth or {}
         print(f"  {d['nodes_observed']} -> {d['nodes_recommended']} | p95 {d.get('latency_p95_ms')} | clean {d.get('slo_clean')} | "
               f"calm {a.get('calm')} | node calm {a.get('node_view', {}).get('calm')} | gate {a.get('node_gate', {}).get('reason')} | "
-              f"queue {d.get('queue_ratio')} | U {d['U']:.3f}")
+              f"queue {d.get('queue_ratio')} | U {d['U']:.3f} | blind {[k for k, v in a.get('senses', {}).get('blind', {}).items() if v]} | "
+              f"latency age {a.get('senses', {}).get('latency_age_s')} s | proprioception {a.get('proprioception')}")
 PY
   [ $(( decisions * 10 )) -ge $(( expected * 8 )) ] || { echo "INVALID RUN: the controller stopped early"; exit 1; }
   ! grep -q '"failsafe"' "$OUT_DIR/audit.jsonl" || { echo "INVALID RUN: the fail-safe handed control back to native"; exit 1; }
