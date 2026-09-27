@@ -57,5 +57,27 @@ elif (( want < n )); then
     done
     echo "idle $node: cordoned, $marked pod(s) marked first to go; it idles when its work is gone (no pod moved)"
   done
+  # one machine empties at a time: the closed machine with the least work goes first (cost -1000 x N), the next
+  # after it (-1000 x (N-1)), ... so each scale-down takes whole machines' work, not one pod from each
+  mapfile -t closed < <($KUBECTL get nodes -l '!node-role.kubernetes.io/control-plane' -o json \
+      | jq -r '.items[] | select(.spec.unschedulable == true) | .metadata.name' | while read -r node; do
+        sv=0
+        for row in "${served[@]}"; do
+          read -r ns sel <<< "$row"
+          sv=$(( sv + $($KUBECTL get pods -n "$ns" -l "$sel" --field-selector "spec.nodeName=$node" --no-headers 2>/dev/null | wc -l) ))
+        done
+        (( sv > 0 )) && echo "$sv $node"
+      done | sort -n | awk '{print $2}')
+  rank=${#closed[@]}
+  for node in "${closed[@]}"; do
+    for row in "${served[@]}"; do
+      read -r ns sel <<< "$row"
+      for pod in $($KUBECTL get pods -n "$ns" -l "$sel" --field-selector "spec.nodeName=$node" -o name); do
+        $KUBECTL annotate -n "$ns" "$pod" --overwrite controller.kubernetes.io/pod-deletion-cost=$(( -1000 * rank )) >/dev/null
+      done
+    done
+    echo "first to go, order $(( ${#closed[@]} - rank + 1 )): $node (cost $(( -1000 * rank )))"
+    rank=$(( rank - 1 ))
+  done
 fi
 echo "schedulable workers: $($KUBECTL get nodes -l '!node-role.kubernetes.io/control-plane' -o json | jq '[.items[] | select(.spec.unschedulable != true)] | length') (wanted $want)"

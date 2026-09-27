@@ -167,6 +167,11 @@ class Controller:
                 subprocess.run(shlex.split(cmd), check=True)
             self.nodes_restored = True
 
+    def _gain(self, h):
+        """Mean conveyed CPU limit over the operator's limit for the HPA's target deployment (1 when nothing conveyed)."""
+        ref_ = h.get("spec", {}).get("scaleTargetRef", {}) or {}
+        return max(1.0, self.m.gain.get((h["metadata"]["namespace"], ref_.get("name", "")), 1.0))
+
     def strict_step(self, s, obs):
         """Strict C: Omni-Compass decides each deployment's replica floor itself: replicas = ceil(current x measured
         utilisation / target utilisation), up at once, down only to the highest recommendation of the last
@@ -188,7 +193,7 @@ class Controller:
                     util = m["resource"].get("current", {}).get("averageUtilization")
             if util is None:
                 continue
-            rec = max(lo0, min(hi0, int(math.ceil(cur * float(util) / orig_t - 1e-9))))
+            rec = max(lo0, min(hi0, int(math.ceil(cur * float(util) / (orig_t * self._gain(h)) - 1e-9))))
             hh = (hist.get((ns, name), []) + [rec])[-self.a.strict_window:]; hist[(ns, name)] = hh
             want = rec if rec >= cur else max(hh)
             want = max(want, min(hi0, self.reflex.get((ns, name), 0)))   # the fast pod reflex's floor stands while held
@@ -411,7 +416,9 @@ class Controller:
                 # more headroom is always allowed; less never: at a given load fewer pods always means a longer M/M/c wait
                 # (no target above the operator's keeps the wait), so a raise only spends latency.
                 # Omni on top earns its keep on machines, not by packing the operator's pods tighter
-                want = int(round(100 * min(rho, orig / 100.0)))
+                # the same promise in queue terms: busy = target x request / limit. While convey() gives the pods a
+                # limit g times the operator's, the target that keeps each pod exactly as busy is g times higher
+                want = int(round(100 * min(rho, orig / 100.0) * self._gain(h)))
                 want_h = want if obs["slo_clean"] else min(want, orig)
                 if abs(cur - want_h) < self.a.min_target_change and not (not obs["slo_clean"] and cur > orig):
                     continue

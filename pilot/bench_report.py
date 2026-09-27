@@ -53,9 +53,9 @@ def gauges(rows):
 
 LOWER_BETTER = {"worker nodes in service, mean", "node-hours", "power (W), mean", "power (W), peak", "energy (Wh)",
                 "energy per core-hour (Wh)", "node-hours per core-hour", "pending pods, pod-minutes", "pending pods, peak",
-                "HPA shortfall (desired > current), minutes", "response time (ms), mean", "response time (ms), median",
+                "HPA shortfall (desired > current), minutes", "HPA replicas, mean", "response time (ms), mean", "response time (ms), median",
                 "response time (ms), 95th percentile", "response time (ms), 99th percentile", "failed requests (%)"}
-HIGHER_BETTER = {"utilisation (used / allocatable)"}
+HIGHER_BETTER = {"utilisation (used / allocatable)", "CPU used (cores), mean"}
 
 
 def latency(path):

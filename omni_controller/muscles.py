@@ -66,6 +66,7 @@ def ref(s):
 class Muscles:
     def __init__(self, k, a, audit):
         self.k, self.a, self.audit = k, a, audit
+        self.gain = {}       # (ns, deployment) -> mean conveyed CPU limit / operator's limit
         self.thermal = 0.32  # harness initial thermal state
 
     # ---- afferent ---------------------------------------------------------------------------------------------------
@@ -396,6 +397,7 @@ class Muscles:
                         milli(c.get("resources", {}).get("requests", {}).get("cpu", "0") or "0") for c in p["spec"]["containers"])
             if CPU_ANN not in ann and serving:
                 self.k.write(["annotate", "deployment", name, "-n", ns, f"{CPU_ANN}={int(base)}m"], "convey: record original CPU limit")
+            got = []
             for node, ps in serving.items():
                 a_j = alloc.get(node, 0.0)
                 share = (BAND[1] * a_j - other.get(node, 0.0)) / len(ps)
@@ -403,11 +405,14 @@ class Muscles:
                 for p in ps:
                     cur = milli(p["spec"]["containers"][0].get("resources", {}).get("limits", {}).get("cpu", tmpl))
                     if obs.get("security_block", 0.0) > 0.5 and want > cur:
-                        continue  # shield I1: no expansion during a security hold
+                        got.append(cur); continue  # shield I1: no expansion during a security hold
                     if abs(want - cur) < self.a.cap_min_change_m:
-                        continue
+                        got.append(cur); continue
                     self._resize(p, ns, f"{want}m", f"convey: {node} idle CPU to its {len(ps)} serving pod(s), limit {want}m in place")
-                    out[f"{ns}/{p['metadata']['name']}"] = want
+                    out[f"{ns}/{p['metadata']['name']}"] = want; got.append(want)
+            # the gain g = mean conveyed limit / operator's limit: the replica organ reads it to keep the operator's
+            # promise in queue terms (target x request / limit) while the limit is larger
+            self.gain[(ns, name)] = (sum(got) / len(got) / base) if got and base > 0 else 1.0
         return out
 
     def _hardware(self, cap, obs):

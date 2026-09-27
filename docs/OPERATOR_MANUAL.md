@@ -218,8 +218,13 @@ cannot write.
 1. Grant `patch horizontalpodautoscalers` and `patch pods/resize` (`deploy/rbac-target.yaml`, `deploy/kind/rbac-omni.yaml`).
 2. Run me with `--mode target --latency-file <feed> --slo-ms <your p95 target>`.
 
-Your HPAs keep scaling. I may tighten a target, never loosen it, and my pod reflex raises floors ahead of the CPU
-averages.
+Your HPAs keep scaling. My pod reflex raises floors ahead of the CPU averages.
+
+**Targets.** I hold your promise in queue terms: busy = target × request ÷ limit.
+- While I convey a pod g times your limit, the target that keeps it exactly as busy is g times yours.
+- The pod answers faster, because it has g times the CPU, at the same busy share.
+- Apart from that, I only tighten, never loosen.
+- While response time is over your target, and for three decisions after, your own target stands.
 
 **Pass condition.** p95, p99 and failed requests no worse than native.
 

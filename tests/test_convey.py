@@ -64,6 +64,11 @@ def main():
     assert S["deployments"][0]["metadata"]["annotations"][CPU_ANN] == "500m"
     writes = [json.loads(l) for l in Path(os.environ["FAKE_KUBE_LOG"]).read_text().splitlines()]
     assert all(w[:2] != ["patch", "pod"] or "--subresource" in w for w in writes), "in place only"
+    # the replica organ reads the gain: mean conveyed limit / operator's limit = (1900 + 1900 + 2800 + 500) / 4 / 500
+    g = c.m.gain[("default", "web")]
+    assert abs(g - 3.55) < 1e-9, g
+    hpa = {"metadata": {"namespace": "default", "name": "web"}, "spec": {"scaleTargetRef": {"kind": "Deployment", "name": "web"}}}
+    assert abs(c._gain(hpa) - 3.55) < 1e-9 and c._gain({"metadata": {"namespace": "x", "name": "y"}, "spec": {}}) == 1.0
     assert c.m.convey({}) == {}, "steady: nothing more to write"
     # the kill switch returns every serving pod to the operator's limit
     (Path(t) / "kill").touch(); c.restore()
@@ -79,8 +84,22 @@ def main():
     S = json.loads(Path(p).read_text()); S["nodes"][2]["spec"]["unschedulable"] = True; Path(p).write_text(json.dumps(S))
     s = snapshot(Kube(FAKE, audit=lambda r: r), active_only=True)
     assert s["nodes"] == 3 and s["open"] == 2, s
+    # on top, with response time clean: the HPA target keeps the operator's promise in queue terms at the conveyed
+    # limit, 50% x 3.55 = 178%; while it is not yet clean (the first decisions), the operator's own 50% stands
+    t3 = tempfile.mkdtemp(); p3 = state(t3); S = json.loads(Path(p3).read_text())
+    S["hpas"] = [{"metadata": {"name": "web", "namespace": "default"}, "spec": {"minReplicas": 1, "maxReplicas": 10,
+                  "scaleTargetRef": {"kind": "Deployment", "name": "web"}, "metrics": [{"type": "Resource", "resource": {
+                      "name": "cpu", "target": {"type": "Utilization", "averageUtilization": 50}}}]},
+                  "status": {"currentReplicas": 4, "desiredReplicas": 4}}]
+    Path(p3).write_text(json.dumps(S))
+    lf = Path(t3) / "latency.csv"; lf.write_text("elapsed_seconds,latency_ms,ok\n" + "".join(f"{i},100,1\n" for i in range(60)))
+    c3 = Controller(args(t3)); c3.a.slo_ms = 500.0; seen = []
+    for _ in range(4):
+        os.utime(lf); c3.step()
+        seen.append(json.loads(Path(p3).read_text())["hpas"][0]["spec"]["metrics"][0]["resource"]["target"]["averageUtilization"])
+    assert seen[0] == 50 and seen[-1] == 178, seen
     print("convey: w0 1900m x2, w1 2800m, w2 left at 500m (crowded); requests untouched; no rollout; kill restored 500m; "
-          "hold blocks expansion; closed machine with work: in service 3, open 2")
+          "hold blocks expansion; HPA target 50 -> 178 once clean (same queue promise); closed machine with work: in service 3, open 2")
     print("PASS test_convey")
 
 
