@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Node-pool actuator for a kind cluster: keep exactly N worker nodes schedulable.
-# Scale-down cordons and drains specific workers so their pods are rescheduled; scale-up uncordons parked workers.
+# Node-pool actuator: keep exactly N worker nodes in service; the others are parked, never powered off.
+# Park: cordon the worker (no new work lands on it), move its pods, and leave it powered and Ready at its idle floor.
+# Wake: uncordon a parked worker; it is in service at once, with no boot.
 # Which workers: fewest serving pods first (pods of a Deployment an HPA scales), then fewest pods, so an empty worker is
-# always given back before one that serves traffic.
-# Make before break: when a worker does carry serving pods, the replacements start first. After the cordon, the HPA's
-# minReplicas is raised by the number of serving pods on that worker, the drain waits until the Deployment has that many
-# more ready replicas (on the other workers), and only then evicts; minReplicas is restored afterwards (also on exit).
-# So capacity never dips below what was serving (evicting one of two pods first would double the load on the other while
-# its replacement starts). Drains go through the eviction API, so PodDisruptionBudgets are honoured: a
-# drain that would take the last ready replica times out after DRAIN_TIMEOUT and the node goes back into service.
-# A parked kind node is still a running container: it is counted as off because it
-# carries no workload, as a removed node in a cloud node pool would. Usage: bash scripts/kind_nodepool.sh N
+# always parked before one that serves traffic.
+# Make before break, as an exact swap: for the k serving pods on the worker, the HPA's floor rises by k so k replacements
+# start on the other workers; when they are ready, the worker's own pods are marked first to go
+# (controller.kubernetes.io/pod-deletion-cost) and the replica count is held at its level before the swap, so exactly
+# those k pods leave and none is recreated. Capacity never dips below what was serving, and a move costs exactly k pod
+# starts. The HPA's range returns to the operator's afterwards (also on exit). Anything left is drained through the
+# eviction API, so PodDisruptionBudgets are honoured; a drain that would take the last ready replica times out after
+# DRAIN_TIMEOUT and the worker goes back into service. Usage: bash scripts/kind_nodepool.sh N
 set -euo pipefail
 KUBECTL="${KUBECTL:-kubectl}"   # kind_bench.sh sets this to scripts/kubectl_omni.sh (least privilege)
 want="${1:?usage: kind_nodepool.sh N}"
@@ -49,26 +49,39 @@ elif (( want < n )); then
       echo "$s $c $node"
     done | sort -n -k1,1 -k2,2 | head -n $((n - want)) | awk '{print $3}')
   restore=()
-  restore_min() { for r in "${restore[@]}"; do read -r ns h m <<< "$r"; $KUBECTL patch hpa "$h" -n "$ns" --type=merge -p "{\"spec\":{\"minReplicas\":$m}}" >/dev/null || true; done; restore=(); }
+  restore_min() { for r in "${restore[@]}"; do read -r ns h m mx <<< "$r"; $KUBECTL patch hpa "$h" -n "$ns" --type=merge -p "{\"spec\":{\"minReplicas\":$m,\"maxReplicas\":$mx}}" >/dev/null || true; done; restore=(); }
   trap restore_min EXIT
   for node in "${order[@]}"; do
     $KUBECTL cordon "$node"
     mapfile -t mine < <(serving_on "$node")
-    for row in "${mine[@]}"; do   # make: start the replacements on the other workers first
+    for row in "${mine[@]}"; do   # make: start exactly the replacements, then break exactly the pods they replace
       read -r ns h dep k <<< "$row"
       hj=$($KUBECTL get hpa "$h" -n "$ns" -o json)
       m=$(echo "$hj" | jq '.spec.minReplicas // 1'); mx=$(echo "$hj" | jq '.spec.maxReplicas')
-      ready0=$($KUBECTL get deployment "$dep" -n "$ns" -o jsonpath='{.status.readyReplicas}'); ready0=${ready0:-0}
-      goal=$(( ready0 + k )); (( goal > mx )) && goal=$mx
-      restore+=("$ns $h $m")
-      if (( goal > m )); then
+      cur=$($KUBECTL get deployment "$dep" -n "$ns" -o jsonpath='{.spec.replicas}'); cur=${cur:-0}
+      sel=$($KUBECTL get deployment "$dep" -n "$ns" -o json | jq -r '.spec.selector.matchLabels | to_entries | map("\(.key)=\(.value)") | join(",")')
+      goal=$(( cur + k )); (( goal > mx )) && goal=$mx
+      restore+=("$ns $h $m $mx")
+      if (( goal > cur )); then
         $KUBECTL patch hpa "$h" -n "$ns" --type=merge -p "{\"spec\":{\"minReplicas\":$goal}}" >/dev/null
+        for i in $(seq 1 45); do   # up to 90 s for the replacements to be ready elsewhere
+          r=$($KUBECTL get deployment "$dep" -n "$ns" -o jsonpath='{.status.readyReplicas}'); (( ${r:-0} >= goal )) && break
+          sleep 2
+        done
+        # break: the pods on this machine go first, and the replica count returns to where it was, so the set shrinks
+        # by exactly the pods on this machine and none of them is recreated (controller.kubernetes.io/pod-deletion-cost)
+        for pod in $($KUBECTL get pods -n "$ns" -l "$sel" --field-selector "spec.nodeName=$node" -o name); do
+          $KUBECTL annotate -n "$ns" "$pod" --overwrite controller.kubernetes.io/pod-deletion-cost=-1000 >/dev/null
+        done
+        lo=$(( m < cur ? m : cur ))
+        $KUBECTL patch hpa "$h" -n "$ns" --type=merge -p "{\"spec\":{\"minReplicas\":$lo,\"maxReplicas\":$cur}}" >/dev/null
+        for i in $(seq 1 30); do   # up to 60 s for the machine's pods to leave
+          left=$($KUBECTL get pods -n "$ns" -l "$sel" --field-selector "spec.nodeName=$node" --no-headers 2>/dev/null | wc -l)
+          (( left == 0 )) && break
+          sleep 2
+        done
+        echo "make before break: $ns/$dep $k replacement(s) ready, $((k - ${left:-0})) pod(s) left $node without eviction"
       fi
-      for i in $(seq 1 45); do   # up to 90 s for the replacements to be ready
-        r=$($KUBECTL get deployment "$dep" -n "$ns" -o jsonpath='{.status.readyReplicas}'); (( ${r:-0} >= goal )) && break
-        sleep 2
-      done
-      echo "make before break: $ns/$dep ready ${r:-0} of $goal before draining $node"
     done
     if ! $KUBECTL drain "$node" --ignore-daemonsets --delete-emptydir-data --timeout="${DRAIN_TIMEOUT:-120s}"; then
       echo "drain of $node failed; returning it to service" >&2
