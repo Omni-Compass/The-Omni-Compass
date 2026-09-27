@@ -143,21 +143,81 @@ def main():
                 w(f"| {VN[d['vessel']]} | {'Omni-Compass alone' if d['system'] == 'C-strict' else PN[d['system']]} | "
                   f"{int(d['conveyed'])} of {d['runs']} | {int(d['pages'])} | {d['recovery_min']:.1f} |")
         w("")
+    cc = J("tuning/CONFIRMATORY_COORD.json")
+    ab = J("tuning/ABLATION.json")
+    w("## The supervisory nervous system")
+    w("")
+    w("- **One state, every organ:** `omnicompass/nervous_system.py` turns the engine's state (convergence, basin health, "
+      "stress against its equation-6 equilibrium, unmet need) into one calm value between 0 and 1.")
+    w("- **Authority from calm:** calm grants each organ its authority:")
+    w("  - pods and machines may give capacity back only above their reversibility thresholds (0.5 and 0.7);")
+    w("  - CPU frequency, GPU power, routing and cooling get envelopes that widen with calm;")
+    w("  - batch is admitted or paused;")
+    w("  - rollback is authorised.")
+    w("- **Holds and the shield:** a security hold stops every capacity organ from expanding. The shield stays "
+      "downstream and can still veto.")
+    w("- **Invariants tested:** 300,000 random engine states, with zero violations (`tests/test_nervous_system.py`).")
+    w("- **Coordination:** pods move first, and a machine move opposite to the pod move is vetoed. Controller "
+      "contradictions per day (fighting, or a reversal within one boot time):")
+    w("  - web: 2.10 to 0.10;")
+    w("  - four-cluster: 5.30 to 1.03, below Kubernetes' 2.10.")
+    w("")
+    if cc:
+        t = cc["tally"]
+        w(f"**Coordination, confirmatory on fresh seeds {cc['seeds'][0]}-{cc['seeds'][1]}** (frozen first in "
+          f"`tuning/COORD_PREREGISTRATION.json`, same 364 cells, same Holm rule): {t.get('better', 0)} better, "
+          f"{t.get('equal', 0)} equal, {t.get('worse', 0)} worse.")
+        w("")
+        w("| Workload | Better | Equal | Worse | Contradictions per day: Omni-Compass / Kubernetes |")
+        w("|---|---:|---:|---:|---|")
+        for v in ("web", "multi", "batch", "gpu"):
+            p_ = cc["per_workload"][v]; k_ = cc["contradictions_mean_per_day"][v]
+            w(f"| {VN[v]} | {p_.get('better', 0)} | {p_.get('equal', 0)} | {p_.get('worse', 0)} | "
+              f"{k_['omni']:.2f} / {k_['k8s_hpa70_ca']:.2f} |")
+        w("")
+    if ab:
+        VAR = {"gate_off": "engine release gate removed", "no_turn": "turning point removed", "no_tone": "muscle tone removed",
+               "no_trend": "trend term removed"}
+        w(f"**Mechanism ablation** (`tuning/ABLATION.json`, fresh seeds {ab['seeds'][0]}-{ab['seeds'][-1]}): each part of the "
+          "law removed in turn, against the full law. Listed: the gauges that get significantly worse (95% interval "
+          "excludes 0, more than 0.5%).")
+        w("")
+        w("| Part removed | " + " | ".join(VN[v] for v in ("web", "multi", "batch", "gpu")) + " |")
+        w("|---|---|---|---|---|")
+        for k, lab in VAR.items():
+            cells = []
+            for v in ("web", "multi", "batch", "gpu"):
+                g = ab["result"][v].get(k, {})
+                hit = [f"{GN.get(m, m.replace('_', ' '))} +{d['worse_by_pct']:.0f}%" for m, d in g.items() if d["ci"][0] > 0 and d["worse_by_pct"] > 0.5]
+                cells.append(", ".join(hit) or "no change")
+            w(f"| {lab} | " + " | ".join(cells) + " |")
+        w("")
     w("## Live Kubernetes evidence")
     w("")
-    for f in ("results/live/LIVE_REPS_CLOSURE.md", "results/live/LIVE_REPS_1.md"):
-        q = ROOT / f
-        if q.exists():
-            w(f"Repeated live runs (`{f}`):")
-            w("")
-            w(q.read_text())
-            w("")
-            break
-    if (ROOT / "results/live/LIVE_LEVERS_1.txt").exists():
-        w("**Live levers:** right-sizing, cold start, batch pacing, agent containment and the cooling connector each "
-          "acted on real Kubernetes, and the kill switch restored every one, including from a fresh process. The run "
-          "passed 19 of 19 checks (`results/live/LIVE_LEVERS_1.txt`). The identity's permissions are least-privilege, "
-          "proven with `kubectl auth can-i` receipts.")
+    r3 = ROOT / "results/live/LIVE_REPS_3.md"
+    if r3.exists():
+        w("Repeated live runs, 5 paired repetitions per arm, probe through the Service (`results/live/LIVE_REPS_3.md`):")
+        w("")
+        w(r3.read_text())
+        w("")
+    w("- **Earlier live sets 1 and 2:** these carried a probe defect, now fixed. The probe's one-pod tunnel hung when a "
+      "drain moved its pod, so the Omni arms logged false failed requests (`results/live/LIVE_REPS_PROBE_DEFECT.md`).")
+    w("- **What remains valid from them:** their machine counts. Omni-Compass on top ran 56% fewer workers than native, "
+      "and Omni-Compass alone 50% fewer, both significant.")
+    w("")
+    if (ROOT / "results/live/LIVE_LEVERS_2_NERVOUS.txt").exists():
+        w("**Live levers under the nervous system:**")
+        w("")
+        w("- **What acted:** right-sizing, cold start, batch pacing, agent containment and the cooling connector.")
+        w("- **Authority:** each lever acted on real Kubernetes only inside the authority the nervous system granted.")
+        w("- **Kill switch:** it restored every lever, including from a fresh process.")
+        w("- **Result:** 19 of 19 checks passed (`results/live/LIVE_LEVERS_2_NERVOUS.txt`, first pass "
+          "`LIVE_LEVERS_1.txt`).")
+        w("- **Identity:** least-privilege, with `kubectl auth can-i` receipts.")
+        w("")
+    if (ROOT / "results/live/LIVE_SHADOW_1.txt").exists():
+        w("**Shadow pilot kit, live:** a read-only identity ran for 600 s and logged 40 decisions, with 0 writes "
+          "(`results/live/LIVE_SHADOW_1.txt`). This is the kit a customer runs first.")
         w("")
     w("## Safety and correctness")
     w("")
@@ -193,6 +253,7 @@ def main():
     w("```")
     for c in ["pip install -r requirements.txt && python verify.py",
               "python tuning/confirmatory.py        # C, one global setting, 100 scenarios per workload, Holm-corrected",
+              "python tuning/confirmatory.py --coord   # the same with nervous-system coordination, fresh seeds",
               "python tuning/planetlab_league.py <planetlab-workload-traces/20110303>",
               "python tuning/site_league.py --heldout",
               "python tools/protocol_bench.py 100",
