@@ -1,0 +1,13 @@
+Live levers with the supervisory nervous system gating every lever (commit 5f0454e)
+GitHub Actions run 36289247430, job 108536005874, kind cluster, 27 September 2026. Result: LIVE LEVERS: PASS, 19 of 19 checks.
+
+rightsize   php-apache CPU requests: before [200m ] after [50m ]; after kill [200m ]
+coldstart   idle-worker replicas: idle -> 0; work waiting -> 2; idle again -> 0; after kill -> 2
+batch_pace  train-a suspended: stress -> true; calm -> false; stress -> true; after kill -> false
+contain     agent quota present: over budget -> 1; under budget -> 0; over -> 1; after kill -> 0
+            agent CPU limits: before [400m 400m ] contained [100m 100m ] lifted [400m 400m ] after kill [400m 400m ]
+cooling     setpoints written to the stand-in controller: 23.3 25.4 26.0 23.3 25.4 23.3 25.4 26.0 22.0
+records left after kill: none
+writes by lever: 7 batch_pace; 5 coldstart; 11 contain; 8 cooling; 11 kill; 1 record; 2 rightsize
+Every setpoint stays inside the nervous-system envelope [18, 18 + 9 calm] (max 26.0 < 27).
+CHECK ok x19 (rightsize 2, coldstart 4, batch_pace 4, contain 7, record 1, cooling 1)
