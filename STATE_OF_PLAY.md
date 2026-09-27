@@ -2,6 +2,10 @@
 
 This is the whole repository at the commit named in `STATE_OF_PLAY_COMMIT.txt`. Everything below can be rerun from it.
 
+**Run it live on real Kubernetes yourself:** on any machine with Docker, kind, kubectl and Python, run
+`bash RUN_LIVE.sh 3`. It builds a fresh 7-node cluster per arm, runs native, Omni on top and Omni alone, and writes
+`live_runs/LIVE_REPS.md`. GitHub Actions runs the same comparison with a pushed commit whose message contains `[reps]`.
+
 **Rerun the whole thing:** `pip install -r requirements.txt && python verify.py`. It must end
 `VERIFICATION: PASS`, and it does at this commit.
 
