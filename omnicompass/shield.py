@@ -2,7 +2,9 @@
 
 Invariants (each enforced by construction; every intervention is counted):
   I1 security   no capacity expansion (nodes, Terraform, rollout) while a security block is observed
-  I2 bounds     node targets lie in [minimum_nodes, maximum_nodes]; power cap in [0.65, 1.0]
+  I2 bounds     node targets lie in [minimum_nodes, maximum_nodes]; power cap in [0.65, 1.0]. When the current node
+                count is itself outside the bounds and the rate limit I5 forbids reaching them in one step, the target
+                must move toward the bounds (the only admissible direction): n > max -> max <= t < n, n < min -> n < t <= min
   I3 coherence  an action set never both expands capacity and tightens the power cap
   I4 power      no node addition whose projected power stress exceeds power_limit:
                 projected = observed_power_stress * (n + k) / n
@@ -38,7 +40,10 @@ def violations(actions: List[Dict[str, Any]], st: Dict[str, Any], obs: Dict[str,
         if sec and d > 0 and k in ("nodes", "terraform_plan", "rollout"):
             v.append("I1")
         if k == "nodes":
-            if not cfg.minimum_nodes <= int(t) <= cfg.maximum_nodes:
+            ti = int(t)
+            inside = cfg.minimum_nodes <= ti <= cfg.maximum_nodes
+            toward = (n > cfg.maximum_nodes and cfg.maximum_nodes <= ti < n) or (n < cfg.minimum_nodes and n < ti <= cfg.minimum_nodes)
+            if not inside and not toward:
                 v.append("I2")
             add = int(t) - n
             if abs(add) > lim.max_node_step:
@@ -68,11 +73,16 @@ def enforce(actions: List[Dict[str, Any]], st: Dict[str, Any], obs: Dict[str, fl
             hits += 1
             continue
         if k == "nodes":
-            t = max(cfg.minimum_nodes, min(cfg.maximum_nodes, int(a["target"])))
+            r = int(a["target"])
+            toward = (n > cfg.maximum_nodes and cfg.maximum_nodes <= r < n) or (n < cfg.minimum_nodes and n < r <= cfg.minimum_nodes)
+            t = r if toward else max(cfg.minimum_nodes, min(cfg.maximum_nodes, r))   # minimal intervention
             t = max(n - lim.max_node_step, min(n + lim.max_node_step, t))
             if t > n and ps > 0.0:
                 k_max = int((lim.power_limit / ps) * n - n + 1e-9)
                 t = min(t, n + max(0, k_max))
+            if sec and t > n:
+                hits += 1          # I1 after clamping: a clamp may turn a request into an expansion; not during a hold
+                continue
             if t != int(a["target"]):
                 hits += 1
             if t == n:

@@ -103,7 +103,10 @@ class ClosureNodes:
 # ---------------------------------------------------------------------------------------------------------------------
 # Self-calibrating closure law: every margin is derived, none is tuned per workload.
 #
-#   tracker      dual bath with the critically damped alpha-beta relation (Benedict-Bordner): b = a^2 / (2 - a), a = 1/2
+#   tracker      dual bath (level L, rate v); the gains are chosen by the data: a bank of trackers from slow-trend to fast-
+#                trend (a, b) runs side by side and the one with the smallest running one-step prediction error drives the
+#                forecast (model selection by prediction error; the fastest member is the critically damped a = 1/2,
+#                b = a^2 / (2 - a))
 #   noise        sigma^2 = running variance of the tracker's one-step innovation (the deviation bath of Chapter 31)
 #   add horizon  H_add = boot delay + 1 tick: a machine ordered now is serving when the projection arrives
 #   release hor. H_rel = boot delay / park fraction: the energy break-even between keeping a machine parked and booting
@@ -113,9 +116,16 @@ class ClosureNodes:
 #                z(t) = z95 x max(1, S / S*), S the six-state engine's stress (equation 6) and S* its equilibrium,
 #                delta - alpha_s S* - (3/4) beta_s S*^2 = 0: the engine widens the margin when it is stressed
 #   Gc (add)     if projected peak over H_add + margin > n c: add ceil((peak + margin) / c) - n machines
-#   G0 (release) one machine, only if projected peak over H_rel + margin <= (n - 1) c, after the turn (v <= 0), and while
-#                the engine's push <= push_release; the released machine is parked; parked machines beyond what the
-#                projection over H_rel needs are powered off
+#   G0 (release) one machine, only if projected peak over H_rel + margin over max(H_rel, T*) <= (n - 1) c (the machine is
+#                not expected back within the learned break-even T* below), after the turn (v <= 0), and while
+#                the engine's push <= push_release; the released machine is parked
+#   power-off    learned break-even (ski rental with measured return times): every release at level k opens a record
+#                that closes when demand needs k machines again; X = the time it took. A parked machine is powered off
+#                when it has been parked T* ticks, T* = argmin_T sum_i cost_i(T), cost_i = park_frac X_i if X_i <= T,
+#                else park_frac T + boot (energy in idle-machine ticks; still-open records are right-censored at their
+#                age). Before any record exists T* = boot / park_frac, the deterministic ski-rental rule (never more than
+#                twice the energy of a controller that knows the future). Nothing is tuned: T* is computed from the
+#                workload's own return times, per workload, while it runs
 # ---------------------------------------------------------------------------------------------------------------------
 @dataclass(frozen=True)
 class AutoClosureLaw:
@@ -157,38 +167,76 @@ class AutoClosureNodes:
     def __init__(self, law: AutoClosureLaw = AutoClosureLaw(), s_eq: float = None):
         self.law = law; self.L = None; self.v = 0.0; self.s2 = 0.0; self.n_obs = 0
         self.S = 0.0; self.s_eq = s_eq if s_eq else stress_equilibrium(0.5, 0.12, 0.10)
-        self.hist = []
+        self.hist = []; self.ages = []; self.n_last = 0
+        self.t = 0; self.open = []; self.closed = []   # release records: (level, t0) open; X closed
+
+    BANK = ((0.2, 0.002), (0.2, 0.02), (0.5, 0.005), (0.5, 0.05), (0.5, 1.0 / 6.0))
 
     def observe(self, r: float, dt: float = 1.0) -> None:
-        a, b = self.law.a, self.law.b
         if self.L is None:
-            self.L = r; return
-        pred = self.L + self.v * dt
-        e = r - pred
-        self.n_obs += 1
+            self.L = r; self.bank = [[r, 0.0, 0.0] for _ in self.BANK]; return
+        self.n_obs += 1; self.t += 1
+        self.ages = [x + 1 for x in self.ages]
         w = max(1.0 / self.n_obs, 0.02)            # running mean first, then a 50-tick exponential window
-        self.s2 = (1.0 - w) * self.s2 + w * e * e
-        self.L = pred + a * e
-        self.v = self.v + b * e / dt
+        for (a, b), m in zip(self.BANK, self.bank):
+            pred = m[0] + m[1] * dt
+            e = r - pred
+            m[2] = (1.0 - w) * m[2] + w * e * e
+            m[0] = pred + a * e
+            m[1] = m[1] + b * e / dt
+        best = min(self.bank, key=lambda m: m[2])
+        self.L, self.v, self.s2 = best
 
     def z(self) -> float:
         return self.law.z95 * max(1.0, self.S / self.s_eq) if self.s_eq > 0 else self.law.z95
 
-    def peak(self, H: int) -> float:
+    def peak(self, H: int, H_noise: int = None) -> float:
+        """Projected peak over H ticks (level + trend) plus the forecast-error margin accumulated over H_noise ticks."""
         if self.L is None:
             return 0.0
-        return max(self.L + self.v * tau for tau in range(0, H + 1)) + self.z() * math.sqrt(self.s2 * H)
+        Hn = H if H_noise is None else H_noise
+        return max(self.L + self.v * tau for tau in range(0, H + 1)) + self.z() * math.sqrt(self.s2 * Hn)
+
+    GRID = (0, 6, 12, 24, 48, 96, 192, 384, 768, 1440)
+
+    def threshold(self) -> int:
+        L = self.law
+        if not self.closed and not self.open:
+            return L.H_rel
+        cens = [self.t - t0 for _, t0 in self.open]
+        def cost(T):
+            c = sum(L.park_frac * x if x <= T else L.park_frac * T + L.boot for x in self.closed)
+            return c + sum(L.park_frac * T + L.boot if a > T else L.park_frac * a for a in cens)
+        return min(self.GRID, key=lambda T: (cost(T), T))
 
     def reserve(self, c: float) -> int:
-        return int(math.ceil(max(self.peak(self.law.H_rel), 0.0) / c - 1e-9))
+        """Machines to keep powered (running + parked younger than the learned break-even T*); older parked go off."""
+        T = self.threshold()
+        self.ages = [x for x in self.ages if x < T]
+        return self.n_last + len(self.ages)
 
     def decide(self, n: int, c: float, push: float, n_min: int, n_max: int) -> int:
         L = self.law
         if self.L is None:
             return n
         need = int(math.ceil(max(self.peak(L.H_add), 0.0) / c - 1e-9))
+        still = []
+        for lvl, t0 in self.open:            # a release record closes when demand needs its level again
+            if need >= lvl:
+                self.closed.append(self.t - t0)
+            else:
+                still.append((lvl, t0))
+        self.open = still[-200:]; self.closed = self.closed[-400:]
         if n <= 0 or need > n:
-            return int(min(n_max, max(n_min, need)))
-        if n - 1 >= n_min and self.peak(L.H_rel) <= (n - 1) * c and self.v <= 0.0 and push <= L.push_release:
+            t = int(min(n_max, max(n_min, need)))
+            self.ages.sort(); del self.ages[max(0, len(self.ages) - (t - n)):]     # wake the longest parked first
+            self.n_last = t
+            return t
+        # release only if the machine is not expected back within the learned break-even T*: the trend is projected over
+        # the release horizon, the forecast error is accumulated over max(H_rel, T*)
+        if n - 1 >= n_min and self.peak(L.H_rel, max(L.H_rel, self.threshold())) <= (n - 1) * c and self.v <= 0.0 \
+                and push <= L.push_release:
+            self.ages.append(0); self.n_last = n - 1; self.open.append((n, self.t))
             return n - 1
+        self.n_last = n
         return n

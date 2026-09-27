@@ -13,7 +13,9 @@ std::vector<std::string> violations(const std::vector<Action>& acts, const Shiel
     if (sec && a.direction > 0 && is_infra(a.kind)) v.push_back("I1");
     if (a.kind == "nodes") {
       const int t = static_cast<int>(a.target);
-      if (t < s.min_nodes || t > s.max_nodes) v.push_back("I2");
+      const bool inside = s.min_nodes <= t && t <= s.max_nodes;
+      const bool toward = (n > s.max_nodes && s.max_nodes <= t && t < n) || (n < s.min_nodes && n < t && t <= s.min_nodes);
+      if (!inside && !toward) v.push_back("I2");
       const int add = t - n;
       if (std::abs(add) > lim.max_node_step) v.push_back("I5");
       if (add > 0 && s.power_stress * (n + add) / n > lim.power_limit) v.push_back("I4");
@@ -37,13 +39,16 @@ ShieldResult enforce(const std::vector<Action>& acts, const ShieldState& s, cons
   for (Action a : acts) {
     if (sec && a.direction > 0 && is_infra(a.kind)) { ++r.interventions; continue; }
     if (a.kind == "nodes") {
-      int t = std::max(s.min_nodes, std::min(s.max_nodes, static_cast<int>(a.target)));
+      const int r0 = static_cast<int>(a.target);
+      const bool toward = (n > s.max_nodes && s.max_nodes <= r0 && r0 < n) || (n < s.min_nodes && n < r0 && r0 <= s.min_nodes);
+      int t = toward ? r0 : std::max(s.min_nodes, std::min(s.max_nodes, r0));   // minimal intervention
       t = std::max(n - lim.max_node_step, std::min(n + lim.max_node_step, t));
       if (t > n && ps > 0.0) {
         const double k_max_d = std::min(1.0e6, (lim.power_limit / ps) * n - n + 1e-9);
         const int k_max = static_cast<int>(k_max_d);
         t = std::min(t, n + std::max(0, k_max));
       }
+      if (sec && t > n) { ++r.interventions; continue; }   // I1 after clamping
       if (t != static_cast<int>(a.target)) ++r.interventions;
       if (t == n) continue;
       a.target = t; a.direction = t > n ? 1 : -1;

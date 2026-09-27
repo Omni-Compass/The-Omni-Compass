@@ -72,6 +72,9 @@ def main():
         test_cpp_governor_parity.main(str(b / "oc_governor"), 20 if a.quick else 60, m_); check(f"C++ governor vs Python governor ({m_})", True)
     from tests import test_cpp_shield_parity
     test_cpp_shield_parity.main(str(b / "oc_shield"), 8 if a.quick else 20); check("C++ shield vs Python shield (enforce and violations)", True)
+    from tests import test_cpp_shield_adversarial, test_shield_properties
+    test_shield_properties.main(100_000 if a.quick else 1_000_000); check("shield properties: no invariant violated, idempotent, no invented action, minimal intervention (random + adversarial)", True)
+    test_cpp_shield_adversarial.main(str(b / "oc_shield"), 50_000 if a.quick else 200_000); check("C++ shield vs Python shield on the adversarial generator", True)
     src = (ROOT / "cpp" / "src" / "shield.cpp").read_text()
     mut_src = tmp / "shield_mut.cpp"
     mut_src.write_text(src.replace('return k == "nodes" || k == "terraform_plan" || k == "rollout"; }', 'return k == "nodes" || k == "terraform_plan"; }'))
