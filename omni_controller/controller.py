@@ -259,7 +259,11 @@ class Controller:
         auth = from_governor(self.g, obs, d, mode=mode)
         self.m.auth = auth
         breach_now = lp > 0.0 or blind.get("latency", False)
-        obs_n = dict(obs, queue_ratio=min(2.0, s["pending"] / max(1, repl)), slo_clean=not breach_now)
+        # the machine organ's view: only pressure a machine release could cause (pods waiting for a place, a live
+        # breach). Power and heat are relieved by a release, never worsened by it, so they cannot veto one (live set 7:
+        # modelled heat 0.62 from mostly idle power held calm at 0.64 < 0.7 and blocked every release)
+        obs_n = dict(obs, queue_ratio=min(2.0, s["pending"] / max(1, repl)), slo_clean=not breach_now,
+                     power_stress=0.0, thermal=0.0)
         self.gn.nodes = self.rec_n; self.gn.current_cap = 1.0
         dn = self.gn.step(obs_n, 0)
         auth_n = from_governor(self.gn, obs_n, dn, mode=mode)
