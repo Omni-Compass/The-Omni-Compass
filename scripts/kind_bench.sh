@@ -16,7 +16,8 @@
 # account (deploy/kind/rbac-omni.yaml) with `kubectl auth can-i` receipts for what it can and cannot do; the run fails if
 # Omni made no write or if the kill switch leaves any record behind; SHA256SUMS.txt fingerprints every output file.
 set -euo pipefail
-ARM="${ARM:?set ARM=native or ARM=omni}"
+ARM="${ARM:?set ARM=native, ARM=omni (B: Omni on top) or ARM=strict (C: Omni decides replicas and nodes)}"
+STRICT=""; [ "$ARM" = "strict" ] && STRICT="--strict-replicas"
 OUT_DIR="${OUT_DIR:-bench_$ARM}"; DURATION="${DURATION:-1200}"; WARMUP="${WARMUP:-120}"
 LOAD_STEPS="${LOAD_STEPS:-1 2 3 1 2 1}"
 IDLE_W="${IDLE_W:-100}"; DYN_W="${DYN_W:-150}"; export IDLE_W DYN_W
@@ -56,7 +57,7 @@ hpa_count=$(kubectl get hpa -A -o json | jq '.items | length')
 [ "$hpa_count" = "1" ] || { echo "expected exactly one HPA, found $hpa_count"; exit 1; }
 foreign=$(kubectl get pods -A -o json | jq '[.items[] | select(.metadata.namespace | IN("kube-system","local-path-storage","default","omni-compass") | not)] | length')
 [ "$foreign" = "0" ] || { echo "cluster contains non-harness pods"; exit 1; }
-if [ "$ARM" = "omni" ]; then
+if [ "$ARM" != "native" ]; then
   kubectl apply -f deploy/kind/rbac-omni.yaml
   SA="system:serviceaccount:omni-compass:omni-compass"
   can() { kubectl auth can-i "$@" --as="$SA"; }
@@ -103,7 +104,7 @@ pf_pid=$!; sleep 3
 INTERVAL=5 DURATION="$DURATION" python scripts/latency_probe.py http://127.0.0.1:18080/ "$OUT_DIR/latency.csv" &
 probe_pid=$!
 omni_pid=""
-if [ "$ARM" = "omni" ]; then
+if [ "$ARM" != "native" ]; then
   echo "== ARM omni: Omni-Compass driving HPA target + node pool + power sensing"
   python -m omni_controller.controller --kubectl "$KUBECTL" --mode nodepool --active-nodes-only --interval 60 --floor-interval 15 \
     --iterations $(( DURATION / 60 )) --min-nodes 1 --max-nodes "$WORKERS" --max-node-step 1 \
@@ -111,7 +112,7 @@ if [ "$ARM" = "omni" ]; then
     --power-cmd "bash scripts/kind_power.sh" --site-limit-w "$SITE_LIMIT_W" \
     --cap-deployments default/php-apache --thermal-model --security-configmap default/omni-security \
     --rollout-guard default/php-apache --latency-file "$OUT_DIR/latency.csv" --slo-ms "${SLO_MS:-500}" \
-    --audit "$OUT_DIR/audit.jsonl" --kill-file "$OUT_DIR/kill" > "$OUT_DIR/controller.log" 2>&1 &
+    --audit "$OUT_DIR/audit.jsonl" --kill-file "$OUT_DIR/kill" $STRICT > "$OUT_DIR/controller.log" 2>&1 &
   omni_pid=$!
 else
   echo "== ARM native: Omni-Compass not running; Kubernetes alone"
@@ -126,7 +127,7 @@ echo "port-forward restarts: $(wc -l < "$OUT_DIR/port_forward.log" 2>/dev/null |
 kubectl get nodes -o wide > "$OUT_DIR/nodes_end.txt"
 kubectl get hpa php-apache -o json > "$OUT_DIR/hpa_end.json"
 
-if [ "$ARM" = "omni" ]; then
+if [ "$ARM" != "native" ]; then
   echo "== kill switch"
   touch "$OUT_DIR/kill"
   omni_writes=$(grep -c '"write"' "$OUT_DIR/audit.jsonl" || true)
@@ -138,6 +139,9 @@ if [ "$ARM" = "omni" ]; then
   cpu_limit=$(kubectl get pods -l run=php-apache -o jsonpath='{range .items[*]}{.spec.containers[0].resources.limits.cpu}{"\n"}{end}' | sort -u | tr '\n' ' ' | sed 's/ $//')
   echo "pod CPU limits after kill: $cpu_limit" | tee -a "$OUT_DIR/kill_switch.txt"
   restored=$(kubectl get hpa php-apache -o jsonpath='{.spec.metrics[0].resource.target.averageUtilization}')
+  range_now=$(kubectl get hpa php-apache -o jsonpath='{.spec.minReplicas},{.spec.maxReplicas}')
+  echo "HPA replica range after kill: $range_now" | tee -a "$OUT_DIR/kill_switch.txt"
+  test "$range_now" = "1,10"
   back=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' -o json | jq '[.items[] | select(.spec.unschedulable != true)] | length')
   { echo "restored target: $restored"; echo "workers in service: $back of $WORKERS"; } | tee "$OUT_DIR/kill_switch.txt"
   leftover=$(kubectl get hpa php-apache -o json | jq -r '.metadata.annotations // {} | keys[] | select(startswith("omnicompass.io/"))'; kubectl get deployment php-apache -o json | jq -r '.metadata.annotations // {} | keys[] | select(startswith("omnicompass.io/"))')
@@ -146,7 +150,7 @@ if [ "$ARM" = "omni" ]; then
 fi
 echo "rows captured: $(( $(wc -l < "$OUT_DIR/capture.csv") - 1 ))"
 ( cd "$OUT_DIR" && sha256sum $(ls -1 | grep -v '^SHA256SUMS.txt$') > SHA256SUMS.txt )
-if [ "$ARM" = "omni" ]; then
+if [ "$ARM" != "native" ]; then
   # Evidence discipline: the run counts only if the engine decided for the whole run.
   decisions=$(grep -c '"decision"' "$OUT_DIR/audit.jsonl" || true); expected=$(( DURATION / 60 ))
   errors=$(grep -c '"error"' "$OUT_DIR/audit.jsonl" || true)

@@ -222,6 +222,8 @@ def main():
     test_omni_controller.main(); check("live controller against a fake cluster: observe writes nothing, target bounded, kill restores, node pool bounded and dry-run safe", True)
     from tests import test_muscles
     test_muscles.main(); check("live muscles: power cap, heat, security, rollout, batch, CPU frequency and GPU connectors; kill restores; observe writes nothing", True)
+    from tests import test_strict_replicas
+    test_strict_replicas.main(); check("strict C live mode: Omni-Compass sets replicas, HPA pinned, kill restores the range", True)
     from tests import test_muscles_levers
     test_muscles_levers.main(); check("live levers: rightsize, coldstart, batch pace, containment, cooling; kill restores every one, also from a fresh process", True)
     from tests import test_active_nodes

@@ -29,6 +29,7 @@ from omnicompass.shield import enforce, ShieldLimits
 from omni_controller.muscles import Muscles, add_args as add_muscle_args
 
 ANNOTATION = "omnicompass.io/original-target-utilization"
+RANGE_ANN = "omnicompass.io/original-replica-range"
 
 
 def to_milli(v: str) -> float:
@@ -111,6 +112,14 @@ class Controller:
 
     def restore(self):
         for h in self.k.get("get", "hpa", "-A", "-o", "json")["items"]:
+            rng = h["metadata"].get("annotations", {}).get(RANGE_ANN)
+            if rng:
+                lo0, hi0 = (int(x) for x in rng.split(","))
+                ns, name = h["metadata"]["namespace"], h["metadata"]["name"]
+                self.k.write(["patch", "hpa", name, "-n", ns, "--type=merge", "-p", json.dumps({"spec": {"minReplicas": lo0, "maxReplicas": hi0}})],
+                             "kill switch: restore the HPA's own replica range")
+                self.k.write(["annotate", "hpa", name, "-n", ns, f"{RANGE_ANN}-"], "kill switch: remove range record")
+        for h in self.k.get("get", "hpa", "-A", "-o", "json")["items"]:
             orig = h["metadata"].get("annotations", {}).get(ANNOTATION)
             if orig is None:
                 continue
@@ -129,6 +138,36 @@ class Controller:
             if not self.a.dry_run:
                 subprocess.run(shlex.split(cmd), check=True)
             self.nodes_restored = True
+
+    def strict_step(self, s, obs):
+        """Strict C: Omni-Compass decides each deployment's replica count itself (the HPA no longer decides): replicas =
+        ceil(current x measured utilisation / target utilisation), up at once, down only to the highest recommendation
+        of the last --strict-window decisions; the HPA is pinned to that count (minReplicas = maxReplicas), within its
+        original range; the kill switch restores the original range."""
+        hist = getattr(self, "_rec_hist", {}); self._rec_hist = hist
+        for h in s["hpas"]:
+            ns, name = h["metadata"]["namespace"], h["metadata"]["name"]
+            ann = h["metadata"].get("annotations", {}) or {}
+            lo0, hi0 = (int(x) for x in ann.get(RANGE_ANN, f"{h['spec'].get('minReplicas', 1)},{h['spec']['maxReplicas']}").split(","))
+            idx, tgt = cpu_target(h)
+            orig_t = int(ann.get(ANNOTATION, tgt or 50))
+            cur = int(h.get("status", {}).get("currentReplicas", 0) or lo0)
+            util = None
+            for m in h.get("status", {}).get("currentMetrics", []) or []:
+                if m.get("type") == "Resource" and m.get("resource", {}).get("name") == "cpu":
+                    util = m["resource"].get("current", {}).get("averageUtilization")
+            if util is None:
+                continue
+            rec = max(lo0, min(hi0, int(math.ceil(cur * float(util) / orig_t - 1e-9))))
+            hh = (hist.get((ns, name), []) + [rec])[-self.a.strict_window:]; hist[(ns, name)] = hh
+            want = rec if rec >= cur else max(hh)
+            if obs.get("security_block", 0.0) > 0.5:
+                want = min(want, cur)                     # shield I1: no expansion during a security hold
+            if RANGE_ANN not in ann:
+                self.k.write(["annotate", "hpa", name, "-n", ns, "--overwrite", f"{RANGE_ANN}={lo0},{hi0}"], "strict: record original replica range")
+            if h["spec"].get("minReplicas") != want or h["spec"]["maxReplicas"] != want:
+                self.k.write(["patch", "hpa", name, "-n", ns, "--type=merge", "-p", json.dumps({"spec": {"minReplicas": want, "maxReplicas": want}})],
+                             f"strict: replicas {cur} -> {want} decided by Omni-Compass (utilisation {util}%, target {orig_t}%)")
 
     def floor_step(self):
         """Fast path between governor decisions: add the nodes that pending and running pod requests need (nodepool mode)."""
@@ -186,7 +225,10 @@ class Controller:
                                        "thermal": round(obs["thermal"], 3), "security_block": obs["security_block"],
                                        "power_stress": round(power_stress, 3), "latency_p95_ms": p95,
                                        "queue_ratio": round(obs["queue_ratio"], 3), "slo_clean": obs["slo_clean"]}, "mode": self.a.mode})
-        if self.a.mode in ("target", "nodepool"):
+        if self.a.mode in ("target", "nodepool") and getattr(self.a, "strict_replicas", False):
+            self.strict_step(s, obs)
+            self.m.push(d, obs)
+        elif self.a.mode in ("target", "nodepool"):
             want = int(round(rho * 100))
             for h in s["hpas"]:
                 idx, cur = cpu_target(h)
@@ -234,6 +276,8 @@ def parser():
     ap.add_argument("--max-nodes", type=int, default=1000)
     ap.add_argument("--max-node-step", type=int, default=2)
     ap.add_argument("--min-target-change", type=int, default=3)
+    ap.add_argument("--strict-replicas", action="store_true", help="strict C: Omni-Compass sets replica counts; the HPA is pinned")
+    ap.add_argument("--strict-window", type=int, default=5, help="decisions a scale-down waits for (highest recent recommendation)")
     ap.add_argument("--max-failures", type=int, default=3, help="consecutive failed decisions before the fail-safe restore")
     ap.add_argument("--headroom", type=float, default=0.5, help="spare capacity kept above pod requests (0.5 = 50%%, the default)")
     ap.add_argument("--active-nodes-only", action="store_true",

@@ -30,6 +30,12 @@ elif a[:2] == ["top", "pods"]:
         pods = [p for p in pods if p.get("metadata", {}).get("labels", {}).get(k) == v]
     print("\n".join(f"{p['metadata']['name']} {p.get('usage', st.get('pod_usage', '100m'))} 50Mi" for p in pods))
 elif a[:2] == ["top", "nodes"]: print("\n".join(f"{n['metadata']['name']} {st['used_per_node']} 10% 1Gi 5%" for n in st["nodes"]))
+elif a[:2] == ["patch", "hpa"] and "--type=merge" in a:
+    log(); name = a[2]; body = json.loads(a[a.index("-p") + 1])
+    for h in st["hpas"]:
+        if h["metadata"]["name"] == name:
+            h["spec"].update(body["spec"])
+    save()
 elif a[:2] == ["patch", "hpa"]:
     log(); name = a[2]; ops = json.loads(a[a.index("-p") + 1])
     for h in st["hpas"]:
