@@ -76,6 +76,10 @@ class Conveyance:
         self.rate = [0.0] * n
 
     def step(self, need: Sequence[float], lo: Sequence[float], hi: Sequence[float]) -> List[float]:
+        # the living band: every organ keeps at least 5% of its range (idle, never off) and never takes more than 95%
+        from omnicompass.nervous_system import BAND
+        lo = [max(l, BAND[0] * h) for l, h in zip(lo, hi)]
+        hi = [max(l, BAND[1] * h) for l, h in zip(lo, hi)]
         need = [max(x, 1e-9) for x in need]
         if self.prev is not None:           # rate tracker for the reserve (the dual-bath rate channel)
             self.rate = [0.5 * r + 0.5 * (x - p) for r, x, p in zip(self.rate, need, self.prev)]

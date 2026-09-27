@@ -6,8 +6,8 @@
 # Make before break: when a worker does carry serving pods, the replacements start first. After the cordon, the HPA's
 # minReplicas is raised by the number of serving pods on that worker, the drain waits until the Deployment has that many
 # more ready replicas (on the other workers), and only then evicts; minReplicas is restored afterwards (also on exit).
-# So capacity never dips below what was serving (live set 9: a drain that evicted one of two pods doubled the load on
-# the other while its replacement started). Drains go through the eviction API, so PodDisruptionBudgets are honoured: a
+# So capacity never dips below what was serving (evicting one of two pods first would double the load on the other while
+# its replacement starts). Drains go through the eviction API, so PodDisruptionBudgets are honoured: a
 # drain that would take the last ready replica times out after DRAIN_TIMEOUT and the node goes back into service.
 # A parked kind node is still a running container: it is counted as off because it
 # carries no workload, as a removed node in a cloud node pool would. Usage: bash scripts/kind_nodepool.sh N

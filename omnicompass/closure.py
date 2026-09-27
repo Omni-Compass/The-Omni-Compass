@@ -57,7 +57,7 @@ class ClosureLaw:
     turn_rise: float = 0.0     # the turning-point veto binds only for a rise larger than this share of one machine over
                                # the release horizon (v * H_rel > turn_rise * c); 0 = any rise vetoes (the benchmarked
                                # law). A rise smaller than the release band cannot carry demand through the band, so it
-                               # is no reason to hold a machine (live: one early pod left v > 0 for a whole 15-min run)
+                               # is no reason to hold a machine (one small rise must not hold every machine for a run)
 
 
 class ClosureNodes:

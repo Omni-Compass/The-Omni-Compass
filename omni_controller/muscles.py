@@ -324,8 +324,7 @@ class Muscles:
             cap = 1.0  # SLO reflex: no power capping while service is (or was just) over its response-time target
         if getattr(self.a, "latency_file", ""):
             # a request-served workload: its work is set by arrivals, not by the cap, so throttling it saves no energy
-            # (the same CPU-seconds run later) and only adds queueing wait (live set 9: every return to a clean SLO
-            # capped the pods and the next decision breached, 414 -> 598, 464 -> 798 ms). Energy comes from machines.
+            # (the same CPU-seconds run later) and only adds queueing wait. Its energy comes from machines idling down.
             cap = 1.0
         for target in filter(None, getattr(self.a, "cap_deployments", "").split(",")):
             ns, name = ref(target)
@@ -500,7 +499,7 @@ def latency_sense(path, window_s, now=None):
     handling). Returns p95 of successful requests in the last window, the ok and failed counts in it, and the age of
     the newest sample against the wall clock. The sense is blind when its newest sample is older than two windows, or
     when the window holds no successful request: a hung probe stops writing, and its last clean window must not be read
-    as the present (the set 1-2 failure)."""
+    as the present."""
     import os, time
     try:
         age = (now if now is not None else time.time()) - os.path.getmtime(path)

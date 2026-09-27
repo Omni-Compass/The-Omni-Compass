@@ -13,7 +13,7 @@ path never learned whether its orders landed.
 **Every declared sense reports whether it is live.**
 - **Latency.** Blind when its newest sample is older than two windows by the wall clock, or when the window holds no
   successful request.
-  - This is the live set 1-2 failure: a hung probe froze its file, and the last clean window was read as the present.
+  - A hung probe freezes its file; its last clean window must never be read as the present.
   - Failed requests inside a live window become latency pressure (the failed share), so a failure is never read as
     silence.
 - **Power.** Blind when its command returns no number.

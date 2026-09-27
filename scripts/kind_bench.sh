@@ -189,10 +189,14 @@ if [ "$ARM" != "native" ]; then
   echo "-- decision trail (nodes seen -> recommended | p95 ms | SLO clean | calm | node-view calm | node gate)"
   python - "$OUT_DIR/audit.jsonl" <<'PY' || true
 import json, sys
+sys.path.insert(0, ".")
+from omnicompass.compass import say
 auth = None
 for line in open(sys.argv[1]):
     r = json.loads(line)
-    if "authority" in r:
+    if "compass" in r:
+        print("  compass:", say(r["compass"]))
+    elif "authority" in r:
         auth = r["authority"]
     elif isinstance(r.get("decision"), dict):
         d = r["decision"]; a = auth or {}

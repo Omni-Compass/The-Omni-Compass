@@ -49,6 +49,19 @@ from typing import Any, Dict
 from omnicompass.closure import stress_equilibrium
 
 ORGANS = ("pods", "nodes", "cpufreq", "gpu", "power", "batch", "routing", "rollback")
+# The living band (the founder's rule): every level the nervous system hands out lives between 5% and 95% of its range.
+# Nothing is driven to zero (a part with no work idles down to its floor, alive and ready) and nothing is driven to its
+# absolute top (the last 5% is never spent). The band is applied last, to every envelope, so no organ can leave it.
+BAND = (0.05, 0.95)
+
+
+def in_band(lo: float, hi: float) -> list:
+    """Clip an envelope [lo, hi] (fractions of the organ's range) into the living band, keeping lo <= hi."""
+    b0, b1 = BAND
+    h = min(b1, max(b0, hi))
+    return [min(h, max(b0, lo)), h]
+
+
 THETA = {"pods": 0.5, "nodes": 0.7, "cpufreq": 0.3, "gpu": 0.3, "power": 0.3, "routing": 0.5}
 
 
@@ -96,10 +109,11 @@ def authority(i: NervousInputs) -> Dict[str, Any]:
         org[o] = {"expand": not sec, "contract": ok, "step": calm if ok else 0.0}
     cf_lo = 1.0 - 0.35 * calm; gp_lo = 1.0 - 0.30 * calm
     cf_hi = 1.0 - 0.35 * excess if hot else 1.0; gp_hi = 1.0 - 0.35 * excess if hot else 1.0
-    org["cpufreq"]["envelope"] = [min(cf_lo, cf_hi), cf_hi]
-    org["gpu"]["envelope"] = [min(gp_lo, gp_hi), gp_hi]
-    org["power"]["envelope"] = [0.65, 1.0]
-    org["routing"]["envelope"] = [0.0, 0.5 * calm if not sec else 0.0]
+    org["cpufreq"]["envelope"] = in_band(min(cf_lo, cf_hi), cf_hi)
+    org["gpu"]["envelope"] = in_band(min(gp_lo, gp_hi), gp_hi)
+    org["power"]["envelope"] = in_band(0.65, 1.0)
+    # routing is an amount moved, not a level: it may move nothing, never more than the band's top
+    org["routing"]["envelope"] = [0.0, min(BAND[1], 0.5 * calm) if not sec else 0.0]
     org["cooling"] = {"expand": True, "protective": True, "contract": calm >= 0.3 and seeing, "step": calm, "envelope": [18.0, 18.0 + 9.0 * calm]}
     org["batch"] = {"expand": (not sec) and seeing and calm >= 0.5 and i.power_stress < 0.9, "contract": True, "protective_contract": True,
                     "admit": (not sec) and seeing and calm >= 0.5 and i.power_stress < 0.9,

@@ -20,7 +20,7 @@ Grades: A (ready as is), B (sound, with named gaps), C (usable only with materia
 - Python/C++ parity checks pass.
 - The closure-law held-out run (41 losing cells) and the whole-body site league reproduced exactly.
 - Every tuned setting was frozen by SHA-256 before its held-out run (`tuning/*PREREGISTRATION*.json`).
-- Every simulation lever defaults to off, and was checked to leave earlier results unchanged, trace hash for trace hash.
+- Every simulation lever defaults to off, and is checked to leave the frozen results unchanged, trace hash for trace hash.
 
 **Deductions**
 - Held-out seed sets were spent round after round (700201 → 700301 → 700501 → 700601 → 700801 → 700901 → 701001). Each
@@ -70,7 +70,8 @@ Grades: A (ready as is), B (sound, with named gaps), C (usable only with materia
   - the least-privilege identity is proven with `kubectl auth can-i` receipts;
   - the kill switch restores every lever, including from a fresh process;
   - one lever failing no longer blocks the others (this bug was found live and fixed);
-  - a fail-safe hands control back to native after repeated failures.
+  - no automated fallback: a failed decision is skipped and writes nothing; only the human-operated Unified Control
+    Switch turns the whole harness OFF (restoring native settings) and back ON (manuscript Section 5.8).
 - The live run in `LIVE_ALLMUSCLE_6` (B on kind) measured 47% fewer nodes and 20-22% better p95/p99.
 
 **Deductions and risks**
@@ -109,7 +110,7 @@ Grades: A (ready as is), B (sound, with named gaps), C (usable only with materia
 |---|---|---|---|
 | Six-state core (Python + C++) | `omnicompass/core.py`, `cpp/` | **A** | stable modes, parity, 100M-decision soak, SHA-locked |
 | Closure law and levers | `omnicompass/closure.py`, `fleet/sim_slo.py` levers | **A-** | manuscript laws in code, physical break-evens, defaults reproduce frozen results; per-workload settings are tuned |
-| Governor, shield, fail-safe | `omnicompass/adapter.py`, `shield.py`, `omni_controller/controller.py` | **A-** | invariants enforced, fail-safe tested with injected API outages |
+| Governor, shield, fail-safe | `omnicompass/adapter.py`, `shield.py`, `omni_controller/controller.py` | **A-** | invariants enforced; failed decisions skipped without automated fallback, tested with injected API outages |
 | Live controller and levers | `omni_controller/muscles.py`, `scripts/kind_levers.sh` | **B+** | 19/19 live checks, RBAC receipts, isolated kill switch; small cluster, three failed runs before pass (recorded) |
 | Simulation plant and opponents | `fleet/`, `hardware/schedutil.py` | **B** | M/M/c response, boot delay, power and heat models, documented vendor emulations; fluid packing, no fragmentation |
 | Benchmark method | `tuning/`, `tools/protocol_bench.py` | **A-** | development/held-out split, SHA pre-registration, paired bootstrap, fault protocol; many held-out rounds |

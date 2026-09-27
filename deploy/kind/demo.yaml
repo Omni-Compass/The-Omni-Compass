@@ -13,8 +13,8 @@ spec:
           ports: [{containerPort: 80}]
           resources: {limits: {cpu: 500m}, requests: {cpu: 200m}}
           # standard serving hygiene: traffic only once Apache answers, and on shutdown keep serving 5 s while the
-          # endpoint is withdrawn from kube-proxy (without it, a request routed in that window fails: the one failed
-          # probe request in live set 9, strict arm). Same in every arm; Kubernetes alone never evicts here.
+          # endpoint is withdrawn from kube-proxy (without it, a request routed in that window fails). Same in every
+          # arm; Kubernetes alone never evicts here.
           readinessProbe: {tcpSocket: {port: 80}, periodSeconds: 2}
           lifecycle: {preStop: {exec: {command: ["sleep", "5"]}}}
 ---

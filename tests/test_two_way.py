@@ -4,7 +4,7 @@ W1 afferent integrity: a blind sense (stale > 0) never grants any organ contract
    over random engine states; capacity expansion is untouched (the safe direction), and pausing batch (its protective
    contraction) stays allowed
 W2 the latency sense is judged against the wall clock: a frozen probe file is blind even if its last window was clean
-   (the live set 1-2 failure); a window with no successful request is blind; a fresh clean window is live
+   (a hung probe must never be read as the present); a window with no successful request is blind; a fresh clean window is live
 W3 failed requests in a live window become latency pressure (a failure is never read as silence)
 W4 efferent feedback: the node gate refuses a new release while a sense is blind or the last node command did not land"""
 import csv, os, random, sys, tempfile, time

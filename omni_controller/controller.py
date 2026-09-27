@@ -109,11 +109,16 @@ class Controller:
             law = {k: v for k, v in law.items() if k != "site"}
             # live decisions are 60 s apart, not simulator ticks: a rise the release band absorbs over the release horizon
             # does not veto a release (derived from the band itself, no new constant)
+            from omnicompass.nervous_system import BAND
+            law["rho_max"] = min(law.get("rho_max", 0.95), BAND[1])     # the living band: no machine filled past 95%
             law.setdefault("turn_rise", law.get("delta_rel", -1.0) if law.get("delta_rel", -1.0) >= 0 else law.get("delta", 0.05))
             self.cl = ClosureNodes(ClosureLaw(**law))
         self.lp_hist = []
         self.cmd_nodes = None          # efferent record: the node count last commanded (proprioception reads it back)
         self.cmd_hpa = {}              # efferent record: HPA targets last written
+        from omnicompass.compass import Compass
+        gp = self.g.p                  # the compass reads the engine in the engine's own parameters
+        self.compass = Compass(E_max=gp.E_max, alpha_s=gp.alpha_s, beta_s=gp.beta_s, delta=gp.delta)
         self.s_floor = None            # bare service time (ms): the fastest a request is served with no queue ahead of it
         self.reflex = {}               # (ns, name) -> replica floor the pod reflex holds while the queue says it is needed
         self.pod_cap = {}              # (ns, name) -> request / limit share: what the HPA's target means in queue terms
@@ -160,10 +165,9 @@ class Controller:
         """Strict C: Omni-Compass decides each deployment's replica floor itself: replicas = ceil(current x measured
         utilisation / target utilisation), up at once, down only to the highest recommendation of the last
         --strict-window decisions; the HPA's minReplicas is set to that count, within its original range. Growth is never
-        blocked: maxReplicas stays the operator's, so the HPA remains the fast up-reflex between Omni's decisions (a pin
-        min = max froze the count for a whole 60 s decision while the HPA reacts every 15 s: about 45 s late at each load
-        step, ~135 slow probe samples per run against the ~40 that set the 95th percentile, live sets 7 and 9). The kill
-        switch restores the original range."""
+        blocked: maxReplicas stays the operator's, so the HPA remains the fast up-reflex between Omni's decisions (the HPA
+        reacts every 15 s; a count frozen for a 60 s decision would answer a load step up to 45 s late). The Unified
+        Control Switch restores the original range."""
         hist = getattr(self, "_rec_hist", {}); self._rec_hist = hist
         for h in s["hpas"]:
             ns, name = h["metadata"]["namespace"], h["metadata"]["name"]
@@ -332,8 +336,7 @@ class Controller:
         self.m.auth = auth
         breach_now = lp > 0.0 or blind.get("latency", False)
         # the machine organ's view: only pressure a machine release could cause (pods waiting for a place, a live
-        # breach). Power and heat are relieved by a release, never worsened by it, so they cannot veto one (live set 7:
-        # modelled heat 0.62 from mostly idle power held calm at 0.64 < 0.7 and blocked every release)
+        # breach). Power and heat are relieved by a release, never worsened by it, so they cannot veto one
         obs_n = dict(obs, queue_ratio=min(2.0, s["pending"] / max(1, repl)), slo_clean=not breach_now,
                      power_stress=0.0, thermal=0.0)
         self.gn.nodes = self.rec_n; self.gn.current_cap = 1.0
@@ -363,6 +366,17 @@ class Controller:
                                         "node_gate": {"ok": gate["ok"], "reason": gate["reason"], "util_after": round(gate["util_after"], 3)},
                                         "senses": {"blind": blind, "latency_age_s": None if age is None else round(age, 1), "stale": obs["stale"]},
                                         "proprioception": {k: round(v, 3) for k, v in drift.items()}}})
+        # the compass: where the engine stands on the wheel, whether every level is inside Omega, whether the move at a
+        # boundary points inward, and the ledger step
+        fill = s["req_m"] / max(1.0, n * per_node)
+        levels = {"machine_fill": fill}
+        moves = {"machine_fill": (1.0 if rec_n < n else -1.0 if rec_n > n else 0.0)}
+        for o in ("cpufreq", "gpu", "power"):
+            env = auth["organs"].get(o, {}).get("envelope")
+            if env:
+                levels[f"{o}_ceiling"] = env[1]
+        forced = obs["queue_ratio"] > 0.0 or s["pending"] > 0
+        self.audit({"compass": self.compass.read(d["state"]["E"], d["state"]["S"], levels, moves, forced)})
         out = self.audit({"decision": {"nodes_observed": n, "nodes_recommended": rec_n, "law": "closure" if self.cl is not None else "governor", "hpa_target_recommended": round(rho, 3),
                                        "E": d["state"]["E"], "U": d["state"]["U"], "pending": s["pending"],
                                        "power_cap": round(float(d["power_cap"]), 3), "change_permitted": bool(d["change_permitted"]),
@@ -381,7 +395,7 @@ class Controller:
                 ns, name = h["metadata"]["namespace"], h["metadata"]["name"]
                 orig = int(h["metadata"].get("annotations", {}).get(ANNOTATION, cur))
                 # more headroom is always allowed; less never: at a given load fewer pods always means a longer M/M/c wait
-                # (no target above the operator's keeps the wait), so a raise only spends latency (live set 9: +27% p95).
+                # (no target above the operator's keeps the wait), so a raise only spends latency.
                 # Omni on top earns its keep on machines, not by packing the operator's pods tighter
                 want = int(round(100 * min(rho, orig / 100.0)))
                 want_h = want if obs["slo_clean"] else min(want, orig)
@@ -432,7 +446,6 @@ def parser():
     ap.add_argument("--strict-replicas", action="store_true", help="strict C: Omni-Compass sets replica counts; the HPA is pinned")
     ap.add_argument("--reflex-window-s", type=float, default=30.0, help="window of probe samples the fast pod reflex reads")
     ap.add_argument("--strict-window", type=int, default=5, help="decisions a scale-down waits for (highest recent recommendation)")
-    ap.add_argument("--max-failures", type=int, default=3, help="consecutive failed decisions before the fail-safe restore")
     ap.add_argument("--headroom", type=float, default=0.5, help="spare capacity kept above pod requests (0.5 = 50%%, the default)")
     ap.add_argument("--active-nodes-only", action="store_true",
                     help="count only schedulable nodes (not cordoned, not tainted NoSchedule) and the pods and usage on them")
@@ -444,8 +457,12 @@ def parser():
 
 
 def safe_step(c, fails):
-    """One decision. A failed decision is recorded and skipped; after --max-failures in a row the controller hands the
-    cluster back to native (kill-switch restore) and stops, so a dead controller never leaves its settings in place."""
+    """One decision. A failed decision is recorded and skipped: it writes nothing, so the cluster keeps the last settings
+    that landed, and the next decision comes at the normal cadence. There is no automated fallback (manuscript Section
+    5.8: the Unified Control Switch is mechanical, explicit, operator-controlled and 'does not rely on automated fallback
+    inference'). Only a human flips the switch, for the whole harness at once: --kill-file present (or OMNI_KILL=1) turns
+    Omni-Compass OFF and hands every setting back to native; removing it turns Omni-Compass back ON. Boundaries are never
+    handled by switching anything off: the living band and the shield clamp every level inside its range."""
     try:
         c.step()
         return 0
@@ -454,12 +471,6 @@ def safe_step(c, fails):
         err = getattr(e, "stderr", "") or ""
         c.audit({"error": repr(e)[:500], "stderr": str(err)[-500:], "consecutive_failures": fails})
         print(f"decision failed ({fails} in a row): {e!r} {err}", file=sys.stderr, flush=True)
-        if fails >= c.a.max_failures:
-            c.audit({"failsafe": "restoring native settings after repeated failures"})
-            try:
-                c.restore()
-            finally:
-                raise SystemExit(2)
         return fails
 
 

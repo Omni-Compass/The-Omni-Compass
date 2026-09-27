@@ -1,5 +1,8 @@
 # Wiring Omni-Compass into your Kubernetes
 
+> The full step-by-step manual, with the switch, the living band, parking and the pod reflex, is
+> `docs/OPERATOR_MANUAL.md`. This page is the short version.
+
 **Three stages.** Each stage adds only the permissions it needs. A stage is promoted only after its evidence is in,
 and the kill switch works at every stage:
 
@@ -7,8 +10,9 @@ and the kill switch works at every stage:
 kubectl -n omni-compass exec deploy/omni-compass -- touch /tmp/omni.kill
 ```
 
-The kill switch restores every HPA target, replica range, CPU limit and cordon that Omni-Compass changed, and records
-the restore in its audit.
+The switch is one human-operated switch for the whole harness (OFF restores every HPA target, replica range, CPU
+limit and cordon Omni-Compass changed, and records it; removing the file turns Omni-Compass back ON). It never fires by
+itself and never switches off one module: a failed decision is skipped, boundaries are held by the living band.
 
 ## 0. Build the image
 ```
@@ -74,15 +78,11 @@ A PodDisruptionBudget on each service is required, because drains go through the
 - cooling;
 - CPU frequency.
 
-## What is proven, and where
+## Evidence, and where it is
 | Evidence | File |
 |---|---|
-| The controller, every lever and the kill switch on real Kubernetes (kind): 19 of 19 checks, run twice | `results/live/LIVE_LEVERS_1.txt`, `LIVE_LEVERS_2_NERVOUS.txt` |
-| Read-only shadow on real Kubernetes: 40 decisions, 0 writes | `results/live/LIVE_SHADOW_1.txt` |
-| Least-privilege identity receipts | `results/live/LIVE_RBAC_1.json`, `rbac_omni.txt` in each run |
-| The paired live comparison with a working probe: equal to native on every gauge; Omni-Compass held all 6 machines | `results/live/LIVE_REPS_3.md` |
-| Why it held them, and the fix (release gate, two-way nervous system) | `results/live/LIVE_REPS_4_DIAGNOSIS.md`, `docs/TWO_WAY_NERVOUS_SYSTEM.md` |
-| Each gate reason, shown on the stand-in cluster | `results/local_run/NERVOUS_SYSTEM_DEMO.txt` |
-
-**Not yet proven live.** Machine savings with the new release gate. `bash RUN_LIVE.sh 3` measures them on your own
-machine.
+| The controller, every lever and the Unified Control Switch on real Kubernetes (kind) | `results/live/LIVE_LEVERS_2_NERVOUS.txt` |
+| Read-only shadow on real Kubernetes: every decision logged, 0 writes | `results/live/LIVE_SHADOW_1.txt` |
+| Least-privilege identity receipts | `rbac_omni.txt` in every live run |
+| Native vs Omni on top vs Omni alone, paired on one machine, real Kubernetes | `results/live/LIVE_PAIRED.md` |
+| The full wiring manual | `docs/OPERATOR_MANUAL.md` |
