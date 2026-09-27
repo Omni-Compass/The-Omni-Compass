@@ -17,9 +17,10 @@ from tuning.speed_search import gauges
 from tuning.league import VESSELS, LOWER, HIGHER
 
 K8S = "k8s_hpa70_ca"
-SEEDS = list(range(713001, 713031))
+C2 = "--c2" in sys.argv
+SEEDS = list(range(714001, 714031)) if C2 else list(range(713001, 713031))
 TONE = json.load(open(ROOT / "tuning/B_SETTINGS_TONE.json"))
-SET = json.load(open(ROOT / "tuning/GLOBAL_LEAGUE_PREREGISTRATION.json"))["setting"]
+SET = json.load(open(ROOT / ("tuning/C2_PREREGISTRATION.json" if "--c2" in sys.argv else "tuning/GLOBAL_LEAGUE_PREREGISTRATION.json")))["setting"]
 NAMES = {"energy_kwh": "Energy (kWh)", "node_hours": "Machine-hours", "p95_ms": "Response time p95 (ms)",
          "p99_ms": "Response time p99 (ms)", "mean_ms": "Response time mean (ms)", "violation_backlog": "Time over backlog limit",
          "violation_power": "Time over power limit", "violation_heat": "Time over heat limit", "start_stop": "Machine starts+stops",
@@ -80,7 +81,10 @@ def main():
     L += ["## Tally across all workloads and gauges", "", "| | better | equal | worse |", "|---|---:|---:|---:|",
           f"| Omni on top | {tally['on_top']['better']} | {tally['on_top']['equal']} | {tally['on_top']['worse']} |",
           f"| Omni alone | {tally['alone']['better']} | {tally['alone']['equal']} | {tally['alone']['worse']} |"]
-    (ROOT / "results/THREE_WAY.md").write_text("\n".join(L) + "\n"); (ROOT / "results/THREE_WAY.json").write_text(json.dumps(out, indent=1))
+    tag = "_C2" if C2 else ""
+    if C2:
+        L[0] += " (Omni alone v2, frozen in tuning/C2_PREREGISTRATION.json)"
+    (ROOT / f"results/THREE_WAY{tag}.md").write_text("\n".join(L) + "\n"); (ROOT / f"results/THREE_WAY{tag}.json").write_text(json.dumps(out, indent=1))
     print("\n".join(L))
 
 

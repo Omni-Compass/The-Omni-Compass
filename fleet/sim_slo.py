@@ -162,6 +162,9 @@ class DirectLaw:
                          # queueing delay with fewer pods on large services and more headroom on small ones
     wq: float = -1.0     # >= 0: exact staffing, the fewest replicas c whose M/M/c wait (the plant's own Sakasegawa
                          # formula) is at most wq x service time at the observed load
+    ref_u: float = -1.0  # > 0: queue-matched staffing, the fewest replicas whose M/M/c wait is no longer than the wait the
+                         # operator's own utilisation target ref_u would give at this load (same latency promise, fewer
+                         # pods where the service is large: the square-root staffing effect)
 
 
 def omni_replicas(w, rho, push, L):
@@ -177,8 +180,17 @@ def omni_replicas(w, rho, push, L):
                 break
             c += 1
         base = float(c)
+    if L.ref_u > 0 and a > 1e-9:
+        def _wait(c_):
+            u_ = min(0.99, a / c_)
+            return u_ ** (_m.sqrt(2.0 * (c_ + 1.0)) - 1.0) / (c_ * (1.0 - u_))
+        ref = _wait(max(1, int(_m.ceil(a / L.ref_u - 1e-9))))
+        c = max(1, int(_m.ceil(a / 0.99)))
+        while c < w.max_rep and _wait(c) > ref + 1e-12:
+            c += 1
+        base = float(c)
     want = max(w.min_rep, min(w.max_rep, int(_m.ceil(base + L.kb * w.backlog / max(w.request, 1e-9) - 1e-9))))
-    if abs(w.metric / max(rho, 1e-9) - 1.0) <= L.tol and w.backlog <= 1e-9:
+    if (abs(want - cur) <= L.tol * cur if L.ref_u > 0 else abs(w.metric / max(rho, 1e-9) - 1.0) <= L.tol) and w.backlog <= 1e-9:
         want = cur
     w.rec_hist = (w.rec_hist + [want])[-max(1, L.window):]
     if want > cur:
@@ -287,6 +299,10 @@ def _site_closure(scn, cl, L, push):
         # coordination: never add to a cluster whose pods were just cut (unless it is short of room)
         i = max(range(len(cs)), key=lambda k: (cs[k].reqs - n[k] * c) if n[k] < cs[k].pool.max_nodes and not
                 (co and getattr(cs[k], "_dpods", 0) < 0 and cs[k].reqs <= n[k] * c) else -1e18)
+        if getattr(L, "wake_first", False) and cs[i].pool.parked == 0:
+            warm = [k for k in range(len(cs)) if cs[k].pool.parked > 0 and n[k] < cs[k].pool.max_nodes]
+            if warm:      # wake a parked machine elsewhere in the site instead of cold-booting one here
+                i = max(warm, key=lambda k: cs[k].reqs - n[k] * c)
         if co and getattr(cs[i], "_dpods", 0) < 0 and cs[i].reqs <= n[i] * c:
             break
         if n[i] >= cs[i].pool.max_nodes:

@@ -50,6 +50,8 @@ class ClosureLaw:
     tone_H: int = 960          # reserve horizon (ticks): the largest demand seen over this window sets the warm reserve
     coord: bool = False        # nervous-system coordination: pods decided first, machines on those pods, and the two
                                # organs never move in opposite directions in one decision
+    wake_first: bool = False   # whole body: a site that needs a machine wakes a parked one in any cluster before it cold-
+                               # boots one (traffic shift carries the load; a wake costs no start, a boot costs one)
     dwell: int = 0             # release only after this many consecutive calm decisions (resource-aware envelope,
                                # Proposition 2: no release outside the calm set; 0 = no dwell requirement)
 
