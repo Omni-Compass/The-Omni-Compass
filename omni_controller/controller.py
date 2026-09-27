@@ -55,10 +55,19 @@ class Kube:
             subprocess.run([self.kubectl, *args], capture_output=True, text=True, check=True)
 
 
-def schedulable(n):
-    """False for a cordoned node or one tainted NoSchedule (control plane, or a node the node pool has parked)."""
+IDLE_TAINT = "omnicompass.io/idle"   # PreferNoSchedule: new pods go elsewhere first, but land here at once if they must
+
+
+def closed(n):
+    """A machine I have closed to new work: marked idle (PreferNoSchedule) or cordoned."""
     spec = n.get("spec", {})
-    return not spec.get("unschedulable") and not any(t.get("effect") == "NoSchedule" for t in spec.get("taints") or [])
+    return bool(spec.get("unschedulable")) or any(t.get("key") == IDLE_TAINT for t in spec.get("taints") or [])
+
+
+def schedulable(n):
+    """Open to new work: not closed by me, and not tainted NoSchedule (the control plane)."""
+    spec = n.get("spec", {})
+    return not closed(n) and not any(t.get("effect") == "NoSchedule" for t in spec.get("taints") or [])
 
 
 def snapshot(k: Kube, active_only: bool = False):
@@ -69,7 +78,7 @@ def snapshot(k: Kube, active_only: bool = False):
         # in service: open to new work, or still carrying work (an idling worker keeps serving until its work is gone)
         carrying = {p["spec"].get("nodeName") for p in pods if p["status"].get("phase") in ("Running", "Pending")
                     and all(o.get("kind") != "DaemonSet" for o in p.get("metadata", {}).get("ownerReferences", []) or [])}
-        ready = [n for n in ready if schedulable(n) or (n["spec"].get("unschedulable") and n["metadata"]["name"] in carrying)]
+        ready = [n for n in ready if schedulable(n) or (closed(n) and n["metadata"]["name"] in carrying)]
     # open: the machines I keep open to new work. My machine orders are counted here; a machine I closed that still
     # carries work stays in service (in the energy count) until its work leaves on its own
     open_n = sum(1 for n in ready if schedulable(n))

@@ -13,12 +13,13 @@ while :; do
   nodes=$(kubectl get nodes -o json)
   pods=$(kubectl get pods -A -o json)
   if [ "${ACTIVE_ONLY:-0}" = "1" ]; then
-    # in service: open to new work, or cordoned but still carrying work (not a DaemonSet's); idle workers are not
+    # in service: open to new work, or closed (idle mark or cordon) but still carrying work (not a DaemonSet's)
     carrying=$(echo "$pods" | jq -r '[.items[] | select(.status.phase=="Running" or .status.phase=="Pending")
       | select(all(.metadata.ownerReferences[]?; .kind != "DaemonSet")) | .spec.nodeName // empty] | unique | join(" ")')
     nodes=$(echo "$nodes" | jq --arg c " $carrying " '.items |= map(select(
-      (.spec.unschedulable != true and ([.spec.taints[]? | select(.effect=="NoSchedule")] | length) == 0)
-      or (.metadata.name as $n | .spec.unschedulable == true and ($c | contains(" " + $n + " ")))))')
+      ((.spec.unschedulable == true or any(.spec.taints[]?; .key == "omnicompass.io/idle")) as $closed
+       | ($closed | not) and ([.spec.taints[]? | select(.effect=="NoSchedule")] | length) == 0
+         or (.metadata.name as $n | $closed and ($c | contains(" " + $n + " "))))))')
   fi
   names=$(echo "$nodes" | jq -r '[.items[].metadata.name] | join(" ")')
   ready=$(echo "$nodes" | jq '[.items[] | select(any(.status.conditions[]; .type=="Ready" and .status=="True"))] | length')

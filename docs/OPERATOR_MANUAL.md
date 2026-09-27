@@ -95,7 +95,7 @@ kubectl -n omni-compass exec deploy/omni-compass -- touch /tmp/omni.kill
 kubectl -n omni-compass exec deploy/omni-compass -- rm /tmp/omni.kill
 ```
 
-**What OFF restores.** Every HPA CPU target and replica range, pod CPU limit, cordon, paused rollout or job, GPU and CPU
+**What OFF restores.** Every HPA CPU target and replica range, pod CPU limit, idle mark, paused rollout or job, GPU and CPU
 frequency ceiling, and containment quota. Each restore is recorded, and each lever restores on its own.
 
 **What never trips the switch.**
@@ -118,13 +118,15 @@ Tested over 300,000 of my states and 60,000 of my energy allocations (`tests/tes
 ### 3. Machines idle; I never switch them off, and I never move a pod
 
 When I need fewer machines, I idle the rest by letting their work leave on its own:
-1. **Cordoned:** no new work lands on the machine.
-2. **Marked:** its pods are marked first to go (`controller.kubernetes.io/pod-deletion-cost`). When the load falls, your
-   autoscaler's own scale-down removes exactly those pods.
+1. **Prefer not:** the machine is marked `omnicompass.io/idle:PreferNoSchedule`. New pods go to the open machines first,
+   but a pod that finds them full lands here at once, so no pod ever waits because of me.
+2. **Marked:** its pods are marked first to go (`controller.kubernetes.io/pod-deletion-cost`), the machine with the least
+   work first. When the load falls, your autoscaler's own scale-down removes exactly those pods, emptying one machine
+   at a time.
 3. **Idle:** once its work is gone, the machine stays powered and Ready, gauged down to its idle floor.
 
 While it still carries work, a machine counts as in service at full power. No pod is ever evicted, moved or restarted
-to idle a machine. When work returns, I uncordon a machine, the warm ones still carrying work first; it is in service
+to idle a machine. When work returns, I remove the mark, the warm machines still carrying work first; it is in service
 at once, with no boot and no power cycling.
 
 An idle machine draws `park_frac × idle power` (0.25), never zero.

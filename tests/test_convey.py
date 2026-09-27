@@ -84,6 +84,13 @@ def main():
     S = json.loads(Path(p).read_text()); S["nodes"][2]["spec"]["unschedulable"] = True; Path(p).write_text(json.dumps(S))
     s = snapshot(Kube(FAKE, audit=lambda r: r), active_only=True)
     assert s["nodes"] == 3 and s["open"] == 2, s
+    # closed by the prefer-not idle mark instead of a cordon: the same accounting; empty, it idles
+    S["nodes"][2]["spec"].pop("unschedulable"); S["nodes"][2]["spec"]["taints"] = [{"key": "omnicompass.io/idle", "value": "true", "effect": "PreferNoSchedule"}]
+    Path(p).write_text(json.dumps(S)); s = snapshot(Kube(FAKE, audit=lambda r: r), active_only=True)
+    assert s["nodes"] == 3 and s["open"] == 2, s
+    S["pods"] = [q for q in S["pods"] if q["spec"]["nodeName"] != "w2"]; Path(p).write_text(json.dumps(S))
+    s = snapshot(Kube(FAKE, audit=lambda r: r), active_only=True)
+    assert s["nodes"] == 2 and s["open"] == 2, s
     # on top, with response time clean: the HPA target keeps the operator's promise in queue terms at the conveyed
     # limit, 50% x 3.55 = 178%; while it is not yet clean (the first decisions), the operator's own 50% stands
     t3 = tempfile.mkdtemp(); p3 = state(t3); S = json.loads(Path(p3).read_text())

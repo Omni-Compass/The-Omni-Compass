@@ -3,7 +3,7 @@
 # Both arms are wired identically: same cluster, add-ons, workload, HPA (target 50), load schedule, capture and
 # power model. The only difference:
 #   ARM=native  Omni-Compass is not started at all. Kubernetes (HPA, scheduler) runs alone on all workers.
-#   ARM=omni    Omni-Compass runs in nodepool mode with every live muscle: HPA target, node pool (cordon/drain/uncordon),
+#   ARM=omni    Omni-Compass runs in nodepool mode with every live muscle: HPA target, node pool (prefer-not idle mark, first-to-go order),
 #               power cap (CPU limit of php-apache, enforced by the kernel), heat (harness law on live power), security
 #               (ConfigMap hold), rollout guard, and the latency afferent: 95th-percentile response time over SLO_MS
 #               (declared before the run, default 500 ms) enters the engine as queue pressure. The power cap never goes
@@ -30,8 +30,8 @@ OUT_DIR="${OUT_DIR:-bench_$ARM}"; DURATION="${DURATION:-1200}"; WARMUP="${WARMUP
 LOAD_STEPS="${LOAD_STEPS:-1 2 3 1 2 1}"
 export DRAIN_TIMEOUT="${DRAIN_TIMEOUT:-45s}"   # a drain blocked by the disruption budget gives up and the node stays in service
 IDLE_W="${IDLE_W:-100}"; DYN_W="${DYN_W:-150}"
-# no machine is ever powered off: a parked worker (cordoned, drained) stays Ready and powered, gauged down to its idle
-# floor, and is back in service the instant it is uncordoned (muscle tone). It draws park_frac x idle power, the
+# no machine is ever powered off: an idle worker (marked prefer-not, its work gone) stays Ready and powered, gauged down
+# to its idle floor, and is back in service the instant its mark is removed (muscle tone). It draws park_frac x idle power, the
 # simulator's declared hardware property (fleet/harness.py park_frac = 0.25); the same accounting in every arm
 PARK_FRAC="${PARK_FRAC:-0.25}"
 STANDBY_W="${STANDBY_W:-$(python -c "print($IDLE_W * $PARK_FRAC)")}"; export IDLE_W DYN_W STANDBY_W
@@ -84,7 +84,7 @@ if [ "$ARM" != "native" ]; then
   {
     echo "== can (each muscle's push)"
     echo "patch hpa/php-apache (hpa): $(can patch hpa/php-apache -n default)"
-    echo "patch nodes (node pool: cordon/uncordon): $(can patch nodes)"
+    echo "patch nodes (node pool: idle mark): $(can patch nodes)"
     echo "create pods/eviction (node pool: drain): $(can create pods --subresource=eviction -n default)"
     echo "patch pods/resize (power cap, in place): $(can patch pods --subresource=resize -n default)"
     echo "patch pods (make before break: which pods leave first): $(can patch pods -n default)"
@@ -153,7 +153,7 @@ if [ "$ARM" = "watch" ]; then
   cpu_limit=$(kubectl get pods -l run=php-apache -o jsonpath='{range .items[*]}{.spec.containers[0].resources.limits.cpu}{"\n"}{end}' | sort -u | tr '\n' ' ' | sed 's/ $//')
   target=$(kubectl get hpa php-apache -o jsonpath='{.spec.metrics[0].resource.target.averageUtilization}')
   range_now=$(kubectl get hpa php-apache -o jsonpath='{.spec.minReplicas},{.spec.maxReplicas}')
-  back=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' -o json | jq '[.items[] | select(.spec.unschedulable != true)] | length')
+  back=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' -o json | jq '[.items[] | select(.spec.unschedulable != true and (any(.spec.taints[]?; .key == "omnicompass.io/idle") | not))] | length')
   echo "cluster after the run: target $target, range $range_now, CPU limits $cpu_limit, workers $back of $WORKERS" | tee "$OUT_DIR/kill_switch.txt"
   test "$executed" = "0" && test "$target" = "50" && test "$range_now" = "1,10" && test "$cpu_limit" = "500m" && test "$back" = "$WORKERS"
 elif [ "$ARM" != "native" ]; then
@@ -171,7 +171,7 @@ elif [ "$ARM" != "native" ]; then
   range_now=$(kubectl get hpa php-apache -o jsonpath='{.spec.minReplicas},{.spec.maxReplicas}')
   echo "HPA replica range after kill: $range_now" | tee -a "$OUT_DIR/kill_switch.txt"
   test "$range_now" = "1,10"
-  back=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' -o json | jq '[.items[] | select(.spec.unschedulable != true)] | length')
+  back=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' -o json | jq '[.items[] | select(.spec.unschedulable != true and (any(.spec.taints[]?; .key == "omnicompass.io/idle") | not))] | length')
   { echo "restored target: $restored"; echo "workers in service: $back of $WORKERS"; } | tee "$OUT_DIR/kill_switch.txt"
   leftover=$(kubectl get hpa php-apache -o json | jq -r '.metadata.annotations // {} | keys[] | select(startswith("omnicompass.io/"))'; kubectl get deployment php-apache -o json | jq -r '.metadata.annotations // {} | keys[] | select(startswith("omnicompass.io/"))')
   echo "Omni records left after kill: ${leftover:-none}" | tee -a "$OUT_DIR/kill_switch.txt"
