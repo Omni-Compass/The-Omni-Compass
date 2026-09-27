@@ -95,6 +95,8 @@ class Controller:
         self.k = kube or Kube(a.kubectl, a.dry_run, self.audit)
         self.k.audit = self.audit
         self.g = Governor(law=mode_law("fleet")); self.g.set_mode(OBSERVE)
+        # the machine organ's own engine view: fed with machine-attributable pressure only (pods waiting for a place)
+        self.gn = Governor(law=mode_law("fleet")); self.gn.set_mode(OBSERVE)
         self.rec_n = None
         self.changed = {}
         self.nodes_restored = False
@@ -230,13 +232,28 @@ class Controller:
             cl_n = self.cl.decide(n, per_node / 1000.0, self.g.last_push, self.a.min_nodes, self.a.max_nodes)
             rec_n = max(self.a.min_nodes, min(self.a.max_nodes, max(cl_n, floor)))
         rho = max(0.5, min(0.95, float(d["demand"])))
-        from omnicompass.nervous_system import from_governor
-        auth = from_governor(self.g, obs, d, mode="autopilot" if self.a.mode in ("target", "nodepool") else "observe")
+        from omnicompass.nervous_system import from_governor, node_release_gate
+        mode = "autopilot" if self.a.mode in ("target", "nodepool") else "observe"
+        auth = from_governor(self.g, obs, d, mode=mode)
         self.m.auth = auth
-        if rec_n < n and not auth["organs"].get("nodes", {}).get("contract", False):
-            rec_n = n            # nervous system: the node organ has no authority to give machines back now
+        breach_now = lp > 0.0
+        obs_n = dict(obs, queue_ratio=min(2.0, s["pending"] / max(1, repl)), slo_clean=not breach_now)
+        self.gn.nodes = self.rec_n; self.gn.current_cap = 1.0
+        dn = self.gn.step(obs_n, 0)
+        auth_n = from_governor(self.gn, obs_n, dn, mode=mode)
+        scaling_up = any(int(h.get("status", {}).get("desiredReplicas", 0) or 0) > int(h.get("status", {}).get("currentReplicas", 0) or 0)
+                         for h in s["hpas"])
+        gate = node_release_gate(n, per_node, s["used_m"], s["pending"], scaling_up, breach_now, rho, auth_n)
+        if rec_n < n and not gate["ok"]:
+            rec_n = n            # nervous system: the machine organ may not give a machine back now (reason audited)
+        elif rec_n < n:
+            rec_n = n - 1        # one machine per decision: release is the slow, reversible direction
         out = self.audit({"authority": {"calm": round(auth["scalars"]["calm"], 3), "execute": auth["execute"],
-                                        "contract": {o: v.get("contract") for o, v in auth["organs"].items()}}})
+                                        "contract": {o: v.get("contract") for o, v in auth["organs"].items()},
+                                        "scalars": {k: round(v, 3) for k, v in auth["scalars"].items()},
+                                        "node_view": {"calm": round(auth_n["scalars"]["calm"], 3),
+                                                      "scalars": {k: round(v, 3) for k, v in auth_n["scalars"].items()}},
+                                        "node_gate": {"ok": gate["ok"], "reason": gate["reason"], "util_after": round(gate["util_after"], 3)}}})
         out = self.audit({"decision": {"nodes_observed": n, "nodes_recommended": rec_n, "law": "closure" if self.cl is not None else "governor", "hpa_target_recommended": round(rho, 3),
                                        "E": d["state"]["E"], "U": d["state"]["U"], "pending": s["pending"],
                                        "power_cap": round(float(d["power_cap"]), 3), "change_permitted": bool(d["change_permitted"]),

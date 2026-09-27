@@ -114,3 +114,22 @@ def from_governor(g, obs: Dict[str, Any], d: Dict[str, Any] = None, mode: str = 
         security_block=float(obs.get("security_block", 0.0)), slo_clean=bool(obs.get("slo_clean", True)),
         power_stress=float(obs.get("power_stress", 0.0)), thermal=float(obs.get("thermal", 0.0)),
         rollback=bool((d or {}).get("rollback_authorized", False)), mode=mode or g.mode, killed=g.killed))
+
+
+def node_release_gate(n: int, per_node_m: float, used_m: float, pending: int, pods_scaling_up: bool,
+                      latency_breach_now: bool, rho: float, node_auth: Dict[str, Any]) -> Dict[str, Any]:
+    """May the machine organ give one machine back now? Attribution: an organ is held back only by stress it can cause
+    or cure. The node organ reads its own engine view (fed with machine-attributable pressure: pods waiting for a
+    place), and the release must also pass:
+      coordination  pods are not scaling up and latency is not breached now (pods move first; machines never move
+                    against them, the rule of the benchmarked coordination)
+      headroom      nothing is pending, and after the release the remaining machines run at or below the engine's own
+                    utilisation target rho: used / ((n - 1) x per_node) <= rho
+      authority     the node organ's own calm, security and stress gates (authority() above) grant contraction
+    Returns {"ok": bool, "reason": str, "util_after": float}."""
+    util_after = used_m / max((n - 1) * per_node_m, 1e-9) if n > 1 else float("inf")
+    checks = [("one machine left", n > 1), ("pods waiting", pending == 0), ("pods scaling up", not pods_scaling_up),
+              ("latency breached now", not latency_breach_now), (f"util after {util_after:.2f} > rho {rho:.2f}", util_after <= rho),
+              ("node organ has no contraction authority", bool(node_auth.get("organs", {}).get("nodes", {}).get("contract", False)))]
+    failed = [name for name, ok in checks if not ok]
+    return {"ok": not failed, "reason": "; ".join(failed) or "release permitted", "util_after": util_after}

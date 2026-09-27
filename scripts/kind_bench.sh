@@ -161,7 +161,7 @@ if [ "$ARM" != "native" ]; then
   echo "== controller: decisions $decisions of $expected, failed decisions or checks $errors"
   echo "-- controller.log (last 40 lines)"; tail -n 40 "$OUT_DIR/controller.log" || true
   echo "-- audit errors (last 10)"; grep '"error"\|"failsafe"' "$OUT_DIR/audit.jsonl" | tail -n 10 || true
-  echo "-- decision trail (nodes seen -> recommended | p95 ms | SLO clean | calm | nodes may contract)"
+  echo "-- decision trail (nodes seen -> recommended | p95 ms | SLO clean | calm | node-view calm | node gate)"
   python - "$OUT_DIR/audit.jsonl" <<'PY' || true
 import json, sys
 auth = None
@@ -172,7 +172,8 @@ for line in open(sys.argv[1]):
     elif isinstance(r.get("decision"), dict):
         d = r["decision"]; a = auth or {}
         print(f"  {d['nodes_observed']} -> {d['nodes_recommended']} | p95 {d.get('latency_p95_ms')} | clean {d.get('slo_clean')} | "
-              f"calm {a.get('calm')} | contract {a.get('contract', {}).get('nodes')} | queue {d.get('queue_ratio')} | U {d['U']:.3f}")
+              f"calm {a.get('calm')} | node calm {a.get('node_view', {}).get('calm')} | gate {a.get('node_gate', {}).get('reason')} | "
+              f"queue {d.get('queue_ratio')} | U {d['U']:.3f}")
 PY
   [ $(( decisions * 10 )) -ge $(( expected * 8 )) ] || { echo "INVALID RUN: the controller stopped early"; exit 1; }
   ! grep -q '"failsafe"' "$OUT_DIR/audit.jsonl" || { echo "INVALID RUN: the fail-safe handed control back to native"; exit 1; }
