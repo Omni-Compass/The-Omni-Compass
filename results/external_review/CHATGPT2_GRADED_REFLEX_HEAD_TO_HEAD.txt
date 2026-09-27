@@ -1,0 +1,72 @@
+
+== omni_k8s_throughput: 100 paired scenarios (seed 360555127)
+gauge                                ours    ChatGPT  verdict
+availability                       1.0000     1.0000  equal
+time_healthy                       0.9229     0.9197  ours better
+recovered                          1.0000     1.0000  equal
+sla_violation_physical             0.0646     0.0675  ours better
+violation_backlog                  0.0172     0.0172  equal
+violation_power                    0.0586     0.0615  ours better
+violation_heat                     0.0249     0.0250  equal
+recovery_minutes                  15.5500    16.3500  ours better
+energy_kwh                       121.2459   121.7474  ours better
+peak_power_kw                     37.2137    38.6496  ours better
+node_hours                       139.2233   139.2775  equal
+idle_node_hours                   50.6292    50.6800  equal
+contradictions                     0.0000     0.0000  equal
+scale_reversals                    1.9700     1.9600  equal
+node_start_stop                    9.5100     9.5200  equal
+machine_round_trips                1.7800     1.7900  equal
+invariant_violations_ex_power      0.0000     0.0000  equal
+mean_queue                       254.9023   254.9072  equal
+p95_queue                        991.5126   992.4137  equal
+pages                              0.0000     0.0000  equal
+  ours better on 6 | ChatGPT better on 0 []
+
+== omni_k8s_protect: 100 paired scenarios (seed 360555127)
+gauge                                ours    ChatGPT  verdict
+availability                       0.9969     0.9998  equal
+time_healthy                       0.9076     0.9104  equal
+recovered                          0.9700     0.9700  equal
+sla_violation_physical             0.0799     0.0760  equal
+violation_backlog                  0.0683     0.0332  ChatGPT better
+violation_power                    0.0233     0.0717  ours better
+violation_heat                     0.0010     0.0356  ours better
+recovery_minutes                  27.4000    25.6500  ChatGPT better
+energy_kwh                       131.5879   136.3587  ours better
+peak_power_kw                     28.5529    35.6293  ours better
+node_hours                       159.0658   160.2950  ours better
+idle_node_hours                   69.2942    71.8725  ours better
+contradictions                     0.0000     0.0000  equal
+scale_reversals                    3.0200     3.1100  ours better
+node_start_stop                   12.8500    13.4700  ours better
+machine_round_trips                2.5700     2.5900  equal
+invariant_violations_ex_power      0.0000     0.0000  equal
+mean_queue                      1083.5259   620.9803  ChatGPT better
+p95_queue                       2831.4101  1731.2168  ChatGPT better
+pages                              0.0000     0.0000  equal
+  ours better on 8 | ChatGPT better on 4 ['violation_backlog', 'recovery_minutes', 'mean_queue', 'p95_queue']
+
+== omni_direct: 100 paired scenarios (seed 360555127)
+gauge                                ours    ChatGPT  verdict
+availability                       0.9969     0.9995  equal
+time_healthy                       0.9135     0.9104  equal
+recovered                          0.9700     0.9700  equal
+sla_violation_physical             0.0778     0.0764  equal
+violation_backlog                  0.0725     0.0356  ChatGPT better
+violation_power                    0.0112     0.0718  ours better
+violation_heat                     0.0007     0.0414  ours better
+recovery_minutes                  27.2000    25.9500  equal
+energy_kwh                       129.3494   134.1405  ours better
+peak_power_kw                     28.1811    34.7377  ours better
+node_hours                       152.5767   152.7308  equal
+idle_node_hours                   62.7708    64.6600  ours better
+contradictions                     0.0000     0.0000  equal
+scale_reversals                    5.3600     5.5800  equal
+node_start_stop                   11.7600    12.2100  ours better
+machine_round_trips                2.6100     2.7300  ours better
+invariant_violations_ex_power      0.0000     0.0000  equal
+mean_queue                      1129.0726   662.9443  ChatGPT better
+p95_queue                       2979.2713  1798.0782  ChatGPT better
+pages                              0.0000     0.0000  equal
+  ours better on 7 | ChatGPT better on 3 ['violation_backlog', 'mean_queue', 'p95_queue']
