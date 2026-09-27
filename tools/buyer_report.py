@@ -202,8 +202,10 @@ def main():
         w("")
     w("- **Earlier live sets 1 and 2:** these carried a probe defect, now fixed. The probe's one-pod tunnel hung when a "
       "drain moved its pod, so the Omni arms logged false failed requests (`results/live/LIVE_REPS_PROBE_DEFECT.md`).")
-    w("- **What remains valid from them:** their machine counts. Omni-Compass on top ran 56% fewer workers than native, "
-      "and Omni-Compass alone 50% fewer, both significant.")
+    w("- **Their machine savings are withdrawn.** The hung probe left the controller's latency sense nearly blind, so "
+      "it released machines it would not have released with a working probe. Set 3 shows that: with a working probe and "
+      "latency near the declared 500 ms SLO, Omni-Compass kept all 6 machines. The decision trail per run is now in "
+      "every job log (set 4).")
     w("")
     if (ROOT / "results/live/LIVE_LEVERS_2_NERVOUS.txt").exists():
         w("**Live levers under the nervous system:**")
