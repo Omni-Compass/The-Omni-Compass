@@ -282,13 +282,22 @@ def _site_closure(scn, cl, L, push):
     n = [x.pool.nodes + len(x.pool.booting) for x in cs]
     N = sum(n)
     tgt = cl.decide(N, c, push, sum(x.pool.min_nodes for x in cs), sum(x.pool.max_nodes for x in cs))
+    co = getattr(L, "coord", False)
     while tgt > N:
-        i = max(range(len(cs)), key=lambda k: (cs[k].reqs - n[k] * c) if n[k] < cs[k].pool.max_nodes else -1e18)
+        # coordination: never add to a cluster whose pods were just cut (unless it is short of room)
+        i = max(range(len(cs)), key=lambda k: (cs[k].reqs - n[k] * c) if n[k] < cs[k].pool.max_nodes and not
+                (co and getattr(cs[k], "_dpods", 0) < 0 and cs[k].reqs <= n[k] * c) else -1e18)
+        if co and getattr(cs[i], "_dpods", 0) < 0 and cs[i].reqs <= n[i] * c:
+            break
         if n[i] >= cs[i].pool.max_nodes:
             break
         _resize(cs[i], n[i] + 1, park=True); n[i] += 1; N += 1
     while tgt < N:
-        i = max(range(len(cs)), key=lambda k: (n[k] * c - cs[k].reqs) if n[k] > cs[k].pool.min_nodes else -1e18)
+        # coordination: never release from a cluster whose pods were just added
+        i = max(range(len(cs)), key=lambda k: (n[k] * c - cs[k].reqs) if n[k] > cs[k].pool.min_nodes and not
+                (co and getattr(cs[k], "_dpods", 0) > 0) else -1e18)
+        if co and getattr(cs[i], "_dpods", 0) > 0:
+            break
         if n[i] <= cs[i].pool.min_nodes:
             break
         _resize(cs[i], n[i] - 1, park=L.tone or not cs[i].pool.power_off); n[i] -= 1; N -= 1
@@ -519,7 +528,7 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
             for w in c.workloads:
                 w.metric = w.metric_next
         if uses_gov and t % omni_every == 0:
-            if site:
+            if site and not getattr(CL, "coord", False):
                 if auto:
                     cl_site.S = max(g.g.x.S for g in govs)
                 _site_closure(scn, cl_site, CL, max(g.g.last_push for g in govs))
@@ -542,11 +551,35 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                     targets[ci] = min(0.95, max(0.4, rho))
                     if site:
                         p.cap = 1.0
+                        if getattr(CL, "coord", False) and direct:
+                            c._dpods = 0
+                            for w in c.workloads:
+                                if w.hpa:
+                                    before = w.replicas
+                                    omni_replicas(w, targets[ci], g.g.last_push, DL)
+                                    pod_changes += abs(w.replicas - before); c._dpods += w.replicas - before
+                            c._pods_done = True
+                            c.reqs = sum(w.replicas * w.request if w.hpa else w.demand[t] + w.backlog for w in c.workloads)
                         continue
+                    if closure and getattr(CL, "coord", False) and direct:
+                        # nervous-system coordination: pods are decided first, machines second on the pods just chosen,
+                        # and the two organs may not move against each other in the same decision
+                        c._dpods = 0
+                        for w in c.workloads:
+                            if w.hpa:
+                                before = w.replicas
+                                omni_replicas(w, targets[ci], g.g.last_push, DL)
+                                pod_changes += abs(w.replicas - before); c._dpods += w.replicas - before
+                        c._pods_done = True
+                        c.reqs = sum(w.replicas * w.request if w.hpa else w.demand[t] + w.backlog for w in c.workloads)
                     if closure:
                         if auto:
                             cl_nodes[ci].S = g.g.x.S
                         tgt = cl_nodes[ci].decide(n, p.cores * ALLOC, g.g.last_push, p.min_nodes, p.max_nodes)
+                        if getattr(c, "_pods_done", False):
+                            fits = c.reqs <= n * p.cores * ALLOC * CL.rho_max
+                            if (tgt < n and c._dpods > 0) or (tgt > n and c._dpods < 0 and fits):
+                                tgt = n
                         capn = 1.0
                     tgt = max(p.min_nodes, min(p.max_nodes, tgt))
                     if tgt != n:
@@ -584,10 +617,14 @@ def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every
                             _resize(c, int(a["target"]), park=(arm == "omni_fleet_park" or not p.power_off))
                         elif a["action"] == "power_cap":
                             p.cap = float(a["target"]); cap_moves += 1
+        if uses_gov and t % omni_every == 0 and site and getattr(CL, "coord", False):
+            _site_closure(scn, cl_site, CL, max(g.g.last_push for g in govs))
         for ci, c in enumerate(scn.clusters):
-            c._dpods = 0
+            pods_done = getattr(c, "_pods_done", False); c._pods_done = False
+            if not pods_done:
+                c._dpods = 0
             for w in c.workloads:
-                if w.hpa:
+                if w.hpa and not pods_done:
                     before = w.replicas
                     if direct:
                         omni_replicas(w, targets[ci], govs[ci].g.last_push, DL)
