@@ -118,10 +118,11 @@ def main():
     c3.target_at = {k: v - 301 for k, v in c3.target_at.items()}; os.utime(lf); c3.step()
     moved = json.loads(Path(p3).read_text())["hpas"][0]["spec"]["metrics"][0]["resource"]["target"]["averageUtilization"]
     assert moved == 76, moved
-    # only when needed: with an SLO of 500 ms, conveyance engages at p95 >= 250 ms (convey-on 0.5), holds down to
+    # optional, only when needed: with an SLO of 500 ms, conveyance engages at p95 >= 250 ms (convey-on 0.5), holds down to
     # 125 ms (convey-off 0.25), and below that every serving pod returns to the operator's 500m; blind engages
     t4 = tempfile.mkdtemp(); p4 = state(t4); c4 = Controller(args(t4)); c4.a.slo_ms = 500.0
-    assert (c4.a.convey_on, c4.a.convey_off) == (0.5, 0.25), (c4.a.convey_on, c4.a.convey_off)
+    assert (c4.a.convey_on, c4.a.convey_off) == (0.0, 0.25), "default: conveying always"
+    c4.a.convey_on = 0.5                                   # the optional only-when-needed mode
     lf4 = Path(t4) / "latency.csv"
     def probe(ms):
         lf4.write_text("elapsed_seconds,latency_ms,ok\n" + "".join(f"{i},{ms},1\n" for i in range(60)))

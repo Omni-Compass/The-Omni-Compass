@@ -40,6 +40,14 @@ order rotated, both arms of a repetition on one runner. The table was recomputed
 ## Addendum: the load is closed-loop
 
 The load generator waits for each answer before sending the next, so faster answers mean more requests: the CPU +26%
-includes more work served. This set's own estimate (`tools/closed_loop_estimate.py` on its raw files) is recorded in
-`results/live/reaggregated/`. Work per energy needs equal work or a count of requests served; the next set runs a
-fixed-rate load (`LOADGEN=open`).
+includes more work served. This set's own estimate (`tools/closed_loop_estimate.py` on its raw files, run by GitHub:
+`results/live/reaggregated/CLOSED_LOOP_ESTIMATE_36466558583.json`):
+
+| Gauge (estimated: the generators do not count their requests) | Change with me on top | 95% interval |
+|---|---:|---:|
+| requests served | **+28.2%** | +21.5% to +34.9% |
+| CPU used | +25.5% | +18.4% to +32.5% |
+| CPU per request | −2.1% | −5.3% to +1.1% (not proven) |
+| energy per request (energy row "still on at idle power" ÷ requests; both a model and an estimate) | about −21% | not computed per repetition |
+
+Work per energy stated without an estimate needs equal work; the next set runs a fixed-rate load (`LOADGEN=open`).

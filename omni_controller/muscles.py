@@ -368,10 +368,10 @@ class Muscles:
         Resized in place through pods/resize: no pod restarts. No expansion during a security hold. The kill switch
         returns every pod to L_i.
 
-        Only when needed (--convey-on, a share of --slo-ms): conveyance engages when the 95th-percentile response time
-        reaches convey-on x SLO and disengages below convey-off x SLO, returning every serving pod to L_i. Between
-        bursts the pods run at the operator's own limit, so the machine's spare CPU is not burned for speed nobody
-        asked for. A blind latency sense engages it (service first). --convey-on 0 conveys always."""
+        Conveyance is on by default. It moves no work: the same requests run with less waiting. (The +26% CPU seen on
+        kind is more requests served, because that load is closed-loop, not waste.) Optionally, --convey-on (a share
+        of --slo-ms) engages it only once the 95th-percentile response time reaches convey-on x SLO and releases it
+        below convey-off x SLO, returning every serving pod to L_i; a blind latency sense engages it (service first)."""
         from omnicompass.nervous_system import BAND
         obs = obs or {}
         targets = [ref(t) for t in filter(None, getattr(self.a, "cap_deployments", "").split(","))]
@@ -643,7 +643,8 @@ def add_args(ap):
     ap.add_argument("--latency-file", default="", help="probe CSV (elapsed_seconds,latency_ms,ok) for the latency afferent")
     ap.add_argument("--slo-ms", type=float, default=0.0, help="95th-percentile response-time target, ms")
     ap.add_argument("--latency-window-s", type=float, default=60.0)
-    ap.add_argument("--convey-on", type=float, default=0.5, help="convey idle CPU once p95 reaches this share of --slo-ms (0: always)")
+    ap.add_argument("--convey-on", type=float, default=0.0,
+                    help="0 (default): convey idle CPU always; > 0: only once p95 reaches this share of --slo-ms")
     ap.add_argument("--convey-off", type=float, default=0.25, help="return pods to the operator's limit once p95 is below this share")
     ap.add_argument("--slo-clear", type=int, default=3, help="decisions the SLO must stay met before densifying or capping again")
     ap.add_argument("--thermal-model", action="store_true", help="heat muscle: thermal state from the harness heat law")

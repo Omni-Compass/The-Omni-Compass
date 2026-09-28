@@ -99,7 +99,7 @@ kubectl -n omni-compass logs deploy/omni-compass -f
 
 | Muscle | Switch | What it does |
 |---|---|---|
-| convey | on with `--latency-file` and `--cap-deployments ns/name` | gives a machine's idle CPU to the serving pods on it while response time is over `--convey-on` × target, gives it back under `--convey-off` × target (`--convey-on 0`: always) |
+| convey | on with `--latency-file` and `--cap-deployments ns/name` | gives each machine's idle CPU to the serving pods on it (default: always); `--convey-on 0.5 --convey-off 0.25` engages it only while response time is over half the target |
 | rightsize | `--rightsize-deployments ns/name` | each pod's CPU request follows its measured use × (1 + headroom), in place |
 | coldstart | `--coldstart-deployments ns/name --coldstart-signal ns/configmap` | scales a service to zero while no work waits, wakes it the moment work arrives |
 | batch | `--batch` | admits held Jobs labelled `omnicompass.io/batch=true` when there is load and power headroom |

@@ -27,12 +27,14 @@ Kubernetes with its autoscaler alone against the same Kubernetes with Omni-Compa
 | Replicas, mean | 8.94 | 7.84 | −12% (proven) |
 | Machines in service, mean (all stayed powered) | 6 | 4.75 | −21% (proven) |
 | CPU used by the service | 0.91 cores | 1.15 cores | +26% (proven): more requests were served, see below |
+| Requests served (estimated from response times) | | | **+28%** (+22% to +35%) |
+| Energy per request (the model row below ÷ estimated requests) | | | about **−21%** (a model and an estimate) |
 | **Energy, parked machines still on at idle power** (declared model, no meter) | 159 Wh | 161.9 Wh | **+1.8%, worse** (proven) |
 
 - **More work was served.** The load is closed-loop (each generator waits for its answer before sending the next), so
-  faster answers bring more requests, so the CPU and energy rows compare unequal work (the per-set estimate of requests
-  served is in `results/live/reaggregated/`). The next set runs a fixed-rate load so the work is equal and work per
-  energy is stated directly.
+  faster answers bring more requests: an estimated 28% more requests were served with Omni-Compass, at about the same
+  CPU per request, so the CPU and energy rows compare unequal work. The next set runs a fixed-rate load so the work is
+  equal and work per energy is measured directly rather than estimated.
 - **No energy saving is shown on kind.** Every machine stays powered; energy is a declared model. The kill switch
   restored every setting in every run; watch mode writes nothing.
 

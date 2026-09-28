@@ -1,4 +1,4 @@
-verify.py --quick at commit 149117ca03caedd5b9834142f2e755f8d8c00188, 2026-09-28T21:38:10+00:00
+verify.py --quick at commit 29d688ac8800af4e227ba9fff44cbe2e72ad9548, 2026-09-28T21:44:16+00:00
 
 PASS  reference engine SHA-256
 PASS  pre-registered file unchanged or amended on record (SHA-256): omnicompass/core.py
@@ -61,8 +61,8 @@ PASS  independent C++ HPA replica law vs fleet harness HPA
 C++ HPA vs harness HPA: 345600 steps, 240 streams, mismatches = 208204
 PASS  negative control: parity test detects a C++ HPA with 5% instead of 10% tolerance
 PASS  C++ governor contract smoke test (bounds, security, determinism, both modes)
-PASS  soak test (power_protect), 1,000,000 decisions, no failures, memory flat after warm-up  (3020 ns per decision, RSS checkpoints [3808, 3808, 3808, 3808] kB)
-PASS  soak test (throughput), 1,000,000 decisions, no failures, memory flat after warm-up  (3048 ns per decision, RSS checkpoints [3816, 3816, 3816, 3816] kB)
+PASS  soak test (power_protect), 1,000,000 decisions, no failures, memory flat after warm-up  (3021 ns per decision, RSS checkpoints [3808, 3808, 3808, 3808] kB)
+PASS  soak test (throughput), 1,000,000 decisions, no failures, memory flat after warm-up  (2988 ns per decision, RSS checkpoints [3800, 3800, 3800, 3800] kB)
 processed 1440 governor steps
 C++ vs Python governor (power_protect): 1440 directives, discrete mismatches = 95, max |diff| = 3.331e-16
 PASS  negative control: parity test detects a mutated C++ governor (dwell 3 instead of 4)
@@ -192,7 +192,7 @@ PASS  exact pod-start timing from the API server's watch stream (creation to Rea
 GPU Fake GPU, driver 0.0, persistence mode Enabled, start power limit 300.00 W, workload tools/gpu_workload.py (seeded fp16 matmul request stream).
 2 repetitions, order rotated, 5.0 s per arm plus 1.0 s drain, 0.0 s idle before each arm.
 
-Phase: **smoke**. Omni frozen at commit 149117ca03ca; file hashes in FREEZE.json, rechecked at the end.
+Phase: **smoke**. Omni frozen at commit 29d688ac8800 (uncommitted changes present); file hashes in FREEZE.json, rechecked at the end.
 
 ## INVALID RUN
 
@@ -202,17 +202,17 @@ Phase: **smoke**. Omni frozen at commit 149117ca03ca; file hashes in FREEZE.json
 
 | Gauge | Native | Omni watches only | Omni governs |
 |---|---:|---:|---:|
-| work per energy (served requests per kJ) | 103.5 | 103.5 | 103.5 |
-| work per wall energy (served requests per kJ, whole machine) | 74.65 | 82.12 | 89.58 |
-| energy, whole machine at the wall (J) | 1500 | 1375 | 1250 |
-| energy, GPU (J) | 1083 | 1083 | 1083 |
-| energy per served request (J) | 9.665 | 9.666 | 9.666 |
-| power, GPU mean (W) | 179.1 | 178.9 | 179 |
+| work per energy (served requests per kJ) | 103.5 | 103.5 | 103.4 |
+| work per wall energy (served requests per kJ, whole machine) | 82.12 | 82.1 | 74.65 |
+| energy, whole machine at the wall (J) | 1375 | 1376 | 1500 |
+| energy, GPU (J) | 1083 | 1083 | 1084 |
+| energy per served request (J) | 9.666 | 9.665 | 9.675 |
+| power, GPU mean (W) | 179.1 | 179.1 | 179 |
 | requests served | 112 | 112 | 112 |
 | requests not served | 0 | 0 | 0 |
-| response time, mean (ms) | 34.95 | 34.91 | 35.14 |
-| response time, 95th percentile (ms) | 76.73 | 76.39 | 77.24 |
-| response time, 99th percentile (ms) | 86.14 | 86.11 | 87.66 |
+| response time, mean (ms) | 35.3 | 35.22 | 40.1 |
+| response time, 95th percentile (ms) | 76.79 | 78.65 | 93.33 |
+| response time, 99th percentile (ms) | 86.89 | 88.46 | 113.2 |
 | temperature, peak (C) | 60 | 60 | 60 |
 | temperature, mean (C) | 60 | 60 | 60 |
 
@@ -220,17 +220,17 @@ Phase: **smoke**. Omni frozen at commit 149117ca03ca; file hashes in FREEZE.json
 
 | Gauge | Native | Omni governs | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 103.5 | 103.5 | -0.0% | -0.1178 to +0.1006 | worse, not proven |
-| work per wall energy (served requests per kJ, whole machine) | 74.65 | 89.58 | +20.0% | +14.93 to +14.93 | better, proven |
-| energy, whole machine at the wall (J) | 1500 | 1250 | -16.7% | -250 to -250 | better, proven |
-| energy, GPU (J) | 1083 | 1083 | +0.0% | -1.053 to +1.233 | worse, not proven |
-| energy per served request (J) | 9.665 | 9.666 | +0.0% | -0.009403 to +0.01101 | worse, not proven |
-| power, GPU mean (W) | 179.1 | 179 | -0.0% | -1.304 to +1.222 | better, not proven |
+| **work per energy (served requests per kJ) (primary)** | 103.5 | 103.4 | -0.1% | -1.949 to +1.76 | worse, not proven |
+| work per wall energy (served requests per kJ, whole machine) | 82.12 | 74.65 | -9.1% | -102.3 to +87.37 | worse, not proven |
+| energy, whole machine at the wall (J) | 1375 | 1500 | +9.1% | -1463 to +1713 | worse, not proven |
+| energy, GPU (J) | 1083 | 1084 | +0.1% | -18.45 to +20.43 | worse, not proven |
+| energy per served request (J) | 9.666 | 9.675 | +0.1% | -0.1647 to +0.1824 | worse, not proven |
+| power, GPU mean (W) | 179.1 | 179 | -0.0% | -4.802 to +4.654 | better, not proven |
 | requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 34.95 | 35.14 | +0.5% | -0.8355 to +1.206 | worse, not proven |
-| response time, 95th percentile (ms) | 76.73 | 77.24 | +0.7% | -4.076 to +5.086 | worse, not proven |
-| response time, 99th percentile (ms) | 86.14 | 87.66 | +1.8% | -16.89 to +19.93 | worse, not proven |
+| response time, mean (ms) | 35.3 | 40.1 | +13.6% | -58.05 to +67.66 | worse, not proven |
+| response time, 95th percentile (ms) | 76.79 | 93.33 | +21.5% | -191.3 to +224.4 | worse, not proven |
+| response time, 99th percentile (ms) | 86.89 | 113.2 | +30.3% | -319.4 to +372 | worse, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 
@@ -238,26 +238,26 @@ Phase: **smoke**. Omni frozen at commit 149117ca03ca; file hashes in FREEZE.json
 
 | Gauge | Native | Omni watches only | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 103.5 | 103.5 | -0.0% | -0.3364 to +0.3192 | worse, not proven |
-| work per wall energy (served requests per kJ, whole machine) | 74.65 | 82.12 | +10.0% | -87.37 to +102.3 | better, not proven |
-| energy, whole machine at the wall (J) | 1500 | 1375 | -8.3% | -1713 to +1463 | better, not proven |
-| energy, GPU (J) | 1083 | 1083 | +0.0% | -3.34 to +3.52 | worse, not proven |
-| energy per served request (J) | 9.665 | 9.666 | +0.0% | -0.02982 to +0.03143 | worse, not proven |
-| power, GPU mean (W) | 179.1 | 178.9 | -0.1% | -2.723 to +2.434 | better, not proven |
+| **work per energy (served requests per kJ) (primary)** | 103.5 | 103.5 | +0.0% | -0.1006 to +0.1178 | better, not proven |
+| work per wall energy (served requests per kJ, whole machine) | 82.12 | 82.1 | -0.0% | -0.2454 to +0.2096 | worse, not proven |
+| energy, whole machine at the wall (J) | 1375 | 1376 | +0.0% | -2.926 to +3.426 | worse, not proven |
+| energy, GPU (J) | 1083 | 1083 | -0.0% | -1.233 to +1.053 | better, not proven |
+| energy per served request (J) | 9.666 | 9.665 | -0.0% | -0.01101 to +0.009406 | better, not proven |
+| power, GPU mean (W) | 179.1 | 179.1 | -0.0% | -1.579 to +1.571 | better, not proven |
 | requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 34.95 | 34.91 | -0.1% | -0.6773 to +0.6049 | better, not proven |
-| response time, 95th percentile (ms) | 76.73 | 76.39 | -0.4% | -1.31 to +0.621 | better, not proven |
-| response time, 99th percentile (ms) | 86.14 | 86.11 | -0.0% | -2.408 to +2.355 | better, not proven |
+| response time, mean (ms) | 35.3 | 35.22 | -0.2% | -5.976 to +5.823 | better, not proven |
+| response time, 95th percentile (ms) | 76.79 | 78.65 | +2.4% | -27.67 to +31.39 | worse, not proven |
+| response time, 99th percentile (ms) | 86.89 | 88.46 | +1.8% | -19.55 to +22.68 | worse, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 
 ## Verdict on the preregistered question
 
-Work per energy under Omni against native: 103.5 -> 103.5 served requests per kJ, difference -0.008602 (95% interval -0.1178 to +0.1006).
-Guardrails: requests served held (not below -1%), 95th-percentile response time held (not above +10%).
-Watch against native on the same outcome: worse, not proven.
-Whole machine at the wall (smart plug Omni never reads): better, proven, 74.65 -> 89.58 served requests per kJ.
+Work per energy under Omni against native: 103.5 -> 103.4 served requests per kJ, difference -0.09439 (95% interval -1.949 to +1.76).
+Guardrails: requests served held (not below -1%), 95th-percentile response time FAILED (not above +10%).
+Watch against native on the same outcome: better, not proven.
+Whole machine at the wall (smart plug Omni never reads): worse, not proven, 82.12 -> 74.65 served requests per kJ.
 **Verdict: worse, not proven (the run is INVALID; see above).**
 
 ## The control
@@ -271,7 +271,7 @@ Whole machine at the wall (smart plug Omni never reads): better, proven, 74.65 -
 GPU Fake GPU, driver 0.0, persistence mode Enabled, start power limit 300.00 W, workload tools/gpu_workload.py (seeded fp16 matmul request stream).
 2 repetitions, order rotated, 5.0 s per arm plus 1.0 s drain, 0.0 s idle before each arm.
 
-Phase: **smoke**. Omni frozen at commit 149117ca03ca; file hashes in FREEZE.json, rechecked at the end.
+Phase: **smoke**. Omni frozen at commit 29d688ac8800 (uncommitted changes present); file hashes in FREEZE.json, rechecked at the end.
 
 ## INVALID RUN
 
@@ -281,17 +281,17 @@ Phase: **smoke**. Omni frozen at commit 149117ca03ca; file hashes in FREEZE.json
 
 | Gauge | Native | Omni watches only | Omni governs |
 |---|---:|---:|---:|
-| work per energy (served requests per kJ) | 103.5 | 103.5 | 103.5 |
-| work per wall energy (served requests per kJ, whole machine) | 74.65 | 82.12 | 89.58 |
-| energy, whole machine at the wall (J) | 1500 | 1375 | 1250 |
-| energy, GPU (J) | 1083 | 1083 | 1083 |
-| energy per served request (J) | 9.665 | 9.666 | 9.666 |
-| power, GPU mean (W) | 179.1 | 178.9 | 179 |
+| work per energy (served requests per kJ) | 103.5 | 103.5 | 103.4 |
+| work per wall energy (served requests per kJ, whole machine) | 82.12 | 82.1 | 74.65 |
+| energy, whole machine at the wall (J) | 1375 | 1376 | 1500 |
+| energy, GPU (J) | 1083 | 1083 | 1084 |
+| energy per served request (J) | 9.666 | 9.665 | 9.675 |
+| power, GPU mean (W) | 179.1 | 179.1 | 179 |
 | requests served | 112 | 112 | 112 |
 | requests not served | 0 | 0 | 0 |
-| response time, mean (ms) | 34.95 | 34.91 | 35.14 |
-| response time, 95th percentile (ms) | 76.73 | 76.39 | 77.24 |
-| response time, 99th percentile (ms) | 86.14 | 86.11 | 87.66 |
+| response time, mean (ms) | 35.3 | 35.22 | 40.1 |
+| response time, 95th percentile (ms) | 76.79 | 78.65 | 93.33 |
+| response time, 99th percentile (ms) | 86.89 | 88.46 | 113.2 |
 | temperature, peak (C) | 60 | 60 | 60 |
 | temperature, mean (C) | 60 | 60 | 60 |
 
@@ -299,17 +299,17 @@ Phase: **smoke**. Omni frozen at commit 149117ca03ca; file hashes in FREEZE.json
 
 | Gauge | Native | Omni governs | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 103.5 | 103.5 | -0.0% | -0.1178 to +0.1006 | worse, not proven |
-| work per wall energy (served requests per kJ, whole machine) | 74.65 | 89.58 | +20.0% | +14.93 to +14.93 | better, proven |
-| energy, whole machine at the wall (J) | 1500 | 1250 | -16.7% | -250 to -250 | better, proven |
-| energy, GPU (J) | 1083 | 1083 | +0.0% | -1.053 to +1.233 | worse, not proven |
-| energy per served request (J) | 9.665 | 9.666 | +0.0% | -0.009403 to +0.01101 | worse, not proven |
-| power, GPU mean (W) | 179.1 | 179 | -0.0% | -1.304 to +1.222 | better, not proven |
+| **work per energy (served requests per kJ) (primary)** | 103.5 | 103.4 | -0.1% | -1.949 to +1.76 | worse, not proven |
+| work per wall energy (served requests per kJ, whole machine) | 82.12 | 74.65 | -9.1% | -102.3 to +87.37 | worse, not proven |
+| energy, whole machine at the wall (J) | 1375 | 1500 | +9.1% | -1463 to +1713 | worse, not proven |
+| energy, GPU (J) | 1083 | 1084 | +0.1% | -18.45 to +20.43 | worse, not proven |
+| energy per served request (J) | 9.666 | 9.675 | +0.1% | -0.1647 to +0.1824 | worse, not proven |
+| power, GPU mean (W) | 179.1 | 179 | -0.0% | -4.802 to +4.654 | better, not proven |
 | requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 34.95 | 35.14 | +0.5% | -0.8355 to +1.206 | worse, not proven |
-| response time, 95th percentile (ms) | 76.73 | 77.24 | +0.7% | -4.076 to +5.086 | worse, not proven |
-| response time, 99th percentile (ms) | 86.14 | 87.66 | +1.8% | -16.89 to +19.93 | worse, not proven |
+| response time, mean (ms) | 35.3 | 40.1 | +13.6% | -58.05 to +67.66 | worse, not proven |
+| response time, 95th percentile (ms) | 76.79 | 93.33 | +21.5% | -191.3 to +224.4 | worse, not proven |
+| response time, 99th percentile (ms) | 86.89 | 113.2 | +30.3% | -319.4 to +372 | worse, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 
@@ -317,26 +317,26 @@ Phase: **smoke**. Omni frozen at commit 149117ca03ca; file hashes in FREEZE.json
 
 | Gauge | Native | Omni watches only | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 103.5 | 103.5 | -0.0% | -0.3364 to +0.3192 | worse, not proven |
-| work per wall energy (served requests per kJ, whole machine) | 74.65 | 82.12 | +10.0% | -87.37 to +102.3 | better, not proven |
-| energy, whole machine at the wall (J) | 1500 | 1375 | -8.3% | -1713 to +1463 | better, not proven |
-| energy, GPU (J) | 1083 | 1083 | +0.0% | -3.34 to +3.52 | worse, not proven |
-| energy per served request (J) | 9.665 | 9.666 | +0.0% | -0.02982 to +0.03143 | worse, not proven |
-| power, GPU mean (W) | 179.1 | 178.9 | -0.1% | -2.723 to +2.434 | better, not proven |
+| **work per energy (served requests per kJ) (primary)** | 103.5 | 103.5 | +0.0% | -0.1006 to +0.1178 | better, not proven |
+| work per wall energy (served requests per kJ, whole machine) | 82.12 | 82.1 | -0.0% | -0.2454 to +0.2096 | worse, not proven |
+| energy, whole machine at the wall (J) | 1375 | 1376 | +0.0% | -2.926 to +3.426 | worse, not proven |
+| energy, GPU (J) | 1083 | 1083 | -0.0% | -1.233 to +1.053 | better, not proven |
+| energy per served request (J) | 9.666 | 9.665 | -0.0% | -0.01101 to +0.009406 | better, not proven |
+| power, GPU mean (W) | 179.1 | 179.1 | -0.0% | -1.579 to +1.571 | better, not proven |
 | requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 34.95 | 34.91 | -0.1% | -0.6773 to +0.6049 | better, not proven |
-| response time, 95th percentile (ms) | 76.73 | 76.39 | -0.4% | -1.31 to +0.621 | better, not proven |
-| response time, 99th percentile (ms) | 86.14 | 86.11 | -0.0% | -2.408 to +2.355 | better, not proven |
+| response time, mean (ms) | 35.3 | 35.22 | -0.2% | -5.976 to +5.823 | better, not proven |
+| response time, 95th percentile (ms) | 76.79 | 78.65 | +2.4% | -27.67 to +31.39 | worse, not proven |
+| response time, 99th percentile (ms) | 86.89 | 88.46 | +1.8% | -19.55 to +22.68 | worse, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 
 ## Verdict on the preregistered question
 
-Work per energy under Omni against native: 103.5 -> 103.5 served requests per kJ, difference -0.008602 (95% interval -0.1178 to +0.1006).
-Guardrails: requests served held (not below -1%), 95th-percentile response time held (not above +10%).
-Watch against native on the same outcome: worse, not proven.
-Whole machine at the wall (smart plug Omni never reads): better, proven, 74.65 -> 89.58 served requests per kJ.
+Work per energy under Omni against native: 103.5 -> 103.4 served requests per kJ, difference -0.09439 (95% interval -1.949 to +1.76).
+Guardrails: requests served held (not below -1%), 95th-percentile response time FAILED (not above +10%).
+Watch against native on the same outcome: better, not proven.
+Whole machine at the wall (smart plug Omni never reads): worse, not proven, 82.12 -> 74.65 served requests per kJ.
 **Verdict: worse, not proven (the run is INVALID; see above).**
 
 ## The control
@@ -350,21 +350,21 @@ Whole machine at the wall (smart plug Omni never reads): better, proven, 74.65 -
 GPU Fake GPU, driver 0.0, persistence mode Enabled, start power limit 300.00 W, workload tools/gpu_workload.py (seeded fp16 matmul request stream).
 5 repetitions, order rotated, 4.0 s per arm plus 1.0 s drain, 0.0 s idle before each arm.
 
-Phase: **smoke**. Omni frozen at commit 149117ca03ca; file hashes in FREEZE.json, rechecked at the end.
+Phase: **smoke**. Omni frozen at commit 29d688ac8800 (uncommitted changes present); file hashes in FREEZE.json, rechecked at the end.
 
 ## Every column, mean over repetitions
 
 | Gauge | Native | Omni watches only | Omni governs |
 |---|---:|---:|---:|
-| work per energy (served requests per kJ) | 98.61 | 98.66 | 98.62 |
-| energy, GPU (J) | 902.5 | 902.1 | 902.4 |
+| work per energy (served requests per kJ) | 98.64 | 98.65 | 98.65 |
+| energy, GPU (J) | 902.2 | 902.2 | 902.2 |
 | energy per served request (J) | 10.14 | 10.14 | 10.14 |
-| power, GPU mean (W) | 178.8 | 178.6 | 179 |
+| power, GPU mean (W) | 178.9 | 178.9 | 178.5 |
 | requests served | 89 | 89 | 89 |
 | requests not served | 0 | 0 | 0 |
-| response time, mean (ms) | 32.73 | 32.9 | 33.35 |
-| response time, 95th percentile (ms) | 70.91 | 71.23 | 70.8 |
-| response time, 99th percentile (ms) | 86.53 | 86.71 | 86.38 |
+| response time, mean (ms) | 32.67 | 32.77 | 32.66 |
+| response time, 95th percentile (ms) | 70.81 | 70.75 | 70.64 |
+| response time, 99th percentile (ms) | 86.35 | 86.31 | 86.24 |
 | temperature, peak (C) | 60 | 60 | 60 |
 | temperature, mean (C) | 60 | 60 | 60 |
 
@@ -372,15 +372,15 @@ Phase: **smoke**. Omni frozen at commit 149117ca03ca; file hashes in FREEZE.json
 
 | Gauge | Native | Omni governs | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 98.61 | 98.62 | +0.0% | -0.3651 to +0.3848 | better, not proven |
-| energy, GPU (J) | 902.5 | 902.4 | -0.0% | -3.521 to +3.341 | better, not proven |
-| energy per served request (J) | 10.14 | 10.14 | -0.0% | -0.03956 to +0.03754 | better, not proven |
-| power, GPU mean (W) | 178.8 | 179 | +0.1% | -0.8886 to +1.192 | worse, not proven |
+| **work per energy (served requests per kJ) (primary)** | 98.64 | 98.65 | +0.0% | -0.1152 to +0.1349 | better, not proven |
+| energy, GPU (J) | 902.2 | 902.2 | -0.0% | -1.234 to +1.054 | better, not proven |
+| energy per served request (J) | 10.14 | 10.14 | -0.0% | -0.01386 to +0.01184 | better, not proven |
+| power, GPU mean (W) | 178.9 | 178.5 | -0.2% | -3.811 to +2.944 | better, not proven |
 | requests served | 89 | 89 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 32.73 | 33.35 | +1.9% | -11.51 to +12.74 | worse, not proven |
-| response time, 95th percentile (ms) | 70.91 | 70.8 | -0.2% | -0.2618 to +0.02913 | better, not proven |
-| response time, 99th percentile (ms) | 86.53 | 86.38 | -0.2% | -0.3374 to +0.0425 | better, not proven |
+| response time, mean (ms) | 32.67 | 32.66 | -0.0% | -0.4187 to +0.3963 | better, not proven |
+| response time, 95th percentile (ms) | 70.81 | 70.64 | -0.2% | -1.886 to +1.535 | better, not proven |
+| response time, 99th percentile (ms) | 86.35 | 86.24 | -0.1% | -2.734 to +2.511 | better, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 
@@ -388,21 +388,21 @@ Phase: **smoke**. Omni frozen at commit 149117ca03ca; file hashes in FREEZE.json
 
 | Gauge | Native | Omni watches only | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 98.61 | 98.66 | +0.0% | -0.0759 to +0.1743 | better, not proven |
-| energy, GPU (J) | 902.5 | 902.1 | -0.0% | -1.594 to +0.6937 | better, not proven |
-| energy per served request (J) | 10.14 | 10.14 | -0.0% | -0.01791 to +0.007795 | better, not proven |
-| power, GPU mean (W) | 178.8 | 178.6 | -0.1% | -0.3881 to -0.07035 | better, proven |
+| **work per energy (served requests per kJ) (primary)** | 98.64 | 98.65 | +0.0% | -0.3653 to +0.385 | better, not proven |
+| energy, GPU (J) | 902.2 | 902.2 | -0.0% | -3.521 to +3.341 | better, not proven |
+| energy per served request (J) | 10.14 | 10.14 | -0.0% | -0.03956 to +0.03754 | better, not proven |
+| power, GPU mean (W) | 178.9 | 178.9 | -0.0% | -2.181 to +2.105 | better, not proven |
 | requests served | 89 | 89 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 32.73 | 32.9 | +0.5% | -2.371 to +2.708 | worse, not proven |
-| response time, 95th percentile (ms) | 70.91 | 71.23 | +0.5% | -4.853 to +5.496 | worse, not proven |
-| response time, 99th percentile (ms) | 86.53 | 86.71 | +0.2% | -2.649 to +3.02 | worse, not proven |
+| response time, mean (ms) | 32.67 | 32.77 | +0.3% | -2.237 to +2.423 | worse, not proven |
+| response time, 95th percentile (ms) | 70.81 | 70.75 | -0.1% | -0.2348 to +0.1058 | better, not proven |
+| response time, 99th percentile (ms) | 86.35 | 86.31 | -0.0% | -0.836 to +0.7587 | better, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 
 ## Verdict on the preregistered question
 
-Work per energy under Omni against native: 98.61 -> 98.62 served requests per kJ, difference +0.009843 (95% interval -0.3651 to +0.3848).
+Work per energy under Omni against native: 98.64 -> 98.65 served requests per kJ, difference +0.009837 (95% interval -0.1152 to +0.1349).
 Guardrails: requests served held (not below -1%), 95th-percentile response time held (not above +10%).
 Watch against native on the same outcome: better, not proven.
 **Verdict: better, not proven.**
