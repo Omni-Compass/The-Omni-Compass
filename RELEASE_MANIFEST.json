@@ -1,27 +1,55 @@
 {
  "release": "Omni-Compass",
- "written_at_commit": "29d688ac8800af4e227ba9fff44cbe2e72ad9548",
- "written_at": "2026-09-28T21:44:16+00:00",
+ "release_id": "omni-compass-54f4fff0b93c",
+ "written_at_commit": "54f4fff0b93c59be872a5aea82de454b924cb909",
+ "written_at": "2026-09-28T22:21:47+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
+ "mechanism_id": "7ce24080f596033ef63bd52912660008731ac444fc4f345d88d6cf26d53ba5da",
+ "mechanism_configuration": "symmetric_verified",
+ "mechanism_components": {
+  "F": "e8e2e834b2cce26bd301beec8e9873ca9a371586a88a093ecc161f5d62b0c4d9",
+  "Theta": "26d2dd0988715b5cf8f9ac0a0cfe68506ab16c6add0471100c7e944a04277406",
+  "C": "443a9be0423c0216ce32bdd695c68ca6c0a03c61924425c53ade2960f0bf785a",
+  "h": "f3904a61c94d47f8fd783ca5d85792ce0f6e8ae7ccf827456fd9526d6c24ba8b",
+  "G": "7a39f51cc43a594da52ac7d549f0eb3554cbeff24ba10db642770cebc146f1c6",
+  "M_act": "01f128937121304428ed82d510f2d6146085f37d5116f6ab35f960f7d3235380",
+  "dt": "95e40d1ad59ef52b20d858a831ed88e8533ade9f6f68c226c3eb5fd8e5bcda46",
+  "A": "bbf216f604f2fe3bc0a641af034d3ce37f049915effe739098152335b14ec36e"
+ },
+ "alternative_embodiments": {
+  "printed_eight_line": "b151b8d8c8f64478c166eed6d138e070d00428ebee9c4d7afb3878114b5861da"
+ },
+ "fingerprints": {
+  "engine_sha256": "bd615f156169f6794b41439c4ce0726deb6a0b620fac76e072d24b357ab8b0a4",
+  "cpp_sha256": "d7deead6f47d54d5b68e08b98db5e15ab54c7fbac8e7b9c24ee64cb1538a8c5c",
+  "controller_sha256": "a97741c040f96d674316f7bfe936bffbbb51a4bf0116e02677fb6cf6b3fd0648",
+  "observation_map_sha256": "f3904a61c94d47f8fd783ca5d85792ce0f6e8ae7ccf827456fd9526d6c24ba8b",
+  "authority_map_sha256": "7a39f51cc43a594da52ac7d549f0eb3554cbeff24ba10db642770cebc146f1c6",
+  "actuator_map_sha256": "01f128937121304428ed82d510f2d6146085f37d5116f6ab35f960f7d3235380",
+  "shield_sha256": "88de572557295e04eb1341e64de16b68d74e4f8fa7c2e8bbe9c1d9c0416ea6f5",
+  "gpu_protocol_sha256": "f704c8688592144d6be7f6eafe8fcc7e66b929d8a3f03421d0ba5d5e7b94ddf8",
+  "preregistration_sha256": "6cc5747d771f59f50fec713bdbfb08ec128877ffd53b105d2a164aa86a6dce41",
+  "test_suite_sha256": "086bf6b0df6b2edc878594f78759d2ce91dc1419ce3903a94db12847b099b8fa"
+ },
  "files": {
   "canonical_engine": {
    "omnicompass/core.py": "bd615f156169f6794b41439c4ce0726deb6a0b620fac76e072d24b357ab8b0a4",
    "cpp/src/core.cpp": "d7deead6f47d54d5b68e08b98db5e15ab54c7fbac8e7b9c24ee64cb1538a8c5c",
-   "docs/CANONICAL_ENGINE.md": "d33fa5908ac211cbf9651844d2f5d8ce3f6b909c545c3477c1dd51012a939d16"
+   "docs/CANONICAL_ENGINE.md": "baf77c7de6df3dd812bf4cc8f669d4b5e24990d550044c9ba226a56ac6720ec0"
   },
   "reference_engine": {
    "reference/omni_compass_reference_engine.py": "92799376dd9a626cef330d15f3fc3603eeef1dc2e5de6186b3527fdbb9d2b875",
    "reference/PROVENANCE.json": "cb72f8ca47610ee1a01c8e2c6016ff74c5e0d8e050ae1901e6919ac16b8bc9e2"
   },
   "cpp_twins_seal": {
-   "results/SEAL.json": "46173cf286a1094f6ad2b94b0a23465fc815033ab2c66b0dfbc9300d3ed69cde"
+   "results/SEAL.json": "90ca5bf85243f6325ea93e9a4dd707e7f1142c760e4518fbd1cf31b69a88ded3"
   },
   "gpu_protocol": {
-   "docs/GPU_PREREGISTRATION.md": "97a39d56cd177103c4532f89297cc863b97f0581ed83345ac3a363aaef3df739",
-   "scripts/gpu_paired.sh": "a2f9a18b0f1164df0d30546ec610b74e845e784a28970ddf7f8c3fd9024b3c03",
+   "docs/GPU_PREREGISTRATION.md": "2025815704dc01eeb522bcf0dc3581f457bdb96a2c7f67103075018c425b3a8b",
+   "scripts/gpu_paired.sh": "64d0d5f38d18645e65d0f693378daea09201c6a9c032e7aee8d6bf77ac914cd0",
    "tools/gpu_workload.py": "055f904148b0085ed393b08ea905b27f6aadb36cc3c1927be3898b31a89d0457",
-   "tools/gpu_reps.py": "f0ec946e868b96bec001e8e3b97d6f6c7ab4e0198e208d103cabfcc3608641de",
-   "omni_controller/gpu_governor.py": "1e6d3956967532d1498f6e537ea072501fe4e1523331521f255267064e1a7264",
+   "tools/gpu_reps.py": "5c7f3d088da243218ee7e3019fc915b80e538b6313eee6990282c34ca84a620b",
+   "omni_controller/gpu_governor.py": "7a774f3d69f7f7d27f8db86d066f669981791d0401df159219e19b7a8d473e32",
    "omnicompass/adapter.py": "57ca59da4024ccea2769083998fdeb7b7c9c05b5c0dbca638375350be7dd93ac",
    "omni_controller/muscles.py": "286302f782935bbc456d9d4b376323a5b38d1b1908bf04b2906b228c6b03a7c4"
   },
@@ -37,6 +65,14 @@
    "results/PREREGISTRATION.json": "a659e6a5f81dcf6c8c26ead7b8f914ba951956be8428521d87f05f429cb96848",
    "results/LOCK_AMENDMENTS.json": "4744d04bf460b1640c74e4d893919c6bac25b4800d4216094aa4c575e07c2c80"
   },
+  "mechanism": {
+   "results/MECHANISM_IDENTITY.json": "a39e5e04ff91d57cc3cfd9edc801d5d33f5b51e9533d525ef1e17333c85f7959",
+   "tools/mechanism_identity.py": "1fa5edcbf447c488abc92936529d28158e8bba2e95a9f3c5a407d67234dea389",
+   "docs/TRACKING_THEOREM.md": "73d3224963f31e0fbacda3e4755a8f3832c937e53553202f46e23ae28d86fb1f",
+   "tools/tracking_bounds.py": "c5fc54965f14a4757f1c6c47d53f2a1011f8b1660d66e21b7b6c2e81aac6e9e1",
+   "results/TRACKING_BOUNDS.json": "154ed508c98c4c64775738cfac9a18853b3db6f83d50db094da516c1adfffa0f",
+   "docs/EVIDENCE_LEDGER.md": "328fb27e35db96f65558a8affff2e03f61f706074c1ace794d941781bb986288"
+  },
   "license": {
    "LICENSE": "fe5da67a0c6cbb24d27278a26a82d70501917845eb357045189eb5560dac6b62",
    "NOTICE": "49de4e4a0d299a82cc15c4d13a2712f4bb87ed5a658f0bcb9cb3abed8ef529d2"
@@ -47,19 +83,35 @@
    "run_id": 36366603505,
    "execution_commit": "18220d4",
    "repetitions": 10,
+   "plant": "kind (GitHub Actions)",
+   "engine_components_identical_to_release": [
+    "F",
+    "C",
+    "h",
+    "G",
+    "dt"
+   ],
    "raw": "results/live/raw/run-36366603505/ (SHA256SUMS_ALL.txt covers every file)"
   },
   "set_21": {
    "run_id": 36466558583,
    "execution_commit": "9e64f7b",
    "repetitions": 10,
+   "plant": "kind (GitHub Actions)",
+   "engine_components_identical_to_release": [
+    "F",
+    "C",
+    "h",
+    "G",
+    "dt"
+   ],
    "raw": "GitHub artifacts, digests in results/live/SET21_ARTIFACTS.json; recomputed by reaggregate run 36485672281"
   }
  },
  "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card",
  "verification_receipt": {
   "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "f4918a858c12f5d1f01f53a3fc007e5df73c922dd40c3b4b56e84f9e6f9e699b",
+  "sha256": "e952f63b436a99702b7c97e21aa55228fac7218d67dfad2ada3a8d52d4ace836",
   "passed": true
  }
 }
