@@ -20,15 +20,30 @@ Kill switch
 """
 from __future__ import annotations
 
-import argparse, json, math, os, shlex, signal, subprocess, sys, time
+import argparse, copy, json, math, os, shlex, signal, subprocess, sys, time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from omnicompass.adapter import Governor, mode_law, AUTOPILOT, OBSERVE
+from omnicompass.adapter import Governor, mode_law, AUTOPILOT, OBSERVE, observe_vector, assimilate
 from omni_controller.muscles import latency_sense
 
-FIELDS = "index,power.draw,temperature.gpu,utilization.gpu,power.limit,power.min_limit"
+FIELDS = "index,power.draw,temperature.gpu,utilization.gpu,power.limit,power.min_limit,clocks.sm"
+REASONS = ("clocks_event_reasons.active", "clocks_throttle_reasons.active")   # newer, older drivers
+STATE = ("E", "U", "I_U", "S", "B", "B_dot")
+
+
+def throttle(smi, gpus):
+    """The device's own record of why its clock is held down (power cap, thermal, ...), as a bit mask; None if the
+    driver does not report it."""
+    for f in REASONS:
+        try:
+            out = subprocess.run(shlex.split(smi) + [f"--query-gpu=index,{f}", "--format=csv,noheader,nounits"],
+                                 capture_output=True, text=True, timeout=10, check=True).stdout
+            return {int(x.split(",")[0]): x.split(",")[1].strip() for x in out.strip().splitlines()}
+        except (subprocess.SubprocessError, OSError, ValueError, IndexError):
+            continue
+    return None
 
 
 def query(smi, gpus):
@@ -40,7 +55,7 @@ def query(smi, gpus):
         for line in out.strip().splitlines():
             v = [x.strip() for x in line.split(",")]
             rows[int(v[0])] = {"draw": float(v[1]), "temp": float(v[2]), "util": float(v[3]) / 100.0,
-                               "limit": float(v[4]), "min": float(v[5])}
+                               "limit": float(v[4]), "min": float(v[5]), "clock_mhz": float(v[6])}
         return {g: rows[g] for g in gpus} if all(g in rows for g in gpus) else None
     except (subprocess.SubprocessError, OSError, ValueError, IndexError):
         return None
@@ -59,6 +74,8 @@ class GpuGovernor:
         self.written = {}          # gpu -> last limit written (W), until read back
         self.lp_hist = []
         self.writes = 0
+        self.projected = {}
+        self.reasons_ok = True     # False once the driver shows it does not report clock-limit reasons        # gpu -> the engine state I projected for the next decision
         s = query(a.smi, self.gpus)
         if s is None:
             raise SystemExit("nvidia-smi unreadable at start: no snapshot, so I take no authority")
@@ -99,9 +116,10 @@ class GpuGovernor:
         a = self.a
         s = query(a.smi, self.gpus)
         blind = s is None
-        lp, p95 = 0.0, None
+        lp, p95, served = 0.0, None, None
         if a.latency_file and a.slo_ms:
             ls = latency_sense(a.latency_file, a.latency_window_s)
+            served = ls["ok"]
             blind = blind or ls["blind"]
             if not ls["blind"]:
                 p95 = ls["p95"]
@@ -110,7 +128,9 @@ class GpuGovernor:
                     lp = max(lp, ls["fail"] / (ls["ok"] + ls["fail"]))
         self.lp_hist.append(lp)
         slo_clean = not blind and len(self.lp_hist) >= a.slo_clear and all(x == 0.0 for x in self.lp_hist[-a.slo_clear:])
-        rec = {"decision": {}, "blind": blind, "latency_p95_ms": p95, "latency_pressure": round(lp, 3), "slo_clean": slo_clean}
+        thr = throttle(a.smi, self.gpus) if s is not None and self.reasons_ok else None
+        self.reasons_ok = self.reasons_ok and (s is None or thr is not None)
+        rec = {"decision": {}, "blind": blind, "served_in_window": served, "latency_p95_ms": p95, "latency_pressure": round(lp, 3), "slo_clean": slo_clean}
         for g in self.gpus:
             if s is None:
                 # blind: no give-back of power I cannot see; the start limit, at once
@@ -126,18 +146,36 @@ class GpuGovernor:
                     continue
                 self.written.pop(g, None)
                 e = self.eng[g]; e.current_cap = min(1.0, cur / self.start[g])   # the limit the device reports, not the one I meant
-                d = e.step({"queue_ratio": min(2.0, lp), "load_ratio": r["util"], "power_stress": r["draw"] / self.start[g],
-                            "thermal": r["temp"] / a.temp_limit, "network_stress": 0.0, "drift_ratio": 0.0,
-                            "stale": 0.0, "security_block": 0.0}, 0)
-                cap = float(d["power_cap"]) if slo_clean else 1.0
+                obs = {"queue_ratio": min(2.0, lp), "load_ratio": r["util"], "power_stress": r["draw"] / self.start[g],
+                       "thermal": r["temp"] / a.temp_limit, "network_stress": 0.0, "drift_ratio": 0.0,
+                       "stale": 0.0, "security_block": 0.0}
+                # the chain, recorded whole: what the device said, the state it puts the engine in, what I had projected
+                # for this moment, the projection for the next, what the engine asked for, what the shield allowed
+                seen = assimilate(e.x, observe_vector(obs, 0), copy.deepcopy(e.p))
+                prev = self.projected.get(g)
+                d = e.step(obs, 0)
+                self.projected[g] = {k: getattr(e.x, k) for k in STATE}
+                requested = float(d["power_cap"])
+                cap = requested if slo_clean else 1.0
                 floor = max(r["draw"] * (1.0 + a.headroom), self.min[g])
-                want = int(min(self.start[g], max(math.floor(cap * self.start[g]), math.ceil(floor))))
+                engine_w = math.floor(cap * self.start[g])
+                want = int(min(self.start[g], max(engine_w, math.ceil(floor))))
+                bound = ("slo_or_blind_reflex" if not slo_clean else "start_ceiling" if want >= self.start[g] and engine_w >= self.start[g]
+                         else "draw_headroom_floor" if math.ceil(floor) > engine_w and floor > self.min[g]
+                         else "device_minimum" if math.ceil(floor) > engine_w else "engine")
                 why = (f"engine cap {cap:.3f} of {self.start[g]:.0f} W; floor draw {r['draw']:.0f} W x {1 + a.headroom:.2f}"
                        if slo_clean else "response-time reflex: the limit read at start")
                 self.cap[g] = want / self.start[g]
-                rec["decision"][str(g)] = {"util": r["util"], "draw_w": r["draw"], "temp_c": r["temp"], "limit_w": cur,
-                                           "engine_cap": round(float(d["power_cap"]), 3), "E": round(d["state"]["E"], 3),
-                                           "U": round(d["state"]["U"], 3), "want_w": want}
+                rec["decision"][str(g)] = {
+                    "telemetry": {"util": r["util"], "draw_w": r["draw"], "temp_c": r["temp"], "limit_w": cur,
+                                  "clock_mhz": r["clock_mhz"], "throttle": (thr or {}).get(g)},
+                    "state_observed": {k: round(getattr(seen, k), 4) for k in STATE},
+                    "state_projected_before": None if prev is None else {k: round(v, 4) for k, v in prev.items()},
+                    "prediction_error": None if prev is None else {k: round(getattr(seen, k) - prev[k], 4) for k in STATE},
+                    "state_projected_next": {k: round(v, 4) for k, v in self.projected[g].items()},
+                    "admissible": bool(d["change_permitted"]), "requested_cap": round(requested, 4),
+                    "granted_cap": round(cap, 4), "shield_bound": bound, "want_w": want,
+                    "engine_cap": round(requested, 3), "E": round(d["state"]["E"], 3), "U": round(d["state"]["U"], 3)}
             if cur is not None and abs(want - cur) < a.min_change_w and not (want == self.start[g] and cur != want):
                 continue
             if cur is not None and want == int(cur):

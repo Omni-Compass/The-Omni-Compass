@@ -96,6 +96,18 @@ def bench():
     assert {c["writes"] for c in out["checks"]["watch"].values()} == {0}
     assert all(c["writes"] > 0 for c in out["checks"]["omni"].values())
     assert "energy, GPU (J)" in out["paired"]["omni"] and (d / "run" / "SHA256SUMS.txt").exists()
+    assert "work per energy (served requests per kJ)" in out["paired"]["omni"] and out["freeze"]["phase"] == "smoke"
+    # every Omni decision records the whole chain
+    dec = [json.loads(x) for x in open(d / "run" / "rep-1" / "omni" / "audit.jsonl") if '"decision"' in x]
+    chain = [v for r in dec for v in r["decision"].values() if "telemetry" in v]
+    assert chain and all(k in chain[-1] for k in ("state_observed", "state_projected_next", "prediction_error", "admissible",
+                                                  "requested_cap", "granted_cap", "shield_bound", "want_w")), chain[-1]
+    # Omni's code changing mid-run invalidates it
+    fz = json.loads((d / "run" / "FREEZE_END.json").read_text()); fz["files"]["omni_controller/gpu_governor.py"] = "0" * 64
+    (d / "run" / "FREEZE_END.json").write_text(json.dumps(fz))
+    from tools.gpu_reps import main as reps0
+    assert reps0(str(d / "run")) == 2
+    (d / "run" / "FREEZE_END.json").write_text((d / "run" / "FREEZE.json").read_text())
     # rotated order: rep 1 starts native, rep 2 starts watch
     t = lambda rep, a: float((d / "run" / f"rep-{rep}" / a / "window_start.txt").read_text())
     assert t(1, "native") < t(1, "watch") < t(1, "omni") and t(2, "watch") < t(2, "omni") < t(2, "native")

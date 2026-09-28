@@ -23,6 +23,18 @@ Options (environment variables): `REPS`, `DURATION` (s per arm), `DRAIN` (s afte
 before each arm), `GPU` (index), `SAMPLE_MS`, `INTERVAL` (s between Omni decisions), `SLO_MS` (response-time target;
 default ten bare service times), `WORKLOAD_ARGS` (e.g. `--n 8192 --target-ms 80`).
 
+## Two phases
+
+- `PHASE=smoke` (the default): look for faults and for an effect worth confirming. Any number of repetitions.
+- `PHASE=confirm`: the preregistered test (`docs/GPU_PREREGISTRATION.md`), 10 repetitions. Omni's code must be
+  committed; its files are hashed before the first arm and again after the last, and any change invalidates the run.
+
+```bash
+sudo PHASE=confirm bash scripts/gpu_paired.sh
+```
+
+The **primary outcome** is work per energy: requests served per kilojoule the GPU drew.
+
 ## What it does
 
 1. **Receipt.** GPU name, driver, persistence mode, default, minimum, maximum and current power limit, git commit
@@ -61,6 +73,7 @@ pressure. The engine's power cap becomes a power limit, inside hard rules:
 
 | Gauge | From | Better |
 |---|---|---|
+| **work per energy (served requests per kJ), primary** | requests served / GPU energy | higher |
 | energy, GPU (J) | power.draw integrated over the arm's window | lower |
 | energy per served request (J) | the same, over requests served | lower |
 | power, GPU mean (W) | energy / window | lower |

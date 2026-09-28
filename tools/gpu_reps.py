@@ -22,7 +22,8 @@ T95 = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8:
 LOWER = {"energy, GPU (J)", "energy per served request (J)", "power, GPU mean (W)", "temperature, peak (C)",
          "temperature, mean (C)", "requests not served", "response time, mean (ms)", "response time, 95th percentile (ms)",
          "response time, 99th percentile (ms)", "energy, CPU package (J)"}
-KEYS = ["energy, GPU (J)", "energy per served request (J)", "power, GPU mean (W)", "requests served", "requests not served",
+PRIMARY = "work per energy (served requests per kJ)"
+KEYS = [PRIMARY, "energy, GPU (J)", "energy per served request (J)", "power, GPU mean (W)", "requests served", "requests not served",
         "response time, mean (ms)", "response time, 95th percentile (ms)", "response time, 99th percentile (ms)",
         "temperature, peak (C)", "temperature, mean (C)", "energy, CPU package (J)"]
 
@@ -63,7 +64,7 @@ def arm(d, gpus):
     req = list(csv.DictReader(open(d / "requests.csv")))
     ms = [float(r["latency_ms"]) for r in req if r["ok"] == "1"]
     served, lost = len(ms), sum(1 for r in req if r["ok"] != "1")
-    g = {"energy, GPU (J)": joules, "energy per served request (J)": joules / served if served else float("nan"),
+    g = {PRIMARY: served / (joules / 1000.0) if joules > 0 else float("nan"), "energy, GPU (J)": joules, "energy per served request (J)": joules / served if served else float("nan"),
          "power, GPU mean (W)": joules / max(1e-9, t1 - t0), "requests served": float(served), "requests not served": float(lost),
          "response time, mean (ms)": sum(ms) / served if served else float("nan"),
          "response time, 95th percentile (ms)": pct(ms, 0.95), "response time, 99th percentile (ms)": pct(ms, 0.99),
@@ -115,7 +116,12 @@ def main(root):
             problems.append(f"native rep {rep}: Omni records present")
         if not c["restored"]:
             problems.append(f"{a} rep {rep}: the limit at the end differs from the start (kill switch did not restore)")
-    out = {"receipt": receipt, "start_limit_w": start, "checks": checks, "problems": problems, "means": {}, "paired": {}}
+    fz = [json.loads((root / f).read_text()) for f in ("FREEZE.json", "FREEZE_END.json") if (root / f).exists()]
+    if len(fz) == 2 and fz[0]["files"] != fz[1]["files"]:
+        problems.append("Omni changed during the run: the frozen file hashes at the end differ from the start")
+    if fz and fz[0].get("phase") == "confirm" and fz[0].get("dirty"):
+        problems.append("confirmation run on uncommitted Omni code")
+    out = {"freeze": fz[0] if fz else None, "receipt": receipt, "start_limit_w": start, "checks": checks, "problems": problems, "means": {}, "paired": {}}
     names = {"native": "Native", "watch": "Omni watches only", "omni": "Omni governs"}
     cols = [a for a in ("native", "watch", "omni") if a in runs]
     L = ["# GPU bench: native vs Omni-Compass, metered by the device", ""]
@@ -124,6 +130,9 @@ def main(root):
               f"{receipt.get('persistence', '?')}, start power limit {', '.join(start)} W, workload {receipt.get('workload', '?')}.",
               f"{receipt.get('reps', '?')} repetitions, order rotated, {receipt.get('duration_s', '?')} s per arm plus "
               f"{receipt.get('drain_s', '?')} s drain, {receipt.get('cooldown_s', '?')} s idle before each arm.", ""]
+    if fz:
+        L += [f"Phase: **{fz[0].get('phase')}**. Omni frozen at commit {fz[0].get('commit', '?')[:12]}"
+              f"{' (uncommitted changes present)' if fz[0].get('dirty') else ''}; file hashes in FREEZE.json, rechecked at the end.", ""]
     if problems:
         L += ["## INVALID RUN", ""] + [f"- {p}" for p in problems] + [""]
     for a in cols:
@@ -150,7 +159,7 @@ def main(root):
             v = verdict(k, m, half, n)
             ch = f"{(ob - nb) / abs(nb) * 100:+.1f}%" if abs(nb) > 1e-12 else f"{m:+.3g}"
             out["paired"][a][k] = {"native": nb, a: ob, "diff": m, "ci95": [m - half, m + half], "verdict": v}
-            L.append(f"| {k} | {_f(nb)} | {_f(ob)} | {ch} | {m - half:+.4g} to {m + half:+.4g} | {v} |")
+            L.append(f"| {'**' + k + ' (primary)**' if k == PRIMARY else k} | {_f(nb)} | {_f(ob)} | {ch} | {m - half:+.4g} to {m + half:+.4g} | {v} |")
         L.append("")
     wr = {a: sum(c["writes"] for c in checks.get(a, {}).values()) for a in cols}
     L += ["## The control", "", f"- Power-limit writes executed: " + ", ".join(f"{names[a]} {wr[a]}" for a in cols) + ".",

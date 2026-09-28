@@ -21,6 +21,9 @@ REPS="${REPS:-5}"; DURATION="${DURATION:-600}"; DRAIN="${DRAIN:-30}"; COOLDOWN="
 GPU="${GPU:-0}"; SAMPLE_MS="${SAMPLE_MS:-200}"; INTERVAL="${INTERVAL:-5}"
 SMI="${NVIDIA_SMI:-nvidia-smi}"; PY="${PYTHON:-python3}"
 ARMS=(native watch omni)
+PHASE="${PHASE:-smoke}"          # smoke: look, any n. confirm: preregistered, frozen, committed code, n from the prereg
+if [ "$PHASE" = "confirm" ]; then REPS="${REPS_CONFIRM:-10}"; fi
+export REPS DURATION DRAIN COOLDOWN SAMPLE_MS PHASE
 OUT="${OUT:-results/gpu/run-$(date -u +%Y%m%dT%H%M%SZ)}"
 WL_ARGS=${WORKLOAD_ARGS:-}
 export TZ=UTC
@@ -52,6 +55,23 @@ r = {"gpus": gpu, "gpu_name": q("name"), "driver": q("driver_version"), "persist
      "workload": "tools/gpu_workload.py (seeded fp16 matmul request stream)", "git": subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()}
 open(f"{out}/receipt.json", "w").write(json.dumps(r, indent=1)); print(json.dumps(r))
 EOF
+
+freeze() {  # every file that decides or measures, hashed; the commit; whether any of them has uncommitted changes
+  $PY - "$1" "$PHASE" <<'EOF'
+import hashlib, json, subprocess, sys
+files = ["omni_controller/gpu_governor.py", "omni_controller/muscles.py", "omnicompass/adapter.py", "omnicompass/core.py",
+         "tools/gpu_workload.py", "tools/gpu_reps.py", "scripts/gpu_paired.sh", "docs/GPU_PREREGISTRATION.md"]
+h = {f: hashlib.sha256(open(f, "rb").read()).hexdigest() for f in files}
+dirty = subprocess.run(["git", "status", "--porcelain", "--"] + files, capture_output=True, text=True).stdout.strip()
+r = {"phase": sys.argv[2], "commit": subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip(),
+     "dirty": bool(dirty), "files": h}
+open(sys.argv[1], "w").write(json.dumps(r, indent=1))
+EOF
+}
+freeze "$OUT/FREEZE.json"
+if [ "$PHASE" = "confirm" ] && grep -q '"dirty": true' "$OUT/FREEZE.json"; then
+  echo "confirmation phase refuses uncommitted Omni code: commit it first, then run (FREEZE.json lists the files)"; exit 1
+fi
 
 echo "== calibrate the workload at the start limit (once, for every arm)"
 $PY tools/gpu_workload.py calibrate --out "$OUT" --device "cuda:$GPU" ${SIM:+--sim} $WL_ARGS
@@ -97,6 +117,7 @@ for rep in $(seq 1 "$REPS"); do
   done
 done
 
+freeze "$OUT/FREEZE_END.json"
 echo "== table"
 set +e; $PY tools/gpu_reps.py "$OUT"; rc=$?; set -e
 (cd "$OUT" && find . -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
