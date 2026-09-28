@@ -3,6 +3,20 @@
 > **Superseded for live results.** The live evidence below predates sets 19 and 20. The current live table is `results/live/LIVE_PAIRED.md`; energy on kind is a declared model, not a meter. The first metered test is `scripts/gpu_paired.sh` (`docs/GPU_BENCH.md`).
 
 
+> **Update, 28 September 2026.** Added since this page was written, each with its evidence:
+> - **Live, set 21** (conveyance only when response time needs it): p95 -37%, machines in service -21%, CPU used +26%
+>   (unchanged from set 20; its source is still open). `results/live/LIVE_REPS_21.md`.
+> - **GPU governor bounded** (0.70 share floor, busy gate, 2 s decisions): on the MLPerf-calibrated modelled card,
+>   +5.1% and +1.3% work per kJ with p95 within +10% (the old governor failed that guardrail at +31% and +66%).
+>   Model only. `results/gpu/sim/`.
+> - **Speed lock** (opt-in): speed won elsewhere spent on GPU watts, every gauge kept at least 1% faster than
+>   without Omni. Model only. `results/gpu/sim/pipeline/`.
+> - **CPU and GPU on one conserved power budget** (conveyance law over CPU and GPU organs): +1.4% to +5.7% work
+>   served against today's fixed caps, never over the site budget. Model only. `docs/CONVEYANCE_LAW.md`,
+>   `results/hardware/NODE_EXCHANGE_*.json`.
+> - **The manual in the box:** `docs/INTEGRATION_MANUAL.md`; every gauge: `docs/METRICS_CATALOG.md`; against what runs
+>   today: `docs/COMPARISON.md`.
+
 This is the whole repository at the commit named in `STATE_OF_PLAY_COMMIT.txt`. Everything below can be rerun from it.
 
 **Run it live on real Kubernetes yourself:** on any machine with Docker, kind, kubectl and Python, run

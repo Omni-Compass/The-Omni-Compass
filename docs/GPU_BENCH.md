@@ -63,7 +63,12 @@ Every 2 s it reads the GPU and runs the Omni-Compass engine (the throughput law 
 GPU utilisation, power stress is draw over the snapshot limit, heat is temperature over 83 C, queue is response-time
 pressure. The engine's power cap becomes a power limit, inside hard rules:
 
-- never below the GPU's current draw x 1.3, never below the device minimum, never above the snapshot;
+- never below the GPU's current draw x 1.3, never below 0.70 of the snapshot (`--min-share`), never below the device
+  minimum, never above the snapshot;
+- a busy card (utilisation smoothed over decisions at or over 0.5, `--util-gate`) gets the snapshot limit back at once,
+  and the cap returns only under 0.4;
+- optional speed lock (`--baseline-file`, from `tools/gpu_baseline.py` on runs without Omni): the limit follows
+  response time against that baseline, every gauge kept at least 1% faster (`docs/INTEGRATION_MANUAL.md`, level 5);
 - no new write until the last one reads back from the device;
 - if it cannot read the GPU or the response times, the snapshot limit at once;
 - if response time breaks its target, the snapshot limit at once, and for three decisions after;

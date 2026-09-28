@@ -30,7 +30,8 @@ def build_cpp(tmp):
         cxx = shutil.which("g++") or shutil.which("clang++")
         srcs = [str(p) for p in (src / "src").glob("*.cpp")]
         for tool, name in (("run_fixture.cpp", "oc_run_fixture"), ("run_governor.cpp", "oc_governor"), ("soak.cpp", "oc_soak"),
-                           ("smoke.cpp", "oc_smoke"), ("run_shield.cpp", "oc_shield"), ("run_hpa.cpp", "oc_hpa"), ("savings.cpp", "oc_savings")):
+                           ("smoke.cpp", "oc_smoke"), ("run_shield.cpp", "oc_shield"), ("run_hpa.cpp", "oc_hpa"), ("savings.cpp", "oc_savings"),
+                           ("run_closure.cpp", "oc_closure"), ("run_conveyance.cpp", "oc_conveyance")):
             subprocess.run([cxx, "-std=c++20", "-O2", "-I", str(src / "include"), *srcs, str(src / "tools" / tool), "-o", str(b / name)], check=True)
     return b
 
@@ -87,6 +88,12 @@ def main():
     test_cpp_shield_adversarial.main(str(b / "oc_shield"), 50_000 if a.quick else 200_000); check("C++ shield vs Python shield on the adversarial generator", True)
     from tests import test_cpp_closure_parity
     test_cpp_closure_parity.main(str(b / "oc_closure"), 1 if a.quick else 3); check("C++ closure law vs Python closure law, every decision and reserve", True)
+    from tests import test_cpp_conveyance_parity
+    w = test_cpp_conveyance_parity.main(str(b / "oc_conveyance"), 50 if a.quick else 200)
+    check("C++ conveyance law vs Python conveyance law, every allocation (random systems and the CPU+GPU layout)", w < 1e-9)
+    from tools import seal
+    broken = seal.check()
+    check(f"seal: all {len(seal.TWINS)} Python/C++ twins unchanged since proven equal (results/SEAL.json)", not broken, "; ".join(broken))
     src = (ROOT / "cpp" / "src" / "shield.cpp").read_text()
     mut_src = tmp / "shield_mut.cpp"
     mut_src.write_text(src.replace('return k == "nodes" || k == "terraform_plan" || k == "rollout"; }', 'return k == "nodes" || k == "terraform_plan"; }'))

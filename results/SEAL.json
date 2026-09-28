@@ -1,0 +1,62 @@
+{
+ "sealed_at": "2026-09-28T20:42:29+00:00",
+ "rule": "each twin's Python and C++ files were proven equal by its parity test before these hashes were written",
+ "twins": {
+  "core engine (six-state equations)": {
+   "proof": "cpp/scripts/compare_results.py on fixtures/current_500_*.csv",
+   "sha256": {
+    "omnicompass/core.py": "bd615f156169f6794b41439c4ce0726deb6a0b620fac76e072d24b357ab8b0a4",
+    "cpp/src/core.cpp": "d7deead6f47d54d5b68e08b98db5e15ab54c7fbac8e7b9c24ee64cb1538a8c5c",
+    "cpp/include/omnicompass/core.hpp": "a5268199fef7e788940d9fa27278d0d17fffa8b4f3f785b7677eebfc452d775e"
+   }
+  },
+  "governor (allocation laws)": {
+   "proof": "tests/test_cpp_governor_parity.py",
+   "sha256": {
+    "omnicompass/adapter.py": "57ca59da4024ccea2769083998fdeb7b7c9c05b5c0dbca638375350be7dd93ac",
+    "cpp/src/governor.cpp": "8fcedb561ba6101881429b6309bbb2a806599b90b48233f00685ad5c7f654cbb",
+    "cpp/include/omnicompass/governor.hpp": "42a7a157d21de43e83421ac45b84237294e5ef6978cac290dfde2bcae797640a"
+   }
+  },
+  "safety shield": {
+   "proof": "tests/test_cpp_shield_parity.py",
+   "sha256": {
+    "omnicompass/shield.py": "88de572557295e04eb1341e64de16b68d74e4f8fa7c2e8bbe9c1d9c0416ea6f5",
+    "cpp/src/shield.cpp": "bfa324a7b5c33323b5c5b05f85ccb3f2bfdc35e0636740fb61ac513324fa50c8",
+    "cpp/include/omnicompass/shield.hpp": "ea047bb2fca4f4997c31d45f3c18596e5c1fc80ffb63fb05249c085627043c61"
+   }
+  },
+  "HPA replica law": {
+   "proof": "tests/test_cpp_hpa_parity.py",
+   "sha256": {
+    "fleet/harness.py": "d216e3ada74d7c2352544e0320d4118c86c9697ef6d81ba09a2186e80d7189a0",
+    "cpp/src/hpa.cpp": "91e9b487afe6e8db4f3b355516a0ec85d2730073f5c3e7b628c6e3a155535eaa",
+    "cpp/include/omnicompass/hpa.hpp": "9fbffe76746981e2cb32a9b3b43b6d366e72eb085d53baafb9dda1a568444ea0"
+   }
+  },
+  "closure law (machines)": {
+   "proof": "tests/test_cpp_closure_parity.py",
+   "sha256": {
+    "omnicompass/closure.py": "cc91029928c57b97871ab5e4189a8eb998897753bb9c1cebbef8d70095413b93",
+    "cpp/src/closure.cpp": "b4993552a89fa371d45ab614de3ea90ce4ca0ba47404867239ed7cb36489eb14",
+    "cpp/include/omnicompass/closure.hpp": "dea67ab6c79ea6fdadf98598caaef18ac14e725bdf1e2890ea921e57061b68c9"
+   }
+  },
+  "conveyance law (the conserved budget)": {
+   "proof": "tests/test_cpp_conveyance_parity.py",
+   "sha256": {
+    "omnicompass/conveyance.py": "96616a3ec70414b345e76fda4ba44f1795848b31811321b6dfe9274b41b27912",
+    "cpp/src/conveyance.cpp": "948b267e1593aa8acd46f9d36fb4b6ebea5d04bf4122242679792eb2696eb618",
+    "cpp/include/omnicompass/conveyance.hpp": "c2c32491b85ec40d236e5204407106018ef782d732834e7d2161953b62c48918"
+   }
+  }
+ },
+ "python_only": {
+  "omni_controller/gpu_governor.py": "GPU governor (share floor, busy gate, speed lock)",
+  "omni_controller/muscles.py": "Kubernetes and hardware muscles (convey, rightsize, coldstart, batch, contain, cooling, CPU/GPU connectors)",
+  "omni_controller/controller.py": "Kubernetes controller (HPA target, pod reflex, machines, strict replicas)",
+  "omnicompass/nervous_system.py": "nervous system (authority per organ, living band)",
+  "omnicompass/compass.py": "compass readings",
+  "hardware/node_exchange.py": "CPU + GPU on one power budget (simulation harness; the law itself is twinned above)"
+ }
+}

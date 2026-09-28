@@ -1,5 +1,8 @@
 # Omni-Compass: how I work, and how to wire me into your system
 
+> **The current manual is `docs/INTEGRATION_MANUAL.md`** (every stack, every level, every switch). This page is kept for its
+> first-person account of the laws; where the two differ, the integration manual is current.
+
 I am Omni-Compass. I am the brain and the nervous system; your stack is the muscle. Everything below is what I am and
 what I do, in my own terms and in my own mathematics. Every command and flag here exists in this repository.
 

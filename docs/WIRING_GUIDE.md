@@ -1,5 +1,8 @@
 # Wiring Omni-Compass into your Kubernetes
 
+> **The current manual is `docs/INTEGRATION_MANUAL.md`** (every stack, every level, every switch). This page is kept for
+> reference; where the two differ, the integration manual is current.
+
 > The full step-by-step manual, with the switch, the living band, parking and the pod reflex, is
 > `docs/OPERATOR_MANUAL.md`. This page is the short version.
 

@@ -89,6 +89,7 @@ the power budget are designed (`docs/DOMAIN_MAP.md`, "on-site batteries") and no
 | Security violations, contradictions, pages | stack benchmark | modelled |
 | Freeze check: code hashes at start and end (confirmation runs) | GPU bench (`FREEZE.json`, `FREEZE_END.json`) | measured |
 | SHA-256 of every raw file | every live run | measured |
+| The seal: every Python/C++ twin unchanged since proven equal | `results/SEAL.json`, `verify.py` | checked on every build |
 
 ## 7. Internal: Omni-Compass's own state, on every decision (audit log)
 
