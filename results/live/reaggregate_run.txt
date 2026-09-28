@@ -1,2 +1,2 @@
 36488547793
-# set 22 (open-loop, fixed-rate load); the closed-loop estimate does not apply to it
+# set 22 again, with Omni's own CPU counted

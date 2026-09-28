@@ -11,14 +11,16 @@ from pilot.bench_report import gauges, latency, pod_starts, LOWER_BETTER
 T95 = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262}
 KEYS = ["worker nodes in service, mean", "node-hours", "energy, parked workers still on at idle power (Wh)", "energy (Wh)", "response time (ms), mean", "response time (ms), 95th percentile",
         "response time (ms), 99th percentile", "failed requests (%)", "pending pods, pod-minutes", "utilisation (used / allocatable)",
-        "CPU used (cores), mean", "energy per core-hour (Wh)", "HPA replicas, mean",
+        "CPU used (cores), mean", "Omni's own CPU (cores), mean", "CPU used with Omni's own (cores), mean",
+        "energy per core-hour (Wh)", "HPA replicas, mean",
         "pods started", "pod start wait, total (s)", "pod start wait, mean (s)"]
 
 
 LABEL = {"energy, parked workers still on at idle power (Wh)": "energy, parked workers still on at idle power (Wh, declared model)",
          "energy (Wh)": "energy, parked workers at 25 W standby (Wh, declared model; kind never does this)",
          "energy per core-hour (Wh)": "energy per core-hour (Wh, the 25 W standby model)"}
-NEUTRAL = {"CPU used (cores), mean", "utilisation (used / allocatable)"}   # more is not better or worse by itself
+NEUTRAL = {"CPU used (cores), mean", "utilisation (used / allocatable)", "Omni's own CPU (cores), mean",
+           "CPU used with Omni's own (cores), mean"}   # more is not better or worse by itself
 NOTE = ["**Energy on kind is a declared model, not a meter.** Every worker stays powered and Ready in every arm; the first",
         "energy row counts a parked worker at its full idle power, which is what kind does. The second counts it at the",
         "declared standby power, which needs a node autoscaler that really removes the machine; this run has none.", ""]
@@ -27,6 +29,19 @@ NOTE = ["**Energy on kind is a declared model, not a meter.** Every worker stays
 def arm_gauges(d):
     rows = list(csv.DictReader(open(d / "capture.csv")))
     g = gauges(rows); g.update(latency(str(d / "latency.csv"))); g.update(pod_starts(d))
+    # the controller's own cost (its process and every command it ran; it runs beside the cluster, not in it), from its
+    # audit: counted so a CPU saving in the cluster is never reported without what Omni itself spent. Native: 0.
+    own = 0.0
+    if "-native-" not in d.name and (d / "audit.jsonl").exists():
+        for line in open(d / "audit.jsonl"):
+            if '"overhead"' in line:
+                own = float(json.loads(line)["overhead"].get("cores_mean", 0.0))
+        if own == 0.0:
+            own = float("nan")        # an Omni arm without its cost record: unknown, never zero
+    elif "-native-" not in d.name:
+        own = float("nan")
+    g["Omni's own CPU (cores), mean"] = own
+    g["CPU used with Omni's own (cores), mean"] = g.get("CPU used (cores), mean", float("nan")) + own
     return g
 
 
