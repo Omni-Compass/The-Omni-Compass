@@ -239,6 +239,8 @@ def main():
     test_node_release_gate.main(); check("machine-organ release gate: own engine view, pods-first coordination, headroom at the engine's rho", True)
     from tests import test_hardware_plant
     test_hardware_plant.main(); check("hardware plant: GPU arms B and C distinct; C = min(engine cap, (want/rho)^(1/gamma)); no lost work, no extra heat", True)
+    from tests import test_node_exchange
+    test_node_exchange.main(); check("CPU+GPU on one budget: never over the site budget; CPU-measured-only goes over; more work than today's fixed cap", True)
     from tests import test_cpufreq_contract
     test_cpufreq_contract.main(); check("CPU-frequency lever via kernel policy files: schedutil floor, nervous envelope, never above the operator ceiling, exact restore on kill", True)
     from tests import test_strict_replicas

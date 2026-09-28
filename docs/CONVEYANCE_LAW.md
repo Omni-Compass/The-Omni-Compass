@@ -85,6 +85,33 @@ Held-out seed 929292, 48 scenarios per budget. Results: `results/hardware/SITE_E
 - **When the budget is below total need,** conveyance shares the shortage in proportion to need. That is the unique
   stable point of P3: fair, and not a choice of weights.
 
+**CPU and GPU on one budget.** `hardware/node_exchange.py`: the same law with CPU organs beside the GPU organs. Four
+groups, each two 8-GPU servers (16 H100-class GPUs, 4 CPU sockets); each unit of GPU work needs 0.35 of the CPUs at
+full clock to feed it; demand 1.6x the plant traces (the GPUs are held back by the budget, not by work). Arms:
+- **S** today's practice: every GPU at one fixed cap low enough that the site fits even with every CPU at maximum;
+- **XM** conveyance among the GPUs, counting the CPUs' last measured draw;
+- **XC** conveyance over CPU and GPU organs together: each CPU group is held to the clock its feeding work needs, and
+  the watts it no longer holds flow to the GPU groups in deficit.
+
+Seed 515151, 24 scenarios. Results: `results/hardware/NODE_EXCHANGE_*.json`. XC against S, paired:
+
+| Site budget (share of GPU TDP + CPU maximum) | 60% | 70% | 80% |
+|---|---:|---:|---:|
+| Work served | **+5.7%** | **+3.6%** | **+1.4%** |
+| Backlog minutes | −15.8% | −27.5% | −17.8% |
+| 95th-percentile latency factor | −39.6% | −43.6% | −35.2% |
+| Site-budget violation minutes, native / S / XM / **XC** | 195.8 / 0 / 3.9 / **0** | 140.9 / 0 / 6.2 / **0** | 61.8 / 0 / 5.3 / **0** |
+
+**Reading.**
+- **More work from the same building.** The tighter the budget, the more the CPUs' unused watts are worth to the GPUs.
+- **Holding the CPUs is what makes the hand-over safe.** Counting the CPUs' measured draw (XM) serves about as much,
+  but goes over the budget for 4-6 minutes in every setting: a CPU can rise between one reading and the next. XC holds
+  each CPU to its allocation, so the watts it gives up are really free, and it never goes over.
+- **Most of the gain is the CPUs' reserve, not their clock.** Against XM, XC gains ~1% work per kWh; against S, the
+  watts a fixed plan must keep for CPUs that might peak are what the GPUs receive.
+- The same holds for the least and most favourable MLPerf gamma fits, and for CPU shares 0.2 and 0.6 (+2.3% to +4.2%
+  work at the 70% budget), `tests/test_node_exchange.py` checks N1-N4 in `verify.py`.
+
 ## 5. What is not claimed
 - This is a simulation on declared device physics.
 - The live levers that would carry it are GPU power limits (`nvidia-smi -pl`, DCGM), RAPL package limits, and pod CPU
