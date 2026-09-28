@@ -28,6 +28,29 @@ Phi(S) = alpha_s S² / 2 + beta_s S³ / 4 − delta S
 u is the controller's command, `KP (target − U) − drift`, bounded by `U_AUTHORITY`; integration is RK4 with the
 macro and micro steps of `omnicompass/core.py`.
 
+### Mechanism identity
+
+`results/MECHANISM_IDENTITY.json` (`tools/mechanism_identity.py`) fingerprints the mechanism
+M = (F, Theta, C, h, G, M_act, dt, A) component by component: state law, parameters, controller, observation map,
+authority law, actuator map, execution timing, shield. `verify.py` fails if any component changes without the record
+being rewritten. Every evidence claim names the mechanism id that produced it; "the eight-line engine" alone names none.
+
+| Configuration | Mechanism id | Role |
+|---|---|---|
+| `symmetric_verified` | `7ce24080f596033ef63bd52912660008731ac444fc4f345d88d6cf26d53ba5da` | canonical |
+| `printed_eight_line` | `b151b8d8c8f64478c166eed6d138e070d00428ebee9c4d7afb3878114b5861da` | named alternative embodiment |
+
+On the frozen 500-fixture population (`benchmarks/core_evidence.py`, seed 223387268), both are executable and neither
+is a stand-in for the other:
+
+| | finite | CONVEY-5 | CERT-10 | mean final target error | mean integrated abs(u) | max abs(u) |
+|---|---:|---:|---:|---:|---:|---:|
+| `symmetric_verified` | 500/500 | 500/500 | 500/500 | 7.48e-5 | 0.878 | 13.93 |
+| `printed_eight_line` | 500/500 | 500/500 | 500/500 | 5.13e-6 | 11.79 | 18.87 |
+
+The printed form reaches its target more tightly with about 13 times the control effort. The structure is Option A:
+one canonical configuration, one named alternative; no equivalence is claimed.
+
 ## 2. Variants
 
 ### `printed_eight_line` (the printed chart)
@@ -55,9 +78,9 @@ preregistration amended on record (`results/LOCK_AMENDMENTS.json`). Until then t
 
 ## 4. Open mathematical items (from `docs/FORMAL_STATUS.md` and the handoff)
 
-- A global stability proof of the forced six-state system is not closed. What is held: the isolated S-flow is the
-  gradient of Phi; with the command unsaturated, dU/dt = KP (target − U), with V = e²/2 and dV/dt = −KP e² on that
-  channel.
+- A global stability proof of the forced six-state system is not closed. What is held on the U channel is proved in
+  `docs/TRACKING_THEOREM.md`: unsaturated exponential tracking; the saturated case under a drift bound that holds over
+  the declared box (F_bar = 16.86 < 25); the sampled-data bound of the executed RK4 controller; admissibility.
 - Candidate routes: the Unified Circle Principle on a region; Theorem 5.6 of the Closed Structure, if its core maps onto
   (E, U, I_U, S, B).
 

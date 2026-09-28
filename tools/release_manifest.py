@@ -26,14 +26,29 @@ GROUPS = {
     "live_set_20": ["results/live/LIVE_REPS_20.md", "results/live/raw/run-36366603505/SHA256SUMS_ALL.txt"],
     "live_set_21": ["results/live/LIVE_REPS_21.md", "results/live/SET21_ARTIFACTS.json"],
     "preregistration": ["results/PREREGISTRATION.json", "results/LOCK_AMENDMENTS.json"],
+    "mechanism": ["results/MECHANISM_IDENTITY.json", "tools/mechanism_identity.py", "docs/TRACKING_THEOREM.md",
+                  "tools/tracking_bounds.py", "results/TRACKING_BOUNDS.json", "docs/EVIDENCE_LEDGER.md"],
     "license": ["LICENSE", "NOTICE"],
 }
+# engine components checked identical to this release's at each execution commit (tools/mechanism_identity.py
+# components F, C, h, G, dt, recomputed from the source at that commit); the Kubernetes actuator map and shield are as
+# at the execution commit
+SAME = ["F", "C", "h", "G", "dt"]
 LIVE = {
-    "set_20": {"run_id": 36366603505, "execution_commit": "18220d4", "repetitions": 10,
+    "set_20": {"run_id": 36366603505, "execution_commit": "18220d4", "repetitions": 10, "plant": "kind (GitHub Actions)",
+               "engine_components_identical_to_release": SAME,
                "raw": "results/live/raw/run-36366603505/ (SHA256SUMS_ALL.txt covers every file)"},
-    "set_21": {"run_id": 36466558583, "execution_commit": "9e64f7b", "repetitions": 10,
+    "set_21": {"run_id": 36466558583, "execution_commit": "9e64f7b", "repetitions": 10, "plant": "kind (GitHub Actions)",
+               "engine_components_identical_to_release": SAME,
                "raw": "GitHub artifacts, digests in results/live/SET21_ARTIFACTS.json; recomputed by reaggregate run 36485672281"},
 }
+
+
+def sha_files(paths):
+    h = hashlib.sha256()
+    for p in paths:
+        h.update(p.encode() + b"\0" + (ROOT / p).read_bytes())
+    return h.hexdigest()
 
 
 def sha(p):
@@ -69,9 +84,23 @@ def main(argv=None):
         bad = check()
         print("\n".join(bad) if bad else "release manifest matches the files")
         return 1 if bad else 0
-    m = {"release": "Omni-Compass", "written_at_commit": git_head(),
+    mi = json.loads((ROOT / "results" / "MECHANISM_IDENTITY.json").read_text())
+    canon = mi["configurations"][mi["canonical"]]
+    tests = sorted(str(p.relative_to(ROOT)) for p in (ROOT / "tests").glob("test_*.py")) + ["verify.py"]
+    head = git_head()
+    m = {"release": "Omni-Compass", "release_id": f"omni-compass-{head[:12]}", "written_at_commit": head,
          "written_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
          "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
+         "mechanism_id": canon["mechanism_id"], "mechanism_configuration": mi["canonical"],
+         "mechanism_components": canon["components"],
+         "alternative_embodiments": {n: c["mechanism_id"] for n, c in mi["configurations"].items() if not c["canonical"]},
+         "fingerprints": {"engine_sha256": sha("omnicompass/core.py"), "cpp_sha256": sha("cpp/src/core.cpp"),
+                          "controller_sha256": sha("omni_controller/controller.py"),
+                          "observation_map_sha256": canon["components"]["h"], "authority_map_sha256": canon["components"]["G"],
+                          "actuator_map_sha256": canon["components"]["M_act"], "shield_sha256": sha("omnicompass/shield.py"),
+                          "gpu_protocol_sha256": sha_files(GROUPS["gpu_protocol"]),
+                          "preregistration_sha256": sha_files(GROUPS["preregistration"] + ["docs/GPU_PREREGISTRATION.md"]),
+                          "test_suite_sha256": sha_files(tests)},
          "files": {g: {p: sha(p) for p in fs} for g, fs in GROUPS.items()},
          "live_evidence": LIVE,
          "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card"}

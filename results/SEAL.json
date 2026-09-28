@@ -1,5 +1,5 @@
 {
- "sealed_at": "2026-09-28T21:05:05+00:00",
+ "sealed_at": "2026-09-28T22:20:49+00:00",
  "rule": "each twin's Python and C++ files were proven equal by its parity test before these hashes were written",
  "twins": {
   "core engine (six-state equations)": {
@@ -70,7 +70,7 @@
   "GPU governor rules (shield limit, busy gate, speed lock, window, baseline)": {
    "proof": "tests/test_cpp_twins_parity.py",
    "sha256": {
-    "omni_controller/gpu_governor.py": "1e6d3956967532d1498f6e537ea072501fe4e1523331521f255267064e1a7264",
+    "omni_controller/gpu_governor.py": "7a774f3d69f7f7d27f8db86d066f669981791d0401df159219e19b7a8d473e32",
     "cpp/src/gpu_rules.cpp": "66072cd30a7ab82fe937d5e44138a67038134e932c2883406f8fac26b40ecd76",
     "cpp/include/omnicompass/gpu_rules.hpp": "17d1aec370dacc1b9e850f978291a8bd61371578678f68a8c756568f38f25d28"
    }

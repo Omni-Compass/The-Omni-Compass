@@ -12,6 +12,9 @@
 #   native  no Omni process
 #   watch   Omni runs and decides, and is forbidden to write (the control: any write fails the run)
 #   omni    Omni writes the GPU power limit (omni_controller/gpu_governor.py --mode cap)
+# Three receipts, kept apart: A the governor's audit.jsonl (telemetry, six-state reading, command, shield), B its
+# actuator records (requested, return code, read-back, enforced limit, delay), C the bench's own nvidia-smi sampling
+# and the workload's requests.csv (Omni never supplies its own outcome). Refused unless power management is Enabled.
 # The power limit is read once at the start (the snapshot). Every arm must begin and end at it; the kill switch restores
 # it after the omni arm. The table (tools/gpu_reps.py) prints each gauge with its 95% interval; an interval that includes
 # zero says not proven. Output: results/gpu/run-<UTC time>/ with every raw file and SHA256SUMS.txt.
@@ -30,6 +33,7 @@ export TZ=UTC
 mkdir -p "$OUT"
 
 lim() { $SMI -i "$GPU" --query-gpu=power.limit --format=csv,noheader,nounits | tr -d ' '; }
+q1() { $SMI -i "$GPU" --query-gpu="$1" --format=csv,noheader,nounits 2>/dev/null | tr -d ' '; }
 rapl() {  # CPU package energy counters (microjoules), top-level packages only
   local f; for f in /sys/class/powercap/intel-rapl:[0-9]*/"$1"; do
     case "$f" in */intel-rapl:*:*/*) continue;; esac; if [ -r "$f" ]; then cat "$f"; fi; done 2>/dev/null | tr '\n' ' '
@@ -40,6 +44,16 @@ command -v "$SMI" >/dev/null || { echo "nvidia-smi not found"; exit 1; }
 $PY -c "import torch, sys; sys.exit(0 if torch.cuda.is_available() else 1)" 2>/dev/null || [ -n "${SIM:-}" ] \
   || { echo "python torch with CUDA not found (pip install torch)"; exit 1; }
 START=$(lim); echo "$START" > "$OUT/snapshot.txt"
+# the card obeys enforced.power.limit; the bench samples it where the driver reports it, and the clock-limit reasons
+SMI_FIELDS="timestamp,index,power.draw,temperature.gpu,utilization.gpu,power.limit,clocks.sm"
+ENFORCED=$(q1 enforced.power.limit || true)
+if [ -n "$ENFORCED" ] && [ "${ENFORCED#[}" = "$ENFORCED" ]; then SMI_FIELDS="$SMI_FIELDS,enforced.power.limit"; else ENFORCED=unsupported; fi
+for f in clocks_event_reasons.active clocks_throttle_reasons.active; do
+  v=$(q1 "$f" || true); if [ -n "$v" ] && [ "${v#[}" = "$v" ]; then SMI_FIELDS="$SMI_FIELDS,$f"; break; fi
+done
+echo "$SMI_FIELDS" > "$OUT/smi_fields.txt"
+MGMT=$(q1 power.management || true)
+[ "$MGMT" = "Enabled" ] || { echo "power management is '${MGMT:-unsupported}', not Enabled: a written limit would not bind"; exit 1; }
 $SMI -i "$GPU" -pl "${START%.*}" >/dev/null || { echo "cannot set the power limit (run as root)"; exit 1; }
 [ "$(lim)" = "$START" ] || { echo "power limit moved during preflight"; exit 1; }
 $PY - "$OUT" "$GPU" "$START" <<'EOF'
@@ -48,11 +62,16 @@ out, gpu, start = sys.argv[1:4]
 smi = os.environ.get("NVIDIA_SMI", "nvidia-smi")
 q = lambda f: subprocess.run([smi, "-i", gpu, f"--query-gpu={f}", "--format=csv,noheader,nounits"], capture_output=True, text=True).stdout.strip()
 r = {"gpus": gpu, "gpu_name": q("name"), "driver": q("driver_version"), "persistence": q("persistence_mode"),
+     "power_management": q("power.management"), "power_limit_enforced_w": q("enforced.power.limit") or "unsupported",
+     "gpu_uuid": q("uuid"), "vbios": q("vbios_version"), "kernel": os.uname().release, "host": os.uname().nodename,
      "power_limit_start_w": start, "power_limit_default_w": q("power.default_limit"), "power_limit_min_w": q("power.min_limit"),
      "power_limit_max_w": q("power.max_limit"), "reps": int(os.environ.get("REPS", 5)),
      "duration_s": float(os.environ.get("DURATION", 600)), "drain_s": float(os.environ.get("DRAIN", 30)),
      "cooldown_s": float(os.environ.get("COOLDOWN", 60)), "sample_ms": int(os.environ.get("SAMPLE_MS", 200)),
-     "workload": "tools/gpu_workload.py (seeded fp16 matmul request stream)", "git": subprocess.run(["git", "-c", "safe.directory=*", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()}
+     "workload": "tools/gpu_workload.py (seeded fp16 matmul request stream)",
+     "workload_sha256": __import__("hashlib").sha256(open("tools/gpu_workload.py", "rb").read()).hexdigest(),
+     "mechanism_id": subprocess.run([sys.executable, "tools/mechanism_identity.py", "--id"], capture_output=True, text=True).stdout.strip(),
+     "git": subprocess.run(["git", "-c", "safe.directory=*", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()}
 open(f"{out}/receipt.json", "w").write(json.dumps(r, indent=1)); print(json.dumps(r))
 EOF
 
@@ -99,8 +118,8 @@ for rep in ${REP_ONLY:-$(seq 1 "$REPS")}; do
     if [ "$(lim)" != "$START" ]; then echo "limit $(lim) != start $START before the arm"; $SMI -i "$GPU" -pl "${START%.*}"; fail=1; fi
     sleep "$COOLDOWN"
     lim > "$D/limit_start.txt"
-    $SMI --query-gpu=timestamp,index,power.draw,temperature.gpu,utilization.gpu,power.limit,clocks.sm \
-      --format=csv,noheader,nounits -lms "$SAMPLE_MS" > "$D/smi.csv" 2>"$D/smi.err" &
+    cp "$OUT/smi_fields.txt" "$D/smi_fields.txt"
+    $SMI --query-gpu="$SMI_FIELDS" --format=csv,noheader,nounits -lms "$SAMPLE_MS" > "$D/smi.csv" 2>"$D/smi.err" &
     smi_pid=$!
     wall_pid=""
     if [ -n "${WALL_METER:-}" ]; then $PY tools/wall_meter.py "$WALL_METER" "$D/wall.csv" 2>"$D/wall.err" & wall_pid=$!; sleep 2; fi
@@ -134,7 +153,7 @@ done
 freeze "$OUT/FREEZE_END.json"
 # each repetition carries its machine's own record, so repetitions from several machines can be pooled
 for r in "$OUT"/rep-*; do
-  for f in receipt.json snapshot.txt calib.json slo.txt FREEZE.json FREEZE_END.json wall_meter.txt; do
+  for f in receipt.json snapshot.txt smi_fields.txt calib.json slo.txt FREEZE.json FREEZE_END.json wall_meter.txt; do
     [ -f "$OUT/$f" ] && cp "$OUT/$f" "$r/$f"
   done
 done

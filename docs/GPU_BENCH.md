@@ -37,8 +37,10 @@ The **primary outcome** is work per energy: requests served per kilojoule the GP
 
 ## What it does
 
-1. **Receipt.** GPU name, driver, persistence mode, default, minimum, maximum and current power limit, git commit
-   (`receipt.json`). The current power limit is the **snapshot**; every arm must start and end at it.
+1. **Receipt.** GPU name, UUID, VBIOS, driver, kernel, host, persistence mode, power management, the enforced limit,
+   default, minimum, maximum and current power limit, the workload's hash, the mechanism id, git commit
+   (`receipt.json`). The current power limit is the **snapshot**; every arm must start and end at it. The bench
+   refuses to start unless power management is Enabled (otherwise a written limit would not bind).
 2. **Calibrate once.** The workload times its request at the snapshot limit and picks the request size so one request
    takes about 50 ms (`calib.json`). Every arm uses the same calibration.
 3. **Three arms per repetition, order rotated,** each after `COOLDOWN` s idle:
@@ -49,13 +51,18 @@ The **primary outcome** is work per energy: requests served per kilojoule the GP
 4. **The same work in every arm.** `tools/gpu_workload.py` sends one seeded stream of requests (fp16 matrix products)
    at 30%, 60%, 80%, 30%, 60% and 30% of the GPU's full-power capacity. Every arm gets the same requests at the same
    moments.
-5. **Measured by the device.** `nvidia-smi` samples power draw, temperature, utilisation and the power limit every
-   200 ms for the whole arm; RAPL CPU package counters are read at both ends where the machine has them.
+5. **Measured by the device.** `nvidia-smi` samples power draw, temperature, utilisation, the power limit, the
+   **enforced** power limit and the clock-limit reasons every 200 ms for the whole arm (the fields the driver reports,
+   listed in `smi_fields.txt`); RAPL CPU package counters are read at both ends where the machine has them. This is
+   receipt C, the outcome: Omni never supplies it.
 6. **Kill switch.** After the omni arm Omni restores the snapshot limit and reads it back. The script checks the limit
    after every arm.
-7. **The table** (`GPU_REPS.md`): each gauge for native, watch and omni, and for watch and omni against native the
-   paired difference with its 95% interval. If the interval includes zero, it says **not proven**. The run folder
-   holds every raw file and `SHA256SUMS.txt`.
+7. **The table** (`GPU_REPS.md`): each gauge for native, watch and omni, and three paired contrasts with 95%
+   intervals — observation (watch − native), authority (omni − watch), total (omni − native). If an interval includes
+   zero, it says **not proven**. The result label is chosen by rule (`docs/GPU_PREREGISTRATION.md`, amendment 1):
+   SUPERIOR WITHIN GUARDRAILS, ENERGY IMPROVEMENT WITH SERVICE TRADEOFF, NONINFERIOR / INCONCLUSIVE, NOT ESTABLISHED,
+   WORSE, or INVALID. Also: actuator fidelity (receipt B), control effort and representation fidelity (receipt A). A
+   meter that was not fitted prints UNAVAILABLE. The run folder holds every raw file and `SHA256SUMS.txt`.
 
 ## What Omni does on the GPU (omni_controller/gpu_governor.py)
 
@@ -69,7 +76,9 @@ pressure. The engine's power cap becomes a power limit, inside hard rules:
   and the cap returns only under 0.4;
 - optional speed lock (`--baseline-file`, from `tools/gpu_baseline.py` on runs without Omni): the limit follows
   response time against that baseline, every gauge kept at least 1% faster (`docs/INTEGRATION_MANUAL.md`, level 5);
-- no new write until the last one reads back from the device;
+- no new write until the last one reads back from the device; every write is read back at once and recorded
+  (requested, return code, read back, enforced limit, delay); the engine senses the enforced limit, the one the card
+  obeys; a write the device refuses ends the arm (exit 4) and makes the run invalid; no clock locks are ever written;
 - if it cannot read the GPU or the response times, the snapshot limit at once;
 - if response time breaks its target, the snapshot limit at once, and for three decisions after;
 - kill file or SIGTERM: the snapshot limit, read back.

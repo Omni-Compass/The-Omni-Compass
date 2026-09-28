@@ -42,7 +42,9 @@ if "-pl" in a:
 f = [x for x in a if x.startswith("--query-gpu=")][0].split("=", 1)[1].split(",")
 if any("reasons" in x for x in f): sys.exit(2)
 v = {"index": 0, "power.draw": st["draw"], "temperature.gpu": st["temp"], "utilization.gpu": round(100 * st["util"]),
-     "power.limit": st["limit"], "power.min_limit": %s, "clocks.sm": round(1800 * st["speed"])}
+     "power.limit": st["limit"], "power.min_limit": %s, "clocks.sm": round(1800 * st["speed"]),
+     "enforced.power.limit": st["limit"], "power.management": "Enabled", "persistence_mode": "Enabled",
+     "power.default_limit": 300, "power.max_limit": 300}
 print(", ".join(str(v[x]) for x in f))
 ''' % MIN
 

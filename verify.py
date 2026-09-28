@@ -97,6 +97,14 @@ def main():
     from tools import seal
     broken = seal.check()
     check(f"seal: all {len(seal.TWINS)} Python/C++ twins unchanged since proven equal (results/SEAL.json)", not broken, "; ".join(broken))
+    from tools import mechanism_identity, tracking_bounds
+    bad = mechanism_identity.check()
+    check("mechanism identity: F, Theta, C, h, G, M_act, dt, A of both configurations match results/MECHANISM_IDENTITY.json", not bad, "; ".join(bad))
+    tb = tracking_bounds.main()     # recomputed; a changed result also shows as a manifest mismatch below
+    nt = tb["nearest_target"]
+    check("tracking theorem checks (V): drift under F_bar < U_AUTHORITY, discrete ultimate bound inside the basin, no invariance failure",
+          nt["drift_within_bound_all"] and nt["F_bar_below_U_AUTHORITY_all"] and nt["ultimate_bound_inside_basin"]
+          and nt["invariance_failures"] == 0 and tb["wrong_target"]["invariance_failures"] == 0)
     from tools import release_manifest
     bad = release_manifest.check()
     check("release manifest: engine, C++ seal, GPU protocol, live evidence and license match RELEASE_MANIFEST.json", not bad, "; ".join(bad))

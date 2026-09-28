@@ -15,6 +15,10 @@ Every decision (--interval seconds), for each GPU in --gpus:
   reflexes  a blind sense (nvidia-smi unreadable, or the response-time file stale or empty): the start limit, at once
             a response-time breach (p95 > --slo-ms), and for --slo-clear decisions after it: the start limit, at once
   read-back no new write until the last one is read back from the device (power.limit within 1 W of what I wrote)
+  enforced  the card obeys enforced.power.limit, which another authority (a lower board or system limit) can hold under
+            the limit I request. The engine senses the enforced limit; each write is read back at once (requested,
+            return code, power.limit, enforced limit, delay), and enforced under requested is recorded as an override.
+            A driver without enforced.power.limit: power.limit is used and the snapshot says so.
   speed lock (--baseline-file, from tools/gpu_baseline.py on a run without Omni): the limit is set by response time
             alone. Over the last --lock-window-s of the response-time file, the mean, 95th and 99th percentile are each
             divided by the baseline's at the same arrival rate; the worst of the three is the speed ratio. The line is
@@ -25,10 +29,13 @@ Every decision (--interval seconds), for each GPU in --gpus:
             and the lock spends it on watts; with nothing won elsewhere it holds the start limit.
 Modes
   watch     everything above is computed and audited; nothing is written (the control arm)
-  cap       the limit is written with nvidia-smi -i <gpu> -pl <W>
+  cap       the limit is written with nvidia-smi -i <gpu> -pl <W>. Refused at start unless every GPU reports
+            power.management Enabled. A write the device refuses (nonzero return) ends the run: recorded, the start
+            limit restored, exit 4, and the bench marks the arm invalid. No clock locks are ever written.
 Kill switch
   the kill file (or SIGTERM) restores every GPU to the limit read at start, reads it back, and exits.
-  The start limits are recorded first in the audit ("snapshot").
+  The start limits are recorded first in the audit ("snapshot": power.limit, enforced.power.limit, default, min,
+  max, persistence mode, power management, per GPU).
 """
 from __future__ import annotations
 
@@ -37,12 +44,24 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from omnicompass.adapter import Governor, mode_law, AUTOPILOT, OBSERVE, observe_vector, assimilate
+from omnicompass.adapter import Governor, mode_law, AUTOPILOT, OBSERVE, observe_vector, assimilate, ASSIMILATION
+from omnicompass.core import U_AUTHORITY, State
 from omni_controller.muscles import latency_sense
 
 FIELDS = "index,power.draw,temperature.gpu,utilization.gpu,power.limit,power.min_limit,clocks.sm"
+ENFORCED = "enforced.power.limit"
+SNAPSHOT = ("power.limit", "enforced.power.limit", "power.default_limit", "power.min_limit", "power.max_limit",
+            "persistence_mode", "power.management")
 REASONS = ("clocks_event_reasons.active", "clocks_throttle_reasons.active")   # newer, older drivers
 STATE = ("E", "U", "I_U", "S", "B", "B_dot")
+MEASURED = ("E", "U", "I_U", "S", "B")   # the memoryless part of the observation map (B_dot exists only through history)
+
+
+def measured_state(o, p):
+    """h without memory: the state the telemetry alone points to (the targets assimilate() blends toward). Computed by
+    assimilate() itself from a zero prior, so it is the engine's own map, not a second one."""
+    z = assimilate(State(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), o, copy.deepcopy(p))
+    return {k: getattr(z, k) / ASSIMILATION for k in MEASURED}
 
 
 def window_stats(path, window_s, now=None):
@@ -127,16 +146,37 @@ def throttle(smi, gpus):
     return None
 
 
-def query(smi, gpus):
-    """{gpu: {"draw", "temp", "util", "limit", "min"}} from the device, or None if nvidia-smi cannot be read."""
+class WriteFailed(RuntimeError):
+    """The device refused a power-limit write: the arm ends (the kill path still restores)."""
+
+
+def snapshot(smi, gpus):
+    """{field: {gpu: value}} for every SNAPSHOT field, each queried alone; "unsupported" where the driver refuses it."""
+    out = {}
+    for f in SNAPSHOT:
+        try:
+            r = subprocess.run(shlex.split(smi) + [f"--query-gpu=index,{f}", "--format=csv,noheader,nounits"],
+                               capture_output=True, text=True, timeout=10, check=True).stdout
+            vals = {int(x.split(",")[0]): x.split(",", 1)[1].strip() for x in r.strip().splitlines()}
+        except (subprocess.SubprocessError, OSError, ValueError, IndexError):
+            vals = {}
+        out[f] = {str(g): vals.get(g, "unsupported") for g in gpus}
+    return out
+
+
+def query(smi, gpus, enforced=False):
+    """{gpu: {"draw", "temp", "util", "limit", "min", "clock_mhz", "enforced"}} from the device, or None if nvidia-smi
+    cannot be read. enforced: also read enforced.power.limit (else "enforced" is power.limit)."""
     try:
-        out = subprocess.run(shlex.split(smi) + [f"--query-gpu={FIELDS}", "--format=csv,noheader,nounits"],
+        fields = FIELDS + ("," + ENFORCED if enforced else "")
+        out = subprocess.run(shlex.split(smi) + [f"--query-gpu={fields}", "--format=csv,noheader,nounits"],
                              capture_output=True, text=True, timeout=10, check=True).stdout
         rows = {}
         for line in out.strip().splitlines():
             v = [x.strip() for x in line.split(",")]
             rows[int(v[0])] = {"draw": float(v[1]), "temp": float(v[2]), "util": float(v[3]) / 100.0,
-                               "limit": float(v[4]), "min": float(v[5]), "clock_mhz": float(v[6])}
+                               "limit": float(v[4]), "min": float(v[5]), "clock_mhz": float(v[6]),
+                               "enforced": float(v[7]) if enforced else float(v[4])}
         return {g: rows[g] for g in gpus} if all(g in rows for g in gpus) else None
     except (subprocess.SubprocessError, OSError, ValueError, IndexError):
         return None
@@ -163,13 +203,23 @@ class GpuGovernor:
         self.baseline = json.loads(Path(bf).read_text()) if bf else None   # speed lock: the run without Omni
         self.lock_at = {}          # gpu -> time of the lock's last change
         self.clock = time.time     # replaceable, so a simulation in virtual time can drive the lock's hold
-        s = query(a.smi, self.gpus)
+        self.req_at = {}           # gpu -> (limit requested, time requested) until it reads back
+        self.enforced_ok = query(a.smi, self.gpus, enforced=True) is not None
+        s = query(a.smi, self.gpus, self.enforced_ok)
         if s is None:
             raise SystemExit("nvidia-smi unreadable at start: no snapshot, so I take no authority")
+        snap = snapshot(a.smi, self.gpus)
         self.start = {g: s[g]["limit"] for g in self.gpus}
         self.min = {g: s[g]["min"] for g in self.gpus}
-        self.audit({"snapshot": {str(g): {"limit_w": self.start[g], "min_limit_w": self.min[g]} for g in self.gpus},
+        self.audit({"snapshot": {str(g): {"limit_w": self.start[g], "min_limit_w": self.min[g],
+                                          "enforced_w": s[g]["enforced"] if self.enforced_ok else None,
+                                          **{f: snap[f][str(g)] for f in SNAPSHOT}} for g in self.gpus},
+                    "senses": ENFORCED if self.enforced_ok else "power.limit (the driver does not report enforced.power.limit)",
                     "mode": a.mode})
+        off = [g for g in self.gpus if snap["power.management"][str(g)].lower() != "enabled"]
+        if a.mode == "cap" and off:
+            self.audit({"refused": f"power management not Enabled on GPU {off}: a written limit would not bind"})
+            raise SystemExit(f"power management not Enabled on GPU {off}: cap mode refused, no authority taken")
 
     def audit(self, rec):
         self.log.write(json.dumps({"time": time.time(), **rec}) + "\n"); self.log.flush()
@@ -180,23 +230,48 @@ class GpuGovernor:
             self.audit({"would_write": cmd, "why": why})     # watch: computed and recorded, never executed
             return
         self.audit({"write": cmd, "why": why})
-        subprocess.run(shlex.split(self.a.smi) + ["-i", str(g), "-pl", str(int(w))], capture_output=True, text=True, check=True)
+        t0 = time.time()
+        try:
+            p = subprocess.run(shlex.split(self.a.smi) + ["-i", str(g), "-pl", str(int(w))], capture_output=True, text=True, timeout=20)
+            rc, err = p.returncode, p.stderr.strip()[:300]
+        except (subprocess.SubprocessError, OSError) as e:
+            rc, err = -1, f"{type(e).__name__}: {e}"[:300]
+        act = {"gpu": g, "requested_w": int(w), "t_requested": t0, "rc": rc, "stderr": err}
+        if rc != 0:
+            self.audit({"actuator": act, "write_failed": cmd})
+            raise WriteFailed(f"GPU {g}: nvidia-smi -pl {int(w)} returned {rc}: {err}")
         self.writes += 1
         self.written[g] = int(w)
+        s = query(self.a.smi, [g], self.enforced_ok)
+        if s is not None:
+            back = s[g]
+            act.update({"readback_w": back["limit"], "enforced_w": back["enforced"], "t_readback": time.time(),
+                        "realized": abs(back["limit"] - w) < 1.0, "override": back["enforced"] < back["limit"] - 1.0})
+            if act["realized"]:
+                act["delay_s"] = round(act["t_readback"] - t0, 3)
+        if not act.get("realized"):
+            self.req_at[g] = (int(w), t0)
+        self.audit({"actuator": act})
 
     def killed(self):
         return os.path.exists(self.a.kill_file)
 
     def restore(self):
         """Kill switch: every GPU back to the limit read at start, read back from the device."""
-        s = query(self.a.smi, self.gpus) or {}
+        s = query(self.a.smi, self.gpus, self.enforced_ok) or {}
+        failed = []
         for g in self.gpus:
             if self.a.mode == "cap" and (g not in s or abs(s[g]["limit"] - self.start[g]) >= 1.0):
-                self.set_limit(g, self.start[g], "kill switch: the limit read at start")
-        s = query(self.a.smi, self.gpus) or {}
+                try:
+                    self.set_limit(g, self.start[g], "kill switch: the limit read at start")
+                except WriteFailed as e:
+                    failed.append(str(e))
+        s = query(self.a.smi, self.gpus, self.enforced_ok) or {}
         back = {str(g): (s[g]["limit"] if g in s else None) for g in self.gpus}
-        ok = all(v is not None and abs(v - self.start[int(g)]) < 1.0 for g, v in back.items())
-        self.audit({"restored": back, "start": {str(g): self.start[g] for g in self.gpus}, "ok": ok, "writes": self.writes})
+        ok = not failed and all(v is not None and abs(v - self.start[int(g)]) < 1.0 for g, v in back.items())
+        self.audit({"restored": back, "enforced": {str(g): (s[g]["enforced"] if g in s else None) for g in self.gpus},
+                    "start": {str(g): self.start[g] for g in self.gpus}, "ok": ok, "writes": self.writes,
+                    "restore_write_failed": failed})
         return ok
 
     def speed_lock(self, g, cur, slo_clean):
@@ -220,7 +295,7 @@ class GpuGovernor:
 
     def step(self):
         a = self.a
-        s = query(a.smi, self.gpus)
+        s = query(a.smi, self.gpus, self.enforced_ok)
         blind = s is None
         lp, p95, served = 0.0, None, None
         if a.latency_file and a.slo_ms:
@@ -251,13 +326,19 @@ class GpuGovernor:
                     rec["decision"][str(g)] = {"hold": "last write not read back", "wrote_w": self.written[g], "reads_w": cur}
                     continue
                 self.written.pop(g, None)
-                e = self.eng[g]; e.current_cap = min(1.0, cur / self.start[g])   # the limit the device reports, not the one I meant
+                if g in self.req_at:       # a write that had not read back at once has now landed
+                    w0, t0 = self.req_at.pop(g)
+                    self.audit({"actuator_realized": {"gpu": g, "requested_w": w0, "readback_w": cur,
+                                                      "enforced_w": r["enforced"], "delay_s": round(time.time() - t0, 3)}})
+                # the limit the card obeys (enforced), not the one I meant
+                e = self.eng[g]; e.current_cap = min(1.0, r["enforced"] / self.start[g])
                 obs = {"queue_ratio": min(2.0, lp), "load_ratio": r["util"], "power_stress": r["draw"] / self.start[g],
                        "thermal": r["temp"] / a.temp_limit, "network_stress": 0.0, "drift_ratio": 0.0,
                        "stale": 0.0, "security_block": 0.0}
                 # the chain, recorded whole: what the device said, the state it puts the engine in, what I had projected
                 # for this moment, the projection for the next, what the engine asked for, what the shield allowed
                 seen = assimilate(e.x, observe_vector(obs, 0), copy.deepcopy(e.p))
+                meas = measured_state(observe_vector(obs, 0), e.p)
                 prev = self.projected.get(g)
                 d = e.step(obs, 0)
                 self.projected[g] = {k: getattr(e.x, k) for k in STATE}
@@ -281,11 +362,14 @@ class GpuGovernor:
                 self.cap[g] = want / self.start[g]
                 rec["decision"][str(g)] = {
                     "telemetry": {"util": r["util"], "draw_w": r["draw"], "temp_c": r["temp"], "limit_w": cur,
+                                  "enforced_w": r["enforced"],
                                   "clock_mhz": r["clock_mhz"], "throttle": (thr or {}).get(g)},
                     "state_observed": {k: round(getattr(seen, k), 4) for k in STATE},
+                    "state_measured": {k: round(v, 4) for k, v in meas.items()},
                     "state_projected_before": None if prev is None else {k: round(v, 4) for k, v in prev.items()},
                     "prediction_error": None if prev is None else {k: round(getattr(seen, k) - prev[k], 4) for k in STATE},
                     "state_projected_next": {k: round(v, 4) for k, v in self.projected[g].items()},
+                    "u_push": round(e.last_push * U_AUTHORITY, 4),   # the U-channel command on the evolved state
                     "admissible": bool(d["change_permitted"]), "requested_cap": round(requested, 4),
                     "granted_cap": round(cap, 4), "shield_bound": bound, "want_w": want,
                     "engine_cap": round(requested, 3), "E": round(d["state"]["E"], 3), "U": round(d["state"]["U"], 3),
@@ -334,10 +418,14 @@ def main(argv=None):
     stop = {"now": False}
     signal.signal(signal.SIGTERM, lambda *_: stop.__setitem__("now", True))
     t0 = time.time()
+    failed = False
     try:
         while not stop["now"] and not gov.killed() and (a.duration <= 0 or time.time() - t0 < a.duration):
             try:
                 gov.step()
+            except WriteFailed as e:   # the actuator refused: the arm ends here, never carries on as if watching
+                gov.audit({"fatal": f"write failed: {e}"}); failed = True
+                break
             except Exception as e:  # noqa: BLE001  a failed decision is logged; the kill path still runs
                 gov.audit({"error": f"{type(e).__name__}: {e}"})
             end = time.time() + a.interval
@@ -345,7 +433,7 @@ def main(argv=None):
                 time.sleep(0.2)
     finally:
         ok = gov.restore()
-    return 0 if ok else 3
+    return 3 if not ok else 4 if failed else 0
 
 
 if __name__ == "__main__":

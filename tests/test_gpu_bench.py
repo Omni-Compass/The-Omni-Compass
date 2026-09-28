@@ -113,6 +113,20 @@ def bench():
     # rotated order: rep 1 starts native, rep 2 starts watch
     t = lambda rep, a: float((d / "run" / f"rep-{rep}" / a / "window_start.txt").read_text())
     assert t(1, "native") < t(1, "watch") < t(1, "omni") and t(2, "watch") < t(2, "omni") < t(2, "native")
+    # the three contrasts and the receipts
+    assert {"omni", "watch", "omni_vs_watch"} <= set(out["paired"]) and out["headline"]["verdict"] in (
+        "SUPERIOR WITHIN GUARDRAILS", "ENERGY IMPROVEMENT WITH SERVICE TRADEOFF", "NONINFERIOR / INCONCLUSIVE", "NOT ESTABLISHED", "WORSE")
+    c1 = out["checks"]["omni"]["1"]
+    assert c1["actuator"]["writes_ok"] > 0 and c1["actuator"]["restored_ok"] and c1["governor"]["decisions"] and c1["representation"]["pairs"]
+    assert "enforced.power.limit" in (d / "run" / "rep-1" / "native" / "smi_fields.txt").read_text()
+    md = (d / "run" / "GPU_REPS.md").read_text()
+    assert "Authority: Omni governs against Omni watching" in md and "Actuator fidelity" in md and "Representation fidelity" in md
+    # a native arm whose enforced limit moved away from the snapshot makes the run invalid
+    f = d / "run" / "rep-1" / "native" / "smi.csv"; keep = f.read_text()
+    f.write_text("\n".join(",".join(r.split(",")[:7] + [" 150.00"] + r.split(",")[8:]) for r in keep.splitlines()) + "\n")
+    from tools.gpu_reps import main as reps1
+    assert reps1(str(d / "run")) == 2 and any("enforced" in x for x in json.loads((d / "run" / "GPU_REPS.json").read_text())["problems"])
+    f.write_text(keep)
     # a watch arm that wrote makes the run invalid
     with open(d / "run" / "rep-1" / "watch" / "audit.jsonl", "a") as f:
         f.write(json.dumps({"write": ["nvidia-smi", "-i", "0", "-pl", "250"]}) + "\n")
@@ -216,9 +230,66 @@ def lock():
     assert lim() == 300.0, "blind: the start limit"
 
 
+def enforced():
+    """The card obeys enforced.power.limit: snapshot of every limit, the engine senses the enforced one, each write read
+    back at once with an override recorded; cap mode refused without power management; a refused write ends the arm
+    (exit 4, start limit restored); a driver without the field falls back to power.limit and says so; result labels by rule."""
+    from omni_controller.gpu_governor import GpuGovernor, main as gmain
+    from tools.gpu_reps import label
+    d = Path(tempfile.mkdtemp())
+    p = state(d, enforced_cap=250.0)
+    g = GpuGovernor(args(d, "cap", audit=str(d / "a1.jsonl")))
+    snap = recs(d / "a1.jsonl")[0]
+    s0 = snap["snapshot"]["0"]
+    assert s0["enforced_w"] == 250.0 and s0["power.management"] == "Enabled" and s0["power.max_limit"] == "350", s0
+    assert snap["senses"] == "enforced.power.limit"
+    for _ in range(3):
+        g.step()
+    dec = [x for x in recs(d / "a1.jsonl") if "decision" in x][0]["decision"]["0"]
+    assert dec["telemetry"]["enforced_w"] == 250.0 and dec["telemetry"]["limit_w"] == 300.0 and "u_push" in dec and "state_measured" in dec
+    act = [x["actuator"] for x in recs(d / "a1.jsonl") if "actuator" in x]
+    assert act and act[0]["rc"] == 0 and act[0]["realized"] and act[0]["readback_w"] == act[0]["requested_w"] and "delay_s" in act[0], act
+    assert g.restore()
+    # an enforced limit under the requested one is recorded as an override
+    p = state(d, enforced_cap=200.0)
+    g = GpuGovernor(args(d, "cap", audit=str(d / "a2.jsonl"))); g.step()
+    assert any(x["actuator"].get("override") for x in recs(d / "a2.jsonl") if "actuator" in x)
+    g.restore()
+    # power management off: cap refused before any write; watch still allowed
+    state(d, management="Disabled")
+    try:
+        GpuGovernor(args(d, "cap", audit=str(d / "a3.jsonl"))); raise AssertionError("cap mode ran without power management")
+    except SystemExit as e:
+        assert "power management" in str(e)
+    assert "refused" in recs(d / "a3.jsonl")[-1] and not Path(os.environ["FAKE_SMI_STATE"] + ".writes").exists()
+    GpuGovernor(args(d, "watch", audit=str(d / "a3w.jsonl")))
+    # a refused write ends the arm: recorded, restored, exit 4
+    p = state(d, refuse_pl=True)
+    rc = gmain(["--mode", "cap", "--smi", SMI, "--audit", str(d / "a4.jsonl"), "--kill-file", str(d / "nokill"),
+                "--interval", "0.2", "--duration", "5", "--min-share", "0", "--util-gate", "0"])
+    r4 = recs(d / "a4.jsonl")
+    assert rc == 4 and any("write_failed" in x for x in r4) and any("fatal" in x for x in r4), (rc, r4[-3:])
+    assert r4[-1]["restored"]["0"] == 300.0 and r4[-1]["ok"] is True
+    # a driver without enforced.power.limit: power.limit, and the snapshot says so
+    state(d, no_enforced=True)
+    g = GpuGovernor(args(d, "watch", audit=str(d / "a5.jsonl")))
+    a5 = recs(d / "a5.jsonl")[0]
+    assert not g.enforced_ok and a5["senses"].startswith("power.limit") and a5["snapshot"]["0"]["enforced.power.limit"] == "unsupported"
+    g.step()
+    assert [x for x in recs(d / "a5.jsonl") if "decision" in x][0]["decision"]["0"]["telemetry"]["enforced_w"] == 300.0
+    # result labels, by rule
+    assert label("better, proven", True, True, True, True) == "SUPERIOR WITHIN GUARDRAILS"
+    assert label("better, proven", True, False, True, True) == "ENERGY IMPROVEMENT WITH SERVICE TRADEOFF"
+    assert label("better, not proven", True, True, True, True) == "NONINFERIOR / INCONCLUSIVE"
+    assert label("worse, not proven", False, True, True, True) == "NOT ESTABLISHED"
+    assert label("worse, proven", True, True, True, True) == "WORSE"
+    assert label("better, proven", True, True, True, False) == "INVALID"
+
+
 def main():
-    plugs(); governor(); guards(); lock(); bench(); pooled()
-    print("PASS  GPU bench: governor contract (watch writes nothing, shield floor, share floor, busy gate, read-back, blind, SLO reflex, kill) "
+    plugs(); governor(); guards(); lock(); enforced(); bench(); pooled()
+    print("PASS  GPU bench: governor contract (watch writes nothing, shield floor, share floor, busy gate, read-back, blind, SLO reflex, kill), "
+          "enforced limit (snapshot, override, power management, refused write ends the arm, fallback), result labels, "
           "and the one-command paired run with its validity checks")
 
 
