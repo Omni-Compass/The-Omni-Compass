@@ -52,7 +52,7 @@ r = {"gpus": gpu, "gpu_name": q("name"), "driver": q("driver_version"), "persist
      "power_limit_max_w": q("power.max_limit"), "reps": int(os.environ.get("REPS", 5)),
      "duration_s": float(os.environ.get("DURATION", 600)), "drain_s": float(os.environ.get("DRAIN", 30)),
      "cooldown_s": float(os.environ.get("COOLDOWN", 60)), "sample_ms": int(os.environ.get("SAMPLE_MS", 200)),
-     "workload": "tools/gpu_workload.py (seeded fp16 matmul request stream)", "git": subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()}
+     "workload": "tools/gpu_workload.py (seeded fp16 matmul request stream)", "git": subprocess.run(["git", "-c", "safe.directory=*", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()}
 open(f"{out}/receipt.json", "w").write(json.dumps(r, indent=1)); print(json.dumps(r))
 EOF
 
@@ -62,9 +62,12 @@ import hashlib, json, subprocess, sys
 files = ["omni_controller/gpu_governor.py", "omni_controller/muscles.py", "omnicompass/adapter.py", "omnicompass/core.py",
          "tools/gpu_workload.py", "tools/gpu_reps.py", "scripts/gpu_paired.sh", "docs/GPU_PREREGISTRATION.md"]
 h = {f: hashlib.sha256(open(f, "rb").read()).hexdigest() for f in files}
-dirty = subprocess.run(["git", "status", "--porcelain", "--"] + files, capture_output=True, text=True).stdout.strip()
-r = {"phase": sys.argv[2], "commit": subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip(),
-     "dirty": bool(dirty), "files": h}
+git = ["git", "-c", "safe.directory=*"]   # run as root on a clone the login user owns
+st = subprocess.run(git + ["status", "--porcelain", "--"] + files, capture_output=True, text=True)
+head = subprocess.run(git + ["rev-parse", "HEAD"], capture_output=True, text=True)
+# git unreadable counts as uncommitted: a freeze I cannot check is not a freeze
+r = {"phase": sys.argv[2], "commit": head.stdout.strip(), "dirty": bool(st.stdout.strip()) or st.returncode != 0 or head.returncode != 0,
+     "git_error": (st.stderr + head.stderr).strip()[:300], "files": h}
 open(sys.argv[1], "w").write(json.dumps(r, indent=1))
 EOF
 }

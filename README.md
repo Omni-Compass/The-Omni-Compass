@@ -7,7 +7,7 @@ execution layer.
 taints, and can be killed clean. It does not replace your autoscaler. Use it on top, in shadow first. Connectors for
 RAPL, nvidia-smi and a site meter are in the controller; nobody has yet published a run of them on real hardware. On
 kind, energy is a declared model, not a meter. The first metered test is one command on any NVIDIA GPU machine:
-`sudo bash scripts/gpu_paired.sh` (`docs/GPU_BENCH.md`).
+`sudo bash scripts/gpu_paired.sh` (`docs/GPU_BENCH.md`; step by step for a rented GPU: `docs/GPU_RUN_GUIDE.md`).
 
 ## What each piece of evidence establishes, and what it does not
 
