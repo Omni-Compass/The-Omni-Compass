@@ -16,7 +16,7 @@ No layer stands in for another: a theorem is not a physical validation, a Monte 
 model's energy is not a meter's.
 
 Mechanism identity for every row: `results/MECHANISM_IDENTITY.json`. Canonical engine `symmetric_verified`, mechanism
-id `7ce24080f596…`; the printed configuration `printed_eight_line`, id `b151b8d8c8f6…`, is a named alternative
+id `29d9808dfb8f…`; the printed configuration `printed_eight_line`, id `cd333dc166fb…`, is a named alternative
 (Option A of the directive: one canonical, one alternative embodiment; no equivalence is claimed).
 
 ## Layer 1: the mechanism
@@ -61,7 +61,9 @@ id `7ce24080f596…`; the printed configuration `printed_eight_line`, id `b151b8
 |---|---|---|
 | O | Omni changes successful work per measured joule on a GPU. The bench is built with three receipts (governor, actuator, outcome), the three contrasts (observation, authority, total), and result labels by rule; it has **not** been run on a card. | `scripts/gpu_paired.sh`, `docs/GPU_PREREGISTRATION.md` |
 | O | Production data-centre energy effect. | — |
-| O | Wall-plug (whole-machine) energy effect; CPU package (RAPL) effect. | — |
+| O | Whether the power limit is the right actuator for LLM serving. Published measurements (arXiv 2605.11999, H200) find memory-bound decode draws 137–300 W of 700 W, so no power cap binds; clock scaling is what saves energy there (arXiv 2501.08219, GreenLLM 2508.16449). The pinned bench workload is compute-bound, where the cap does bind: a result on it does not transfer to LLM decode. | external literature |
+| O | Wall-plug (whole-machine) energy effect; CPU package and DRAM (RAPL) effect. | — |
+| — | What the GPU bench will attribute: per write, joules and requests against native, and which rule decided it (engine, floor, gate, reflex, heat, speed lock). | `tools/gpu_reps.py` |
 
 ## Negative evidence, kept
 
@@ -81,3 +83,5 @@ Nothing here is deleted when a later result looks better.
 | S | Typical response time about 20% slower than every platform in the web and four-cluster simulations. | `docs/HISTORY.md` |
 | S | GPU model: the engine without its guards breaks the p95 guardrail. | `results/gpu/sim/FINDINGS.md` |
 | S | The compass-stroke GPU variant was tried and not adopted. | same |
+| S | Right-sizing against VPA: p95 +15%, memory (OOM) kills +531%. | `docs/BENCHMARK_REPORT.md` |
+| — | Reported in the external master-build report (not reproducible from this repository): on fresh scenarios Karpenter+VPA sometimes used less modelled energy than Omni, while Omni had lower churn and fewer request-induced evictions. Kept here so it is not lost; to be re-run here before it is cited. | external |

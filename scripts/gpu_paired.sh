@@ -34,9 +34,20 @@ mkdir -p "$OUT"
 
 lim() { $SMI -i "$GPU" --query-gpu=power.limit --format=csv,noheader,nounits | tr -d ' '; }
 q1() { $SMI -i "$GPU" --query-gpu="$1" --format=csv,noheader,nounits 2>/dev/null | tr -d ' '; }
-rapl() {  # CPU package energy counters (microjoules), top-level packages only
-  local f; for f in /sys/class/powercap/intel-rapl:[0-9]*/"$1"; do
-    case "$f" in */intel-rapl:*:*/*) continue;; esac; if [ -r "$f" ]; then cat "$f"; fi; done 2>/dev/null | tr '\n' ' '
+devmeter() {  # the card's own energy counter (NVML total energy, millijoules, Volta and newer) and its health counters:
+  # a cross-check on the integrated power.draw and a record of wear, read by the bench only. "unavailable" where absent.
+  local e; e=$($PY -c "import pynvml as n; n.nvmlInit(); print(n.nvmlDeviceGetTotalEnergyConsumption(n.nvmlDeviceGetHandleByIndex($GPU)))" 2>/dev/null || true)
+  echo "energy_mj ${e:-unavailable}"
+  local f; for f in ecc.errors.uncorrected.volatile.total ecc.errors.corrected.volatile.total retired_pages.pending clocks_event_reasons.hw_thermal_slowdown; do
+    echo "$f $(q1 "$f" || true)"; done
+}
+rapl() {  # RAPL counters by domain name: "<domain dir> <name> <energy_uj> <max_energy_range_uj>" per line.
+  # package-N and dram are summed by the table separately; psys (platform) is recorded, never added to them
+  # (package already contains the cores and uncore; psys is a wider, vendor-defined scope). Omni never reads these.
+  local d n; for d in "${RAPL_ROOT:-/sys/class/powercap}"/intel-rapl:*; do
+    [ -r "$d/energy_uj" ] || continue; n=$(cat "$d/name" 2>/dev/null || echo unknown)
+    case "$n" in package-*|dram|psys) echo "$(basename "$d") $n $(cat "$d/energy_uj") $(cat "$d/max_energy_range_uj" 2>/dev/null || echo 0)";; esac
+  done 2>/dev/null
 }
 
 echo "== preflight"
@@ -70,6 +81,7 @@ r = {"gpus": gpu, "gpu_name": q("name"), "driver": q("driver_version"), "persist
      "cooldown_s": float(os.environ.get("COOLDOWN", 60)), "sample_ms": int(os.environ.get("SAMPLE_MS", 200)),
      "workload": "tools/gpu_workload.py (seeded fp16 matmul request stream)",
      "workload_sha256": __import__("hashlib").sha256(open("tools/gpu_workload.py", "rb").read()).hexdigest(),
+     "workload_cmd": os.environ.get("WORKLOAD_CMD", ""),
      "mechanism_id": subprocess.run([sys.executable, "tools/mechanism_identity.py", "--id"], capture_output=True, text=True).stdout.strip(),
      "git": subprocess.run(["git", "-c", "safe.directory=*", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()}
 open(f"{out}/receipt.json", "w").write(json.dumps(r, indent=1)); print(json.dumps(r))
@@ -101,11 +113,19 @@ if [ -n "${WALL_METER:-}" ]; then
   echo "wall meter ${WALL_METER%%:*} reads $w W" | tee "$OUT/wall_meter.txt"
 fi
 
-echo "== calibrate the workload at the start limit (once, for every arm)"
-$PY tools/gpu_workload.py calibrate --out "$OUT" --device "cuda:$GPU" ${SIM:+--sim} $WL_ARGS
-SERVICE_MS=$($PY -c "import json;print(json.load(open('$OUT/calib.json'))['service_ms'])")
-SLO_MS="${SLO_MS:-$($PY -c "print(round(10*$SERVICE_MS,1))")}"   # response-time target: ten bare service times
-echo "service time ${SERVICE_MS} ms, response-time target ${SLO_MS} ms" | tee "$OUT/slo.txt"
+if [ -n "${WORKLOAD_CMD:-}" ]; then
+  # any workload (vLLM, TensorRT-LLM, an MLPerf inference harness): run once per arm with OUT_DIR, DURATION, DRAIN
+  # and DEVICE in its environment; it must write OUT_DIR/latency.csv live and requests.csv and summary.json at the end
+  # in tools/gpu_workload.py's format. Its own response-time target is required.
+  [ -n "${SLO_MS:-}" ] || { echo "WORKLOAD_CMD needs SLO_MS (the workload's response-time target)"; exit 1; }
+  echo "$WORKLOAD_CMD" > "$OUT/workload_cmd.txt"
+else
+  echo "== calibrate the workload at the start limit (once, for every arm)"
+  $PY tools/gpu_workload.py calibrate --out "$OUT" --device "cuda:$GPU" ${SIM:+--sim} $WL_ARGS
+  SERVICE_MS=$($PY -c "import json;print(json.load(open('$OUT/calib.json'))['service_ms'])")
+  SLO_MS="${SLO_MS:-$($PY -c "print(round(10*$SERVICE_MS,1))")}"   # response-time target: ten bare service times
+fi
+echo "service time ${SERVICE_MS:-set by the workload} ms, response-time target ${SLO_MS} ms" | tee "$OUT/slo.txt"
 
 fail=0
 # REP_ONLY=k runs repetition k alone (its rotation included): one repetition per machine when repetitions are spread
@@ -123,7 +143,8 @@ for rep in ${REP_ONLY:-$(seq 1 "$REPS")}; do
     smi_pid=$!
     wall_pid=""
     if [ -n "${WALL_METER:-}" ]; then $PY tools/wall_meter.py "$WALL_METER" "$D/wall.csv" 2>"$D/wall.err" & wall_pid=$!; sleep 2; fi
-    rapl energy_uj > "$D/rapl_start.txt"; rapl max_energy_range_uj > "$D/rapl_range.txt"
+    rapl > "$D/rapl_start.tsv"
+    devmeter > "$D/device_start.txt"
     date -u +%s.%N > "$D/window_start.txt"
     gov_pid=""
     if [ "$arm" != "native" ]; then
@@ -134,10 +155,15 @@ for rep in ${REP_ONLY:-$(seq 1 "$REPS")}; do
         > "$D/governor.log" 2>&1 &
       gov_pid=$!
     fi
-    $PY tools/gpu_workload.py run --calib-file "$OUT/calib.json" --out "$D" --device "cuda:$GPU" \
-      --duration "$DURATION" --drain "$DRAIN" > "$D/workload.log" 2>&1
+    if [ -n "${WORKLOAD_CMD:-}" ]; then
+      OUT_DIR="$D" DEVICE="cuda:$GPU" bash -c "$WORKLOAD_CMD" > "$D/workload.log" 2>&1 || echo "workload exited $?" >> "$D/workload.log"
+    else
+      $PY tools/gpu_workload.py run --calib-file "$OUT/calib.json" --out "$D" --device "cuda:$GPU" \
+        --duration "$DURATION" --drain "$DRAIN" > "$D/workload.log" 2>&1
+    fi
     date -u +%s.%N > "$D/window_end.txt"
-    rapl energy_uj > "$D/rapl_end.txt"
+    devmeter > "$D/device_end.txt"
+    rapl > "$D/rapl_end.tsv"
     [ -n "$wall_pid" ] && { kill "$wall_pid" 2>/dev/null || true; wait "$wall_pid" 2>/dev/null || true; }
     if [ -n "$gov_pid" ]; then
       touch "$D/kill"; wait "$gov_pid" && echo 0 > "$D/governor_exit.txt" || echo $? > "$D/governor_exit.txt"
@@ -153,7 +179,7 @@ done
 freeze "$OUT/FREEZE_END.json"
 # each repetition carries its machine's own record, so repetitions from several machines can be pooled
 for r in "$OUT"/rep-*; do
-  for f in receipt.json snapshot.txt smi_fields.txt calib.json slo.txt FREEZE.json FREEZE_END.json wall_meter.txt; do
+  for f in receipt.json snapshot.txt smi_fields.txt calib.json workload_cmd.txt slo.txt FREEZE.json FREEZE_END.json wall_meter.txt; do
     [ -f "$OUT/$f" ] && cp "$OUT/$f" "$r/$f"
   done
 done

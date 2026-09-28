@@ -27,6 +27,15 @@ Every decision (--interval seconds), for each GPU in --gpus:
             --lock-boost), at most once per --lock-hold-s (the window must see the step before the next). Between: held. Never under --lock-floor x start.
             Speed won elsewhere (CPU conveyed to the serving pods, shorter queues) shows as a ratio under the line,
             and the lock spends it on watts; with nothing won elsewhere it holds the start limit.
+  one writer the limit must be what I last wrote (or the start limit). Any other value means another writer: I stop
+            writing for the rest of the run (observe only), record "foreign_writer", leave its limit alone on kill
+            (restoring would fight it), and exit 5 so the bench marks the run invalid. Two controllers on one limit is
+            how production is lost.
+  heat      the device reporting a thermal or hardware slowdown (clock-limit reasons 0x8, 0x20, 0x40, 0x80): never
+            tighten; the limit may only stay or rise (fail up).
+  envelope  every decision records every rule that held the engine's request back ("blocked_by") and the one that
+            decided ("decided_by": engine, a floor, the busy gate, a reflex, heat, or the speed lock), so a limit that
+            did not move names its cause, and a result is credited to the rule that produced it.
 Modes
   watch     everything above is computed and audited; nothing is written (the control arm)
   cap       the limit is written with nvidia-smi -i <gpu> -pl <W>. Refused at start unless every GPU reports
@@ -53,6 +62,36 @@ ENFORCED = "enforced.power.limit"
 SNAPSHOT = ("power.limit", "enforced.power.limit", "power.default_limit", "power.min_limit", "power.max_limit",
             "persistence_mode", "power.management")
 REASONS = ("clocks_event_reasons.active", "clocks_throttle_reasons.active")   # newer, older drivers
+HEAT_BITS = 0x8 | 0x20 | 0x40 | 0x80   # HW slowdown, SW thermal slowdown, HW thermal slowdown, HW power brake
+
+
+def slowed(reason):
+    """True when the device reports a thermal or hardware slowdown in its clock-limit reasons (hex bit mask)."""
+    try:
+        return bool(int(str(reason), 16) & HEAT_BITS)
+    except (TypeError, ValueError):
+        return False
+
+
+def blocked_by(requested, draw, start, min_w, headroom, min_share, slo_clean, gated, heat, lock):
+    """Every rule whose floor or override sits above the engine's own request (whole watts), in a fixed order."""
+    engine_w = math.floor(requested * start)
+    b = []
+    if not slo_clean:
+        b.append("slo_or_blind_reflex")
+    if gated:
+        b.append("busy_gate")
+    if math.ceil(draw * (1.0 + headroom)) > engine_w:
+        b.append("draw_headroom_floor")
+    if min_share * start > engine_w:
+        b.append("share_floor")
+    if min_w > engine_w:
+        b.append("device_minimum")
+    if heat:
+        b.append("thermal_hold")
+    if lock:
+        b.append("speed_lock")
+    return b
 STATE = ("E", "U", "I_U", "S", "B", "B_dot")
 MEASURED = ("E", "U", "I_U", "S", "B")   # the memoryless part of the observation map (B_dot exists only through history)
 
@@ -204,12 +243,14 @@ class GpuGovernor:
         self.lock_at = {}          # gpu -> time of the lock's last change
         self.clock = time.time     # replaceable, so a simulation in virtual time can drive the lock's hold
         self.req_at = {}           # gpu -> (limit requested, time requested) until it reads back
+        self.foreign = False       # True once another writer changed a limit: observe only from then on
         self.enforced_ok = query(a.smi, self.gpus, enforced=True) is not None
         s = query(a.smi, self.gpus, self.enforced_ok)
         if s is None:
             raise SystemExit("nvidia-smi unreadable at start: no snapshot, so I take no authority")
         snap = snapshot(a.smi, self.gpus)
         self.start = {g: s[g]["limit"] for g in self.gpus}
+        self.expect = dict(self.start)   # gpu -> the limit that should be there: the start, or my last write that landed
         self.min = {g: s[g]["min"] for g in self.gpus}
         self.audit({"snapshot": {str(g): {"limit_w": self.start[g], "min_limit_w": self.min[g],
                                           "enforced_w": s[g]["enforced"] if self.enforced_ok else None,
@@ -226,8 +267,9 @@ class GpuGovernor:
 
     def set_limit(self, g, w, why):
         cmd = ["nvidia-smi", "-i", str(g), "-pl", str(int(w))]
-        if self.a.mode != "cap":
-            self.audit({"would_write": cmd, "why": why})     # watch: computed and recorded, never executed
+        if self.a.mode != "cap" or self.foreign:
+            # watch: computed and recorded, never executed; after another writer appeared, likewise
+            self.audit({"would_write": cmd, "why": why, **({"withheld": "another writer owns the limit"} if self.foreign else {})})
             return
         self.audit({"write": cmd, "why": why})
         t0 = time.time()
@@ -248,7 +290,7 @@ class GpuGovernor:
             act.update({"readback_w": back["limit"], "enforced_w": back["enforced"], "t_readback": time.time(),
                         "realized": abs(back["limit"] - w) < 1.0, "override": back["enforced"] < back["limit"] - 1.0})
             if act["realized"]:
-                act["delay_s"] = round(act["t_readback"] - t0, 3)
+                act["delay_s"] = round(act["t_readback"] - t0, 3); self.expect[g] = int(w)
         if not act.get("realized"):
             self.req_at[g] = (int(w), t0)
         self.audit({"actuator": act})
@@ -261,6 +303,8 @@ class GpuGovernor:
         s = query(self.a.smi, self.gpus, self.enforced_ok) or {}
         failed = []
         for g in self.gpus:
+            if self.foreign:
+                break                  # another writer owns the limit: restoring would fight it
             if self.a.mode == "cap" and (g not in s or abs(s[g]["limit"] - self.start[g]) >= 1.0):
                 try:
                     self.set_limit(g, self.start[g], "kill switch: the limit read at start")
@@ -271,6 +315,7 @@ class GpuGovernor:
         ok = not failed and all(v is not None and abs(v - self.start[int(g)]) < 1.0 for g, v in back.items())
         self.audit({"restored": back, "enforced": {str(g): (s[g]["enforced"] if g in s else None) for g in self.gpus},
                     "start": {str(g): self.start[g] for g in self.gpus}, "ok": ok, "writes": self.writes,
+                    "foreign_writer": self.foreign,
                     "restore_write_failed": failed})
         return ok
 
@@ -315,17 +360,26 @@ class GpuGovernor:
         for g in self.gpus:
             if s is None:
                 # blind: no give-back of power I cannot see; the start limit, at once
-                if self.cap[g] == 1.0:
+                if self.cap[g] == 1.0 or self.foreign:
                     continue
                 want, why, cur = self.start[g], "blind sense: the limit read at start", None
                 self.cap[g] = 1.0
             else:
                 r = s[g]; cur = r["limit"]
+                if abs(cur - self.expect[g]) >= 1.0 and not (g in self.written and abs(cur - self.written[g]) < 1.0):
+                    if g not in self.written or not self.foreign:
+                        # neither what I last wrote nor what was there before: another writer
+                        if not self.foreign:
+                            self.audit({"foreign_writer": {"gpu": g, "reads_w": cur, "expected_w": self.expect[g],
+                                                           "pending_w": self.written.get(g)},
+                                        "action": "observe only from now on; the limit left to the other writer"})
+                        self.foreign = True; self.expect[g] = cur; self.written.pop(g, None)
                 if g in self.written and abs(cur - self.written[g]) >= 1.0:
                     # read-back: my last write has not landed; no new order on top of it
                     rec["decision"][str(g)] = {"hold": "last write not read back", "wrote_w": self.written[g], "reads_w": cur}
                     continue
-                self.written.pop(g, None)
+                if g in self.written:
+                    self.expect[g] = int(self.written.pop(g))
                 if g in self.req_at:       # a write that had not read back at once has now landed
                     w0, t0 = self.req_at.pop(g)
                     self.audit({"actuator_realized": {"gpu": g, "requested_w": w0, "readback_w": cur,
@@ -359,6 +413,12 @@ class GpuGovernor:
                 lock = None
                 if self.baseline is not None:
                     want, bound, why, lock = self.speed_lock(g, cur, slo_clean)
+                heat = slowed((thr or {}).get(g))
+                if heat and want < cur:
+                    # the device is slowing itself for heat or a hardware limit: never tighten on top of it
+                    want, bound, why = int(cur), "thermal_hold", "thermal or hardware slowdown reported: no tightening"
+                blocks = blocked_by(requested, r["draw"], self.start[g], self.min[g], a.headroom, getattr(a, "min_share", 0.0),
+                                    slo_clean, self.gated.get(g, False) if gate else False, heat, self.baseline is not None)
                 self.cap[g] = want / self.start[g]
                 rec["decision"][str(g)] = {
                     "telemetry": {"util": r["util"], "draw_w": r["draw"], "temp_c": r["temp"], "limit_w": cur,
@@ -372,6 +432,8 @@ class GpuGovernor:
                     "u_push": round(e.last_push * U_AUTHORITY, 4),   # the U-channel command on the evolved state
                     "admissible": bool(d["change_permitted"]), "requested_cap": round(requested, 4),
                     "granted_cap": round(cap, 4), "shield_bound": bound, "want_w": want,
+                    "engine_w": math.floor(requested * self.start[g]), "blocked_by": blocks,
+                    "decided_by": "speed_lock" if bound.startswith("speed_lock") else bound,
                     "engine_cap": round(requested, 3), "E": round(d["state"]["E"], 3), "U": round(d["state"]["U"], 3),
                     "speed_lock": lock}
             if cur is not None and abs(want - cur) < a.min_change_w and not (want == self.start[g] and cur != want):
@@ -418,7 +480,7 @@ def main(argv=None):
     stop = {"now": False}
     signal.signal(signal.SIGTERM, lambda *_: stop.__setitem__("now", True))
     t0 = time.time()
-    failed = False
+    failed = warned = False
     try:
         while not stop["now"] and not gov.killed() and (a.duration <= 0 or time.time() - t0 < a.duration):
             try:
@@ -428,12 +490,15 @@ def main(argv=None):
                 break
             except Exception as e:  # noqa: BLE001  a failed decision is logged; the kill path still runs
                 gov.audit({"error": f"{type(e).__name__}: {e}"})
+            if gov.foreign and not warned:
+                print("omni-gpu: another writer changed the power limit; observing only", file=sys.stderr, flush=True)
+                warned = True
             end = time.time() + a.interval
             while time.time() < end and not stop["now"] and not gov.killed():
                 time.sleep(0.2)
     finally:
         ok = gov.restore()
-    return 3 if not ok else 4 if failed else 0
+    return 5 if gov.foreign else 3 if not ok else 4 if failed else 0
 
 
 if __name__ == "__main__":

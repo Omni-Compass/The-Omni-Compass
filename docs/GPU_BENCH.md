@@ -83,6 +83,18 @@ pressure. The engine's power cap becomes a power limit, inside hard rules:
 - if response time breaks its target, the snapshot limit at once, and for three decisions after;
 - kill file or SIGTERM: the snapshot limit, read back.
 
+- **one writer:** if the limit ever reads a value Omni did not write, Omni stops writing, leaves that limit alone,
+  and exits 5 (the run is invalid);
+- **heat fails up:** while the card reports a thermal or hardware slowdown, no lower limit is written;
+- every decision names every rule that held the engine back (`blocked_by`) and the one that decided (`decided_by`).
+
+Any workload plugs in through `WORKLOAD_CMD` (for example a vLLM or MLPerf inference harness), if it writes
+`latency.csv`, `requests.csv` and `summary.json` in `tools/gpu_workload.py`'s format and `SLO_MS` is given.
+
+The table also credits each write: joules and requests against native at the same moments of the same stream, grouped
+by the rule that decided it. CPU energy comes from RAPL by domain: package and DRAM apart, psys never added, wrap
+undone. The card's own energy counter (NVML) and its ECC and retired-page counters are read at both ends of each arm.
+
 ## Gauges
 
 | Gauge | From | Better |

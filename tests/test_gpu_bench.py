@@ -113,6 +113,9 @@ def bench():
     # rotated order: rep 1 starts native, rep 2 starts watch
     t = lambda rep, a: float((d / "run" / f"rep-{rep}" / a / "window_start.txt").read_text())
     assert t(1, "native") < t(1, "watch") < t(1, "omni") and t(2, "watch") < t(2, "omni") < t(2, "native")
+    # credit per write, against native at the same moments
+    assert out["credit"]["by_decider"] and all(r["decided_by"] for r in out["credit"]["writes"])
+    assert "Credit per write" in (d / "run" / "GPU_REPS.md").read_text()
     # the three contrasts and the receipts
     assert {"omni", "watch", "omni_vs_watch"} <= set(out["paired"]) and out["headline"]["verdict"] in (
         "SUPERIOR WITHIN GUARDRAILS", "ENERGY IMPROVEMENT WITH SERVICE TRADEOFF", "NONINFERIOR / INCONCLUSIVE", "NOT ESTABLISHED", "WORSE")
@@ -142,6 +145,9 @@ def pooled():
     for k in (1, 2):
         env = dict(os.environ, NVIDIA_SMI=SMI, SIM="1", REP_ONLY=str(k), DURATION="4", DRAIN="1", COOLDOWN="0", INTERVAL="1",
                    SAMPLE_MS="200", OUT=str(d / f"m{k}"), WORKLOAD_ARGS="--calib 5 --target-ms 20")
+        if k == 2:   # the second machine serves an outside workload through the plug (here the pinned one, invoked as a command)
+            env.update(SLO_MS="200", WORKLOAD_CMD="python3 tools/gpu_workload.py calibrate --out \"$OUT_DIR\" --sim --calib 5 --target-ms 20 "
+                       "&& python3 tools/gpu_workload.py run --calib-file \"$OUT_DIR/calib.json\" --out \"$OUT_DIR\" --duration \"$DURATION\" --drain \"$DRAIN\"")
         r = subprocess.run(["bash", str(ROOT / "scripts" / "gpu_paired.sh")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=600)
         assert r.returncode == 0, r.stdout[-2000:] + r.stderr[-1000:]
         shutil.copytree(d / f"m{k}" / f"rep-{k}", d / "pool" / f"rep-{k}")
@@ -149,6 +155,7 @@ def pooled():
     assert reps(str(d / "pool")) == 0
     out = json.loads((d / "pool" / "GPU_REPS.json").read_text())
     assert sorted(out["checks"]["omni"]) == ["1", "2"] and not out["problems"]
+    assert (d / "pool" / "rep-2" / "workload_cmd.txt").exists() and json.loads((d / "pool" / "rep-2" / "receipt.json").read_text())["workload_cmd"]
 
 
 def plugs():
@@ -286,10 +293,56 @@ def enforced():
     assert label("better, proven", True, True, True, False) == "INVALID"
 
 
+def one_writer():
+    """One writer: a limit changed by anyone else stops Omni writing (observe only), leaves the other writer's limit
+    alone on kill, and exits 5. Heat: a reported thermal or hardware slowdown never gets a tighter limit. Every decision
+    names what blocked the engine and what decided. RAPL: package and DRAM summed apart, psys kept out, wrap handled,
+    missing counters UNAVAILABLE; the governor never reads the energy counters."""
+    from omni_controller.gpu_governor import GpuGovernor, main as gmain, slowed, blocked_by
+    from tools.gpu_reps import rapl_energy, rapl_delta
+    d = Path(tempfile.mkdtemp())
+    p = state(d)
+    g = GpuGovernor(args(d, "cap", audit=str(d / "b1.jsonl"))); g.step()
+    assert json.load(open(p))["limit"]["0"] == 234.0
+    S = json.load(open(p)); S["limit"]["0"] = 280.0; json.dump(S, open(p, "w"))       # someone else writes -pl
+    g.step(); g.step()
+    r = recs(d / "b1.jsonl")
+    assert any("foreign_writer" in x for x in r) and g.foreign, r[-2:]
+    assert json.load(open(p))["limit"]["0"] == 280.0, "Omni must not fight the other writer"
+    assert any(x.get("withheld") for x in r) or not any("write" in x for x in r[-3:])
+    g.restore(); assert json.load(open(p))["limit"]["0"] == 280.0 and recs(d / "b1.jsonl")[-1]["foreign_writer"] is True
+    # decisions name the blocker and the decider
+    dec = [x for x in r if "decision" in x and "blocked_by" in x["decision"].get("0", {})][0]["decision"]["0"]
+    assert "draw_headroom_floor" in dec["blocked_by"] and dec["decided_by"] in ("draw_headroom_floor", "share_floor"), dec
+    assert blocked_by(0.5, 100, 300, 100, 0.3, 0.7, True, False, True, False) == ["share_floor", "thermal_hold"]
+    # heat: 0x40 (HW thermal slowdown) set, the limit is not lowered
+    assert slowed("0x0000000000000040") and not slowed("0x0000000000000004") and not slowed(None)
+    p = state(d, draw_w=100.0, util=10)
+    import omni_controller.gpu_governor as GG
+    real = GG.throttle; GG.throttle = lambda smi, gpus: {0: "0x0000000000000040"}
+    try:
+        g = GpuGovernor(args(d, "cap", audit=str(d / "b2.jsonl"), min_share=0.0, util_gate=0.0)); g.step()
+    finally:
+        GG.throttle = real
+    assert json.load(open(p))["limit"]["0"] == 300.0
+    assert [x for x in recs(d / "b2.jsonl") if "decision" in x][0]["decision"]["0"]["decided_by"] == "thermal_hold"
+    # RAPL: two packages, a DRAM child, psys; package 1 wrapped
+    a = d / "arm"; a.mkdir()
+    (a / "rapl_start.tsv").write_text("intel-rapl:0 package-0 1000000 262143328850\nintel-rapl:1 package-1 262143000000 262143328850\n"
+                                      "intel-rapl:0:2 dram 500000 65532610987\nintel-rapl:2 psys 7000000 262143328850\n")
+    (a / "rapl_end.tsv").write_text("intel-rapl:0 package-0 3000000 262143328850\nintel-rapl:1 package-1 671150 262143328850\n"
+                                    "intel-rapl:0:2 dram 1500000 65532610987\nintel-rapl:2 psys 17000000 262143328850\n")
+    e = rapl_energy(a)
+    assert abs(e["energy, CPU package (J)"] - 3.0) < 1e-6 and abs(e["energy, DRAM (J)"] - 1.0) < 1e-9 and abs(e["energy, platform psys (J)"] - 10.0) < 1e-9, e
+    assert rapl_delta(10, 5, 0) is None
+    assert all(v != v for v in rapl_energy(d / "nowhere").values()), "missing counters: UNAVAILABLE, never zero"
+    assert "powercap" not in (ROOT / "omni_controller" / "gpu_governor.py").read_text() and "energy_uj" not in (ROOT / "omni_controller" / "gpu_governor.py").read_text()
+
+
 def main():
-    plugs(); governor(); guards(); lock(); enforced(); bench(); pooled()
+    plugs(); governor(); guards(); lock(); enforced(); one_writer(); bench(); pooled()
     print("PASS  GPU bench: governor contract (watch writes nothing, shield floor, share floor, busy gate, read-back, blind, SLO reflex, kill), "
-          "enforced limit (snapshot, override, power management, refused write ends the arm, fallback), result labels, "
+          "enforced limit (snapshot, override, power management, refused write ends the arm, fallback), one writer, heat fails up, blocked_by and decided_by, RAPL by domain, credit per write, workload plug, result labels, "
           "and the one-command paired run with its validity checks")
 
 

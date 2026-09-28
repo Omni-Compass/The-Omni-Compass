@@ -82,6 +82,7 @@ Omni-Compass LLC. See `LICENSE`.
 | `docker-compose.yml`, `deploy/local/` | Local lab: one command builds a kind cluster on your Docker and runs the live pilot |
 | **`STATE_OF_PLAY.md`** | **Current facts only: measured, built, simulated and open** |
 | **`docs/CANONICAL_ENGINE.md`** | **The one engine the software runs; the printed chart as a named variant** |
+| **`RECEIPT.md`** | **The two-page receipt: four lines, one per evidence layer, each with its class; the GPU line empty until measured** |
 | **`docs/TRACKING_THEOREM.md`** | **What the controller provably does: continuous, saturated and sampled-data tracking; admissibility** |
 | **`docs/EVIDENCE_LEDGER.md`** | **Every claim with one evidence class (theorem, computation, simulation, live software, physical meter, open), negatives kept** |
 | **`RELEASE_MANIFEST.json`** | **The release's identity: fingerprints of the engine, C++ twins, GPU protocol, live evidence and verification** |

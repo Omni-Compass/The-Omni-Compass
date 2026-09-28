@@ -10,7 +10,9 @@ exactly the same requests at exactly the same moments; what differs is only how 
   run        serves the schedule for --duration seconds, then --drain seconds for requests still queued, and writes
              latency.csv  (elapsed_seconds, latency_ms, ok)  live, one row per finished request
              requests.csv (arrival_s, start_s, done_s, latency_ms, ok)
-             summary.json (requests, served, not served, the settings)
+             summary.json (requests, served, not served, t0_epoch: the wall clock at time 0, the settings)
+Any other workload (vLLM, TensorRT-LLM, an MLPerf inference harness) plugs into the bench through WORKLOAD_CMD
+(scripts/gpu_paired.sh) by writing the same three files; tools/gpu_reps.py checks them.
              A request still queued when the drain ends is not served (ok = 0).
 --sim replaces the GPU by a sleep of service_ms (for the harness's own tests on machines without a GPU).
 """
@@ -80,6 +82,7 @@ def serve(a):
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     lat = open(out / "latency.csv", "w"); lat.write("elapsed_seconds,latency_ms,ok\n"); lat.flush()
     q, rows, t0 = queue.Queue(), [], time.perf_counter()
+    t0_epoch = time.time()                   # the wall clock at t0, so the bench can line requests up with its meters
     end = a.duration + a.drain
 
     def worker():
@@ -112,7 +115,7 @@ def serve(a):
         f.write("arrival_s,start_s,done_s,latency_ms,ok\n")
         for r in rows:
             f.write(",".join("" if v is None else (f"{v:.4f}" if isinstance(v, float) else str(v)) for v in r) + "\n")
-    s = {"requests": len(sched), "served": served, "not_served": len(sched) - served, "duration_s": a.duration,
+    s = {"requests": len(sched), "served": served, "not_served": len(sched) - served, "duration_s": a.duration, "t0_epoch": t0_epoch,
          "drain_s": a.drain, **{k: c[k] for k in ("iters", "service_ms", "n", "seed", "phases", "sim")}}
     (out / "summary.json").write_text(json.dumps(s, indent=1))
     print(json.dumps(s))

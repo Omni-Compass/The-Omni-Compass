@@ -132,3 +132,40 @@ Every decision is logged in `audit.jsonl`:
   no separate predictor was added for the experiment;
 - whether change was admissible, the requested and granted authority, and which shield bound decided the limit;
 - the limit written, and the requests served in the window.
+
+## Amendment 2 (2026-09-28, before any hardware trial; no smoke or confirmation data exist)
+
+Unchanged:
+- the question;
+- the arms;
+- the primary outcome;
+- the repetitions;
+- the guardrails of amendment 1.
+
+- **Watch must match native.** If the observation contrast (watch − native) on the primary outcome is proven in
+  either direction, the label is **NOT ATTRIBUTABLE: WATCH DIFFERS FROM NATIVE** and no omni result is published.
+- **One writer.** If the power limit ever reads a value that is neither Omni's last write nor the limit before it,
+  another writer is present:
+  - the governor stops writing for the rest of the run;
+  - it leaves that writer's limit alone;
+  - it exits 5;
+  - the run is invalid.
+- **Heat fails up.** While the device reports a thermal or hardware slowdown (clock-limit reason bits 0x8, 0x20,
+  0x40, 0x80), no lower limit is written.
+- **Credit per write (descriptive).** Each write owns the interval to the next. For that interval, the table records
+  GPU joules and requests finished, Omni minus native, at the same moments of the same seeded stream. It records who
+  decided the write: the engine, a floor, the busy gate, a reflex, heat, or the speed lock. The table says which rule
+  produced the joules; a speed-lock result is not credited to the engine.
+- **CPU side (secondary, never on the control path).** RAPL counters are read by domain name at both ends of each arm:
+  - `package-N` is summed as CPU package; `dram` is summed separately;
+  - `psys` is recorded and never added to either;
+  - wrapping is undone with `max_energy_range_uj`;
+  - a counter that went backwards without a known range, or is missing, prints UNAVAILABLE.
+  - The governor never reads these counters.
+- **Device energy counter (cross-check, secondary).** Where NVML reports it (Volta and newer), the card's total-energy
+  counter is read at both ends of each arm, beside the integrated power.draw.
+- **Card health (descriptive).** Uncorrected and corrected ECC error counts, and pages pending retirement, are read at
+  both ends of each arm.
+- **Workload plug.** Any workload may be served through `WORKLOAD_CMD` if it writes the pinned workload's files. It
+  needs its own response-time target (`SLO_MS`). The command is recorded in the receipt. A confirmation names its
+  workload before the first trial.

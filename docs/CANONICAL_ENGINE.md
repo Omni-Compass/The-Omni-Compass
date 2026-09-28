@@ -37,8 +37,8 @@ being rewritten. Every evidence claim names the mechanism id that produced it; "
 
 | Configuration | Mechanism id | Role |
 |---|---|---|
-| `symmetric_verified` | `7ce24080f596033ef63bd52912660008731ac444fc4f345d88d6cf26d53ba5da` | canonical |
-| `printed_eight_line` | `b151b8d8c8f64478c166eed6d138e070d00428ebee9c4d7afb3878114b5861da` | named alternative embodiment |
+| `symmetric_verified` | `29d9808dfb8f626ad5de17a8a1efa37411dbab08a64af4b276143b466f7ce21c` | canonical |
+| `printed_eight_line` | `cd333dc166fb7684ec0fca71f5f50488041e47825ee47d1ea667bec1f3d2259d` | named alternative embodiment |
 
 On the frozen 500-fixture population (`benchmarks/core_evidence.py`, seed 223387268), both are executable and neither
 is a stand-in for the other:

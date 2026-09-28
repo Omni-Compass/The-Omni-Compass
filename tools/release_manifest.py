@@ -27,7 +27,7 @@ GROUPS = {
     "live_set_21": ["results/live/LIVE_REPS_21.md", "results/live/SET21_ARTIFACTS.json"],
     "preregistration": ["results/PREREGISTRATION.json", "results/LOCK_AMENDMENTS.json"],
     "mechanism": ["results/MECHANISM_IDENTITY.json", "tools/mechanism_identity.py", "docs/TRACKING_THEOREM.md",
-                  "tools/tracking_bounds.py", "results/TRACKING_BOUNDS.json", "docs/EVIDENCE_LEDGER.md"],
+                  "tools/tracking_bounds.py", "results/TRACKING_BOUNDS.json", "docs/EVIDENCE_LEDGER.md", "RECEIPT.md"],
     "license": ["LICENSE", "NOTICE"],
 }
 # engine components checked identical to this release's at each execution commit (tools/mechanism_identity.py

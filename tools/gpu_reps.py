@@ -37,14 +37,16 @@ T95 = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8:
        12: 2.179, 13: 2.160, 14: 2.145, 15: 2.131, 16: 2.120, 17: 2.110, 18: 2.101, 19: 2.093, 20: 2.086}
 LOWER = {"energy, whole machine at the wall (J)", "energy, GPU (J)", "energy per served request (J)", "power, GPU mean (W)", "temperature, peak (C)",
          "temperature, mean (C)", "requests not served", "response time, mean (ms)", "response time, 95th percentile (ms)",
-         "response time, 99th percentile (ms)", "energy, CPU package (J)", "energy, rest of the machine (J)"}
+         "response time, 99th percentile (ms)", "energy, CPU package (J)", "energy, rest of the machine (J)",
+         "energy, DRAM (J)", "energy, platform psys (J)", "energy, GPU device counter (J)"}
 PRIMARY = "work per energy (served requests per kJ)"
 WALL = "work per wall energy (served requests per kJ, whole machine)"
 KEYS = [PRIMARY, WALL, "energy, whole machine at the wall (J)", "energy, GPU (J)", "energy per served request (J)", "power, GPU mean (W)", "requests served", "requests not served",
         "response time, mean (ms)", "response time, 95th percentile (ms)", "response time, 99th percentile (ms)",
-        "temperature, peak (C)", "temperature, mean (C)", "energy, CPU package (J)", "energy, rest of the machine (J)",
-        "power-capped share of samples"]
-PHYSICAL = {"energy, whole machine at the wall (J)", "energy, CPU package (J)", "energy, rest of the machine (J)", WALL}
+        "temperature, peak (C)", "temperature, mean (C)", "energy, CPU package (J)", "energy, DRAM (J)", "energy, platform psys (J)",
+        "energy, rest of the machine (J)", "energy, GPU device counter (J)", "power-capped share of samples"]
+PHYSICAL = {"energy, whole machine at the wall (J)", "energy, CPU package (J)", "energy, rest of the machine (J)", WALL,
+            "energy, DRAM (J)", "energy, platform psys (J)", "energy, GPU device counter (J)"}
 
 
 def smi_time(s):
@@ -99,7 +101,8 @@ def arm(d, gpus):
          "response time, 95th percentile (ms)": pct(ms, 0.95), "response time, 99th percentile (ms)": pct(ms, 0.99),
          "temperature, peak (C)": peak, "temperature, mean (C)": sum(temps) / len(temps) if temps else float("nan"),
          "energy, CPU package (J)": float("nan"), "energy, whole machine at the wall (J)": float("nan"), WALL: float("nan"),
-         "energy, rest of the machine (J)": float("nan"), "power-capped share of samples": capped / nre if nre else float("nan")}
+         "energy, rest of the machine (J)": float("nan"), "energy, DRAM (J)": float("nan"), "energy, platform psys (J)": float("nan"),
+         "power-capped share of samples": capped / nre if nre else float("nan")}
     if (d / "wall.csv").exists():
         w = [(float(r["epoch_s"]), float(r["watts"])) for r in csv.DictReader(open(d / "wall.csv")) if r["watts"]]
         w = [x for x in w if t0 <= x[0] <= t1]
@@ -108,14 +111,19 @@ def arm(d, gpus):
             wj = sum((b[0] - a[0]) * (a[1] + b[1]) / 2.0 for a, b in zip(w, w[1:]))
             g["energy, whole machine at the wall (J)"] = wj
             g[WALL] = served / (wj / 1000.0) if wj > 0 else float("nan")
-    if (d / "rapl_start.txt").exists() and (d / "rapl_end.txt").exists():
-        a = [int(x) for x in (d / "rapl_start.txt").read_text().split()]; b = [int(x) for x in (d / "rapl_end.txt").read_text().split()]
-        rng = [int(x) for x in (d / "rapl_range.txt").read_text().split()] if (d / "rapl_range.txt").exists() else [0] * len(a)
-        if a and len(a) == len(b):
-            g["energy, CPU package (J)"] = sum(((y - x) % r if r else (y - x)) for x, y, r in zip(a, b, rng)) / 1e6
-    # the rest of the machine only when all three meters measured this arm: wall − GPU − CPU package, never modelled
+    g.update(rapl_energy(d))
+    g["energy, GPU device counter (J)"] = float("nan")
+    dv0, dv1 = _kv(d / "device_start.txt"), _kv(d / "device_end.txt")
+    try:
+        g["energy, GPU device counter (J)"] = (float(dv1["energy_mj"]) - float(dv0["energy_mj"])) / 1000.0
+    except (KeyError, ValueError):
+        pass
+    # the rest of the machine only when the wall, the GPU and the CPU package measured this arm: wall − GPU − package
+    # (− DRAM where measured), never modelled
     if not math.isnan(g["energy, whole machine at the wall (J)"]) and not math.isnan(g["energy, CPU package (J)"]):
-        g["energy, rest of the machine (J)"] = g["energy, whole machine at the wall (J)"] - joules - g["energy, CPU package (J)"]
+        dram = g["energy, DRAM (J)"]
+        g["energy, rest of the machine (J)"] = (g["energy, whole machine at the wall (J)"] - joules - g["energy, CPU package (J)"]
+                                              - (0.0 if math.isnan(dram) else dram))
     writes = would = 0
     if (d / "audit.jsonl").exists():
         for line in open(d / "audit.jsonl"):
@@ -125,7 +133,135 @@ def arm(d, gpus):
         if (d / "limit_end.txt").exists() else False
     gx = (d / "governor_exit.txt").read_text().strip() if (d / "governor_exit.txt").exists() else None
     return g, {"limits_seen": sorted(limits), "enforced_seen": sorted(enforced), "writes": writes, "would_write": would,
-               "restored": restored, "governor_exit": gx, "samples": sum(map(len, series.values())), **receipts(d)}
+               "restored": restored, "governor_exit": gx, "samples": sum(map(len, series.values())), "health": health(d),
+               **receipts(d)}
+
+
+def _kv(f):
+    return dict(x.split(" ", 1) for x in f.read_text().splitlines() if " " in x) if f.exists() else {}
+
+
+def health(d):
+    """Card health over the arm (bench only): change in uncorrected and corrected ECC errors, pages pending retirement."""
+    a, b = _kv(d / "device_start.txt"), _kv(d / "device_end.txt"); out = {}
+    for k in ("ecc.errors.uncorrected.volatile.total", "ecc.errors.corrected.volatile.total", "retired_pages.pending"):
+        try:
+            out[k] = float(b[k]) - float(a[k]) if k != "retired_pages.pending" else b[k]
+        except (KeyError, ValueError):
+            out[k] = None
+    return out
+
+
+def rapl_delta(e0, e1, rng):
+    """A wrapping microjoule counter's increase: modular when the range is known; unknown (None) if it went backwards
+    without one."""
+    if e1 >= e0:
+        return e1 - e0
+    return e1 - e0 + rng if rng > 0 else None
+
+
+def rapl_energy(d):
+    """CPU package and DRAM joules (summed over sockets, separately) and platform (psys) joules from rapl_start.tsv /
+    rapl_end.tsv; NaN (printed UNAVAILABLE) where the counters were missing or unreadable. package + dram is the CPU
+    side; psys is a wider, vendor-defined scope and is never added to them."""
+    out = {"energy, CPU package (J)": float("nan"), "energy, DRAM (J)": float("nan"), "energy, platform psys (J)": float("nan")}
+    f0, f1 = d / "rapl_start.tsv", d / "rapl_end.tsv"
+    if f0.exists() and f1.exists():
+        rd = lambda f: {x.split()[0]: x.split() for x in f.read_text().splitlines() if len(x.split()) == 4}
+        a, b = rd(f0), rd(f1)
+        sums = {}
+        for dom, (_, name, e0, rng) in a.items():
+            if dom not in b:
+                continue
+            kind = "package" if name.startswith("package") else name
+            dl = rapl_delta(int(e0), int(b[dom][2]), int(rng))
+            sums.setdefault(kind, []).append(dl)
+        for kind, key in (("package", "energy, CPU package (J)"), ("dram", "energy, DRAM (J)"), ("psys", "energy, platform psys (J)")):
+            if sums.get(kind) and None not in sums[kind]:
+                out[key] = sum(sums[kind]) / 1e6
+    elif (d / "rapl_start.txt").exists() and (d / "rapl_end.txt").exists():      # runs recorded before the named format
+        a = [int(x) for x in (d / "rapl_start.txt").read_text().split()]; b = [int(x) for x in (d / "rapl_end.txt").read_text().split()]
+        rng = [int(x) for x in (d / "rapl_range.txt").read_text().split()] if (d / "rapl_range.txt").exists() else [0] * len(a)
+        dl = [rapl_delta(x, y, r) for x, y, r in zip(a, b, rng)]
+        if a and len(a) == len(b) and None not in dl:
+            out["energy, CPU package (J)"] = sum(dl) / 1e6
+    return out
+
+
+def credit(root, runs_dirs):
+    """Per write, credited against the same moments of the same seeded request stream in the native arm (and the watch
+    arm): GPU joules and requests finished in the interval from this write to the next, omni minus native. The
+    intervals tile the arm, so the credits add up to the whole difference they cover. Also who decided each write."""
+    rows = []
+    for rep, arms in runs_dirs.items():
+        if "omni" not in arms or "native" not in arms:
+            continue
+        do = arms["omni"]
+        if not (do / "audit.jsonl").exists():
+            continue
+        recs = [json.loads(x) for x in open(do / "audit.jsonl") if x.strip()]
+        t_start = float((do / "window_start.txt").read_text().split()[0]); t_end = float((do / "window_end.txt").read_text().split()[0])
+        last_dec, writes = {}, []
+        for r in recs:
+            if "decision" in r:
+                for gk, v in r["decision"].items():
+                    if "decided_by" in v:
+                        last_dec[gk] = v["decided_by"]
+            if "actuator" in r and r["actuator"].get("rc") == 0:
+                a = r["actuator"]
+                writes.append((a["t_requested"] - t_start, a["requested_w"], last_dec.get(str(a["gpu"]), "?")))
+        if not writes:
+            continue
+        L = t_end - t_start
+        edges = [w[0] for w in writes] + [L]
+        series = {a: _series(arms[a], t0=float((arms[a] / "window_start.txt").read_text().split()[0])) for a in ("omni", "native", "watch") if a in arms}
+        done = {a: _done(arms[a]) for a in series}
+        for (t, w, who), t_next in zip(writes, edges[1:]):
+            if t_next <= t:
+                continue
+            row = {"rep": rep, "t_s": round(t, 1), "limit_w": w, "decided_by": who, "interval_s": round(t_next - t, 1)}
+            for a in ("native", "watch"):
+                if a in series:
+                    row[f"dJ_vs_{a}"] = _energy(series["omni"], t, t_next) - _energy(series[a], t, t_next)
+                    row[f"dserved_vs_{a}"] = _count(done["omni"], t, t_next) - _count(done[a], t, t_next)
+            rows.append(row)
+    by = {}
+    for r in rows:
+        b = by.setdefault(r["decided_by"], {"writes": 0, "dJ_vs_native": 0.0, "dserved_vs_native": 0, "seconds": 0.0})
+        b["writes"] += 1; b["dJ_vs_native"] += r.get("dJ_vs_native", 0.0); b["dserved_vs_native"] += r.get("dserved_vs_native", 0)
+        b["seconds"] += r["interval_s"]
+    return rows, by
+
+
+def _series(d, t0):
+    fields = ((d / "smi_fields.txt").read_text().strip() if (d / "smi_fields.txt").exists() else SMI_DEFAULT).split(",")
+    s = []
+    for r in csv.reader(open(d / "smi.csv")):
+        if len(r) >= len(fields) and r[1].strip().isdigit():
+            try:
+                s.append((smi_time(r[0]) - t0, float(r[2])))
+            except ValueError:
+                pass
+    return sorted(s)
+
+
+def _energy(s, a, b):
+    pts = [x for x in s if a <= x[0] <= b]
+    return sum((q[0] - p[0]) * (p[1] + q[1]) / 2.0 for p, q in zip(pts, pts[1:]))
+
+
+def _done(d):
+    """Finish times of served requests on the arm's own window clock (the workload's t0_epoch against window_start)."""
+    off = 0.0
+    if (d / "summary.json").exists():
+        t0e = json.loads((d / "summary.json").read_text()).get("t0_epoch")
+        if t0e:
+            off = t0e - float((d / "window_start.txt").read_text().split()[0])
+    return [float(r["done_s"]) + off for r in csv.DictReader(open(d / "requests.csv")) if r["ok"] == "1" and r["done_s"]]
+
+
+def _count(ts, a, b):
+    return sum(1 for t in ts if a <= t < b)
 
 
 def receipts(d):
@@ -198,10 +334,14 @@ def receipts(d):
                                "by_predicted_size": {k: (x[0] / x[1] if x[1] else None, x[1]) for k, x in bins.items()}}}
 
 
-def label(prim, g_served, g_p95, g_lost, valid):
-    """The result label, by rule (docs/GPU_PREREGISTRATION.md), from the primary verdict and the three guardrails."""
+def label(prim, g_served, g_p95, g_lost, valid, observation=None):
+    """The result label, by rule (docs/GPU_PREREGISTRATION.md), from the primary verdict, the three guardrails, and the
+    observation contrast: if Omni watching (writing nothing) already differs from native on the primary outcome, proven
+    either way, the effect cannot be credited to Omni's authority and no omni result is published."""
     if not valid:
         return "INVALID"
+    if observation in ("better, proven", "worse, proven"):
+        return "NOT ATTRIBUTABLE: WATCH DIFFERS FROM NATIVE"
     ok = g_served and g_p95 and g_lost
     if prim == "better, proven":
         return "SUPERIOR WITHIN GUARDRAILS" if ok else "ENERGY IMPROVEMENT WITH SERVICE TRADEOFF"
@@ -229,13 +369,13 @@ def main(root):
         gpus = [int(x) for x in str(receipt.get("gpus", "0")).split(",")]
     start0 = (root / "snapshot.txt").read_text().split() if (root / "snapshot.txt").exists() else []
     start = start0
-    runs, checks, problems = {}, {}, []
+    runs, checks, problems, dirs = {}, {}, [], {}
     for d in sorted(root.glob("rep-*/*")):
         if not (d / "requests.csv").exists():
             continue
         rep, a = d.parent.name.split("-", 1)[1], d.name
         start = (d.parent / "snapshot.txt").read_text().split() if (d.parent / "snapshot.txt").exists() else start0
-        g, c = arm(d, gpus)
+        g, c = arm(d, gpus); dirs.setdefault(rep, {})[a] = d
         runs.setdefault(a, {})[rep] = g; checks.setdefault(a, {})[rep] = c
         lim = [f"{x:.2f}" for x in c["limits_seen"]]
         if a in ("native", "watch") and start and any(all(abs(x - float(s)) >= 1.0 for s in start) for x in c["limits_seen"]):
@@ -319,8 +459,8 @@ def main(root):
         g_served = sv is not None and sv["ci95"][0] >= -MARGIN_SERVED * abs(sv["native"])
         g_p95 = p95 is not None and p95["ci95"][1] <= MARGIN_P95 * abs(p95["native"])
         g_lost = lost is None or sv is None or lost["ci95"][1] <= MARGIN_LOST * abs(sv["native"])
-        head = label(prim, g_served, g_p95, g_lost, not problems)
         wv = out["paired"].get("watch", {}).get(PRIMARY, {}).get("verdict")
+        head = label(prim, g_served, g_p95, g_lost, not problems, wv)
         av = out["paired"].get("omni_vs_watch", {}).get(PRIMARY, {}).get("verdict")
         out["headline"] = {"primary": prim, "guardrail_served": g_served, "guardrail_p95": g_p95, "guardrail_not_served": g_lost,
                            "verdict": head, "watch_primary": wv, "authority_primary": av,
@@ -338,6 +478,16 @@ def main(root):
                  f"{_f(po[WALL]['native'])} -> {_f(po[WALL]['omni'])} served requests per kJ."] if WALL in po else []),
               f"**Result, by rule: {head}.**", ""]
     L += receipt_lines(checks)
+    crows, cby = credit(root, dirs)
+    out["credit"] = {"writes": crows, "by_decider": cby}
+    if cby:
+        L += ["## Credit per write (against native at the same moments of the same request stream)", "",
+              "Each write owns the interval until the next write. Joules and requests finished in it, Omni governing minus native; "
+              "the intervals tile the arm, so the credits add up. The decider is the rule that set the written limit "
+              "(engine, a floor, the busy gate, a reflex, heat, the speed lock).", "",
+              "| Decided by | Writes | Seconds owned | GPU joules vs native | Requests finished vs native |", "|---|---:|---:|---:|---:|"]
+        L += [f"| {k} | {v['writes']} | {v['seconds']:.0f} | {v['dJ_vs_native']:+.4g} | {v['dserved_vs_native']:+d} |" for k, v in sorted(cby.items())]
+        L.append("")
     L += ["## The control", "", f"- Power-limit writes executed: " + ", ".join(f"{names[a]} {wr[a]}" for a in cols) + ".",
           "- Every arm ended at the start limit." if not any("restore" in p for p in problems) else "- An arm did NOT end at the start limit.",
           "- Energy is the device's own power.draw integrated over time; no number here is modelled.", ""]
