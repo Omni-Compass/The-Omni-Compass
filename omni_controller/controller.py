@@ -114,6 +114,7 @@ class Controller:
         self.gn = Governor(law=mode_law("fleet")); self.gn.set_mode(OBSERVE)
         self.rec_n = None
         self.changed = {}
+        self.target_at = {}            # (ns, hpa) -> when I last set its target
         self.nodes_restored = False
         self.m = Muscles(self.k, a, self.audit)
         self.cl = None
@@ -453,6 +454,15 @@ class Controller:
                     continue
                 if cur == want_h:
                     continue
+                # the muscle's own clock: the autoscaler takes its scale-down window (300 s unless the operator set one)
+                # to answer a target. A new target inside that window moves the muscle mid-movement and starts pods it
+                # then removes, so I hold each target for one window. A response-time breach returns the operator's
+                # target at once
+                win = float(((h["spec"].get("behavior") or {}).get("scaleDown") or {}).get("stabilizationWindowSeconds", 300))
+                last = self.target_at.get((ns, name))
+                if obs["slo_clean"] and last is not None and time.time() - last < win:
+                    continue
+                self.target_at[(ns, name)] = time.time()
                 self.changed.setdefault((ns, name), int(h["metadata"].get("annotations", {}).get(ANNOTATION, cur)))
                 self.k.write(["annotate", "hpa", name, "-n", ns, "--overwrite", f"{ANNOTATION}={self.changed[(ns, name)]}"], "record original target")
                 self.k.write(["patch", "hpa", name, "-n", ns, "--type=json", "-p",

@@ -107,8 +107,19 @@ def main():
         os.utime(lf); c3.step()
         seen.append(json.loads(Path(p3).read_text())["hpas"][0]["spec"]["metrics"][0]["resource"]["target"]["averageUtilization"])
     assert seen[0] == 50 and seen[-1] == 95, seen
+    # the muscle's own clock: a new target inside the autoscaler's scale-down window (300 s) is held back; after it,
+    # the target follows. A machine leaving service changes the guaranteed share (10 over 2 machines: 5 a machine,
+    # 760m, g 1.52 -> 76%)
+    S3 = json.loads(Path(p3).read_text()); S3["nodes"] = S3["nodes"][:2]
+    S3["pods"] = [q for q in S3["pods"] if q["spec"]["nodeName"] in ("w0", "w1")]; Path(p3).write_text(json.dumps(S3))
+    os.utime(lf); c3.step()
+    held = json.loads(Path(p3).read_text())["hpas"][0]["spec"]["metrics"][0]["resource"]["target"]["averageUtilization"]
+    assert held == 95, held
+    c3.target_at = {k: v - 301 for k, v in c3.target_at.items()}; os.utime(lf); c3.step()
+    moved = json.loads(Path(p3).read_text())["hpas"][0]["spec"]["metrics"][0]["resource"]["target"]["averageUtilization"]
+    assert moved == 76, moved
     print("convey: w0 1900m x2, w1 2800m, w2 left at 500m (crowded); requests untouched; no rollout; kill restored 500m; "
-          "hold blocks expansion; HPA target 50 -> 95 once clean (the guaranteed share, same queue promise); closed machine with work: in service 3, open 2")
+          "hold blocks expansion; HPA target 50 -> 95 once clean (the guaranteed share, same queue promise), held for the autoscaler's window, then 76; closed machine with work: in service 3, open 2")
     print("PASS test_convey")
 
 

@@ -156,6 +156,10 @@ hold for the muscle.
 machines in service, divided by your limit. That target moves only when a machine idles or wakes, never each time a pod
 starts or leaves.
 
+**The muscle's own clock.** I hold each target for your autoscaler's scale-down window (300 s unless you set one), the
+time it takes to answer a target. A target moved faster would pull the muscle mid-movement and start pods it then
+removes. A response-time breach returns your own target at once.
+
 The reflex that raises the floor itself exists (`--pod-reflex-writes`); it is off unless you turn it on.
 
 ### 6. My energy is moved, never created
