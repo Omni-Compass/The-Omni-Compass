@@ -9,10 +9,18 @@ ROOT = Path(__file__).resolve().parents[1]; sys.path.insert(0, str(ROOT))
 from pilot.bench_report import gauges, latency, pod_starts, LOWER_BETTER
 
 T95 = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262}
-KEYS = ["worker nodes in service, mean", "node-hours", "energy (Wh)", "response time (ms), mean", "response time (ms), 95th percentile",
+KEYS = ["worker nodes in service, mean", "node-hours", "energy, parked workers still on at idle power (Wh)", "energy (Wh)", "response time (ms), mean", "response time (ms), 95th percentile",
         "response time (ms), 99th percentile", "failed requests (%)", "pending pods, pod-minutes", "utilisation (used / allocatable)",
         "CPU used (cores), mean", "energy per core-hour (Wh)", "HPA replicas, mean",
         "pods started", "pod start wait, total (s)", "pod start wait, mean (s)"]
+
+
+LABEL = {"energy, parked workers still on at idle power (Wh)": "energy, parked workers still on at idle power (Wh, declared model)",
+         "energy (Wh)": "energy, parked workers at 25 W standby (Wh, declared model; kind never does this)",
+         "energy per core-hour (Wh)": "energy per core-hour (Wh, the 25 W standby model)"}
+NOTE = ["**Energy on kind is a declared model, not a meter.** Every worker stays powered and Ready in every arm; the first",
+        "energy row counts a parked worker at its full idle power, which is what kind does. The second counts it at the",
+        "declared standby power, which needs a node autoscaler that really removes the machine; this run has none.", ""]
 
 
 def arm_gauges(d):
@@ -35,8 +43,8 @@ def main(root):
     names = {"native": "Native", "watch": "Omni watches only", "omni": "Omni on top", "strict": "Omni alone"}
     L += ["## All columns, mean over repetitions", "", "| Gauge | " + " | ".join(names[a] for a in cols) + " |",
           "|---|" + "---:|" * len(cols)]
-    L += [f"| {k} | " + " | ".join(f"{out['means'][a][k]:.4g}" for a in cols) + " |" for k in KEYS]
-    L.append("")
+    L += [f"| {LABEL.get(k, k)} | " + " | ".join(f"{out['means'][a][k]:.4g}" for a in cols) + " |" for k in KEYS]
+    L += [""] + NOTE
     for a in ("watch", "omni", "strict"):
         if a not in runs or "native" not in runs:
             continue
@@ -58,7 +66,7 @@ def main(root):
             ch = (ob - nb) / abs(nb) * 100 if abs(nb) > 1e-12 else None
             out["paired"][a][k] = {"native": nb, "omni": ob, "diff": float(d.mean()), "ci95": [float(d.mean() - half), float(d.mean() + half)], "significant": bool(sig)}
             ch_s = f"{ch:+.1f}%" if ch is not None else f"{ob - nb:+.3g} (native is 0)"
-            L.append(f"| {k} | {nb:.4g} | {ob:.4g} | {ch_s} | {d.mean() - half:+.4g} to {d.mean() + half:+.4g} | "
+            L.append(f"| {LABEL.get(k, k)} | {nb:.4g} | {ob:.4g} | {ch_s} | {d.mean() - half:+.4g} to {d.mean() + half:+.4g} | "
                      f"{('yes, better' if better else 'yes, worse') if sig else 'no'} |")
         L.append("")
     (root / "LIVE_REPS.json").write_text(json.dumps(out, indent=1)); (root / "LIVE_REPS.md").write_text("\n".join(L))

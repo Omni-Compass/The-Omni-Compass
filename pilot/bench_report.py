@@ -20,6 +20,11 @@ from pilot.score import load, blocks, compare  # noqa: E402
 F = lambda r, k: float(r[k]) if r.get(k, "") not in ("", None) else float("nan")
 
 
+import os as _os
+# scripts/kind_bench.sh: a worker in use draws IDLE_W + DYN_W x utilisation; a parked worker is declared at IDLE_W x PARK_FRAC
+PARKED_EXTRA_W = float(_os.environ.get("IDLE_W", 100)) * (1.0 - float(_os.environ.get("PARK_FRAC", 0.25)))
+
+
 def gauges(rows):
     t = np.array([F(r, "elapsed_seconds") for r in rows])
     dt = np.diff(np.append(t, t[-1] + (t[-1] - t[-2] if len(t) > 1 else 15.0))) / 3600.0
@@ -37,6 +42,10 @@ def gauges(rows):
         "power (W), mean": np.nansum(pw * dt) / hours if not np.isnan(pw).all() else float("nan"),
         "power (W), peak": np.nanmax(pw) if not np.isnan(pw).all() else float("nan"),
         "energy (Wh)": np.nansum(pw * dt) if not np.isnan(pw).all() else float("nan"),
+        # the honest row: kind never powers a parked worker off, so it draws its full idle power, not the declared
+        # standby (scripts/kind_bench.sh IDLE_W x PARK_FRAC); add the difference for every parked worker-hour
+        "energy, parked workers still on at idle power (Wh)": (np.nansum(pw * dt) + PARKED_EXTRA_W * ((nodes.max() - nodes) * dt).sum())
+            if not np.isnan(pw).all() else float("nan"),
         "CPU used (cores), mean": core_h / hours,
         "CPU allocatable (cores), mean": (alloc * dt).sum() / hours,
         "utilisation (used / allocatable)": core_h / max((alloc * dt).sum(), 1e-9),
@@ -86,6 +95,7 @@ def pod_starts(d):
 
 
 LOWER_BETTER = {"worker nodes in service, mean", "node-hours", "power (W), mean", "power (W), peak", "energy (Wh)",
+                "energy, parked workers still on at idle power (Wh)",
                 "energy per core-hour (Wh)", "node-hours per core-hour", "pending pods, pod-minutes", "pending pods, peak",
                 "HPA shortfall (desired > current), minutes", "HPA replicas, mean", "pods started", "pod start wait, total (s)",
                 "pod start wait, mean (s)", "response time (ms), mean", "response time (ms), median",
