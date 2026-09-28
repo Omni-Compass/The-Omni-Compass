@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-3b4e41f36ac3",
- "written_at_commit": "3b4e41f36ac32cc60ccf50a23a80af2bb70336ab",
- "written_at": "2026-09-28T22:38:44+00:00",
+ "release_id": "omni-compass-428eab64099e",
+ "written_at_commit": "428eab64099ed063503ae0218252125cdf8279ec",
+ "written_at": "2026-09-28T22:47:25+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "29d9808dfb8f626ad5de17a8a1efa37411dbab08a64af4b276143b466f7ce21c",
  "mechanism_configuration": "symmetric_verified",
@@ -61,6 +61,11 @@
    "results/live/LIVE_REPS_21.md": "24e06b1ef41a2b31fc95d562f14bde31763f47a618cf4d82c25ef2a5b48ba1fc",
    "results/live/SET21_ARTIFACTS.json": "133139f606e4d5dc7abd4cfff6634dcc1a3ade8dc7788ffef708a1c781e8c167"
   },
+  "live_set_22": {
+   "results/live/LIVE_REPS_22.md": "26913d154d4ca8b1d30fcd4c0949bcc0cb1af6f8dc80b8789eddf06730049d8a",
+   "results/live/SET22_ARTIFACTS.json": "93663084c438e37b7fc7bebd246676c7a0498feea5b9056435c5a1663c693f54",
+   "results/live/reaggregated/LIVE_REPS_36488547793.md": "ce8ed296ebeee802ae1d3d197113f6d37d67c1a2add81824ffeec2cc1d367a86"
+  },
   "preregistration": {
    "results/PREREGISTRATION.json": "a659e6a5f81dcf6c8c26ead7b8f914ba951956be8428521d87f05f429cb96848",
    "results/LOCK_AMENDMENTS.json": "4744d04bf460b1640c74e4d893919c6bac25b4800d4216094aa4c575e07c2c80"
@@ -71,8 +76,8 @@
    "docs/TRACKING_THEOREM.md": "73d3224963f31e0fbacda3e4755a8f3832c937e53553202f46e23ae28d86fb1f",
    "tools/tracking_bounds.py": "c5fc54965f14a4757f1c6c47d53f2a1011f8b1660d66e21b7b6c2e81aac6e9e1",
    "results/TRACKING_BOUNDS.json": "154ed508c98c4c64775738cfac9a18853b3db6f83d50db094da516c1adfffa0f",
-   "docs/EVIDENCE_LEDGER.md": "5b7c5b88f58d06eca5c56fdce2a115cd2260228d515fdb5d5b5f5d5e561dfa06",
-   "RECEIPT.md": "23d9eb5122d1512ffd56bca9e36216b71ac9e33fa036b1606fdc94c69616b4b6"
+   "docs/EVIDENCE_LEDGER.md": "f053d355f639591ecde5471738cb6205a320a4f126cadf451db3953496b672f3",
+   "RECEIPT.md": "01837f7fcc04f86de28b772f14fb9fe0d84e1ac0ddca3e359974a112a19cac05"
   },
   "license": {
    "LICENSE": "fe5da67a0c6cbb24d27278a26a82d70501917845eb357045189eb5560dac6b62",
@@ -107,12 +112,27 @@
     "dt"
    ],
    "raw": "GitHub artifacts, digests in results/live/SET21_ARTIFACTS.json; recomputed by reaggregate run 36485672281"
+  },
+  "set_22": {
+   "run_id": 36488547793,
+   "execution_commit": "cfdc17c",
+   "repetitions": 10,
+   "plant": "kind (GitHub Actions)",
+   "load": "open-loop, fixed rate (equal work)",
+   "engine_components_identical_to_release": [
+    "F",
+    "C",
+    "h",
+    "G",
+    "dt"
+   ],
+   "raw": "GitHub artifacts, digests in results/live/SET22_ARTIFACTS.json; recomputed by the reaggregate workflow"
   }
  },
  "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card",
  "verification_receipt": {
   "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "333ba813bc026fbd48aa7026d16057c456bdef12b82bfcf90b038685347cfd25",
+  "sha256": "4218034b05c857bedd1e8b1a652fb5aa4360b139e1d1eebc691de886396ee237",
   "passed": true
  }
 }
