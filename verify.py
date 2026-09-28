@@ -253,6 +253,8 @@ def main():
     test_muscles_levers.main(); check("live levers: rightsize, coldstart, batch pace, containment, cooling; kill restores every one, also from a fresh process", True)
     from tests import test_pod_starts
     test_pod_starts.main(); check("exact pod-start timing from the API server's watch stream (creation to Ready, window-bounded)", True)
+    from tests import test_gpu_bench
+    test_gpu_bench.main(); check("GPU bench: watch writes nothing, limit never below draw x 1.3, read-back, blind and SLO reflexes, kill restores; paired run validity", True)
     from tests import test_convey
     test_convey.main(); check("energy to where the work is: idle machine CPU conveyed to serving pods in place, band-bounded, kill restores", True)
     from tests import test_active_nodes

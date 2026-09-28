@@ -2,6 +2,12 @@
 
 A six-state control engine that governs Kubernetes: Kubernetes stays as the execution layer, Omni-Compass is the single authority above it.
 
+**Where it stands, plainly.** Omni-Compass is a small supervisory governor. It reads power and queue, writes caps and
+taints, and can be killed clean. It does not replace your autoscaler. Use it on top, in shadow first. Connectors for
+RAPL, nvidia-smi and a site meter are in the controller; nobody has yet published a run of them on real hardware. On
+kind, energy is a declared model, not a meter. The first metered test is one command on any NVIDIA GPU machine:
+`sudo bash scripts/gpu_paired.sh` (`docs/GPU_BENCH.md`).
+
 ## Start here (evaluators, pilots, licensees)
 
 1. **`STATE_OF_PLAY.md`**: every claim, where its evidence is, and what still loses. Simulation results and live

@@ -1,5 +1,8 @@
 # Omni-Compass: state of play, 27 September 2026 (read this first)
 
+> **Superseded for live results.** The live evidence below predates sets 19 and 20. The current live table is `results/live/LIVE_PAIRED.md`; energy on kind is a declared model, not a meter. The first metered test is `scripts/gpu_paired.sh` (`docs/GPU_BENCH.md`).
+
+
 This is the whole repository at the commit named in `STATE_OF_PLAY_COMMIT.txt`. Everything below can be rerun from it.
 
 **Run it live on real Kubernetes yourself:** on any machine with Docker, kind, kubectl and Python, run
