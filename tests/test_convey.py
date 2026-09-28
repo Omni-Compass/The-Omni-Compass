@@ -102,7 +102,7 @@ def main():
                   "status": {"currentReplicas": 4, "desiredReplicas": 4}}]
     Path(p3).write_text(json.dumps(S))
     lf = Path(t3) / "latency.csv"; lf.write_text("elapsed_seconds,latency_ms,ok\n" + "".join(f"{i},100,1\n" for i in range(60)))
-    c3 = Controller(args(t3)); c3.a.slo_ms = 500.0; seen = []
+    c3 = Controller(args(t3)); c3.a.slo_ms = 500.0; c3.a.convey_on = 0.0; seen = []   # conveying always
     for _ in range(4):
         os.utime(lf); c3.step()
         seen.append(json.loads(Path(p3).read_text())["hpas"][0]["spec"]["metrics"][0]["resource"]["target"]["averageUtilization"])
@@ -118,7 +118,28 @@ def main():
     c3.target_at = {k: v - 301 for k, v in c3.target_at.items()}; os.utime(lf); c3.step()
     moved = json.loads(Path(p3).read_text())["hpas"][0]["spec"]["metrics"][0]["resource"]["target"]["averageUtilization"]
     assert moved == 76, moved
+    # only when needed: with an SLO of 500 ms, conveyance engages at p95 >= 250 ms (convey-on 0.5), holds down to
+    # 125 ms (convey-off 0.25), and below that every serving pod returns to the operator's 500m; blind engages
+    t4 = tempfile.mkdtemp(); p4 = state(t4); c4 = Controller(args(t4)); c4.a.slo_ms = 500.0
+    assert (c4.a.convey_on, c4.a.convey_off) == (0.5, 0.25), (c4.a.convey_on, c4.a.convey_off)
+    lf4 = Path(t4) / "latency.csv"
+    def probe(ms):
+        lf4.write_text("elapsed_seconds,latency_ms,ok\n" + "".join(f"{i},{ms},1\n" for i in range(60)))
+    web = lambda: [limits(p4)[n][0] for n in ("web-0", "web-1", "web-2")]
+    probe(100); c4.m.convey({})
+    assert web() == ["500m"] * 3 and c4.m.gain[("default", "web")] == 1.0, "calm: the operator's limit, gain 1"
+    probe(300); c4.m.convey({})
+    assert web() == ["1900m", "1900m", "2800m"], "p95 over half the SLO: idle CPU conveyed"
+    probe(150); c4.m.convey({})
+    assert web() == ["1900m", "1900m", "2800m"], "inside the band: still conveying"
+    probe(100); c4.m.convey({})
+    assert web() == ["500m"] * 3, "calm again: back to the operator's limit"
+    lf4.unlink(); c4.m.convey({})
+    assert web() == ["1900m", "1900m", "2800m"], "blind: service first, conveyed"
+    ev = [json.loads(l) for l in (Path(t4) / "audit.jsonl").read_text().splitlines() if '"convey"' in l]
+    assert [e["convey"] for e in ev if e.get("convey") in ("engaged", "released")] == ["engaged", "released", "engaged"], ev
     print("convey: w0 1900m x2, w1 2800m, w2 left at 500m (crowded); requests untouched; no rollout; kill restored 500m; "
+          "only when needed: calm 500m, p95 300 ms conveys, 150 ms holds, 100 ms returns 500m, blind conveys; "
           "hold blocks expansion; HPA target 50 -> 95 once clean (the guaranteed share, same queue promise), held for the autoscaler's window, then 76; closed machine with work: in service 3, open 2")
     print("PASS test_convey")
 

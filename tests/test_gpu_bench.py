@@ -156,9 +156,35 @@ def plugs():
     srv.shutdown()
 
 
+def guards():
+    """The slowdown bounds: the limit never under --min-share of the start limit, and a busy card (smoothed utilization
+    at or over --util-gate) gets the start limit back, the cap resuming only under the gate less --util-band."""
+    from omni_controller.gpu_governor import GpuGovernor, parser as gp
+    d = Path(tempfile.mkdtemp())
+    p = state(d, draw_w=60.0, util=20)
+    g = GpuGovernor(args(d, "cap", min_share=0.75, util_gate=0.5, util_band=0.1))
+    for _ in range(6):
+        g.step()
+    assert json.load(open(p))["limit"]["0"] == 225.0, "share floor: 0.75 x 300 W, not 60 W x 1.3"
+    last = [x for x in recs(d / "audit-cap.jsonl") if "decision" in x][-1]["decision"]["0"]
+    assert last["shield_bound"] == "share_floor", last
+    s = json.load(open(p)); s["util"] = 90; json.dump(s, open(p, "w"))
+    g.step()                                              # smoothed 0.2 -> 0.55: over the gate
+    assert json.load(open(p))["limit"]["0"] == 300.0, "busy: the start limit at once"
+    s = json.load(open(p)); s["util"] = 40; json.dump(s, open(p, "w"))
+    g.step()                                              # smoothed 0.475: under the gate, inside the band: held
+    assert json.load(open(p))["limit"]["0"] == 300.0, "inside the band: still the start limit"
+    s = json.load(open(p)); s["util"] = 10; json.dump(s, open(p, "w"))
+    g.step()                                              # 0.29: under 0.4, the cap returns
+    assert json.load(open(p))["limit"]["0"] == 225.0, "calm: the cap returns"
+    a = gp().parse_args([])
+    assert (a.min_share, a.util_gate, a.util_band) == (0.75, 0.5, 0.1), "the command line's defaults"
+    assert g.restore() and json.load(open(p))["limit"]["0"] == 300.0
+
+
 def main():
-    plugs(); governor(); bench(); pooled()
-    print("PASS  GPU bench: governor contract (watch writes nothing, shield floor, read-back, blind, SLO reflex, kill) "
+    plugs(); governor(); guards(); bench(); pooled()
+    print("PASS  GPU bench: governor contract (watch writes nothing, shield floor, share floor, busy gate, read-back, blind, SLO reflex, kill) "
           "and the one-command paired run with its validity checks")
 
 

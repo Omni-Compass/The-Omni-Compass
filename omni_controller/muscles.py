@@ -366,12 +366,18 @@ class Muscles:
         operator's own limit. The machine's last five percent is never handed out (the living band), a pod never gets
         less than its operator gave it, and the requests (what the scheduler and the autoscaler read) are untouched.
         Resized in place through pods/resize: no pod restarts. No expansion during a security hold. The kill switch
-        returns every pod to L_i."""
+        returns every pod to L_i.
+
+        Only when needed (--convey-on, a share of --slo-ms): conveyance engages when the 95th-percentile response time
+        reaches convey-on x SLO and disengages below convey-off x SLO, returning every serving pod to L_i. Between
+        bursts the pods run at the operator's own limit, so the machine's spare CPU is not burned for speed nobody
+        asked for. A blind latency sense engages it (service first). --convey-on 0 conveys always."""
         from omnicompass.nervous_system import BAND
         obs = obs or {}
         targets = [ref(t) for t in filter(None, getattr(self.a, "cap_deployments", "").split(","))]
         if not targets:
             return None
+        engaged = self._convey_engaged()
         alloc = {n["metadata"]["name"]: milli(n["status"]["allocatable"]["cpu"])
                  for n in self.k.get("get", "nodes", "-o", "json")["items"]}
         pods = [p for p in self.k.get("get", "pods", "-A", "-o", "json")["items"]
@@ -402,20 +408,36 @@ class Muscles:
             for node, ps in serving.items():
                 a_j = alloc.get(node, 0.0)
                 share = (BAND[1] * a_j - other.get(node, 0.0)) / len(ps)
-                want = int(min(max(base, math.floor(share / 10.0) * 10), BAND[1] * a_j))
+                want = int(min(max(base, math.floor(share / 10.0) * 10), BAND[1] * a_j)) if engaged else int(base)
                 for p in ps:
                     cur = milli(p["spec"]["containers"][0].get("resources", {}).get("limits", {}).get("cpu", tmpl))
                     if obs.get("security_block", 0.0) > 0.5 and want > cur:
                         got.append(cur); continue  # shield I1: no expansion during a security hold
                     if abs(want - cur) < self.a.cap_min_change_m:
                         got.append(cur); continue
-                    self._resize(p, ns, f"{want}m", f"convey: {node} idle CPU to its {len(ps)} serving pod(s), limit {want}m in place")
+                    self._resize(p, ns, f"{want}m", f"convey: {node} idle CPU to its {len(ps)} serving pod(s), limit {want}m in place"
+                                 if engaged else f"convey: response time calm, operator's limit {want}m in place")
                     out[f"{ns}/{p['metadata']['name']}"] = want; got.append(want)
             # the gain g = mean conveyed limit / operator's limit: the replica organ reads it to keep the operator's
             # promise in queue terms (target x request / limit) while the limit is larger
             self.gain[(ns, name)] = (sum(got) / len(got) / base) if got and base > 0 else 1.0
             self.base[(ns, name)] = base
         return out
+
+    def _convey_engaged(self):
+        """Hysteresis on the response time: on at convey-on x SLO, off below convey-off x SLO; blind engages."""
+        on, off = getattr(self.a, "convey_on", 0.0), getattr(self.a, "convey_off", 0.0)
+        lf, slo = getattr(self.a, "latency_file", ""), getattr(self.a, "slo_ms", 0.0)
+        if not on or not lf or not slo:
+            return True
+        ls = latency_sense(lf, self.a.latency_window_s)
+        was = getattr(self, "_conveying", False)
+        now = True if ls["blind"] else (ls["p95"] >= on * slo or (was and ls["p95"] >= off * slo))
+        if now != was:
+            self.audit({"convey": "engaged" if now else "released", "p95_ms": None if ls["blind"] else round(ls["p95"], 1),
+                        "slo_ms": slo, "blind": ls["blind"]})
+        self._conveying = now
+        return now
 
     def _hardware(self, cap, obs):
         cap = 1.0 if not obs.get("slo_clean", True) else max(self.a.cap_min, min(1.0, cap))
@@ -621,6 +643,8 @@ def add_args(ap):
     ap.add_argument("--latency-file", default="", help="probe CSV (elapsed_seconds,latency_ms,ok) for the latency afferent")
     ap.add_argument("--slo-ms", type=float, default=0.0, help="95th-percentile response-time target, ms")
     ap.add_argument("--latency-window-s", type=float, default=60.0)
+    ap.add_argument("--convey-on", type=float, default=0.5, help="convey idle CPU once p95 reaches this share of --slo-ms (0: always)")
+    ap.add_argument("--convey-off", type=float, default=0.25, help="return pods to the operator's limit once p95 is below this share")
     ap.add_argument("--slo-clear", type=int, default=3, help="decisions the SLO must stay met before densifying or capping again")
     ap.add_argument("--thermal-model", action="store_true", help="heat muscle: thermal state from the harness heat law")
     ap.add_argument("--security-configmap", default="", help="ns/name of a ConfigMap whose key 'hold' signals a security hold")

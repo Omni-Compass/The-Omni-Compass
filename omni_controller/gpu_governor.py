@@ -6,8 +6,12 @@ Every decision (--interval seconds), for each GPU in --gpus:
   engine    the Omni-Compass governor, throughput law (omnicompass/adapter.py): load = utilization, power stress =
             draw / the limit found at start, heat = temperature / --temp-limit, queue = response-time pressure.
             Its directive power_cap is the share of the start limit the GPU may draw.
-  shield    limit = max(cap x start limit, draw x (1 + --headroom), the device's minimum limit), never above the start
-            limit; whole watts; a change under --min-change-w is not written
+  shield    limit = max(cap x start limit, draw x (1 + --headroom), --min-share x start limit, the device's minimum
+            limit), never above the start limit; whole watts; a change under --min-change-w is not written.
+            --min-share bounds the slowdown: a card held at that share of its limit runs a burst only a little slower.
+  busy gate utilization (smoothed over decisions) at or above --util-gate: the start limit. A busy card is the
+            bottleneck; slowing it grows the queue faster than it saves energy. The cap returns once utilization is
+            back under the gate less --util-band.
   reflexes  a blind sense (nvidia-smi unreadable, or the response-time file stale or empty): the start limit, at once
             a response-time breach (p95 > --slo-ms), and for --slo-clear decisions after it: the start limit, at once
   read-back no new write until the last one is read back from the device (power.limit within 1 W of what I wrote)
@@ -75,7 +79,9 @@ class GpuGovernor:
         self.lp_hist = []
         self.writes = 0
         self.projected = {}
-        self.reasons_ok = True     # False once the driver shows it does not report clock-limit reasons        # gpu -> the engine state I projected for the next decision
+        self.reasons_ok = True     # False once the driver shows it does not report clock-limit reasons
+        self.util_avg = {}         # gpu -> utilization smoothed over decisions (busy gate)
+        self.gated = {}            # gpu -> True while the busy gate holds the start limit
         s = query(a.smi, self.gpus)
         if s is None:
             raise SystemExit("nvidia-smi unreadable at start: no snapshot, so I take no authority")
@@ -157,14 +163,25 @@ class GpuGovernor:
                 self.projected[g] = {k: getattr(e.x, k) for k in STATE}
                 requested = float(d["power_cap"])
                 cap = requested if slo_clean else 1.0
-                floor = max(r["draw"] * (1.0 + a.headroom), self.min[g])
+                share_floor = getattr(a, "min_share", 0.0) * self.start[g]
+                floor = max(r["draw"] * (1.0 + a.headroom), self.min[g], share_floor)
                 engine_w = math.floor(cap * self.start[g])
                 want = int(min(self.start[g], max(engine_w, math.ceil(floor))))
                 bound = ("slo_or_blind_reflex" if not slo_clean else "start_ceiling" if want >= self.start[g] and engine_w >= self.start[g]
+                         else "share_floor" if math.ceil(floor) > engine_w and floor == share_floor
                          else "draw_headroom_floor" if math.ceil(floor) > engine_w and floor > self.min[g]
                          else "device_minimum" if math.ceil(floor) > engine_w else "engine")
-                why = (f"engine cap {cap:.3f} of {self.start[g]:.0f} W; floor draw {r['draw']:.0f} W x {1 + a.headroom:.2f}"
-                       if slo_clean else "response-time reflex: the limit read at start")
+                gate = getattr(a, "util_gate", 0.0)
+                if gate:
+                    u = self.util_avg[g] = 0.5 * self.util_avg.get(g, r["util"]) + 0.5 * r["util"]
+                    self.gated[g] = u >= gate or (self.gated.get(g, False) and u >= gate - getattr(a, "util_band", 0.1))
+                    if self.gated[g]:
+                        want, bound = int(self.start[g]), "busy_gate"
+                        cap = 1.0
+                why = ("response-time reflex: the limit read at start" if not slo_clean
+                       else f"busy gate: utilization {self.util_avg[g]:.2f}, the limit read at start" if bound == "busy_gate"
+                       else f"engine cap {cap:.3f} of {self.start[g]:.0f} W; floor draw {r['draw']:.0f} W x {1 + a.headroom:.2f}, "
+                            f"share floor {getattr(a, 'min_share', 0.0):.2f}")
                 self.cap[g] = want / self.start[g]
                 rec["decision"][str(g)] = {
                     "telemetry": {"util": r["util"], "draw_w": r["draw"], "temp_c": r["temp"], "limit_w": cur,
@@ -194,6 +211,9 @@ def parser():
     ap.add_argument("--audit", default="gpu_audit.jsonl")
     ap.add_argument("--kill-file", default="/tmp/omni-gpu-kill")
     ap.add_argument("--headroom", type=float, default=0.3, help="limit never below draw x (1 + headroom)")
+    ap.add_argument("--min-share", type=float, default=0.75, help="limit never below this share of the start limit (0: off)")
+    ap.add_argument("--util-gate", type=float, default=0.5, help="smoothed utilization at which the start limit returns (0: off)")
+    ap.add_argument("--util-band", type=float, default=0.1, help="the cap resumes below --util-gate less this band")
     ap.add_argument("--min-change-w", type=float, default=5.0)
     ap.add_argument("--temp-limit", type=float, default=83.0, help="GPU temperature read as heat 1.0")
     ap.add_argument("--latency-file", default="")

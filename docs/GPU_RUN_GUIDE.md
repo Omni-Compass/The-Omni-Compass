@@ -74,7 +74,7 @@ The repository is private, so GitHub needs a key:
 Then on the rented machine:
 
 ```bash
-git clone -b claude/kubernetes-clusters-docker-stack-gp26ve https://<YOUR-GITHUB-NAME>:<TOKEN>@github.com/Omni-Compass/the-omni-compass omni
+git clone -b claude/kubernetes-clusters-docker-stack-gp26ve https://<YOUR-GITHUB-NAME>:<TOKEN>@github.com/The-Omni-Compass-LLC/The-Omni-Compass omni
 cd omni
 pip install numpy          # PyTorch is already on the machine
 nvidia-smi                 # should show your GPU
@@ -125,6 +125,13 @@ scp ubuntu@123.45.67.89:omni/gpu_results.tgz .
 Send that file to Claude, or keep it. It holds every raw reading, the table, the verdict and checksums.
 
 **Then shut the rented machine down** on the rental site, so the billing stops.
+
+## Before any machine: the simulated card
+
+`python3 tools/gpu_physics_sim.py --out results/gpu/sim/after` runs Omni's own GPU governor, with its current
+settings, against a modelled card for 10 paired repetitions in about two minutes. No GPU is needed. Every number it
+prints comes from the card model, not from a meter, so it is a preview of what the governor does and never the result.
+`results/gpu/sim/before` holds the same run with the settings before the share floor and busy gate were added.
 
 ## What you will get
 
