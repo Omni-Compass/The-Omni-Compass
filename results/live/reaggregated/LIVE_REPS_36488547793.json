@@ -38,6 +38,8 @@
    "pending pods, pod-minutes": 0.265,
    "utilisation (used / allocatable)": 0.04316080891057904,
    "CPU used (cores), mean": 1.035859413853897,
+   "Omni's own CPU (cores), mean": 0.0,
+   "CPU used with Omni's own (cores), mean": 1.035859413853897,
    "energy per core-hour (Wh)": 640.7564878642579,
    "HPA replicas, mean": 8.93010347041674,
    "pods started": 3.6,
@@ -56,6 +58,8 @@
    "pending pods, pod-minutes": 0.025,
    "utilisation (used / allocatable)": 0.057557063723460054,
    "CPU used (cores), mean": 0.9568502082405248,
+   "Omni's own CPU (cores), mean": 0.06962,
+   "CPU used with Omni's own (cores), mean": 1.0264702082405246,
    "energy per core-hour (Wh)": 534.1080711280548,
    "HPA replicas, mean": 6.906297566136603,
    "pods started": 3.0,
@@ -174,6 +178,26 @@
      -0.06434139316642233
     ],
     "significant": true
+   },
+   "Omni's own CPU (cores), mean": {
+    "native": 0.0,
+    "omni": 0.06962,
+    "diff": 0.06962,
+    "ci95": [
+     0.06302926361552823,
+     0.07621073638447178
+    ],
+    "significant": true
+   },
+   "CPU used with Omni's own (cores), mean": {
+    "native": 1.035859413853897,
+    "omni": 1.0264702082405248,
+    "diff": -0.00938920561337212,
+    "ci95": [
+     -0.0239723232493174,
+     0.0051939120225731605
+    ],
+    "significant": false
    },
    "energy per core-hour (Wh)": {
     "native": 640.7564878642579,
