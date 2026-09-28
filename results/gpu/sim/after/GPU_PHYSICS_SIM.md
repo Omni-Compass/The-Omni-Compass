@@ -3,7 +3,7 @@
 Every number below comes from the card model in tools/gpu_physics_sim.py, not from a meter. It shows what
 the governor does to a card that behaves as modelled; the hardware answer is scripts/gpu_paired.sh.
 
-Governor settings: headroom 0.3, min_share 0.75, util_gate 0.5, util_band 0.1, interval 5.0
+Governor settings: headroom 0.3, min_share 0.7, util_gate 0.5, util_band 0.1, interval 2.0
 
 ### Card model gamma 3 (voltage falls with clock)
 
@@ -11,19 +11,19 @@ Governor settings: headroom 0.3, min_share 0.75, util_gate 0.5, util_band 0.1, i
 
 | Gauge | Native | Omni | Change | 95% interval of the difference |
 |---|---:|---:|---:|---:|
-| requests served per kJ | 57.64 | 59.99 | +4.1% | +2.236 to +2.462 |
-| GPU energy (J) | 1.005e+05 | 9.659e+04 | -3.9% | -4118 to -3754 |
-| GPU mean power (W) | 159.6 | 153.3 | -3.9% | -6.537 to -5.958 |
+| requests served per kJ | 57.64 | 60.56 | +5.1% | +2.817 to +3.018 |
+| GPU energy (J) | 1.005e+05 | 9.568e+04 | -4.8% | -5006 to -4679 |
+| GPU mean power (W) | 159.6 | 151.9 | -4.8% | -7.946 to -7.427 |
 | requests served | 5794 | 5794 | +0.0% | +0 to +0 |
 | requests not served | 0 | 0 | n/a | +0 to +0 |
-| response time, mean (ms) | 97.99 | 102 | +4.1% | +3.578 to +4.489 |
-| response time, 95th percentile (ms) | 267.5 | 271.1 | +1.3% | +0.3282 to +6.727 |
-| response time, 99th percentile (ms) | 420.2 | 421.7 | +0.4% | -0.2941 to +3.367 |
-| peak temperature (C) | 61.01 | 61.01 | -0.0% | -0.001652 to -0.0005261 |
-| power limit, mean (W) | 300 | 266.9 | -11.0% | -34.18 to -32.07 |
-| power-limit writes | 0 | 7.4 | n/a | +6.709 to +8.091 |
+| response time, mean (ms) | 97.99 | 102.9 | +5.0% | +4.593 to +5.164 |
+| response time, 95th percentile (ms) | 267.5 | 269.8 | +0.9% | +0.9202 to +3.697 |
+| response time, 99th percentile (ms) | 420.2 | 420.9 | +0.2% | -0.3945 to +1.821 |
+| peak temperature (C) | 61.01 | 61.01 | -0.0% | -0.004555 to -0.0002404 |
+| power limit, mean (W) | 300 | 258.8 | -13.7% | -42.19 to -40.24 |
+| power-limit writes | 0 | 17.5 | n/a | +14.28 to +20.72 |
 
-Guardrail (preregistered): 95th-percentile response time not above +10%: held (upper bound +2.5%).
+Guardrail (preregistered): 95th-percentile response time not above +10%: held (upper bound +1.4%).
 **Model verdict: better, proven.**
 
 ### Card model gamma 1.5 (near its voltage floor)
@@ -32,18 +32,18 @@ Guardrail (preregistered): 95th-percentile response time not above +10%: held (u
 
 | Gauge | Native | Omni | Change | 95% interval of the difference |
 |---|---:|---:|---:|---:|
-| requests served per kJ | 57.64 | 58.32 | +1.2% | +0.6357 to +0.7208 |
-| GPU energy (J) | 1.005e+05 | 9.935e+04 | -1.2% | -1241 to -1097 |
-| GPU mean power (W) | 159.6 | 157.7 | -1.2% | -1.969 to -1.742 |
+| requests served per kJ | 57.64 | 58.41 | +1.3% | +0.7487 to +0.7905 |
+| GPU energy (J) | 1.005e+05 | 9.92e+04 | -1.3% | -1358 to -1291 |
+| GPU mean power (W) | 159.6 | 157.5 | -1.3% | -2.156 to -2.049 |
 | requests served | 5794 | 5794 | +0.0% | +0 to +0 |
 | requests not served | 0 | 0 | n/a | +0 to +0 |
-| response time, mean (ms) | 97.99 | 106.5 | +8.7% | +7.192 to +9.877 |
-| response time, 95th percentile (ms) | 267.5 | 278.5 | +4.1% | +3.58 to +18.29 |
-| response time, 99th percentile (ms) | 420.2 | 440.7 | +4.9% | -3.728 to +44.79 |
-| peak temperature (C) | 61.01 | 61.01 | -0.0% | -0.0003875 to -9.664e-05 |
-| power limit, mean (W) | 300 | 270 | -10.0% | -31.53 to -28.47 |
-| power-limit writes | 0 | 12.2 | n/a | +9.918 to +14.48 |
+| response time, mean (ms) | 97.99 | 107.8 | +10.0% | +9.128 to +10.45 |
+| response time, 95th percentile (ms) | 267.5 | 276.1 | +3.2% | +4.467 to +12.61 |
+| response time, 99th percentile (ms) | 420.2 | 428.6 | +2.0% | -2.604 to +19.52 |
+| peak temperature (C) | 61.01 | 61.01 | -0.0% | -0.001224 to -4.285e-05 |
+| power limit, mean (W) | 300 | 264.8 | -11.7% | -36.48 to -33.94 |
+| power-limit writes | 0 | 36.1 | n/a | +29.57 to +42.63 |
 
-Guardrail (preregistered): 95th-percentile response time not above +10%: held (upper bound +6.8%).
+Guardrail (preregistered): 95th-percentile response time not above +10%: held (upper bound +4.7%).
 **Model verdict: better, proven.**
 

@@ -18,7 +18,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 REPS="${REPS:-5}"; DURATION="${DURATION:-600}"; DRAIN="${DRAIN:-30}"; COOLDOWN="${COOLDOWN:-60}"
-GPU="${GPU:-0}"; SAMPLE_MS="${SAMPLE_MS:-200}"; INTERVAL="${INTERVAL:-5}"
+GPU="${GPU:-0}"; SAMPLE_MS="${SAMPLE_MS:-200}"; INTERVAL="${INTERVAL:-2}"
 SMI="${NVIDIA_SMI:-nvidia-smi}"; PY="${PYTHON:-python3}"
 ARMS=(native watch omni)
 PHASE="${PHASE:-smoke}"          # smoke: look, any n. confirm: preregistered, frozen, committed code, n from the prereg

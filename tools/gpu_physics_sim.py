@@ -15,8 +15,8 @@ card already sits near its voltage floor (hard for capping). Both are run; a rea
 
 The workload is tools/gpu_workload.py's: Poisson arrivals at 30, 60, 80, 30, 60, 30% of full-speed capacity, seed
 20260928 + repetition, one server first come first served, 50 ms per request at full speed, 600 s plus 30 s drain; the
-response-time target is ten service times (500 ms), as scripts/gpu_paired.sh sets it. The governor decides every 5 s
-from the modelled card's nvidia-smi readings and the response-time file, exactly as on hardware.
+response-time target is ten service times (500 ms), as scripts/gpu_paired.sh sets it. The governor decides at its own
+interval (default 2 s) from the modelled card's nvidia-smi readings and the response-time file, exactly as on hardware.
 """
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ START, MIN = 300.0, 100.0
 P_IDLE, P_STATIC, P_DEMAND = 40.0, 80.0, 300.0
 SERVICE_MS, SLO_MS = 50.0, 500.0
 PHASES = [0.3, 0.6, 0.8, 0.3, 0.6, 0.3]
-DURATION, DRAIN, INTERVAL = 600, 30, 5
+DURATION, DRAIN = 600, 30
 T95 = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228,
        14: 2.145, 19: 2.093, 29: 2.045}
 
@@ -76,10 +76,9 @@ def run(arm, seed, gamma, work, gov_argv):
     os.environ["PHYS_STATE"] = str(state)
     gov = None
     if arm == "omni":
-        a = gov_parser().parse_args(["--mode", "cap", "--smi", str(work / "smi.py"), "--interval", str(INTERVAL),
-                                     "--audit", str(work / f"audit-{tag}.jsonl"), "--kill-file", str(work / "no-kill"),
+        a = gov_parser().parse_args(["--mode", "cap", "--smi", str(work / "smi.py"), "--audit", str(work / f"audit-{tag}.jsonl"), "--kill-file", str(work / "no-kill"),
                                      "--latency-file", str(lat), "--slo-ms", str(SLO_MS)] + gov_argv)
-        gov = GpuGovernor(a)
+        gov = GpuGovernor(a); every = max(1, int(round(a.interval)))
     arr = arrivals(seed); ai = 0; queue = []; energy = 0.0; temp = 35.0; lats = []; limits = []; peak = 0.0
     for sec in range(DURATION + DRAIN):
         st = json.loads(state.read_text()); limit = st["limit"]; limits.append(limit)
@@ -101,7 +100,7 @@ def run(arm, seed, gamma, work, gov_argv):
         with open(lat, "a") as f:
             f.writelines(rows)
         st.update(draw=round(draw, 2), temp=round(temp, 1), util=busy, speed=s); state.write_text(json.dumps(st))
-        if gov and sec < DURATION and sec % INTERVAL == INTERVAL - 1:
+        if gov and sec < DURATION and sec % every == every - 1:
             gov.step()
     if gov:
         gov.restore()

@@ -178,7 +178,7 @@ def guards():
     g.step()                                              # 0.29: under 0.4, the cap returns
     assert json.load(open(p))["limit"]["0"] == 225.0, "calm: the cap returns"
     a = gp().parse_args([])
-    assert (a.min_share, a.util_gate, a.util_band) == (0.75, 0.5, 0.1), "the command line's defaults"
+    assert (a.min_share, a.util_gate, a.util_band, a.interval) == (0.70, 0.5, 0.1, 2.0), "the command line's defaults"
     assert g.restore() and json.load(open(p))["limit"]["0"] == 300.0
 
 

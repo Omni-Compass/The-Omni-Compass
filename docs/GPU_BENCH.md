@@ -59,7 +59,7 @@ The **primary outcome** is work per energy: requests served per kilojoule the GP
 
 ## What Omni does on the GPU (omni_controller/gpu_governor.py)
 
-Every 5 s it reads the GPU and runs the Omni-Compass engine (the throughput law in `omnicompass/adapter.py`): load is
+Every 2 s it reads the GPU and runs the Omni-Compass engine (the throughput law in `omnicompass/adapter.py`): load is
 GPU utilisation, power stress is draw over the snapshot limit, heat is temperature over 83 C, queue is response-time
 pressure. The engine's power cap becomes a power limit, inside hard rules:
 
