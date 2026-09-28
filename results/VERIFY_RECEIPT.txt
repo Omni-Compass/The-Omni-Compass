@@ -1,4 +1,4 @@
-verify.py --quick at commit 54f4fff0b93c59be872a5aea82de454b924cb909, 2026-09-28T22:21:47+00:00
+verify.py --quick at commit 3b4e41f36ac32cc60ccf50a23a80af2bb70336ab, 2026-09-28T22:38:44+00:00
 
 PASS  reference engine SHA-256
 PASS  pre-registered file unchanged or amended on record (SHA-256): omnicompass/core.py
@@ -63,8 +63,8 @@ PASS  independent C++ HPA replica law vs fleet harness HPA
 C++ HPA vs harness HPA: 345600 steps, 240 streams, mismatches = 208204
 PASS  negative control: parity test detects a C++ HPA with 5% instead of 10% tolerance
 PASS  C++ governor contract smoke test (bounds, security, determinism, both modes)
-PASS  soak test (power_protect), 1,000,000 decisions, no failures, memory flat after warm-up  (2998 ns per decision, RSS checkpoints [3904, 3904, 3904, 3904] kB)
-PASS  soak test (throughput), 1,000,000 decisions, no failures, memory flat after warm-up  (2976 ns per decision, RSS checkpoints [3832, 3832, 3832, 3832] kB)
+PASS  soak test (power_protect), 1,000,000 decisions, no failures, memory flat after warm-up  (2962 ns per decision, RSS checkpoints [3904, 3904, 3904, 3904] kB)
+PASS  soak test (throughput), 1,000,000 decisions, no failures, memory flat after warm-up  (3022 ns per decision, RSS checkpoints [3804, 3804, 3804, 3804] kB)
 processed 1440 governor steps
 C++ vs Python governor (power_protect): 1440 directives, discrete mismatches = 95, max |diff| = 3.331e-16
 PASS  negative control: parity test detects a mutated C++ governor (dwell 3 instead of 4)
@@ -194,7 +194,7 @@ PASS  exact pod-start timing from the API server's watch stream (creation to Rea
 GPU Fake GPU, driver 0.0, persistence mode Enabled, start power limit 300.00 W, workload tools/gpu_workload.py (seeded fp16 matmul request stream).
 2 repetitions, order rotated, 5.0 s per arm plus 1.0 s drain, 0.0 s idle before each arm.
 
-Phase: **smoke**. Omni frozen at commit 54f4fff0b93c; file hashes in FREEZE.json, rechecked at the end.
+Phase: **smoke**. Omni frozen at commit 3b4e41f36ac3; file hashes in FREEZE.json, rechecked at the end.
 
 ## INVALID RUN
 
@@ -204,100 +204,112 @@ Phase: **smoke**. Omni frozen at commit 54f4fff0b93c; file hashes in FREEZE.json
 
 | Gauge | Native | Omni watches only | Omni governs |
 |---|---:|---:|---:|
-| work per energy (served requests per kJ) | 103.4 | 103.4 | 103.5 |
-| work per wall energy (served requests per kJ, whole machine) | 89.58 | 82.12 | 82.12 |
-| energy, whole machine at the wall (J) | 1250 | 1375 | 1375 |
-| energy, GPU (J) | 1083 | 1083 | 1082 |
-| energy per served request (J) | 9.667 | 9.667 | 9.664 |
-| power, GPU mean (W) | 179.2 | 179.1 | 179.1 |
+| work per energy (served requests per kJ) | 107 | 106.7 | 107.1 |
+| work per wall energy (served requests per kJ, whole machine) | 89.57 | 89.58 | 89.57 |
+| energy, whole machine at the wall (J) | 1250 | 1250 | 1250 |
+| energy, GPU (J) | 1047 | 1050 | 1046 |
+| energy per served request (J) | 9.344 | 9.372 | 9.341 |
+| power, GPU mean (W) | 173 | 173.6 | 173 |
 | requests served | 112 | 112 | 112 |
 | requests not served | 0 | 0 | 0 |
-| response time, mean (ms) | 35.68 | 35.25 | 35.11 |
-| response time, 95th percentile (ms) | 78.56 | 77.18 | 77.43 |
-| response time, 99th percentile (ms) | 88.4 | 86.31 | 86.34 |
+| response time, mean (ms) | 34.91 | 38.98 | 34.9 |
+| response time, 95th percentile (ms) | 76.47 | 99.65 | 76.89 |
+| response time, 99th percentile (ms) | 85.86 | 112.4 | 85.78 |
 | temperature, peak (C) | 60 | 60 | 60 |
 | temperature, mean (C) | 60 | 60 | 60 |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
 | power-capped share of samples | 0 | 0 | 0 |
 
 ## Total: Omni governs against native, 2 paired repetitions
 
 | Gauge | Native | Omni governs | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 103.4 | 103.5 | +0.0% | -0.1841 to +0.2529 | better, not proven |
-| work per wall energy (served requests per kJ, whole machine) | 89.58 | 82.12 | -8.3% | -102.3 to +87.37 | worse, not proven |
-| energy, whole machine at the wall (J) | 1250 | 1375 | +10.0% | -1463 to +1713 | worse, not proven |
-| energy, GPU (J) | 1083 | 1082 | -0.0% | -2.647 to +1.927 | better, not proven |
-| energy per served request (J) | 9.667 | 9.664 | -0.0% | -0.02363 to +0.0172 | better, not proven |
-| power, GPU mean (W) | 179.2 | 179.1 | -0.1% | -0.2564 to -0.08757 | better, proven |
+| **work per energy (served requests per kJ) (primary)** | 107 | 107.1 | +0.0% | +0.0368 to +0.03686 | better, proven |
+| work per wall energy (served requests per kJ, whole machine) | 89.57 | 89.57 | -0.0% | -2.926e-05 to +2.499e-05 | worse, not proven |
+| energy, whole machine at the wall (J) | 1250 | 1250 | +0.0% | -0.0003489 to +0.0004085 | worse, not proven |
+| energy, GPU (J) | 1047 | 1046 | -0.0% | -0.3603 to -0.3597 | better, proven |
+| energy per served request (J) | 9.344 | 9.341 | -0.0% | -0.003217 to -0.003212 | better, proven |
+| power, GPU mean (W) | 173 | 173 | -0.0% | -2.078 to +2.003 | better, not proven |
 | requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 35.68 | 35.11 | -1.6% | -11.92 to +10.78 | better, not proven |
-| response time, 95th percentile (ms) | 78.56 | 77.43 | -1.4% | -31.87 to +29.61 | better, not proven |
-| response time, 99th percentile (ms) | 88.4 | 86.34 | -2.3% | -24.1 to +19.98 | better, not proven |
+| response time, mean (ms) | 34.91 | 34.9 | -0.0% | -1.171 to +1.155 | better, not proven |
+| response time, 95th percentile (ms) | 76.47 | 76.89 | +0.5% | -5.272 to +6.108 | worse, not proven |
+| response time, 99th percentile (ms) | 85.86 | 85.78 | -0.1% | -0.735 to +0.5827 | better, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | power-capped share of samples | 0 | 0 | +0 | +0 to +0 | equal |
 
 ## Observation: Omni watches only against native, 2 paired repetitions
 
 | Gauge | Native | Omni watches only | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 103.4 | 103.4 | -0.0% | -0.437 to +0.437 | worse, not proven |
-| work per wall energy (served requests per kJ, whole machine) | 89.58 | 82.12 | -8.3% | -102.3 to +87.37 | worse, not proven |
-| energy, whole machine at the wall (J) | 1250 | 1375 | +10.0% | -1463 to +1713 | worse, not proven |
-| energy, GPU (J) | 1083 | 1083 | +0.0% | -4.574 to +4.574 | worse, not proven |
-| energy per served request (J) | 9.667 | 9.667 | +0.0% | -0.04084 to +0.04084 | worse, not proven |
-| power, GPU mean (W) | 179.2 | 179.1 | -0.1% | -0.659 to +0.4135 | better, not proven |
+| **work per energy (served requests per kJ) (primary)** | 107 | 106.7 | -0.3% | -4.853 to +4.213 | worse, not proven |
+| work per wall energy (served requests per kJ, whole machine) | 89.57 | 89.58 | +0.0% | -0.3324 to +0.3503 | better, not proven |
+| energy, whole machine at the wall (J) | 1250 | 1250 | -0.0% | -4.889 to +4.639 | better, not proven |
+| energy, GPU (J) | 1047 | 1050 | +0.3% | -41.45 to +47.75 | worse, not proven |
+| energy per served request (J) | 9.344 | 9.372 | +0.3% | -0.3701 to +0.4263 | worse, not proven |
+| power, GPU mean (W) | 173 | 173.6 | +0.3% | -7.258 to +8.359 | worse, not proven |
 | requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 35.68 | 35.25 | -1.2% | -11.33 to +10.48 | better, not proven |
-| response time, 95th percentile (ms) | 78.56 | 77.18 | -1.7% | -9.236 to +6.487 | better, not proven |
-| response time, 99th percentile (ms) | 88.4 | 86.31 | -2.4% | -27.11 to +22.93 | better, not proven |
+| response time, mean (ms) | 34.91 | 38.98 | +11.7% | -48.19 to +56.34 | worse, not proven |
+| response time, 95th percentile (ms) | 76.47 | 99.65 | +30.3% | -268.9 to +315.3 | worse, not proven |
+| response time, 99th percentile (ms) | 85.86 | 112.4 | +30.9% | -310.4 to +363.4 | worse, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | power-capped share of samples | 0 | 0 | +0 | +0 to +0 | equal |
 
 ## Authority: Omni governs against Omni watching, 2 paired repetitions
 
 | Gauge | Omni watches only | Omni governs | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 103.4 | 103.5 | +0.0% | -0.1841 to +0.2529 | better, not proven |
-| work per wall energy (served requests per kJ, whole machine) | 82.12 | 82.12 | +0.0% | -189.7 to +189.7 | better, not proven |
-| energy, whole machine at the wall (J) | 1375 | 1375 | -0.0% | -3176 to +3176 | better, not proven |
-| energy, GPU (J) | 1083 | 1082 | -0.0% | -2.647 to +1.927 | better, not proven |
-| energy per served request (J) | 9.667 | 9.664 | -0.0% | -0.02364 to +0.01721 | better, not proven |
-| power, GPU mean (W) | 179.1 | 179.1 | -0.0% | -0.501 to +0.4026 | better, not proven |
+| **work per energy (served requests per kJ) (primary)** | 106.7 | 107.1 | +0.3% | -4.177 to +4.89 | better, not proven |
+| work per wall energy (served requests per kJ, whole machine) | 89.58 | 89.57 | -0.0% | -0.3503 to +0.3324 | worse, not proven |
+| energy, whole machine at the wall (J) | 1250 | 1250 | +0.0% | -4.64 to +4.89 | worse, not proven |
+| energy, GPU (J) | 1050 | 1046 | -0.3% | -48.11 to +41.09 | better, not proven |
+| energy per served request (J) | 9.372 | 9.341 | -0.3% | -0.4295 to +0.3669 | better, not proven |
+| power, GPU mean (W) | 173.6 | 173 | -0.3% | -6.356 to +5.18 | better, not proven |
 | requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 35.25 | 35.11 | -0.4% | -0.5852 to +0.2948 | better, not proven |
-| response time, 95th percentile (ms) | 77.18 | 77.43 | +0.3% | -22.63 to +23.12 | worse, not proven |
-| response time, 99th percentile (ms) | 86.31 | 86.34 | +0.0% | -2.943 to +3.006 | worse, not proven |
+| response time, mean (ms) | 38.98 | 34.9 | -10.5% | -55.19 to +47.02 | better, not proven |
+| response time, 95th percentile (ms) | 99.65 | 76.89 | -22.8% | -309.2 to +263.6 | better, not proven |
+| response time, 99th percentile (ms) | 112.4 | 85.78 | -23.7% | -364.2 to +311 | better, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | power-capped share of samples | 0 | 0 | +0 | +0 to +0 | equal |
 
 ## Verdict on the preregistered question
 
-Work per energy under Omni against native: 103.4 -> 103.5 served requests per kJ, difference +0.0344 (95% interval -0.1841 to +0.2529).
-Guardrails: requests served held (not below -1%), 95th-percentile response time FAILED (not above +10%), requests not served held (not above +1% of native served).
+Work per energy under Omni against native: 107 -> 107.1 served requests per kJ, difference +0.03683 (95% interval +0.0368 to +0.03686).
+Guardrails: requests served held (not below -1%), 95th-percentile response time held (not above +10%), requests not served held (not above +1% of native served).
 Observation (watch against native) on the same outcome: worse, not proven. Authority (omni against watch): better, not proven.
-Whole machine at the wall (smart plug Omni never reads): worse, not proven, 89.58 -> 82.12 served requests per kJ.
+Whole machine at the wall (smart plug Omni never reads): worse, not proven, 89.57 -> 89.57 served requests per kJ.
 **Result, by rule: INVALID.**
 
 ## Actuator fidelity (receipt B: requested against read back from the device)
 
 | Arm | Rep | Writes | Refused | mean abs(read back − requested) W | max W | delay median s | delay max s | enforced under requested | total variation W | reversals | restored |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| omni | 1 | 2 | 0 | 0 | 0 | 0.0485 | 0.05 | 0 | 132 | 1 | True |
-| omni | 2 | 2 | 0 | 0 | 0 | 0.046 | 0.047 | 0 | 132 | 1 | True |
+| omni | 1 | 2 | 0 | 0 | 0 | 0.046 | 0.047 | 0 | 132 | 1 | True |
+| omni | 2 | 2 | 0 | 0 | 0 | 0.0455 | 0.046 | 0 | 132 | 1 | True |
 | watch | 1 | 0 | 0 | n/a | n/a | n/a | n/a | 0 | 0 | 0 | True |
 | watch | 2 | 0 | 0 | n/a | n/a | n/a | n/a | 0 | 0 | 0 | True |
 
@@ -305,9 +317,9 @@ Whole machine at the wall (smart plug Omni never reads): worse, not proven, 89.5
 
 | Arm | Rep | Decisions | J_u = sum abs(u) dt | mean abs(u) | max abs(u) | saturations | shield interventions | holds |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| omni | 1 | 7 | 4.19 | 0.568 | 0.775 | 0 | 7 | 0 |
-| omni | 2 | 6 | 3.69 | 0.582 | 0.775 | 0 | 6 | 0 |
-| watch | 1 | 6 | 3.67 | 0.582 | 0.775 | 0 | 6 | 0 |
+| omni | 1 | 7 | 4.2 | 0.568 | 0.775 | 0 | 7 | 0 |
+| omni | 2 | 7 | 4.19 | 0.568 | 0.775 | 0 | 7 | 0 |
+| watch | 1 | 7 | 4.18 | 0.568 | 0.775 | 0 | 7 | 0 |
 | watch | 2 | 7 | 4.2 | 0.568 | 0.775 | 0 | 7 | 0 |
 
 ## Representation fidelity (the engine's projection against the telemetry at the next decision)
@@ -317,9 +329,17 @@ R_int: weighted root-mean-square of h(z next) − F_h(h(z), u) over E, U, I_U, S
 | Arm | Rep | Pairs | R_int | directional accuracy | valid directions | by predicted size |
 |---|---|---:|---:|---:|---:|---|
 | omni | 1 | 6 | 0.251 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
-| omni | 2 | 5 | 0.256 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
-| watch | 1 | 5 | 0.256 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
+| omni | 2 | 6 | 0.251 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
+| watch | 1 | 6 | 0.251 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
 | watch | 2 | 6 | 0.251 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
+
+## Credit per write (against native at the same moments of the same request stream)
+
+Each write owns the interval until the next write. Joules and requests finished in it, Omni governing minus native; the intervals tile the arm, so the credits add up. The decider is the rule that set the written limit (engine, a floor, the busy gate, a reflex, heat, the speed lock).
+
+| Decided by | Writes | Seconds owned | GPU joules vs native | Requests finished vs native |
+|---|---:|---:|---:|---:|
+| slo_or_blind_reflex | 2 | 9 | -1.08 | +0 |
 
 ## The control
 
@@ -332,7 +352,7 @@ R_int: weighted root-mean-square of h(z next) − F_h(h(z), u) over E, U, I_U, S
 GPU Fake GPU, driver 0.0, persistence mode Enabled, start power limit 300.00 W, workload tools/gpu_workload.py (seeded fp16 matmul request stream).
 2 repetitions, order rotated, 5.0 s per arm plus 1.0 s drain, 0.0 s idle before each arm.
 
-Phase: **smoke**. Omni frozen at commit 54f4fff0b93c; file hashes in FREEZE.json, rechecked at the end.
+Phase: **smoke**. Omni frozen at commit 3b4e41f36ac3; file hashes in FREEZE.json, rechecked at the end.
 
 ## INVALID RUN
 
@@ -342,100 +362,112 @@ Phase: **smoke**. Omni frozen at commit 54f4fff0b93c; file hashes in FREEZE.json
 
 | Gauge | Native | Omni watches only | Omni governs |
 |---|---:|---:|---:|
-| work per energy (served requests per kJ) | 103.4 | 103.4 | 103.5 |
-| work per wall energy (served requests per kJ, whole machine) | 89.58 | 82.12 | 82.12 |
-| energy, whole machine at the wall (J) | 1250 | 1375 | 1375 |
-| energy, GPU (J) | 1083 | 1083 | 1082 |
-| energy per served request (J) | 9.667 | 9.667 | 9.664 |
-| power, GPU mean (W) | 179.2 | 179.1 | 179.1 |
+| work per energy (served requests per kJ) | 107 | 106.7 | 107.1 |
+| work per wall energy (served requests per kJ, whole machine) | 89.57 | 89.58 | 89.57 |
+| energy, whole machine at the wall (J) | 1250 | 1250 | 1250 |
+| energy, GPU (J) | 1047 | 1050 | 1046 |
+| energy per served request (J) | 9.344 | 9.372 | 9.341 |
+| power, GPU mean (W) | 173 | 173.6 | 173 |
 | requests served | 112 | 112 | 112 |
 | requests not served | 0 | 0 | 0 |
-| response time, mean (ms) | 35.68 | 35.25 | 35.11 |
-| response time, 95th percentile (ms) | 78.56 | 77.18 | 77.43 |
-| response time, 99th percentile (ms) | 88.4 | 86.31 | 86.34 |
+| response time, mean (ms) | 34.91 | 38.98 | 34.9 |
+| response time, 95th percentile (ms) | 76.47 | 99.65 | 76.89 |
+| response time, 99th percentile (ms) | 85.86 | 112.4 | 85.78 |
 | temperature, peak (C) | 60 | 60 | 60 |
 | temperature, mean (C) | 60 | 60 | 60 |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
 | power-capped share of samples | 0 | 0 | 0 |
 
 ## Total: Omni governs against native, 2 paired repetitions
 
 | Gauge | Native | Omni governs | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 103.4 | 103.5 | +0.0% | -0.1841 to +0.2529 | better, not proven |
-| work per wall energy (served requests per kJ, whole machine) | 89.58 | 82.12 | -8.3% | -102.3 to +87.37 | worse, not proven |
-| energy, whole machine at the wall (J) | 1250 | 1375 | +10.0% | -1463 to +1713 | worse, not proven |
-| energy, GPU (J) | 1083 | 1082 | -0.0% | -2.647 to +1.927 | better, not proven |
-| energy per served request (J) | 9.667 | 9.664 | -0.0% | -0.02363 to +0.0172 | better, not proven |
-| power, GPU mean (W) | 179.2 | 179.1 | -0.1% | -0.2564 to -0.08757 | better, proven |
+| **work per energy (served requests per kJ) (primary)** | 107 | 107.1 | +0.0% | +0.0368 to +0.03686 | better, proven |
+| work per wall energy (served requests per kJ, whole machine) | 89.57 | 89.57 | -0.0% | -2.926e-05 to +2.499e-05 | worse, not proven |
+| energy, whole machine at the wall (J) | 1250 | 1250 | +0.0% | -0.0003489 to +0.0004085 | worse, not proven |
+| energy, GPU (J) | 1047 | 1046 | -0.0% | -0.3603 to -0.3597 | better, proven |
+| energy per served request (J) | 9.344 | 9.341 | -0.0% | -0.003217 to -0.003212 | better, proven |
+| power, GPU mean (W) | 173 | 173 | -0.0% | -2.078 to +2.003 | better, not proven |
 | requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 35.68 | 35.11 | -1.6% | -11.92 to +10.78 | better, not proven |
-| response time, 95th percentile (ms) | 78.56 | 77.43 | -1.4% | -31.87 to +29.61 | better, not proven |
-| response time, 99th percentile (ms) | 88.4 | 86.34 | -2.3% | -24.1 to +19.98 | better, not proven |
+| response time, mean (ms) | 34.91 | 34.9 | -0.0% | -1.171 to +1.155 | better, not proven |
+| response time, 95th percentile (ms) | 76.47 | 76.89 | +0.5% | -5.272 to +6.108 | worse, not proven |
+| response time, 99th percentile (ms) | 85.86 | 85.78 | -0.1% | -0.735 to +0.5827 | better, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | power-capped share of samples | 0 | 0 | +0 | +0 to +0 | equal |
 
 ## Observation: Omni watches only against native, 2 paired repetitions
 
 | Gauge | Native | Omni watches only | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 103.4 | 103.4 | -0.0% | -0.437 to +0.437 | worse, not proven |
-| work per wall energy (served requests per kJ, whole machine) | 89.58 | 82.12 | -8.3% | -102.3 to +87.37 | worse, not proven |
-| energy, whole machine at the wall (J) | 1250 | 1375 | +10.0% | -1463 to +1713 | worse, not proven |
-| energy, GPU (J) | 1083 | 1083 | +0.0% | -4.574 to +4.574 | worse, not proven |
-| energy per served request (J) | 9.667 | 9.667 | +0.0% | -0.04084 to +0.04084 | worse, not proven |
-| power, GPU mean (W) | 179.2 | 179.1 | -0.1% | -0.659 to +0.4135 | better, not proven |
+| **work per energy (served requests per kJ) (primary)** | 107 | 106.7 | -0.3% | -4.853 to +4.213 | worse, not proven |
+| work per wall energy (served requests per kJ, whole machine) | 89.57 | 89.58 | +0.0% | -0.3324 to +0.3503 | better, not proven |
+| energy, whole machine at the wall (J) | 1250 | 1250 | -0.0% | -4.889 to +4.639 | better, not proven |
+| energy, GPU (J) | 1047 | 1050 | +0.3% | -41.45 to +47.75 | worse, not proven |
+| energy per served request (J) | 9.344 | 9.372 | +0.3% | -0.3701 to +0.4263 | worse, not proven |
+| power, GPU mean (W) | 173 | 173.6 | +0.3% | -7.258 to +8.359 | worse, not proven |
 | requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 35.68 | 35.25 | -1.2% | -11.33 to +10.48 | better, not proven |
-| response time, 95th percentile (ms) | 78.56 | 77.18 | -1.7% | -9.236 to +6.487 | better, not proven |
-| response time, 99th percentile (ms) | 88.4 | 86.31 | -2.4% | -27.11 to +22.93 | better, not proven |
+| response time, mean (ms) | 34.91 | 38.98 | +11.7% | -48.19 to +56.34 | worse, not proven |
+| response time, 95th percentile (ms) | 76.47 | 99.65 | +30.3% | -268.9 to +315.3 | worse, not proven |
+| response time, 99th percentile (ms) | 85.86 | 112.4 | +30.9% | -310.4 to +363.4 | worse, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | power-capped share of samples | 0 | 0 | +0 | +0 to +0 | equal |
 
 ## Authority: Omni governs against Omni watching, 2 paired repetitions
 
 | Gauge | Omni watches only | Omni governs | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 103.4 | 103.5 | +0.0% | -0.1841 to +0.2529 | better, not proven |
-| work per wall energy (served requests per kJ, whole machine) | 82.12 | 82.12 | +0.0% | -189.7 to +189.7 | better, not proven |
-| energy, whole machine at the wall (J) | 1375 | 1375 | -0.0% | -3176 to +3176 | better, not proven |
-| energy, GPU (J) | 1083 | 1082 | -0.0% | -2.647 to +1.927 | better, not proven |
-| energy per served request (J) | 9.667 | 9.664 | -0.0% | -0.02364 to +0.01721 | better, not proven |
-| power, GPU mean (W) | 179.1 | 179.1 | -0.0% | -0.501 to +0.4026 | better, not proven |
+| **work per energy (served requests per kJ) (primary)** | 106.7 | 107.1 | +0.3% | -4.177 to +4.89 | better, not proven |
+| work per wall energy (served requests per kJ, whole machine) | 89.58 | 89.57 | -0.0% | -0.3503 to +0.3324 | worse, not proven |
+| energy, whole machine at the wall (J) | 1250 | 1250 | +0.0% | -4.64 to +4.89 | worse, not proven |
+| energy, GPU (J) | 1050 | 1046 | -0.3% | -48.11 to +41.09 | better, not proven |
+| energy per served request (J) | 9.372 | 9.341 | -0.3% | -0.4295 to +0.3669 | better, not proven |
+| power, GPU mean (W) | 173.6 | 173 | -0.3% | -6.356 to +5.18 | better, not proven |
 | requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 35.25 | 35.11 | -0.4% | -0.5852 to +0.2948 | better, not proven |
-| response time, 95th percentile (ms) | 77.18 | 77.43 | +0.3% | -22.63 to +23.12 | worse, not proven |
-| response time, 99th percentile (ms) | 86.31 | 86.34 | +0.0% | -2.943 to +3.006 | worse, not proven |
+| response time, mean (ms) | 38.98 | 34.9 | -10.5% | -55.19 to +47.02 | better, not proven |
+| response time, 95th percentile (ms) | 99.65 | 76.89 | -22.8% | -309.2 to +263.6 | better, not proven |
+| response time, 99th percentile (ms) | 112.4 | 85.78 | -23.7% | -364.2 to +311 | better, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | power-capped share of samples | 0 | 0 | +0 | +0 to +0 | equal |
 
 ## Verdict on the preregistered question
 
-Work per energy under Omni against native: 103.4 -> 103.5 served requests per kJ, difference +0.0344 (95% interval -0.1841 to +0.2529).
-Guardrails: requests served held (not below -1%), 95th-percentile response time FAILED (not above +10%), requests not served held (not above +1% of native served).
+Work per energy under Omni against native: 107 -> 107.1 served requests per kJ, difference +0.03683 (95% interval +0.0368 to +0.03686).
+Guardrails: requests served held (not below -1%), 95th-percentile response time held (not above +10%), requests not served held (not above +1% of native served).
 Observation (watch against native) on the same outcome: worse, not proven. Authority (omni against watch): better, not proven.
-Whole machine at the wall (smart plug Omni never reads): worse, not proven, 89.58 -> 82.12 served requests per kJ.
+Whole machine at the wall (smart plug Omni never reads): worse, not proven, 89.57 -> 89.57 served requests per kJ.
 **Result, by rule: INVALID.**
 
 ## Actuator fidelity (receipt B: requested against read back from the device)
 
 | Arm | Rep | Writes | Refused | mean abs(read back − requested) W | max W | delay median s | delay max s | enforced under requested | total variation W | reversals | restored |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| omni | 1 | 2 | 0 | 0 | 0 | 0.0485 | 0.05 | 0 | 132 | 1 | True |
-| omni | 2 | 2 | 0 | 0 | 0 | 0.046 | 0.047 | 0 | 132 | 1 | True |
+| omni | 1 | 2 | 0 | 0 | 0 | 0.046 | 0.047 | 0 | 132 | 1 | True |
+| omni | 2 | 2 | 0 | 0 | 0 | 0.0455 | 0.046 | 0 | 132 | 1 | True |
 | watch | 1 | 0 | 0 | n/a | n/a | n/a | n/a | 0 | 0 | 0 | True |
 | watch | 2 | 0 | 0 | n/a | n/a | n/a | n/a | 0 | 0 | 0 | True |
 
@@ -443,9 +475,9 @@ Whole machine at the wall (smart plug Omni never reads): worse, not proven, 89.5
 
 | Arm | Rep | Decisions | J_u = sum abs(u) dt | mean abs(u) | max abs(u) | saturations | shield interventions | holds |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| omni | 1 | 7 | 4.19 | 0.568 | 0.775 | 0 | 7 | 0 |
-| omni | 2 | 6 | 3.69 | 0.582 | 0.775 | 0 | 6 | 0 |
-| watch | 1 | 6 | 3.67 | 0.582 | 0.775 | 0 | 6 | 0 |
+| omni | 1 | 7 | 4.2 | 0.568 | 0.775 | 0 | 7 | 0 |
+| omni | 2 | 7 | 4.19 | 0.568 | 0.775 | 0 | 7 | 0 |
+| watch | 1 | 7 | 4.18 | 0.568 | 0.775 | 0 | 7 | 0 |
 | watch | 2 | 7 | 4.2 | 0.568 | 0.775 | 0 | 7 | 0 |
 
 ## Representation fidelity (the engine's projection against the telemetry at the next decision)
@@ -455,9 +487,17 @@ R_int: weighted root-mean-square of h(z next) − F_h(h(z), u) over E, U, I_U, S
 | Arm | Rep | Pairs | R_int | directional accuracy | valid directions | by predicted size |
 |---|---|---:|---:|---:|---:|---|
 | omni | 1 | 6 | 0.251 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
-| omni | 2 | 5 | 0.256 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
-| watch | 1 | 5 | 0.256 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
+| omni | 2 | 6 | 0.251 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
+| watch | 1 | 6 | 0.251 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
 | watch | 2 | 6 | 0.251 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
+
+## Credit per write (against native at the same moments of the same request stream)
+
+Each write owns the interval until the next write. Joules and requests finished in it, Omni governing minus native; the intervals tile the arm, so the credits add up. The decider is the rule that set the written limit (engine, a floor, the busy gate, a reflex, heat, the speed lock).
+
+| Decided by | Writes | Seconds owned | GPU joules vs native | Requests finished vs native |
+|---|---:|---:|---:|---:|
+| slo_or_blind_reflex | 2 | 9 | -1.08 | +0 |
 
 ## The control
 
@@ -470,7 +510,7 @@ R_int: weighted root-mean-square of h(z next) − F_h(h(z), u) over E, U, I_U, S
 GPU Fake GPU, driver 0.0, persistence mode Enabled, start power limit 300.00 W, workload tools/gpu_workload.py (seeded fp16 matmul request stream).
 2 repetitions, order rotated, 5.0 s per arm plus 1.0 s drain, 0.0 s idle before each arm.
 
-Phase: **smoke**. Omni frozen at commit 54f4fff0b93c; file hashes in FREEZE.json, rechecked at the end.
+Phase: **smoke**. Omni frozen at commit 3b4e41f36ac3; file hashes in FREEZE.json, rechecked at the end.
 
 ## INVALID RUN
 
@@ -480,100 +520,112 @@ Phase: **smoke**. Omni frozen at commit 54f4fff0b93c; file hashes in FREEZE.json
 
 | Gauge | Native | Omni watches only | Omni governs |
 |---|---:|---:|---:|
-| work per energy (served requests per kJ) | 103.4 | 103.4 | 103.5 |
-| work per wall energy (served requests per kJ, whole machine) | 89.58 | 82.12 | 82.12 |
-| energy, whole machine at the wall (J) | 1250 | 1375 | 1375 |
-| energy, GPU (J) | 1083 | 1083 | 1082 |
-| energy per served request (J) | 9.667 | 9.667 | 9.664 |
-| power, GPU mean (W) | 179.2 | 179.1 | 179.1 |
+| work per energy (served requests per kJ) | 107 | 106.7 | 107.1 |
+| work per wall energy (served requests per kJ, whole machine) | 89.57 | 89.58 | 89.57 |
+| energy, whole machine at the wall (J) | 1250 | 1250 | 1250 |
+| energy, GPU (J) | 1047 | 1050 | 1046 |
+| energy per served request (J) | 9.344 | 9.372 | 9.341 |
+| power, GPU mean (W) | 173 | 173.6 | 173 |
 | requests served | 112 | 112 | 112 |
 | requests not served | 0 | 0 | 0 |
-| response time, mean (ms) | 35.68 | 35.25 | 35.11 |
-| response time, 95th percentile (ms) | 78.56 | 77.18 | 77.43 |
-| response time, 99th percentile (ms) | 88.4 | 86.31 | 86.34 |
+| response time, mean (ms) | 34.91 | 38.98 | 34.9 |
+| response time, 95th percentile (ms) | 76.47 | 99.65 | 76.89 |
+| response time, 99th percentile (ms) | 85.86 | 112.4 | 85.78 |
 | temperature, peak (C) | 60 | 60 | 60 |
 | temperature, mean (C) | 60 | 60 | 60 |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
 | power-capped share of samples | 0 | 0 | 0 |
 
 ## Total: Omni governs against native, 2 paired repetitions
 
 | Gauge | Native | Omni governs | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 103.4 | 103.5 | +0.0% | -0.1841 to +0.2529 | better, not proven |
-| work per wall energy (served requests per kJ, whole machine) | 89.58 | 82.12 | -8.3% | -102.3 to +87.37 | worse, not proven |
-| energy, whole machine at the wall (J) | 1250 | 1375 | +10.0% | -1463 to +1713 | worse, not proven |
-| energy, GPU (J) | 1083 | 1082 | -0.0% | -2.647 to +1.927 | better, not proven |
-| energy per served request (J) | 9.667 | 9.664 | -0.0% | -0.02363 to +0.0172 | better, not proven |
-| power, GPU mean (W) | 179.2 | 179.1 | -0.1% | -0.2564 to -0.08757 | better, proven |
+| **work per energy (served requests per kJ) (primary)** | 107 | 107.1 | +0.0% | +0.0368 to +0.03686 | better, proven |
+| work per wall energy (served requests per kJ, whole machine) | 89.57 | 89.57 | -0.0% | -2.926e-05 to +2.499e-05 | worse, not proven |
+| energy, whole machine at the wall (J) | 1250 | 1250 | +0.0% | -0.0003489 to +0.0004085 | worse, not proven |
+| energy, GPU (J) | 1047 | 1046 | -0.0% | -0.3603 to -0.3597 | better, proven |
+| energy per served request (J) | 9.344 | 9.341 | -0.0% | -0.003217 to -0.003212 | better, proven |
+| power, GPU mean (W) | 173 | 173 | -0.0% | -2.078 to +2.003 | better, not proven |
 | requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 35.68 | 35.11 | -1.6% | -11.92 to +10.78 | better, not proven |
-| response time, 95th percentile (ms) | 78.56 | 77.43 | -1.4% | -31.87 to +29.61 | better, not proven |
-| response time, 99th percentile (ms) | 88.4 | 86.34 | -2.3% | -24.1 to +19.98 | better, not proven |
+| response time, mean (ms) | 34.91 | 34.9 | -0.0% | -1.171 to +1.155 | better, not proven |
+| response time, 95th percentile (ms) | 76.47 | 76.89 | +0.5% | -5.272 to +6.108 | worse, not proven |
+| response time, 99th percentile (ms) | 85.86 | 85.78 | -0.1% | -0.735 to +0.5827 | better, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | power-capped share of samples | 0 | 0 | +0 | +0 to +0 | equal |
 
 ## Observation: Omni watches only against native, 2 paired repetitions
 
 | Gauge | Native | Omni watches only | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 103.4 | 103.4 | -0.0% | -0.437 to +0.437 | worse, not proven |
-| work per wall energy (served requests per kJ, whole machine) | 89.58 | 82.12 | -8.3% | -102.3 to +87.37 | worse, not proven |
-| energy, whole machine at the wall (J) | 1250 | 1375 | +10.0% | -1463 to +1713 | worse, not proven |
-| energy, GPU (J) | 1083 | 1083 | +0.0% | -4.574 to +4.574 | worse, not proven |
-| energy per served request (J) | 9.667 | 9.667 | +0.0% | -0.04084 to +0.04084 | worse, not proven |
-| power, GPU mean (W) | 179.2 | 179.1 | -0.1% | -0.659 to +0.4135 | better, not proven |
+| **work per energy (served requests per kJ) (primary)** | 107 | 106.7 | -0.3% | -4.853 to +4.213 | worse, not proven |
+| work per wall energy (served requests per kJ, whole machine) | 89.57 | 89.58 | +0.0% | -0.3324 to +0.3503 | better, not proven |
+| energy, whole machine at the wall (J) | 1250 | 1250 | -0.0% | -4.889 to +4.639 | better, not proven |
+| energy, GPU (J) | 1047 | 1050 | +0.3% | -41.45 to +47.75 | worse, not proven |
+| energy per served request (J) | 9.344 | 9.372 | +0.3% | -0.3701 to +0.4263 | worse, not proven |
+| power, GPU mean (W) | 173 | 173.6 | +0.3% | -7.258 to +8.359 | worse, not proven |
 | requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 35.68 | 35.25 | -1.2% | -11.33 to +10.48 | better, not proven |
-| response time, 95th percentile (ms) | 78.56 | 77.18 | -1.7% | -9.236 to +6.487 | better, not proven |
-| response time, 99th percentile (ms) | 88.4 | 86.31 | -2.4% | -27.11 to +22.93 | better, not proven |
+| response time, mean (ms) | 34.91 | 38.98 | +11.7% | -48.19 to +56.34 | worse, not proven |
+| response time, 95th percentile (ms) | 76.47 | 99.65 | +30.3% | -268.9 to +315.3 | worse, not proven |
+| response time, 99th percentile (ms) | 85.86 | 112.4 | +30.9% | -310.4 to +363.4 | worse, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | power-capped share of samples | 0 | 0 | +0 | +0 to +0 | equal |
 
 ## Authority: Omni governs against Omni watching, 2 paired repetitions
 
 | Gauge | Omni watches only | Omni governs | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 103.4 | 103.5 | +0.0% | -0.1841 to +0.2529 | better, not proven |
-| work per wall energy (served requests per kJ, whole machine) | 82.12 | 82.12 | +0.0% | -189.7 to +189.7 | better, not proven |
-| energy, whole machine at the wall (J) | 1375 | 1375 | -0.0% | -3176 to +3176 | better, not proven |
-| energy, GPU (J) | 1083 | 1082 | -0.0% | -2.647 to +1.927 | better, not proven |
-| energy per served request (J) | 9.667 | 9.664 | -0.0% | -0.02364 to +0.01721 | better, not proven |
-| power, GPU mean (W) | 179.1 | 179.1 | -0.0% | -0.501 to +0.4026 | better, not proven |
+| **work per energy (served requests per kJ) (primary)** | 106.7 | 107.1 | +0.3% | -4.177 to +4.89 | better, not proven |
+| work per wall energy (served requests per kJ, whole machine) | 89.58 | 89.57 | -0.0% | -0.3503 to +0.3324 | worse, not proven |
+| energy, whole machine at the wall (J) | 1250 | 1250 | +0.0% | -4.64 to +4.89 | worse, not proven |
+| energy, GPU (J) | 1050 | 1046 | -0.3% | -48.11 to +41.09 | better, not proven |
+| energy per served request (J) | 9.372 | 9.341 | -0.3% | -0.4295 to +0.3669 | better, not proven |
+| power, GPU mean (W) | 173.6 | 173 | -0.3% | -6.356 to +5.18 | better, not proven |
 | requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 35.25 | 35.11 | -0.4% | -0.5852 to +0.2948 | better, not proven |
-| response time, 95th percentile (ms) | 77.18 | 77.43 | +0.3% | -22.63 to +23.12 | worse, not proven |
-| response time, 99th percentile (ms) | 86.31 | 86.34 | +0.0% | -2.943 to +3.006 | worse, not proven |
+| response time, mean (ms) | 38.98 | 34.9 | -10.5% | -55.19 to +47.02 | better, not proven |
+| response time, 95th percentile (ms) | 99.65 | 76.89 | -22.8% | -309.2 to +263.6 | better, not proven |
+| response time, 99th percentile (ms) | 112.4 | 85.78 | -23.7% | -364.2 to +311 | better, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | power-capped share of samples | 0 | 0 | +0 | +0 to +0 | equal |
 
 ## Verdict on the preregistered question
 
-Work per energy under Omni against native: 103.4 -> 103.5 served requests per kJ, difference +0.0344 (95% interval -0.1841 to +0.2529).
-Guardrails: requests served held (not below -1%), 95th-percentile response time FAILED (not above +10%), requests not served held (not above +1% of native served).
+Work per energy under Omni against native: 107 -> 107.1 served requests per kJ, difference +0.03683 (95% interval +0.0368 to +0.03686).
+Guardrails: requests served held (not below -1%), 95th-percentile response time held (not above +10%), requests not served held (not above +1% of native served).
 Observation (watch against native) on the same outcome: worse, not proven. Authority (omni against watch): better, not proven.
-Whole machine at the wall (smart plug Omni never reads): worse, not proven, 89.58 -> 82.12 served requests per kJ.
+Whole machine at the wall (smart plug Omni never reads): worse, not proven, 89.57 -> 89.57 served requests per kJ.
 **Result, by rule: INVALID.**
 
 ## Actuator fidelity (receipt B: requested against read back from the device)
 
 | Arm | Rep | Writes | Refused | mean abs(read back − requested) W | max W | delay median s | delay max s | enforced under requested | total variation W | reversals | restored |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| omni | 1 | 2 | 0 | 0 | 0 | 0.0485 | 0.05 | 0 | 132 | 1 | True |
-| omni | 2 | 2 | 0 | 0 | 0 | 0.046 | 0.047 | 0 | 132 | 1 | True |
+| omni | 1 | 2 | 0 | 0 | 0 | 0.046 | 0.047 | 0 | 132 | 1 | True |
+| omni | 2 | 2 | 0 | 0 | 0 | 0.0455 | 0.046 | 0 | 132 | 1 | True |
 | watch | 1 | 0 | 0 | n/a | n/a | n/a | n/a | 0 | 0 | 0 | True |
 | watch | 2 | 0 | 0 | n/a | n/a | n/a | n/a | 0 | 0 | 0 | True |
 
@@ -581,9 +633,9 @@ Whole machine at the wall (smart plug Omni never reads): worse, not proven, 89.5
 
 | Arm | Rep | Decisions | J_u = sum abs(u) dt | mean abs(u) | max abs(u) | saturations | shield interventions | holds |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| omni | 1 | 7 | 4.19 | 0.568 | 0.775 | 0 | 7 | 0 |
-| omni | 2 | 6 | 3.69 | 0.582 | 0.775 | 0 | 6 | 0 |
-| watch | 1 | 6 | 3.67 | 0.582 | 0.775 | 0 | 6 | 0 |
+| omni | 1 | 7 | 4.2 | 0.568 | 0.775 | 0 | 7 | 0 |
+| omni | 2 | 7 | 4.19 | 0.568 | 0.775 | 0 | 7 | 0 |
+| watch | 1 | 7 | 4.18 | 0.568 | 0.775 | 0 | 7 | 0 |
 | watch | 2 | 7 | 4.2 | 0.568 | 0.775 | 0 | 7 | 0 |
 
 ## Representation fidelity (the engine's projection against the telemetry at the next decision)
@@ -593,9 +645,17 @@ R_int: weighted root-mean-square of h(z next) − F_h(h(z), u) over E, U, I_U, S
 | Arm | Rep | Pairs | R_int | directional accuracy | valid directions | by predicted size |
 |---|---|---:|---:|---:|---:|---|
 | omni | 1 | 6 | 0.251 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
-| omni | 2 | 5 | 0.256 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
-| watch | 1 | 5 | 0.256 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
+| omni | 2 | 6 | 0.251 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
+| watch | 1 | 6 | 0.251 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
 | watch | 2 | 6 | 0.251 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
+
+## Credit per write (against native at the same moments of the same request stream)
+
+Each write owns the interval until the next write. Joules and requests finished in it, Omni governing minus native; the intervals tile the arm, so the credits add up. The decider is the rule that set the written limit (engine, a floor, the busy gate, a reflex, heat, the speed lock).
+
+| Decided by | Writes | Seconds owned | GPU joules vs native | Requests finished vs native |
+|---|---:|---:|---:|---:|
+| slo_or_blind_reflex | 2 | 9 | -1.08 | +0 |
 
 ## The control
 
@@ -608,105 +668,117 @@ R_int: weighted root-mean-square of h(z next) − F_h(h(z), u) over E, U, I_U, S
 GPU Fake GPU, driver 0.0, persistence mode Enabled, start power limit 300.00 W, workload tools/gpu_workload.py (seeded fp16 matmul request stream).
 5 repetitions, order rotated, 4.0 s per arm plus 1.0 s drain, 0.0 s idle before each arm.
 
-Phase: **smoke**. Omni frozen at commit 54f4fff0b93c; file hashes in FREEZE.json, rechecked at the end.
+Phase: **smoke**. Omni frozen at commit 3b4e41f36ac3; file hashes in FREEZE.json, rechecked at the end.
 
 ## Every column, mean over repetitions
 
 | Gauge | Native | Omni watches only | Omni governs |
 |---|---:|---:|---:|
-| work per energy (served requests per kJ) | 98.63 | 100.5 | 98.66 |
+| work per energy (served requests per kJ) | 108.7 | 108.8 | 108.8 |
 | work per wall energy (served requests per kJ, whole machine) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
 | energy, whole machine at the wall (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
-| energy, GPU (J) | 902.3 | 886.1 | 902.1 |
-| energy per served request (J) | 10.14 | 9.957 | 10.14 |
-| power, GPU mean (W) | 178.9 | 175.7 | 178.9 |
-| requests served | 89 | 89 | 89 |
+| energy, GPU (J) | 885 | 883.9 | 884 |
+| energy per served request (J) | 9.281 | 9.27 | 9.271 |
+| power, GPU mean (W) | 172.5 | 172.5 | 172.5 |
+| requests served | 96 | 96 | 96 |
 | requests not served | 0 | 0 | 0 |
-| response time, mean (ms) | 32.6 | 36.07 | 32.63 |
-| response time, 95th percentile (ms) | 70.65 | 92.46 | 70.53 |
-| response time, 99th percentile (ms) | 86.22 | 111.4 | 86.08 |
+| response time, mean (ms) | 32.38 | 32.32 | 33.02 |
+| response time, 95th percentile (ms) | 69.88 | 69.75 | 75.51 |
+| response time, 99th percentile (ms) | 81.9 | 81.96 | 87.36 |
 | temperature, peak (C) | 60 | 60 | 60 |
 | temperature, mean (C) | 60 | 60 | 60 |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE |
 | power-capped share of samples | 0 | 0 | 0 |
 
 ## Total: Omni governs against native, 2 paired repetitions
 
 | Gauge | Native | Omni governs | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 98.63 | 98.66 | +0.0% | -0.3454 to +0.4044 | better, not proven |
+| **work per energy (served requests per kJ) (primary)** | 108.7 | 108.8 | +0.1% | -1.588 to +1.859 | better, not proven |
 | work per wall energy (served requests per kJ, whole machine) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, whole machine at the wall (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
-| energy, GPU (J) | 902.3 | 902.1 | -0.0% | -3.701 to +3.161 | better, not proven |
-| energy per served request (J) | 10.14 | 10.14 | -0.0% | -0.04158 to +0.03551 | better, not proven |
-| power, GPU mean (W) | 178.9 | 178.9 | -0.0% | -0.558 to +0.5052 | better, not proven |
-| requests served | 89 | 89 | +0.0% | +0 to +0 | equal |
+| energy, GPU (J) | 885 | 884 | -0.1% | -13.57 to +11.59 | better, not proven |
+| energy per served request (J) | 9.281 | 9.271 | -0.1% | -0.1317 to +0.1125 | better, not proven |
+| power, GPU mean (W) | 172.5 | 172.5 | +0.0% | -0.9266 to +0.9337 | worse, not proven |
+| requests served | 96 | 96 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 32.6 | 32.63 | +0.1% | -1.894 to +1.952 | worse, not proven |
-| response time, 95th percentile (ms) | 70.65 | 70.53 | -0.2% | -2.051 to +1.803 | better, not proven |
-| response time, 99th percentile (ms) | 86.22 | 86.08 | -0.2% | -2.12 to +1.833 | better, not proven |
+| response time, mean (ms) | 32.38 | 33.02 | +2.0% | -7.215 to +8.48 | worse, not proven |
+| response time, 95th percentile (ms) | 69.88 | 75.51 | +8.1% | -64.27 to +75.53 | worse, not proven |
+| response time, 99th percentile (ms) | 81.9 | 87.36 | +6.7% | -66.29 to +77.22 | worse, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | power-capped share of samples | 0 | 0 | +0 | +0 to +0 | equal |
 
 ## Observation: Omni watches only against native, 2 paired repetitions
 
 | Gauge | Native | Omni watches only | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 98.63 | 100.5 | +1.9% | -20.48 to +24.15 | better, not proven |
+| **work per energy (served requests per kJ) (primary)** | 108.7 | 108.8 | +0.1% | -1.453 to +1.744 | better, not proven |
 | work per wall energy (served requests per kJ, whole machine) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, whole machine at the wall (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
-| energy, GPU (J) | 902.3 | 886.1 | -1.8% | -212.9 to +180.5 | better, not proven |
-| energy per served request (J) | 10.14 | 9.957 | -1.8% | -2.392 to +2.028 | better, not proven |
-| power, GPU mean (W) | 178.9 | 175.7 | -1.8% | -42.99 to +36.63 | better, not proven |
-| requests served | 89 | 89 | +0.0% | +0 to +0 | equal |
+| energy, GPU (J) | 885 | 883.9 | -0.1% | -12.52 to +10.36 | better, not proven |
+| energy per served request (J) | 9.281 | 9.27 | -0.1% | -0.1199 to +0.09865 | better, not proven |
+| power, GPU mean (W) | 172.5 | 172.5 | +0.0% | -0.8701 to +0.943 | worse, not proven |
+| requests served | 96 | 96 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 32.6 | 36.07 | +10.6% | -41.25 to +48.18 | worse, not proven |
-| response time, 95th percentile (ms) | 70.65 | 92.46 | +30.9% | -254.6 to +298.2 | worse, not proven |
-| response time, 99th percentile (ms) | 86.22 | 111.4 | +29.2% | -294.6 to +344.9 | worse, not proven |
+| response time, mean (ms) | 32.38 | 32.32 | -0.2% | -0.5634 to +0.4376 | better, not proven |
+| response time, 95th percentile (ms) | 69.88 | 69.75 | -0.2% | -1.322 to +1.057 | better, not proven |
+| response time, 99th percentile (ms) | 81.9 | 81.96 | +0.1% | -3.757 to +3.887 | worse, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | power-capped share of samples | 0 | 0 | +0 | +0 to +0 | equal |
 
 ## Authority: Omni governs against Omni watching, 2 paired repetitions
 
 | Gauge | Omni watches only | Omni governs | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| **work per energy (served requests per kJ) (primary)** | 100.5 | 98.66 | -1.8% | -24.5 to +20.89 | worse, not proven |
+| **work per energy (served requests per kJ) (primary)** | 108.8 | 108.8 | -0.0% | -0.135 to +0.1153 | worse, not proven |
 | work per wall energy (served requests per kJ, whole machine) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, whole machine at the wall (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
-| energy, GPU (J) | 886.1 | 902.1 | +1.8% | -184.2 to +216 | worse, not proven |
-| energy per served request (J) | 9.957 | 10.14 | +1.8% | -2.07 to +2.428 | worse, not proven |
-| power, GPU mean (W) | 175.7 | 178.9 | +1.8% | -37.19 to +43.49 | worse, not proven |
-| requests served | 89 | 89 | +0.0% | +0 to +0 | equal |
+| energy, GPU (J) | 883.9 | 884 | +0.0% | -1.054 to +1.234 | worse, not proven |
+| energy per served request (J) | 9.27 | 9.271 | +0.0% | -0.01184 to +0.01386 | worse, not proven |
+| power, GPU mean (W) | 172.5 | 172.5 | -0.0% | -0.05652 to -0.009373 | better, proven |
+| requests served | 96 | 96 | +0.0% | +0 to +0 | equal |
 | requests not served | 0 | 0 | +0 | +0 to +0 | equal |
-| response time, mean (ms) | 36.07 | 32.63 | -9.5% | -50.07 to +43.21 | better, not proven |
-| response time, 95th percentile (ms) | 92.46 | 70.53 | -23.7% | -300.3 to +256.4 | better, not proven |
-| response time, 99th percentile (ms) | 111.4 | 86.08 | -22.7% | -347 to +296.4 | better, not proven |
+| response time, mean (ms) | 32.32 | 33.02 | +2.2% | -7.653 to +9.043 | worse, not proven |
+| response time, 95th percentile (ms) | 69.75 | 75.51 | +8.3% | -65.33 to +76.85 | worse, not proven |
+| response time, 99th percentile (ms) | 81.96 | 87.36 | +6.6% | -70.18 to +80.98 | worse, not proven |
 | temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
 | energy, CPU package (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, DRAM (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, platform psys (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | energy, rest of the machine (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
+| energy, GPU device counter (J) | UNAVAILABLE | UNAVAILABLE | | | no meter |
 | power-capped share of samples | 0 | 0 | +0 | +0 to +0 | equal |
 
 ## Verdict on the preregistered question
 
-Work per energy under Omni against native: 98.63 -> 98.66 served requests per kJ, difference +0.02951 (95% interval -0.3454 to +0.4044).
-Guardrails: requests served held (not below -1%), 95th-percentile response time held (not above +10%), requests not served held (not above +1% of native served).
+Work per energy under Omni against native: 108.7 -> 108.8 served requests per kJ, difference +0.1357 (95% interval -1.588 to +1.859).
+Guardrails: requests served held (not below -1%), 95th-percentile response time FAILED (not above +10%), requests not served held (not above +1% of native served).
 Observation (watch against native) on the same outcome: better, not proven. Authority (omni against watch): worse, not proven.
-**Result, by rule: NONINFERIOR / INCONCLUSIVE.**
+**Result, by rule: NOT ESTABLISHED.**
 
 ## Actuator fidelity (receipt B: requested against read back from the device)
 
 | Arm | Rep | Writes | Refused | mean abs(read back − requested) W | max W | delay median s | delay max s | enforced under requested | total variation W | reversals | restored |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| omni | 1 | 2 | 0 | 0 | 0 | 0.047 | 0.049 | 0 | 132 | 1 | True |
-| omni | 2 | 2 | 0 | 0 | 0 | 0.052 | 0.058 | 0 | 132 | 1 | True |
+| omni | 1 | 2 | 0 | 0 | 0 | 0.061 | 0.073 | 0 | 132 | 1 | True |
+| omni | 2 | 2 | 0 | 0 | 0 | 0.0455 | 0.046 | 0 | 132 | 1 | True |
 | watch | 1 | 0 | 0 | n/a | n/a | n/a | n/a | 0 | 0 | 0 | True |
 | watch | 2 | 0 | 0 | n/a | n/a | n/a | n/a | 0 | 0 | 0 | True |
 
@@ -714,10 +786,10 @@ Observation (watch against native) on the same outcome: better, not proven. Auth
 
 | Arm | Rep | Decisions | J_u = sum abs(u) dt | mean abs(u) | max abs(u) | saturations | shield interventions | holds |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| omni | 1 | 5 | 3.17 | 0.599 | 0.775 | 0 | 5 | 0 |
-| omni | 2 | 5 | 3.17 | 0.599 | 0.775 | 0 | 5 | 0 |
-| watch | 1 | 5 | 3.17 | 0.599 | 0.775 | 0 | 5 | 0 |
-| watch | 2 | 5 | 3.17 | 0.599 | 0.775 | 0 | 5 | 0 |
+| omni | 1 | 5 | 3.15 | 0.599 | 0.775 | 0 | 5 | 0 |
+| omni | 2 | 5 | 3.15 | 0.599 | 0.775 | 0 | 5 | 0 |
+| watch | 1 | 5 | 3.16 | 0.599 | 0.775 | 0 | 5 | 0 |
+| watch | 2 | 5 | 3.15 | 0.599 | 0.775 | 0 | 5 | 0 |
 
 ## Representation fidelity (the engine's projection against the telemetry at the next decision)
 
@@ -730,13 +802,21 @@ R_int: weighted root-mean-square of h(z next) − F_h(h(z), u) over E, U, I_U, S
 | watch | 1 | 4 | 0.267 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
 | watch | 2 | 4 | 0.267 | n/a | 0 | 0.01-0.03: n/a of 0, 0.03-0.1: n/a of 0, >=0.1: n/a of 0 |
 
+## Credit per write (against native at the same moments of the same request stream)
+
+Each write owns the interval until the next write. Joules and requests finished in it, Omni governing minus native; the intervals tile the arm, so the credits add up. The decider is the rule that set the written limit (engine, a floor, the busy gate, a reflex, heat, the speed lock).
+
+| Decided by | Writes | Seconds owned | GPU joules vs native | Requests finished vs native |
+|---|---:|---:|---:|---:|
+| slo_or_blind_reflex | 2 | 6 | +34.92 | +0 |
+
 ## The control
 
 - Power-limit writes executed: Native 0, Omni watches only 0, Omni governs 4.
 - Every arm ended at the start limit.
 - Energy is the device's own power.draw integrated over time; no number here is modelled.
 
-PASS  GPU bench: governor contract (watch writes nothing, shield floor, share floor, busy gate, read-back, blind, SLO reflex, kill), enforced limit (snapshot, override, power management, refused write ends the arm, fallback), result labels, and the one-command paired run with its validity checks
+PASS  GPU bench: governor contract (watch writes nothing, shield floor, share floor, busy gate, read-back, blind, SLO reflex, kill), enforced limit (snapshot, override, power management, refused write ends the arm, fallback), one writer, heat fails up, blocked_by and decided_by, RAPL by domain, credit per write, workload plug, result labels, and the one-command paired run with its validity checks
 PASS  GPU bench: watch writes nothing, limit never below draw x 1.3, read-back, blind and SLO reflexes, kill restores; paired run validity
 convey: w0 1900m x2, w1 2800m, w2 left at 500m (crowded); requests untouched; no rollout; kill restored 500m; only when needed: calm 500m, p95 300 ms conveys, 150 ms holds, 100 ms returns 500m, blind conveys; hold blocks expansion; HPA target 50 -> 95 once clean (the guaranteed share, same queue promise), held for the autoscaler's window, then 76; closed machine with work: in service 3, open 2
 PASS test_convey
