@@ -162,6 +162,28 @@ def main(root):
             L.append(f"| {'**' + k + ' (primary)**' if k == PRIMARY else k} | {_f(nb)} | {_f(ob)} | {ch} | {m - half:+.4g} to {m + half:+.4g} | {v} |")
         L.append("")
     wr = {a: sum(c["writes"] for c in checks.get(a, {}).values()) for a in cols}
+    # the preregistered verdict (docs/GPU_PREREGISTRATION.md): primary outcome with the two service guardrails
+    po = out["paired"].get("omni", {})
+    if PRIMARY in po:
+        prim = po[PRIMARY]["verdict"]
+        sv, p95 = po.get("requests served"), po.get("response time, 95th percentile (ms)")
+        g_served = sv is not None and sv["ci95"][0] >= -0.01 * abs(sv["native"])
+        g_p95 = p95 is not None and p95["ci95"][1] <= 0.10 * abs(p95["native"])
+        if prim == "better, proven":
+            head = "better, proven" if g_served and g_p95 else "better on energy, fails the service guardrail"
+        else:
+            head = prim
+        wv = out["paired"].get("watch", {}).get(PRIMARY, {}).get("verdict")
+        out["headline"] = {"primary": prim, "guardrail_served": g_served, "guardrail_p95": g_p95, "verdict": head,
+                           "watch_primary": wv, "valid": not problems}
+        c = po[PRIMARY]
+        L += ["## Verdict on the preregistered question", "",
+              f"Work per energy under Omni against native: {_f(c['native'])} -> {_f(c['omni'])} served requests per kJ, "
+              f"difference {c['diff']:+.4g} (95% interval {c['ci95'][0]:+.4g} to {c['ci95'][1]:+.4g}).",
+              f"Guardrails: requests served {'held' if g_served else 'FAILED'} (not below -1%), "
+              f"95th-percentile response time {'held' if g_p95 else 'FAILED'} (not above +10%).",
+              f"Watch against native on the same outcome: {wv or 'n/a'}.",
+              f"**Verdict: {head}{'' if not problems else ' (the run is INVALID; see above)'}.**", ""]
     L += ["## The control", "", f"- Power-limit writes executed: " + ", ".join(f"{names[a]} {wr[a]}" for a in cols) + ".",
           "- Every arm ended at the start limit." if not any("restore" in p for p in problems) else "- An arm did NOT end at the start limit.",
           "- Energy is the device's own power.draw integrated over time; no number here is modelled.", ""]

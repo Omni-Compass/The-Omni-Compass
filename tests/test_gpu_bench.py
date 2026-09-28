@@ -97,6 +97,7 @@ def bench():
     assert all(c["writes"] > 0 for c in out["checks"]["omni"].values())
     assert "energy, GPU (J)" in out["paired"]["omni"] and (d / "run" / "SHA256SUMS.txt").exists()
     assert "work per energy (served requests per kJ)" in out["paired"]["omni"] and out["freeze"]["phase"] == "smoke"
+    assert out["headline"]["valid"] and out["headline"]["verdict"] and "Verdict on the preregistered question" in (d / "run" / "GPU_REPS.md").read_text()
     # every Omni decision records the whole chain
     dec = [json.loads(x) for x in open(d / "run" / "rep-1" / "omni" / "audit.jsonl") if '"decision"' in x]
     chain = [v for r in dec for v in r["decision"].values() if "telemetry" in v]

@@ -8,11 +8,19 @@ Written before any hardware trial. The confirmation run (`PHASE=confirm`) hashes
 On one NVIDIA GPU serving a fixed, seeded request stream, does Omni-Compass holding the GPU power limit change the
 successful work done per joule measured by the device, compared with the device left at its own limit?
 
+Fixed here, before any smoke trial:
+- the number of confirmation repetitions (10);
+- the primary outcome;
+- the guardrails;
+- the analysis.
+
+Nothing seen in smoke may change them.
+
 ## Two phases
 
 1. **Smoke** (`PHASE=smoke`, any number of repetitions). Its purpose is to find faults in the harness, and to see
-   whether the effect is large enough to be worth confirming. Smoke results are reported as smoke, never as the
-   result. After smoke, Omni's code may change.
+   whether the effect is large enough to be worth confirming. Smoke results are not published and are never
+   reported as the result. After smoke, Omni's code may change.
 2. **Confirmation** (`PHASE=confirm`). Omni's code is committed and frozen before the first trial. The script refuses
    to run if any frozen file has uncommitted changes, and the table marks the run invalid if a frozen file changes
    during it. No inspection, tuning or rerun between confirmation trials. If the confirmation fails, it is reported
@@ -46,8 +54,13 @@ successful work done per joule measured by the device, compared with the device 
   - The result is *proven better* if the interval lies entirely above zero.
   - It is *proven worse* if the interval lies entirely below zero.
   - Otherwise it is *not proven*.
-- **Condition:** the result counts only if there are no more requests not served than native, beyond noise (their
-  interval must not lie above zero).
+- **Guardrails, fixed now:** a better primary result counts only if Omni did not buy it with the work. Both
+  guardrails must hold:
+  - **Requests served:** the 95% interval of (omni − native) must not reach below −1% of native.
+  - **95th-percentile response time:** the interval must not reach above +10% of native.
+
+  If a guardrail fails, the verdict is *better on energy, fails the service guardrail*. That is a different product
+  and is reported as such.
 - **Watch against native:** reported as the cost of Omni being present. If watch differs from native on the primary
   outcome as much as omni does, the effect is not attributed to Omni's authority.
 
@@ -65,6 +78,7 @@ Every decision is logged in `audit.jsonl`:
 - the raw device telemetry: utilisation, draw, temperature, limit, SM clock, and clock-limit reasons where the driver
   reports them;
 - the engine's six-state reading, the state it had projected for this moment, and the error against it;
-- the projection for the next decision;
+- the projection for the next decision. This is the engine's own evolved state from the same step that sets the cap;
+  no separate predictor was added for the experiment;
 - whether change was admissible, the requested and granted authority, and which shield bound decided the limit;
 - the limit written, and the requests served in the window.
