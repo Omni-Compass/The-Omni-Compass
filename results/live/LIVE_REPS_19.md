@@ -84,6 +84,13 @@ the machines idled, then rose by at most 5 in the last decisions as the load ste
 
 ## Raw files
 
-The per-run capture CSV (every 15 s), response-time CSV, audit log, controller log and SHA-256 manifest for each
-repetition are on GitHub, Actions run 36362185876, artifacts paired-1 to paired-5. The aggregate is artifact
-live-reps.
+Every file of every repetition is in `results/live/raw/run-36362185876/`, 118 files. Each `paired-N/bench-<arm>-N/`
+holds:
+- the capture every 15 s (`capture.csv`) and the response-time probe (`latency.csv`);
+- my audit of every read, write and compass reading (`audit.jsonl`) and my controller log;
+- the human switch drill (`kill_switch.txt`, `audit_kill.jsonl`);
+- the identity receipts, the load schedule and the cluster's end state;
+- a SHA-256 manifest.
+
+`SHA256SUMS_ALL.txt` covers all of them. The table above recomputes exactly from these files:
+`python tools/live_reps.py <folder holding the bench-* folders>`.
