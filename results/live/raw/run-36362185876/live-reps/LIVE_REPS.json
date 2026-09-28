@@ -1,0 +1,172 @@
+{
+ "repetitions": {
+  "native": [
+   "1",
+   "2",
+   "3",
+   "4",
+   "5"
+  ],
+  "omni": [
+   "1",
+   "2",
+   "3",
+   "4",
+   "5"
+  ]
+ },
+ "means": {
+  "native": {
+   "worker nodes in service, mean": 6.0,
+   "node-hours": 1.5189999999999997,
+   "energy (Wh)": 158.73775,
+   "response time (ms), mean": 91.51182152940748,
+   "response time (ms), 95th percentile": 201.4699999999999,
+   "response time (ms), 99th percentile": 297.13579999999996,
+   "failed requests (%)": 0.0,
+   "pending pods, pod-minutes": 0.2633333333333333,
+   "utilisation (used / allocatable)": 0.034795995075800154,
+   "CPU used (cores), mean": 0.8351038818192036,
+   "energy per core-hour (Wh)": 754.6071790277024,
+   "HPA replicas, mean": 8.726485221990833
+  },
+  "omni": {
+   "worker nodes in service, mean": 5.117622040105073,
+   "node-hours": 1.2985,
+   "energy (Wh)": 143.90475,
+   "response time (ms), mean": 60.9241303117872,
+   "response time (ms), 95th percentile": 92.49099999999999,
+   "response time (ms), 99th percentile": 110.0763999999999,
+   "failed requests (%)": 0.0,
+   "pending pods, pod-minutes": 0.15999999999999998,
+   "utilisation (used / allocatable)": 0.04832463036191894,
+   "CPU used (cores), mean": 0.9922526344711102,
+   "energy per core-hour (Wh)": 578.8229423222917,
+   "HPA replicas, mean": 5.4904218728649905
+  }
+ },
+ "paired": {
+  "omni": {
+   "worker nodes in service, mean": {
+    "native": 6.0,
+    "omni": 5.117622040105074,
+    "diff": -0.882377959894926,
+    "ci95": [
+     -1.2507714893526032,
+     -0.5139844304372486
+    ],
+    "significant": true
+   },
+   "node-hours": {
+    "native": 1.5189999999999997,
+    "omni": 1.2984999999999998,
+    "diff": -0.22049999999999992,
+    "ci95": [
+     -0.3155740912055846,
+     -0.12542590879441523
+    ],
+    "significant": true
+   },
+   "energy (Wh)": {
+    "native": 158.73775,
+    "omni": 143.90475,
+    "diff": -14.832999999999998,
+    "ci95": [
+     -22.873461841590224,
+     -6.792538158409773
+    ],
+    "significant": true
+   },
+   "response time (ms), mean": {
+    "native": 91.51182152940748,
+    "omni": 60.92413031178719,
+    "diff": -30.587691217620296,
+    "ci95": [
+     -55.51484250608591,
+     -5.660539929154677
+    ],
+    "significant": true
+   },
+   "response time (ms), 95th percentile": {
+    "native": 201.4699999999999,
+    "omni": 92.49099999999996,
+    "diff": -108.97899999999996,
+    "ci95": [
+     -147.8001807527728,
+     -70.15781924722711
+    ],
+    "significant": true
+   },
+   "response time (ms), 99th percentile": {
+    "native": 297.13579999999996,
+    "omni": 110.07639999999992,
+    "diff": -187.05940000000004,
+    "ci95": [
+     -237.53716693168548,
+     -136.5816330683146
+    ],
+    "significant": true
+   },
+   "failed requests (%)": {
+    "native": 0.0,
+    "omni": 0.0,
+    "diff": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "significant": false
+   },
+   "pending pods, pod-minutes": {
+    "native": 0.2633333333333333,
+    "omni": 0.15999999999999995,
+    "diff": -0.10333333333333336,
+    "ci95": [
+     -0.6034415449124763,
+     0.3967748782458095
+    ],
+    "significant": false
+   },
+   "utilisation (used / allocatable)": {
+    "native": 0.034795995075800154,
+    "omni": 0.04832463036191895,
+    "diff": 0.013528635286118796,
+    "ci95": [
+     0.010341540938175423,
+     0.01671572963406217
+    ],
+    "significant": true
+   },
+   "CPU used (cores), mean": {
+    "native": 0.8351038818192036,
+    "omni": 0.9922526344711102,
+    "diff": 0.1571487526519066,
+    "ci95": [
+     0.05349404776956064,
+     0.26080345753425255
+    ],
+    "significant": true
+   },
+   "energy per core-hour (Wh)": {
+    "native": 754.6071790277024,
+    "omni": 578.8229423222919,
+    "diff": -175.7842367054105,
+    "ci95": [
+     -197.20563893827193,
+     -154.36283447254908
+    ],
+    "significant": true
+   },
+   "HPA replicas, mean": {
+    "native": 8.726485221990833,
+    "omni": 5.490421872864989,
+    "diff": -3.236063349125845,
+    "ci95": [
+     -4.043878838903599,
+     -2.42824785934809
+    ],
+    "significant": true
+   }
+  }
+ }
+}

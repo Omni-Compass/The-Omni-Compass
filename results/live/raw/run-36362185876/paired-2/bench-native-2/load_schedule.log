@@ -1,0 +1,6 @@
+00:48:29 load-generator replicas -> 1
+00:50:59 load-generator replicas -> 2
+00:53:29 load-generator replicas -> 3
+00:55:59 load-generator replicas -> 1
+00:58:29 load-generator replicas -> 2
+01:00:59 load-generator replicas -> 1

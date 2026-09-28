@@ -1,0 +1,11 @@
+date_utc=2026-09-28T00:26:56Z
+arm=native
+git_commit=d0ddb94842e32efce01eb27b31ed1bc8ae200fad
+docker=Docker version 28.0.4, build b8034c0
+kind=kind v0.31.0 go1.25.5 linux/amd64
+kubectl=v1.35.0
+server=v1.35.0
+python=Python 3.12.14
+metrics_server=v0.9.0 sha256=1cec29a5267809306a2c6ec74a3e449abbb705b4a8beed0c8a1963910f72c79b
+workers=6
+probe_url=http://172.18.0.4:30080/ (Service via kube-proxy on the control plane)

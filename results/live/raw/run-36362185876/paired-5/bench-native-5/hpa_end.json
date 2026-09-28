@@ -1,0 +1,75 @@
+{
+    "apiVersion": "autoscaling/v2",
+    "kind": "HorizontalPodAutoscaler",
+    "metadata": {
+        "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"autoscaling/v2\",\"kind\":\"HorizontalPodAutoscaler\",\"metadata\":{\"annotations\":{},\"name\":\"php-apache\",\"namespace\":\"default\"},\"spec\":{\"maxReplicas\":10,\"metrics\":[{\"resource\":{\"name\":\"cpu\",\"target\":{\"averageUtilization\":50,\"type\":\"Utilization\"}},\"type\":\"Resource\"}],\"minReplicas\":1,\"scaleTargetRef\":{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"name\":\"php-apache\"}}}\n"
+        },
+        "creationTimestamp": "2026-09-28T00:27:29Z",
+        "name": "php-apache",
+        "namespace": "default",
+        "resourceVersion": "3468",
+        "uid": "74dfc71e-664e-448f-b94e-4c22ef4a9a85"
+    },
+    "spec": {
+        "maxReplicas": 10,
+        "metrics": [
+            {
+                "resource": {
+                    "name": "cpu",
+                    "target": {
+                        "averageUtilization": 50,
+                        "type": "Utilization"
+                    }
+                },
+                "type": "Resource"
+            }
+        ],
+        "minReplicas": 1,
+        "scaleTargetRef": {
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "name": "php-apache"
+        }
+    },
+    "status": {
+        "conditions": [
+            {
+                "lastTransitionTime": "2026-09-28T00:27:44Z",
+                "message": "recent recommendations were higher than current one, applying the highest recent recommendation",
+                "reason": "ScaleDownStabilized",
+                "status": "True",
+                "type": "AbleToScale"
+            },
+            {
+                "lastTransitionTime": "2026-09-28T00:28:14Z",
+                "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+                "reason": "ValidMetricFound",
+                "status": "True",
+                "type": "ScalingActive"
+            },
+            {
+                "lastTransitionTime": "2026-09-28T00:42:15Z",
+                "message": "the desired count is within the acceptable range",
+                "reason": "DesiredWithinRange",
+                "status": "False",
+                "type": "ScalingLimited"
+            }
+        ],
+        "currentMetrics": [
+            {
+                "resource": {
+                    "current": {
+                        "averageUtilization": 21,
+                        "averageValue": "43m"
+                    },
+                    "name": "cpu"
+                },
+                "type": "Resource"
+            }
+        ],
+        "currentReplicas": 10,
+        "desiredReplicas": 10,
+        "lastScaleTime": "2026-09-28T00:35:00Z"
+    }
+}
