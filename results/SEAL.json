@@ -1,5 +1,5 @@
 {
- "sealed_at": "2026-09-28T20:42:29+00:00",
+ "sealed_at": "2026-09-28T21:05:05+00:00",
  "rule": "each twin's Python and C++ files were proven equal by its parity test before these hashes were written",
  "twins": {
   "core engine (six-state equations)": {
@@ -49,14 +49,37 @@
     "cpp/src/conveyance.cpp": "948b267e1593aa8acd46f9d36fb4b6ebea5d04bf4122242679792eb2696eb618",
     "cpp/include/omnicompass/conveyance.hpp": "c2c32491b85ec40d236e5204407106018ef782d732834e7d2161953b62c48918"
    }
+  },
+  "nervous system (authority per organ, living band)": {
+   "proof": "tests/test_cpp_twins_parity.py",
+   "sha256": {
+    "omnicompass/nervous_system.py": "2f6492ff86440e1524df70d0192e749544e3ac29807d4a6b0e82dad70e08ea8e",
+    "cpp/src/nervous_system.cpp": "1ce2ad02713d9b6f351c17a4e8dfa56c851a50f134c2639b07a30005209bfbd3",
+    "cpp/include/omnicompass/nervous_system.hpp": "4de0d0370c6635a43009feed13dde064303beb321303fda5dcc0c4d26f7f9995"
+   }
+  },
+  "compass and ledger (composite storage)": {
+   "proof": "tests/test_cpp_twins_parity.py",
+   "sha256": {
+    "omnicompass/compass.py": "b96e934c3919c8d8fd5ffb1c2a93ed2f9152ef794abd806bcc6d400020dfab7d",
+    "omnicompass/storage.py": "762360b3d615cae55c9e742b1ffc2b225518871b0108d38f6b55920d8d89d4ea",
+    "cpp/src/compass.cpp": "34b85ae49e1beace8132e10bd3ef8c0dca114fe0f9cb97a1f109db5ac099d7cc",
+    "cpp/include/omnicompass/compass.hpp": "be677eafa23c4bf2bc550737579fd14513b81aa7644102c2c2fab67f0a73e57b"
+   }
+  },
+  "GPU governor rules (shield limit, busy gate, speed lock, window, baseline)": {
+   "proof": "tests/test_cpp_twins_parity.py",
+   "sha256": {
+    "omni_controller/gpu_governor.py": "1e6d3956967532d1498f6e537ea072501fe4e1523331521f255267064e1a7264",
+    "cpp/src/gpu_rules.cpp": "66072cd30a7ab82fe937d5e44138a67038134e932c2883406f8fac26b40ecd76",
+    "cpp/include/omnicompass/gpu_rules.hpp": "17d1aec370dacc1b9e850f978291a8bd61371578678f68a8c756568f38f25d28"
+   }
   }
  },
  "python_only": {
-  "omni_controller/gpu_governor.py": "GPU governor (share floor, busy gate, speed lock)",
+  "omni_controller/gpu_governor.py (device I/O)": "reading nvidia-smi and writing power limits; its decision rules are twinned above",
   "omni_controller/muscles.py": "Kubernetes and hardware muscles (convey, rightsize, coldstart, batch, contain, cooling, CPU/GPU connectors)",
   "omni_controller/controller.py": "Kubernetes controller (HPA target, pod reflex, machines, strict replicas)",
-  "omnicompass/nervous_system.py": "nervous system (authority per organ, living band)",
-  "omnicompass/compass.py": "compass readings",
   "hardware/node_exchange.py": "CPU + GPU on one power budget (simulation harness; the law itself is twinned above)"
  }
 }

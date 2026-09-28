@@ -253,11 +253,15 @@ the same answers, proven by a parity test on every build.
 | HPA replica law | `fleet/harness.py` | `cpp/src/hpa.cpp` | `tests/test_cpp_hpa_parity.py` |
 | closure law (machines) | `omnicompass/closure.py` | `cpp/src/closure.cpp` | `tests/test_cpp_closure_parity.py` |
 | conveyance law (the conserved budget) | `omnicompass/conveyance.py` | `cpp/src/conveyance.cpp` | `tests/test_cpp_conveyance_parity.py` (identical to the last bit) |
+| nervous system (authority per organ, living band) | `omnicompass/nervous_system.py` | `cpp/src/nervous_system.cpp` | `tests/test_cpp_twins_parity.py` |
+| compass and ledger (composite storage) | `omnicompass/compass.py`, `omnicompass/storage.py` | `cpp/src/compass.cpp` | `tests/test_cpp_twins_parity.py` |
+| GPU governor rules (shield limit, busy gate, speed lock, window, baseline) | `omni_controller/gpu_governor.py` | `cpp/src/gpu_rules.cpp` | `tests/test_cpp_twins_parity.py` |
 
 **The seal** (`results/SEAL.json`) holds the SHA-256 fingerprint of every file of every twin, written only after all
 parity tests pass (`python3 tools/seal.py`). `verify.py` fails if any sealed file changes afterwards, and names it. So
-the Python and the C++ cannot drift apart unnoticed. The controllers and muscles that talk to Kubernetes, GPUs and
-sensors (`omni_controller/`) and the nervous system are Python only today; the seal lists them as such.
+the Python and the C++ cannot drift apart unnoticed. What stays in Python is the plumbing that talks to Kubernetes,
+nvidia-smi and sensors (`omni_controller/controller.py`, `muscles.py`, the device I/O of `gpu_governor.py`) and the
+simulation harnesses; every decision they take goes through the twinned laws. The seal lists them as Python only.
 
 Keep this manual with the code. When Omni-Compass changes, this manual, the C++ twin and the seal change in the same
 commit.

@@ -77,6 +77,43 @@ def baseline_at(base, rate):
             return {k: lo[k] + f * (hi[k] - lo[k]) for k in ("mean", "p95", "p99")}
 
 
+def shield_limit(cap, draw, start, min_w, headroom, min_share, slo_clean):
+    """The shield: limit = max(cap x start, draw x (1 + headroom), min_share x start, device minimum), never above start,
+    whole watts. Returns (want_w, the bound that decided it). Twinned in C++ (cpp/src/gpu_rules.cpp)."""
+    share_floor = min_share * start
+    floor = max(draw * (1.0 + headroom), min_w, share_floor)
+    engine_w = math.floor(cap * start)
+    want = int(min(start, max(engine_w, math.ceil(floor))))
+    bound = ("slo_or_blind_reflex" if not slo_clean else "start_ceiling" if want >= start and engine_w >= start
+             else "share_floor" if math.ceil(floor) > engine_w and floor == share_floor
+             else "draw_headroom_floor" if math.ceil(floor) > engine_w and floor > min_w
+             else "device_minimum" if math.ceil(floor) > engine_w else "engine")
+    return want, bound
+
+
+def busy_gate(u_prev, util, gated_prev, gate, band):
+    """Utilization smoothed over decisions (u_prev None: the first reading) and the gate with its band. Returns
+    (u, gated). Twinned in C++."""
+    u = 0.5 * (util if u_prev is None else u_prev) + 0.5 * util
+    return u, (u >= gate or (gated_prev and u >= gate - band))
+
+
+def lock_decide(ratio, cur, start, min_w, since_last, speed_gain, lock_margin, lock_step, lock_boost, lock_floor, lock_hold_s):
+    """The speed lock's step from the worst response-time ratio against the baseline. Returns (want_w, bound, line,
+    aim). Twinned in C++."""
+    line = 1.0 - speed_gain
+    aim = line * (1.0 - lock_margin)
+    floor = max(min_w, lock_floor * start)
+    if ratio > line:
+        want, bound = start, "speed_lock_release"
+    elif ratio < aim and since_last >= lock_hold_s:
+        mult = min(lock_boost, max(1.0, (aim - ratio) / max(1e-6, line * lock_margin)))
+        want, bound = max(floor, cur - mult * lock_step * start), "speed_lock_spend"
+    else:
+        want, bound = cur, "speed_lock_hold"
+    return int(min(start, max(floor, want))), bound, line, aim
+
+
 def throttle(smi, gpus):
     """The device's own record of why its clock is held down (power cap, thermal, ...), as a bit mask; None if the
     driver does not report it."""
@@ -172,17 +209,8 @@ class GpuGovernor:
         b = baseline_at(self.baseline, st["rate"])
         ratios = {k: st[k] / b[k] for k in ("mean", "p95", "p99")}
         ratio = max(ratios.values())
-        line = 1.0 - a.speed_gain
-        aim = line * (1.0 - a.lock_margin)
-        floor = max(self.min[g], a.lock_floor * start)
-        if ratio > line:
-            want, bound = start, "speed_lock_release"
-        elif ratio < aim and self.clock() - self.lock_at.get(g, -1e18) >= a.lock_hold_s:
-            mult = min(a.lock_boost, max(1.0, (aim - ratio) / max(1e-6, line * a.lock_margin)))
-            want, bound = max(floor, cur - mult * a.lock_step * start), "speed_lock_spend"
-        else:
-            want, bound = cur, "speed_lock_hold"
-        want = int(min(start, max(floor, want)))
+        want, bound, line, aim = lock_decide(ratio, cur, start, self.min[g], self.clock() - self.lock_at.get(g, -1e18),
+                                             a.speed_gain, a.lock_margin, a.lock_step, a.lock_boost, a.lock_floor, a.lock_hold_s)
         if want != int(cur):
             self.lock_at[g] = self.clock()
         rec = {"rate": round(st["rate"], 2), "ratios": {k: round(v, 4) for k, v in ratios.items()},
@@ -235,18 +263,11 @@ class GpuGovernor:
                 self.projected[g] = {k: getattr(e.x, k) for k in STATE}
                 requested = float(d["power_cap"])
                 cap = requested if slo_clean else 1.0
-                share_floor = getattr(a, "min_share", 0.0) * self.start[g]
-                floor = max(r["draw"] * (1.0 + a.headroom), self.min[g], share_floor)
-                engine_w = math.floor(cap * self.start[g])
-                want = int(min(self.start[g], max(engine_w, math.ceil(floor))))
-                bound = ("slo_or_blind_reflex" if not slo_clean else "start_ceiling" if want >= self.start[g] and engine_w >= self.start[g]
-                         else "share_floor" if math.ceil(floor) > engine_w and floor == share_floor
-                         else "draw_headroom_floor" if math.ceil(floor) > engine_w and floor > self.min[g]
-                         else "device_minimum" if math.ceil(floor) > engine_w else "engine")
+                want, bound = shield_limit(cap, r["draw"], self.start[g], self.min[g], a.headroom, getattr(a, "min_share", 0.0), slo_clean)
                 gate = getattr(a, "util_gate", 0.0)
                 if gate:
-                    u = self.util_avg[g] = 0.5 * self.util_avg.get(g, r["util"]) + 0.5 * r["util"]
-                    self.gated[g] = u >= gate or (self.gated.get(g, False) and u >= gate - getattr(a, "util_band", 0.1))
+                    self.util_avg[g], self.gated[g] = busy_gate(self.util_avg.get(g), r["util"], self.gated.get(g, False),
+                                                                gate, getattr(a, "util_band", 0.1))
                     if self.gated[g]:
                         want, bound = int(self.start[g]), "busy_gate"
                         cap = 1.0

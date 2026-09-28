@@ -29,13 +29,17 @@ TWINS = {
         "cpp": ["cpp/src/closure.cpp", "cpp/include/omnicompass/closure.hpp"], "proof": "tests/test_cpp_closure_parity.py"},
     "conveyance law (the conserved budget)": {"python": ["omnicompass/conveyance.py"],
         "cpp": ["cpp/src/conveyance.cpp", "cpp/include/omnicompass/conveyance.hpp"], "proof": "tests/test_cpp_conveyance_parity.py"},
+    "nervous system (authority per organ, living band)": {"python": ["omnicompass/nervous_system.py"],
+        "cpp": ["cpp/src/nervous_system.cpp", "cpp/include/omnicompass/nervous_system.hpp"], "proof": "tests/test_cpp_twins_parity.py"},
+    "compass and ledger (composite storage)": {"python": ["omnicompass/compass.py", "omnicompass/storage.py"],
+        "cpp": ["cpp/src/compass.cpp", "cpp/include/omnicompass/compass.hpp"], "proof": "tests/test_cpp_twins_parity.py"},
+    "GPU governor rules (shield limit, busy gate, speed lock, window, baseline)": {"python": ["omni_controller/gpu_governor.py"],
+        "cpp": ["cpp/src/gpu_rules.cpp", "cpp/include/omnicompass/gpu_rules.hpp"], "proof": "tests/test_cpp_twins_parity.py"},
 }
 PYTHON_ONLY = {
-    "omni_controller/gpu_governor.py": "GPU governor (share floor, busy gate, speed lock)",
+    "omni_controller/gpu_governor.py (device I/O)": "reading nvidia-smi and writing power limits; its decision rules are twinned above",
     "omni_controller/muscles.py": "Kubernetes and hardware muscles (convey, rightsize, coldstart, batch, contain, cooling, CPU/GPU connectors)",
     "omni_controller/controller.py": "Kubernetes controller (HPA target, pod reflex, machines, strict replicas)",
-    "omnicompass/nervous_system.py": "nervous system (authority per organ, living band)",
-    "omnicompass/compass.py": "compass readings",
     "hardware/node_exchange.py": "CPU + GPU on one power budget (simulation harness; the law itself is twinned above)",
 }
 
@@ -60,6 +64,8 @@ def prove():
     test_cpp_hpa_parity.main(str(b / "oc_hpa"), (901,))
     test_cpp_closure_parity.main(str(b / "oc_closure"), 1)
     assert test_cpp_conveyance_parity.main(str(b / "oc_conveyance"), 200) < 1e-9
+    from tests import test_cpp_twins_parity
+    test_cpp_twins_parity.main(str(b / "oc_twins"), 2000)
 
 
 def check():

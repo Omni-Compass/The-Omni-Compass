@@ -31,7 +31,7 @@ def build_cpp(tmp):
         srcs = [str(p) for p in (src / "src").glob("*.cpp")]
         for tool, name in (("run_fixture.cpp", "oc_run_fixture"), ("run_governor.cpp", "oc_governor"), ("soak.cpp", "oc_soak"),
                            ("smoke.cpp", "oc_smoke"), ("run_shield.cpp", "oc_shield"), ("run_hpa.cpp", "oc_hpa"), ("savings.cpp", "oc_savings"),
-                           ("run_closure.cpp", "oc_closure"), ("run_conveyance.cpp", "oc_conveyance")):
+                           ("run_closure.cpp", "oc_closure"), ("run_conveyance.cpp", "oc_conveyance"), ("run_twins.cpp", "oc_twins")):
             subprocess.run([cxx, "-std=c++20", "-O2", "-I", str(src / "include"), *srcs, str(src / "tools" / tool), "-o", str(b / name)], check=True)
     return b
 
@@ -91,6 +91,9 @@ def main():
     from tests import test_cpp_conveyance_parity
     w = test_cpp_conveyance_parity.main(str(b / "oc_conveyance"), 50 if a.quick else 200)
     check("C++ conveyance law vs Python conveyance law, every allocation (random systems and the CPU+GPU layout)", w < 1e-9)
+    from tests import test_cpp_twins_parity
+    test_cpp_twins_parity.main(str(b / "oc_twins"), 500 if a.quick else 2000)
+    check("C++ nervous system, compass and ledger, GPU rules vs Python, value for value", True)
     from tools import seal
     broken = seal.check()
     check(f"seal: all {len(seal.TWINS)} Python/C++ twins unchanged since proven equal (results/SEAL.json)", not broken, "; ".join(broken))
