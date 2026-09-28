@@ -1,0 +1,8 @@
+NAME                       STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION      CONTAINER-RUNTIME
+omni-bench-control-plane   Ready    control-plane   18m   v1.35.0   172.18.0.8    <none>        Debian GNU/Linux 12 (bookworm)   6.17.0-1022-azure   containerd://2.2.0
+omni-bench-worker          Ready    <none>          18m   v1.35.0   172.18.0.2    <none>        Debian GNU/Linux 12 (bookworm)   6.17.0-1022-azure   containerd://2.2.0
+omni-bench-worker2         Ready    <none>          18m   v1.35.0   172.18.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.17.0-1022-azure   containerd://2.2.0
+omni-bench-worker3         Ready    <none>          18m   v1.35.0   172.18.0.6    <none>        Debian GNU/Linux 12 (bookworm)   6.17.0-1022-azure   containerd://2.2.0
+omni-bench-worker4         Ready    <none>          18m   v1.35.0   172.18.0.5    <none>        Debian GNU/Linux 12 (bookworm)   6.17.0-1022-azure   containerd://2.2.0
+omni-bench-worker5         Ready    <none>          18m   v1.35.0   172.18.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.17.0-1022-azure   containerd://2.2.0
+omni-bench-worker6         Ready    <none>          18m   v1.35.0   172.18.0.7    <none>        Debian GNU/Linux 12 (bookworm)   6.17.0-1022-azure   containerd://2.2.0
