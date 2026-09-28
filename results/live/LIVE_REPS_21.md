@@ -1,26 +1,45 @@
 # Set 21 on real Kubernetes: native against me on top, ten paired repetitions
 
-Run: benchmark-reps 36466558583, commit 9e64f7b (conveyance only when response time needs it: --convey-on 0.5,
---convey-off 0.25 of the 500 ms SLO). Ten paired repetitions, each arm 15 minutes on kind (1 control plane, 6 workers),
-order rotated. Aggregate from the run's own summary (tools/live_reps.py); raw files are the run's artifacts.
+Run: benchmark-reps 36466558583, commit 9e64f7b (conveyance only when response time needs it: `--convey-on 0.5`,
+`--convey-off 0.25` of the 500 ms SLO). Ten paired repetitions, each arm 15 minutes on kind (1 control plane, 6 workers),
+order rotated, both arms of a repetition on one runner. The table was recomputed from the run's own raw files by
+`.github/workflows/reaggregate.yml` (run 36485672281) with the current `tools/live_reps.py`:
+`results/live/reaggregated/LIVE_REPS_36466558583.md`. Artifact digests are in `RELEASE_MANIFEST.json`.
 
-| Gauge | Native | Me on top | Change | 95% interval of the difference | Significant |
+## What was measured
+
+| Gauge | Native | Me on top | Change | 95% interval of the difference | Verdict |
 |---|---:|---:|---:|---:|---|
-| worker nodes in service, mean | 6 | 4.745 | -20.9% | -1.524 to -0.986 | yes, better |
-| node-hours | 1.514 | 1.201 | -20.7% | -0.3815 to -0.2453 | yes, better |
-| energy (Wh, declared model) | 159 | 138 | -13.2% | -26.16 to -15.72 | yes, better |
-| response time (ms), mean | 151.9 | 107.5 | -29.2% | -55.45 to -33.36 | yes, better |
-| response time (ms), 95th percentile | 304.9 | 191.4 | -37.2% | -148.4 to -78.55 | yes, better |
-| response time (ms), 99th percentile | 438.1 | 298.7 | -31.8% | -191.3 to -87.37 | yes, better |
-| failed requests (%) | 0 | 0 | +0 | +0 to +0 | no |
-| pending pods, pod-minutes | 0.105 | 0.355 | +238.1% | -0.07431 to +0.5743 | no |
-| CPU used (cores), mean | 0.911 | 1.146 | +25.8% | +0.1706 to +0.3002 | yes |
-| HPA replicas, mean | 8.942 | 7.844 | -12.3% | -1.616 to -0.5808 | yes, better |
-| pods started | 4.6 | 6.3 | +37.0% | -0.1174 to +3.517 | no |
+| response time (ms), mean | 151.9 | 107.5 | −29.2% | −55.45 to −33.36 | better, proven |
+| response time (ms), 95th percentile | 304.9 | 191.4 | −37.2% | −148.4 to −78.55 | better, proven |
+| response time (ms), 99th percentile | 438.1 | 298.7 | −31.8% | −191.3 to −87.37 | better, proven |
+| failed requests (%) | 0 | 0 | 0 | 0 to 0 | equal |
+| HPA replicas, mean | 8.942 | 7.844 | −12.3% | −1.616 to −0.581 | fewer, proven |
+| worker nodes in service, mean | 6 | 4.745 | −20.9% | −1.524 to −0.986 | fewer, proven (all stayed powered) |
+| CPU used by the app (cores), mean | 0.911 | 1.146 | +25.8% | +0.171 to +0.300 | more, proven |
+| pods started | 4.6 | 6.3 | +37.0% | −0.117 to +3.517 | not proven |
+| pod start wait, total (s) | 10.2 | 17 | +66.7% | −1.98 to +15.58 | not proven |
+| pending pods, pod-minutes | 0.105 | 0.355 | +238% | −0.074 to +0.574 | not proven |
 
-Plainly:
-- Conveyance only when needed did not bring CPU use down: +25.8%, the same as set 20 (+26.3%). The extra CPU is not
-  from conveyance being on all the time; its source is still to be found.
-- Response times are still clearly better (p95 -37%), a smaller gain than set 20 (-55%).
-- Energy here is the declared model (no meter on kind), with a worker taken out of service counted at idle power; it is
-  not a measurement.
+## Energy: a declared model, not a meter
+
+| Gauge | Native | Me on top | Change | 95% interval | Verdict |
+|---|---:|---:|---:|---:|---|
+| **energy, parked workers still on at idle power (Wh)**: what kind does | 159 | 161.9 | **+1.8%** | +2.13 to +3.65 | **worse, proven** |
+| energy, parked workers at 25 W standby (Wh): needs a node autoscaler that removes the machine; this run has none | 159 | 138 | −13.2% | −26.16 to −15.72 | model only |
+
+## Plainly
+
+- **Response times are clearly better** (p95 −37%), with no failed requests.
+- **This set does not show an energy saving.** Every worker stayed powered, and counted at the idle power it really
+  draws, the modelled energy is 1.8% higher with me on top. The −13% figure holds only if a parked worker drops to
+  25 W, which kind never does.
+- **CPU use is 26% higher.** The load is closed-loop, so faster answers bring more requests (addendum below).
+- Pod starts and waits did not differ significantly.
+
+## Addendum: the load is closed-loop
+
+The load generator waits for each answer before sending the next, so faster answers mean more requests: the CPU +26%
+includes more work served. This set's own estimate (`tools/closed_loop_estimate.py` on its raw files) is recorded in
+`results/live/reaggregated/`. Work per energy needs equal work or a count of requests served; the next set runs a
+fixed-rate load (`LOADGEN=open`).

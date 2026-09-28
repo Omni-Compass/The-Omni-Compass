@@ -1,0 +1,65 @@
+{
+ "release": "Omni-Compass",
+ "written_at_commit": "149117ca03caedd5b9834142f2e755f8d8c00188",
+ "written_at": "2026-09-28T21:38:10+00:00",
+ "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
+ "files": {
+  "canonical_engine": {
+   "omnicompass/core.py": "bd615f156169f6794b41439c4ce0726deb6a0b620fac76e072d24b357ab8b0a4",
+   "cpp/src/core.cpp": "d7deead6f47d54d5b68e08b98db5e15ab54c7fbac8e7b9c24ee64cb1538a8c5c",
+   "docs/CANONICAL_ENGINE.md": "d33fa5908ac211cbf9651844d2f5d8ce3f6b909c545c3477c1dd51012a939d16"
+  },
+  "reference_engine": {
+   "reference/omni_compass_reference_engine.py": "92799376dd9a626cef330d15f3fc3603eeef1dc2e5de6186b3527fdbb9d2b875",
+   "reference/PROVENANCE.json": "cb72f8ca47610ee1a01c8e2c6016ff74c5e0d8e050ae1901e6919ac16b8bc9e2"
+  },
+  "cpp_twins_seal": {
+   "results/SEAL.json": "46173cf286a1094f6ad2b94b0a23465fc815033ab2c66b0dfbc9300d3ed69cde"
+  },
+  "gpu_protocol": {
+   "docs/GPU_PREREGISTRATION.md": "97a39d56cd177103c4532f89297cc863b97f0581ed83345ac3a363aaef3df739",
+   "scripts/gpu_paired.sh": "a2f9a18b0f1164df0d30546ec610b74e845e784a28970ddf7f8c3fd9024b3c03",
+   "tools/gpu_workload.py": "055f904148b0085ed393b08ea905b27f6aadb36cc3c1927be3898b31a89d0457",
+   "tools/gpu_reps.py": "f0ec946e868b96bec001e8e3b97d6f6c7ab4e0198e208d103cabfcc3608641de",
+   "omni_controller/gpu_governor.py": "1e6d3956967532d1498f6e537ea072501fe4e1523331521f255267064e1a7264",
+   "omnicompass/adapter.py": "57ca59da4024ccea2769083998fdeb7b7c9c05b5c0dbca638375350be7dd93ac",
+   "omni_controller/muscles.py": "fd1882fc73e8c6d3bc341507979e82ff2db613ba4e1efa23d5b7bfac2b4077a9"
+  },
+  "live_set_20": {
+   "results/live/LIVE_REPS_20.md": "b66d3b5129f92e094381533bd809ffa9aea195af0d621ee6775bc4a332c1266e",
+   "results/live/raw/run-36366603505/SHA256SUMS_ALL.txt": "414f54f72f00bc9d1763deace98a6879039e038bc772c6b8cfbeea638e3f9a63"
+  },
+  "live_set_21": {
+   "results/live/LIVE_REPS_21.md": "c50606f68afe2e7aef60a5ad8c2e1e5a5d0abbd8a485f93e106525926cb89f12",
+   "results/live/SET21_ARTIFACTS.json": "133139f606e4d5dc7abd4cfff6634dcc1a3ade8dc7788ffef708a1c781e8c167"
+  },
+  "preregistration": {
+   "results/PREREGISTRATION.json": "a659e6a5f81dcf6c8c26ead7b8f914ba951956be8428521d87f05f429cb96848",
+   "results/LOCK_AMENDMENTS.json": "4744d04bf460b1640c74e4d893919c6bac25b4800d4216094aa4c575e07c2c80"
+  },
+  "license": {
+   "LICENSE": "fe5da67a0c6cbb24d27278a26a82d70501917845eb357045189eb5560dac6b62",
+   "NOTICE": "49de4e4a0d299a82cc15c4d13a2712f4bb87ed5a658f0bcb9cb3abed8ef529d2"
+  }
+ },
+ "live_evidence": {
+  "set_20": {
+   "run_id": 36366603505,
+   "execution_commit": "18220d4",
+   "repetitions": 10,
+   "raw": "results/live/raw/run-36366603505/ (SHA256SUMS_ALL.txt covers every file)"
+  },
+  "set_21": {
+   "run_id": 36466558583,
+   "execution_commit": "9e64f7b",
+   "repetitions": 10,
+   "raw": "GitHub artifacts, digests in results/live/SET21_ARTIFACTS.json; recomputed by reaggregate run 36485672281"
+  }
+ },
+ "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card",
+ "verification_receipt": {
+  "file": "results/VERIFY_RECEIPT.txt",
+  "sha256": "53367f8d1a0812b9d3b06cebde0aae994b2ce10429df9b4b0c217ff41de930e9",
+  "passed": true
+ }
+}

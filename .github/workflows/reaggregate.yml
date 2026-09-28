@@ -23,7 +23,7 @@ jobs:
       - id: rid
         run: |
           ID="${{ github.event.inputs.run_id }}"
-          [ -z "$ID" ] && ID=$(tr -dc 0-9 < results/live/reaggregate_run.txt)
+          [ -z "$ID" ] && ID=$(head -1 results/live/reaggregate_run.txt | tr -dc 0-9)
           echo "id=$ID" >> "$GITHUB_OUTPUT"
       - uses: actions/download-artifact@v4
         with:
@@ -33,12 +33,14 @@ jobs:
           run-id: ${{ steps.rid.outputs.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: python tools/live_reps.py reps
+      - run: python tools/closed_loop_estimate.py reps | tee -a reps/LIVE_REPS.md
       - run: cat reps/LIVE_REPS.md >> "$GITHUB_STEP_SUMMARY"
       - name: commit the recomputed table
         run: |
           mkdir -p results/live/reaggregated
           cp reps/LIVE_REPS.md "results/live/reaggregated/LIVE_REPS_${{ steps.rid.outputs.id }}.md"
           cp reps/LIVE_REPS.json "results/live/reaggregated/LIVE_REPS_${{ steps.rid.outputs.id }}.json"
+          cp reps/CLOSED_LOOP_ESTIMATE.json "results/live/reaggregated/CLOSED_LOOP_ESTIMATE_${{ steps.rid.outputs.id }}.json" || true
           git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"
           git add results/live/reaggregated
           git commit -m "Recomputed run ${{ steps.rid.outputs.id }} with the current tools/live_reps.py" || exit 0

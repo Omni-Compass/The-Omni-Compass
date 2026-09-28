@@ -97,6 +97,9 @@ def main():
     from tools import seal
     broken = seal.check()
     check(f"seal: all {len(seal.TWINS)} Python/C++ twins unchanged since proven equal (results/SEAL.json)", not broken, "; ".join(broken))
+    from tools import release_manifest
+    bad = release_manifest.check()
+    check("release manifest: engine, C++ seal, GPU protocol, live evidence and license match RELEASE_MANIFEST.json", not bad, "; ".join(bad))
     src = (ROOT / "cpp" / "src" / "shield.cpp").read_text()
     mut_src = tmp / "shield_mut.cpp"
     mut_src.write_text(src.replace('return k == "nodes" || k == "terraform_plan" || k == "rollout"; }', 'return k == "nodes" || k == "terraform_plan"; }'))

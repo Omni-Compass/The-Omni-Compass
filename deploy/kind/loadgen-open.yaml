@@ -1,0 +1,22 @@
+# Open-loop load generator: each replica sends requests at a fixed rate (RATE per second), each in the background, whether
+# the answers are fast or slow. Every arm therefore receives the same work, so CPU and energy compare on equal work.
+# (deploy/kind/loadgen.yaml is closed-loop: it waits for each answer, so faster answers bring more requests.)
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: load-generator}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: load-generator}}
+  template:
+    metadata: {labels: {app: load-generator}}
+    spec:
+      nodeSelector: {node-role.kubernetes.io/control-plane: ""}
+      tolerations:
+        - {key: node-role.kubernetes.io/control-plane, operator: Exists, effect: NoSchedule}
+      containers:
+        - name: load
+          image: busybox:1.36
+          env: [{name: RATE, value: "6"}]
+          command: ["/bin/sh", "-c"]
+          args:
+            - gap=$$((1000000 / RATE)); while true; do (wget -q -T 10 -O- http://php-apache >/dev/null 2>&1 &); usleep $$gap; done

@@ -50,3 +50,13 @@ no Omni record left. The autoscaler alone made and removed every pod; no pod was
 `results/live/raw/run-36366603505/`, 333 files, checked by `SHA256SUMS_ALL.txt`. The table recomputes from them:
 copy the `paired-*/bench-*` folders into one folder and run `python tools/live_reps.py <that folder>`. The 100 W energy
 row adds 75 W × (6 − nodes_ready) to each 15 s interval of `capture.csv` in both columns.
+
+## Addendum, 28 September 2026: the work was not the same
+
+The sentence above, "The work was the same in both columns", is wrong. The load generator (`deploy/kind/loadgen.yaml`)
+is closed-loop: each generator sends 20 requests one after another, each waiting for its answer, then pauses 0-2 s.
+Faster answers therefore mean more requests. Estimated from each repetition's measured response time and the load
+schedule (the generators do not log their own counts), with me on top the service answered about **35% more requests**
+(95% interval +28% to +42%) with 26% more CPU, so **CPU per request was about 7% lower** (−9% to −5%). The energy rows
+compare runs that served different amounts of work. A count of requests served, or an open-loop load at a fixed rate,
+is needed to state work per energy; set 22 does that (`LOADGEN=open`).

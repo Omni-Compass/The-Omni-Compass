@@ -1,0 +1,18 @@
+{
+ "note": "GitHub's own SHA-256 digests of set 21's raw artifacts (benchmark-reps run 36466558583, commit 9e64f7b); the files are kept by GitHub until 2026-12-27 and recomputed into results/live/reaggregated/ by reaggregate run 36485672281",
+ "run_id": 36466558583,
+ "commit": "9e64f7b0e244cc0ae34d25a07dbf30c699f2f313",
+ "artifacts": {
+  "paired-1": "sha256:2a77962684f902538389c34ed820275dfe76141fa277f2b30a1f71d141abde58",
+  "paired-2": "sha256:ec470a46003f783f03c13d031a667a58029c9c6ce9478ed18d4706f378eb5bb0",
+  "paired-3": "sha256:bbce153175cfe8382e9fa82178291262a08098ac5464570a4935cf9c7a64b259",
+  "paired-4": "sha256:43df2fc8894f375a67e64a04c003fa8a603f482981fbc69ddf8b710517e8ad48",
+  "paired-5": "sha256:1628ba34e8c2499f3cca988d266c3eab4728bef9c453216d09ff72e14cc1c725",
+  "paired-6": "sha256:b2d41c7806f0496079e087b17d25270654c685ef7f077646e6b9424acfd580cf",
+  "paired-7": "sha256:d2199c5d54e035a0ac106076e3a17591b59fd5c02f8961713a4f272e19fd8fd2",
+  "paired-8": "sha256:02d8cae6957926a6d6fa5fcf661465bee64835faba6c2bce61cf47aade691112",
+  "paired-9": "sha256:60a292a758162a9a50024ea091d0d2b1d24c494dcadb2c1c68cf94b22a4dbedb",
+  "paired-10": "sha256:a4da3b0d8a2f246160684ed3cd48046a82c8f6a2f043fdb8d824ca16c2daca82",
+  "live-reps": "sha256:7fb8b09219075fd9d92989a146d2c5d54ae22b3d3046c80b8ea46eab46cfe23c"
+ }
+}

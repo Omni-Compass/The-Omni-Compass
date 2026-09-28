@@ -70,7 +70,10 @@ for i in $(seq 1 30); do curl -fsS -m 5 "$PROBE_URL" >/dev/null && break; sleep 
 curl -fsS -m 5 "$PROBE_URL" >/dev/null || { echo "serving path $PROBE_URL not reachable"; exit 1; }
 echo "probe_url=$PROBE_URL (Service via kube-proxy on the control plane)" | tee -a "$OUT_DIR/preflight.txt"
 kubectl create configmap omni-security --from-literal=hold=false --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -f deploy/kind/loadgen.yaml
+# LOADGEN=closed (default, every set before 22): waits for each answer. LOADGEN=open: a fixed rate, the same work in every arm
+LOADGEN="${LOADGEN:-closed}"
+if [ "$LOADGEN" = "open" ]; then kubectl apply -f deploy/kind/loadgen-open.yaml; else kubectl apply -f deploy/kind/loadgen.yaml; fi
+echo "loadgen=$LOADGEN" | tee -a "$OUT_DIR/preflight.txt"
 kubectl rollout status deployment/load-generator --timeout=300s
 for i in $(seq 1 30); do kubectl top nodes >/dev/null 2>&1 && break; sleep 10; done
 hpa_count=$(kubectl get hpa -A -o json | jq '.items | length')

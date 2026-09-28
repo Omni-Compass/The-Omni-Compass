@@ -1,0 +1,464 @@
+verify.py --quick at commit 149117ca03caedd5b9834142f2e755f8d8c00188, 2026-09-28T21:38:10+00:00
+
+PASS  reference engine SHA-256
+PASS  pre-registered file unchanged or amended on record (SHA-256): omnicompass/core.py
+PASS  pre-registered file unchanged or amended on record (SHA-256): omnicompass/adapter.py
+PASS  pre-registered file unchanged or amended on record (SHA-256): omnicompass/shield.py  (amended in e9703a6: two bugs found by the 2,000,000-case adversarial property te...)
+PASS  pre-registered file unchanged or amended on record (SHA-256): omnicompass/stack_sim.py
+PASS  pre-registered file unchanged or amended on record (SHA-256): benchmarks/stack_benchmark.py
+SKIP  program fingerprints (recorded with Python 3.12, running 3.11; ast.dump output is interpreter-version dependent; SHA-256 checks above are authoritative)
+stack_sim provenance: 11/11 blocks byte-identical to reference engine
+PASS test_stack_sim_provenance
+PASS  stack simulator provenance
+native arm vs reference engine simulator: 20/20 identical
+PASS test_native_equivalence
+PASS  native arm equals reference simulator
+processed 500 current-engine fixtures
+PASS  C++ core vs 500 fixtures  (max abs 3.55e-15)
+processed 1440 governor steps
+C++ vs Python governor (power_protect): 1440 directives, discrete mismatches = 0, max |diff| = 3.331e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (power_protect)
+processed 1440 governor steps
+C++ vs Python governor (throughput): 1440 directives, discrete mismatches = 0, max |diff| = 2.220e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (throughput)
+processed 1440 governor steps
+C++ vs Python governor (fleet): 1440 directives, discrete mismatches = 0, max |diff| = 4.441e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (fleet)
+processed 1440 governor steps
+C++ vs Python governor (fleet_balanced): 1440 directives, discrete mismatches = 0, max |diff| = 4.441e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (fleet_balanced)
+processed 1440 governor steps
+C++ vs Python governor (fleet_wear): 1440 directives, discrete mismatches = 0, max |diff| = 4.441e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (fleet_wear)
+C++ vs Python shield: 4608 action sets, mismatches = 0
+PASS test_cpp_shield_parity
+PASS  C++ shield vs Python shield (enforce and violations)
+shield properties over 100,000 cases: {'P1': 0, 'P2': 0, 'P3': 0, 'P4': 0}
+PASS test_shield_properties
+PASS  shield properties: no invariant violated, idempotent, no invented action, minimal intervention (random + adversarial)
+C++ vs Python shield, adversarial: 50,000 cases, mismatches = 0
+PASS test_cpp_shield_adversarial
+PASS  C++ shield vs Python shield on the adversarial generator
+C++ vs Python closure law: 4,320 decisions, mismatches = 0
+PASS test_cpp_closure_parity
+PASS  C++ closure law vs Python closure law, every decision and reserve
+PASS test_cpp_conveyance_parity: 50 random systems x 40 steps and the CPU+GPU layout, worst difference 0.0e+00 of the budget
+PASS  C++ conveyance law vs Python conveyance law, every allocation (random systems and the CPU+GPU layout)
+PASS test_cpp_twins_parity: nervous system (500 authorities, 500 release gates), compass and ledger (250 readings, with and without the engine state), GPU rules (500 limits, busy gates, lock steps; windows; baselines): C++ equals Python value for value
+PASS  C++ nervous system, compass and ledger, GPU rules vs Python, value for value
+PASS  seal: all 9 Python/C++ twins unchanged since proven equal (results/SEAL.json)
+PASS  release manifest: engine, C++ seal, GPU protocol, live evidence and license match RELEASE_MANIFEST.json
+C++ vs Python shield: 4608 action sets, mismatches = 11
+PASS  negative control: parity test detects a C++ shield that no longer blocks rollouts during a security block
+C++ HPA vs harness HPA: 345600 steps, 240 streams, mismatches = 0
+PASS test_cpp_hpa_parity
+PASS  independent C++ HPA replica law vs fleet harness HPA
+C++ HPA vs harness HPA: 345600 steps, 240 streams, mismatches = 208204
+PASS  negative control: parity test detects a C++ HPA with 5% instead of 10% tolerance
+PASS  C++ governor contract smoke test (bounds, security, determinism, both modes)
+PASS  soak test (power_protect), 1,000,000 decisions, no failures, memory flat after warm-up  (3020 ns per decision, RSS checkpoints [3808, 3808, 3808, 3808] kB)
+PASS  soak test (throughput), 1,000,000 decisions, no failures, memory flat after warm-up  (3048 ns per decision, RSS checkpoints [3816, 3816, 3816, 3816] kB)
+processed 1440 governor steps
+C++ vs Python governor (power_protect): 1440 directives, discrete mismatches = 95, max |diff| = 3.331e-16
+PASS  negative control: parity test detects a mutated C++ governor (dwell 3 instead of 4)
+processed 1440 governor steps
+C++ vs Python governor (power_protect): 1440 directives, discrete mismatches = 47, max |diff| = 3.331e-16
+PASS  negative control: parity test detects a C++ governor without the equation (2) release gate
+processed 1440 governor steps
+C++ vs Python governor (power_protect): 1440 directives, discrete mismatches = 114, max |diff| = 2.060e-01
+PASS  negative control: parity test detects a C++ governor with a wrong equation (2) add gate
+PASS  held-out seed 346410161: 5 scenarios x 18 arms replay identically
+PASS  held-out seed 346410161: observe mode identical to native
+PASS  held-out seed 346410161: omni_k8s_protect invariant violations I1-I5 = 0
+PASS  held-out seed 346410161: omni_direct invariant violations I1-I5 = 0
+PASS  held-out seed 346410161: omni_direct_no_dynamics invariant violations I1-I5 = 0
+PASS  held-out seed 346410161: omni_k8s_throughput invariant violations I1-I3, I5 = 0 (I4 not enforced in throughput mode)
+PASS  held-out seed 346410161: layered observe mode identical to Kubernetes alone
+PASS  held-out seed 360555127: 5 scenarios x 18 arms replay identically
+PASS  held-out seed 360555127: observe mode identical to native
+PASS  held-out seed 360555127: omni_k8s_protect invariant violations I1-I5 = 0
+PASS  held-out seed 360555127: omni_direct invariant violations I1-I5 = 0
+PASS  held-out seed 360555127: omni_direct_no_dynamics invariant violations I1-I5 = 0
+PASS  held-out seed 360555127: omni_k8s_throughput invariant violations I1-I3, I5 = 0 (I4 not enforced in throughput mode)
+PASS  held-out seed 360555127: layered observe mode identical to Kubernetes alone
+PASS  fleet pre-registered file unchanged or amended on record (SHA-256): omnicompass/core.py
+PASS  fleet pre-registered file unchanged or amended on record (SHA-256): omnicompass/shield.py  (amended in e9703a6: two bugs found by the 2,000,000-case adversarial property te...)
+PASS  fleet pre-registered file unchanged or amended on record (SHA-256): fleet/harness.py
+PASS  fleet pre-registered file unchanged or amended on record (SHA-256): fleet/sim.py
+PASS  fleet pre-registered file unchanged or amended on record (SHA-256): fleet/benchmark.py
+PASS  fleet held-out (web): 2 scenarios x 12 arms replay identically
+PASS  fleet (web): observe mode identical to HPA 0.7 + Cluster Autoscaler
+PASS  fleet held-out (multi): 2 scenarios x 12 arms replay identically
+PASS  fleet (multi): observe mode identical to HPA 0.7 + Cluster Autoscaler
+PASS  fleet held-out (batch): 2 scenarios x 9 arms replay identically
+PASS  fleet (batch): observe mode identical to HPA 0.7 + Cluster Autoscaler
+PASS  fleet held-out (gpu): 2 scenarios x 9 arms replay identically
+PASS  fleet (gpu): observe mode identical to HPA 0.7 + Cluster Autoscaler
+PASS  fleet held-out (gpu_always_on): 2 scenarios x 9 arms replay identically
+PASS  fleet (gpu_always_on): observe mode identical to HPA 0.7 + Cluster Autoscaler
+PASS  recorded-trace (PlanetLab) runs replay identically
+PASS  recorded traces match their registered SHA-256
+external HPA, inclusive window: 352 / 86400 steps differ; exclusive window (upstream): 0 / 86400 differ
+PASS test_hpa_three_way
+PASS  three-way HPA agreement (harness, C++, external implementation with upstream window)
+cluster_1k_nodes  web              saved          830 MWh/yr  $        85,119 to $       115,022         332 tCO2
+cluster_1k_nodes  multi            saved          816 MWh/yr  $        90,111 to $       105,643         326 tCO2
+cluster_1k_nodes  batch            saved          478 MWh/yr  $        50,461 to $        64,059         191 tCO2
+cluster_1k_nodes  gpu              saved        1,997 MWh/yr  $       186,464 to $       293,466         799 tCO2
+cluster_1k_nodes  gpu_always_on    saved        2,366 MWh/yr  $       219,320 to $       353,406         947 tCO2
+cluster_1k_nodes  planetlab_shapes saved        1,062 MWh/yr  $       121,078 to $       132,880         425 tCO2
+fleet_100k_nodes  web              saved       77,066 MWh/yr  $     5,269,265 to $     7,120,400      30,827 tCO2
+fleet_100k_nodes  multi            saved       75,745 MWh/yr  $     5,578,295 to $     6,539,801      30,298 tCO2
+fleet_100k_nodes  batch            saved       44,396 MWh/yr  $     3,123,800 to $     3,965,550      17,758 tCO2
+fleet_100k_nodes  gpu              saved      185,419 MWh/yr  $    11,542,985 to $    18,166,925      74,168 tCO2
+fleet_100k_nodes  gpu_always_on    saved      219,743 MWh/yr  $    13,576,936 to $    21,877,542      87,897 tCO2
+fleet_100k_nodes  planetlab_shapes saved       98,635 MWh/yr  $     7,495,331 to $     8,225,924      39,454 tCO2
+PASS  C++ savings projector matches Python reference and reproduces results/SAVINGS.csv
+node_hours_per_core_hour         baseline     0.5457  omni     0.3270  change  -40.1%  95% CI [-0.2944, -0.1442]  better
+kwh_per_core_hour                baseline     0.1201  omni     0.0763  change  -36.4%  95% CI [-0.0594, -0.0288]  better
+utilisation                      baseline     0.0624  omni     0.1042  change  +66.9%  95% CI [+0.0279, +0.0553]  better
+pending_pod_minutes_per_hour     baseline     0.0000  omni     0.0000  change    n/a   95% CI [+0.0000, +0.0000]  no significant difference
+hpa_shortfall_minutes_per_hour   baseline     0.0000  omni     0.0000  change    n/a   95% CI [+0.0000, +0.0000]  no significant difference
+node_hours_per_core_hour         baseline     0.5457  omni     0.5453  change   -0.1%  95% CI [-0.0956, +0.0905]  no significant difference
+kwh_per_core_hour                baseline     0.1201  omni     0.1200  change   -0.1%  95% CI [-0.0193, +0.0188]  no significant difference
+utilisation                      baseline     0.0624  omni     0.0625  change   +0.1%  95% CI [-0.0101, +0.0100]  no significant difference
+pending_pod_minutes_per_hour     baseline     0.0000  omni     0.0000  change    n/a   95% CI [+0.0000, +0.0000]  no significant difference
+hpa_shortfall_minutes_per_hour   baseline     0.0000  omni     0.0000  change    n/a   95% CI [+0.0000, +0.0000]  no significant difference
+node_hours_per_core_hour         baseline     0.5457  omni     0.3269  change  -40.1%  95% CI [-0.2946, -0.1442]  better
+utilisation                      baseline     0.0624  omni     0.1042  change  +66.9%  95% CI [+0.0280, +0.0558]  better
+pending_pod_minutes_per_hour     baseline     0.0000  omni    52.7812  change    n/a   95% CI [+50.5938, +55.0945]  worse
+hpa_shortfall_minutes_per_hour   baseline     0.0000  omni    17.5938  change    n/a   95% CI [+16.8333, +18.3750]  worse
+node_hours_per_core_hour         baseline     0.5449  omni     0.3273  change  -39.9%  95% CI [-0.2938, -0.1432]  better
+kwh_per_core_hour                baseline     0.1199  omni     0.0764  change  -36.3%  95% CI [-0.0592, -0.0286]  better
+utilisation                      baseline     0.0626  omni     0.1042  change  +66.6%  95% CI [+0.0277, +0.0553]  better
+pending_pod_minutes_per_hour     baseline     0.0000  omni     0.0000  change    n/a   95% CI [+0.0000, +0.0000]  no significant difference
+hpa_shortfall_minutes_per_hour   baseline     0.0000  omni     0.0000  change    n/a   95% CI [+0.0000, +0.0000]  no significant difference
+pilot score: gain detected; identical clusters show no significant difference; service regression detected; measured power used
+PASS test_pilot_score
+PASS  pilot scoring: detects a real gain, no false gain on identical clusters, detects a service regression
+observe: 0 writes
+target: HPA targets web 90 -> 79, api 85 -> 79 (cpu metric at index 1), memory-only HPA untouched, 2 patches
+kill switch (new process): originals restored from the HPA annotation, records removed
+nodepool dry-run: 5 node commands logged, none executed
+nodepool live: 4 node commands executed, targets [19, 19, 19, 19] (within the 2-node step of 20, above the request floor)
+floor check: 1 light read while no pod waits; full snapshot and a node command once one does
+PASS test_omni_controller
+PASS  live controller against a fake cluster: observe writes nothing, target bounded, kill restores, node pool bounded and dry-run safe
+muscles: power cap, heat, security, rollout, batch, CPU frequency and GPU connectors; kill restores; observe writes nothing
+PASS test_muscles
+PASS  live muscles: power cap, heat, security, rollout, batch, CPU frequency and GPU connectors; kill restores; observe writes nothing
+nervous-system invariants over 50,000 states: {'N1': 0, 'N2': 0, 'N3': 0, 'N4': 0, 'N5': 0, 'N6': 0}
+PASS test_nervous_system
+PASS  nervous system: observe executes nothing, kill removes authority, security blocks capacity expansion, stress never grants contraction, envelopes in hardware range, deterministic
+PASS test_conveyance: conservation, Lyapunov ascent, exact exponential convergence, projection bounds, budget never exceeded
+PASS  conveyance law: budget conserved, Lyapunov ascent, exact exponential convergence, bounds, budget never exceeded
+blind sense never granted contraction in 75,362 blind states; frozen probe detected; failures read as pressure; release refused while blind or after an order that did not land
+PASS test_two_way
+PASS  two-way nervous system: blind senses never grant contraction, frozen probe detected, failures read as pressure, no new order before the last one landed
+PASS test_node_release_gate: attribution, coordination and headroom gate over 200,000 random states
+PASS  machine-organ release gate: own engine view, pods-first coordination, headroom at the engine's rho
+PASS test_hardware_plant: GPU arms distinct, C sized by the device law under the engine cap, no lost work, no extra heat
+PASS  hardware plant: GPU arms B and C distinct; C = min(engine cap, (want/rho)^(1/gamma)); no lost work, no extra heat
+PASS test_node_exchange: CPU+GPU conveyance never over the site budget, CPU-measured-only goes over, more work and less backlog than today's fixed cap, CPU ceiling fits its allocation
+PASS  CPU+GPU on one budget: never over the site budget; CPU-measured-only goes over; more work than today's fixed cap
+cpufreq lever over 1,941 random (utilisation, cap, envelope) cases: schedutil floor, envelope, exact restore hold
+PASS test_cpufreq_contract
+PASS  CPU-frequency lever via kernel policy files: schedutil floor, nervous envelope, never above the operator ceiling, exact restore on kill
+PASS test_strict_replicas
+PASS  strict C live mode: Omni-Compass sets the replica floor, growth free, kill restores the range
+compass: 8 points and 24 letters where the face puts them; axle solves (6); 2 turns = 2 circles closed; inward on both boundaries; ledger descends on an unforced return
+composite ledger: 648.0 -> 8.01 over 60 regulated steps, no rise
+PASS test_compass
+PASS  the compass: face, axle, closed circles, inwardness on the boundary, ledger descent
+living band: 300,000 nervous states and 60,000 conveyance allocations, every level inside 5%..95%, budget kept
+PASS test_living_band
+PASS  living band: every level the nervous system hands out stays inside 5%..95%; budget kept
+pod reflex: calm 0 writes; queue R 231 ms vs S 100 ms -> busy 0.57 -> floor 2 -> 6 (HPA rule, target 0.5 x 200m/500m); drained -> handed back to 1; kill restores 1,10
+PASS test_pod_reflex
+PASS  fast pod reflex: the HPA's own rule read from the live queue; calm writes nothing; hands back; kill restores
+levers: rightsize, coldstart, batch pace, containment, cooling; kill restores every one
+PASS test_muscles_levers
+PASS  live levers: rightsize, coldstart, batch pace, containment, cooling; kill restores every one, also from a fresh process
+pod starts: 3 in the window (3 s, 5 s, 10 s until the end), the one before the window not counted
+PASS test_pod_starts
+PASS  exact pod-start timing from the API server's watch stream (creation to Ready, window-bounded)
+# GPU bench: native vs Omni-Compass, metered by the device
+
+GPU Fake GPU, driver 0.0, persistence mode Enabled, start power limit 300.00 W, workload tools/gpu_workload.py (seeded fp16 matmul request stream).
+2 repetitions, order rotated, 5.0 s per arm plus 1.0 s drain, 0.0 s idle before each arm.
+
+Phase: **smoke**. Omni frozen at commit 149117ca03ca; file hashes in FREEZE.json, rechecked at the end.
+
+## INVALID RUN
+
+- Omni changed during the run: the frozen file hashes differ between the start, the end, or the machines
+
+## Every column, mean over repetitions
+
+| Gauge | Native | Omni watches only | Omni governs |
+|---|---:|---:|---:|
+| work per energy (served requests per kJ) | 103.5 | 103.5 | 103.5 |
+| work per wall energy (served requests per kJ, whole machine) | 74.65 | 82.12 | 89.58 |
+| energy, whole machine at the wall (J) | 1500 | 1375 | 1250 |
+| energy, GPU (J) | 1083 | 1083 | 1083 |
+| energy per served request (J) | 9.665 | 9.666 | 9.666 |
+| power, GPU mean (W) | 179.1 | 178.9 | 179 |
+| requests served | 112 | 112 | 112 |
+| requests not served | 0 | 0 | 0 |
+| response time, mean (ms) | 34.95 | 34.91 | 35.14 |
+| response time, 95th percentile (ms) | 76.73 | 76.39 | 77.24 |
+| response time, 99th percentile (ms) | 86.14 | 86.11 | 87.66 |
+| temperature, peak (C) | 60 | 60 | 60 |
+| temperature, mean (C) | 60 | 60 | 60 |
+
+## Omni governs against native, 2 paired repetitions
+
+| Gauge | Native | Omni governs | Change | 95% interval of the difference | Verdict |
+|---|---:|---:|---:|---:|---|
+| **work per energy (served requests per kJ) (primary)** | 103.5 | 103.5 | -0.0% | -0.1178 to +0.1006 | worse, not proven |
+| work per wall energy (served requests per kJ, whole machine) | 74.65 | 89.58 | +20.0% | +14.93 to +14.93 | better, proven |
+| energy, whole machine at the wall (J) | 1500 | 1250 | -16.7% | -250 to -250 | better, proven |
+| energy, GPU (J) | 1083 | 1083 | +0.0% | -1.053 to +1.233 | worse, not proven |
+| energy per served request (J) | 9.665 | 9.666 | +0.0% | -0.009403 to +0.01101 | worse, not proven |
+| power, GPU mean (W) | 179.1 | 179 | -0.0% | -1.304 to +1.222 | better, not proven |
+| requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
+| requests not served | 0 | 0 | +0 | +0 to +0 | equal |
+| response time, mean (ms) | 34.95 | 35.14 | +0.5% | -0.8355 to +1.206 | worse, not proven |
+| response time, 95th percentile (ms) | 76.73 | 77.24 | +0.7% | -4.076 to +5.086 | worse, not proven |
+| response time, 99th percentile (ms) | 86.14 | 87.66 | +1.8% | -16.89 to +19.93 | worse, not proven |
+| temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
+| temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
+
+## Omni watches only against native, 2 paired repetitions
+
+| Gauge | Native | Omni watches only | Change | 95% interval of the difference | Verdict |
+|---|---:|---:|---:|---:|---|
+| **work per energy (served requests per kJ) (primary)** | 103.5 | 103.5 | -0.0% | -0.3364 to +0.3192 | worse, not proven |
+| work per wall energy (served requests per kJ, whole machine) | 74.65 | 82.12 | +10.0% | -87.37 to +102.3 | better, not proven |
+| energy, whole machine at the wall (J) | 1500 | 1375 | -8.3% | -1713 to +1463 | better, not proven |
+| energy, GPU (J) | 1083 | 1083 | +0.0% | -3.34 to +3.52 | worse, not proven |
+| energy per served request (J) | 9.665 | 9.666 | +0.0% | -0.02982 to +0.03143 | worse, not proven |
+| power, GPU mean (W) | 179.1 | 178.9 | -0.1% | -2.723 to +2.434 | better, not proven |
+| requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
+| requests not served | 0 | 0 | +0 | +0 to +0 | equal |
+| response time, mean (ms) | 34.95 | 34.91 | -0.1% | -0.6773 to +0.6049 | better, not proven |
+| response time, 95th percentile (ms) | 76.73 | 76.39 | -0.4% | -1.31 to +0.621 | better, not proven |
+| response time, 99th percentile (ms) | 86.14 | 86.11 | -0.0% | -2.408 to +2.355 | better, not proven |
+| temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
+| temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
+
+## Verdict on the preregistered question
+
+Work per energy under Omni against native: 103.5 -> 103.5 served requests per kJ, difference -0.008602 (95% interval -0.1178 to +0.1006).
+Guardrails: requests served held (not below -1%), 95th-percentile response time held (not above +10%).
+Watch against native on the same outcome: worse, not proven.
+Whole machine at the wall (smart plug Omni never reads): better, proven, 74.65 -> 89.58 served requests per kJ.
+**Verdict: worse, not proven (the run is INVALID; see above).**
+
+## The control
+
+- Power-limit writes executed: Native 0, Omni watches only 0, Omni governs 4.
+- Every arm ended at the start limit.
+- Energy is the device's own power.draw integrated over time; no number here is modelled.
+
+# GPU bench: native vs Omni-Compass, metered by the device
+
+GPU Fake GPU, driver 0.0, persistence mode Enabled, start power limit 300.00 W, workload tools/gpu_workload.py (seeded fp16 matmul request stream).
+2 repetitions, order rotated, 5.0 s per arm plus 1.0 s drain, 0.0 s idle before each arm.
+
+Phase: **smoke**. Omni frozen at commit 149117ca03ca; file hashes in FREEZE.json, rechecked at the end.
+
+## INVALID RUN
+
+- watch rep 1: 1 power-limit writes executed (the control arm must write nothing)
+
+## Every column, mean over repetitions
+
+| Gauge | Native | Omni watches only | Omni governs |
+|---|---:|---:|---:|
+| work per energy (served requests per kJ) | 103.5 | 103.5 | 103.5 |
+| work per wall energy (served requests per kJ, whole machine) | 74.65 | 82.12 | 89.58 |
+| energy, whole machine at the wall (J) | 1500 | 1375 | 1250 |
+| energy, GPU (J) | 1083 | 1083 | 1083 |
+| energy per served request (J) | 9.665 | 9.666 | 9.666 |
+| power, GPU mean (W) | 179.1 | 178.9 | 179 |
+| requests served | 112 | 112 | 112 |
+| requests not served | 0 | 0 | 0 |
+| response time, mean (ms) | 34.95 | 34.91 | 35.14 |
+| response time, 95th percentile (ms) | 76.73 | 76.39 | 77.24 |
+| response time, 99th percentile (ms) | 86.14 | 86.11 | 87.66 |
+| temperature, peak (C) | 60 | 60 | 60 |
+| temperature, mean (C) | 60 | 60 | 60 |
+
+## Omni governs against native, 2 paired repetitions
+
+| Gauge | Native | Omni governs | Change | 95% interval of the difference | Verdict |
+|---|---:|---:|---:|---:|---|
+| **work per energy (served requests per kJ) (primary)** | 103.5 | 103.5 | -0.0% | -0.1178 to +0.1006 | worse, not proven |
+| work per wall energy (served requests per kJ, whole machine) | 74.65 | 89.58 | +20.0% | +14.93 to +14.93 | better, proven |
+| energy, whole machine at the wall (J) | 1500 | 1250 | -16.7% | -250 to -250 | better, proven |
+| energy, GPU (J) | 1083 | 1083 | +0.0% | -1.053 to +1.233 | worse, not proven |
+| energy per served request (J) | 9.665 | 9.666 | +0.0% | -0.009403 to +0.01101 | worse, not proven |
+| power, GPU mean (W) | 179.1 | 179 | -0.0% | -1.304 to +1.222 | better, not proven |
+| requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
+| requests not served | 0 | 0 | +0 | +0 to +0 | equal |
+| response time, mean (ms) | 34.95 | 35.14 | +0.5% | -0.8355 to +1.206 | worse, not proven |
+| response time, 95th percentile (ms) | 76.73 | 77.24 | +0.7% | -4.076 to +5.086 | worse, not proven |
+| response time, 99th percentile (ms) | 86.14 | 87.66 | +1.8% | -16.89 to +19.93 | worse, not proven |
+| temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
+| temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
+
+## Omni watches only against native, 2 paired repetitions
+
+| Gauge | Native | Omni watches only | Change | 95% interval of the difference | Verdict |
+|---|---:|---:|---:|---:|---|
+| **work per energy (served requests per kJ) (primary)** | 103.5 | 103.5 | -0.0% | -0.3364 to +0.3192 | worse, not proven |
+| work per wall energy (served requests per kJ, whole machine) | 74.65 | 82.12 | +10.0% | -87.37 to +102.3 | better, not proven |
+| energy, whole machine at the wall (J) | 1500 | 1375 | -8.3% | -1713 to +1463 | better, not proven |
+| energy, GPU (J) | 1083 | 1083 | +0.0% | -3.34 to +3.52 | worse, not proven |
+| energy per served request (J) | 9.665 | 9.666 | +0.0% | -0.02982 to +0.03143 | worse, not proven |
+| power, GPU mean (W) | 179.1 | 178.9 | -0.1% | -2.723 to +2.434 | better, not proven |
+| requests served | 112 | 112 | +0.0% | +0 to +0 | equal |
+| requests not served | 0 | 0 | +0 | +0 to +0 | equal |
+| response time, mean (ms) | 34.95 | 34.91 | -0.1% | -0.6773 to +0.6049 | better, not proven |
+| response time, 95th percentile (ms) | 76.73 | 76.39 | -0.4% | -1.31 to +0.621 | better, not proven |
+| response time, 99th percentile (ms) | 86.14 | 86.11 | -0.0% | -2.408 to +2.355 | better, not proven |
+| temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
+| temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
+
+## Verdict on the preregistered question
+
+Work per energy under Omni against native: 103.5 -> 103.5 served requests per kJ, difference -0.008602 (95% interval -0.1178 to +0.1006).
+Guardrails: requests served held (not below -1%), 95th-percentile response time held (not above +10%).
+Watch against native on the same outcome: worse, not proven.
+Whole machine at the wall (smart plug Omni never reads): better, proven, 74.65 -> 89.58 served requests per kJ.
+**Verdict: worse, not proven (the run is INVALID; see above).**
+
+## The control
+
+- Power-limit writes executed: Native 0, Omni watches only 1, Omni governs 4.
+- Every arm ended at the start limit.
+- Energy is the device's own power.draw integrated over time; no number here is modelled.
+
+# GPU bench: native vs Omni-Compass, metered by the device
+
+GPU Fake GPU, driver 0.0, persistence mode Enabled, start power limit 300.00 W, workload tools/gpu_workload.py (seeded fp16 matmul request stream).
+5 repetitions, order rotated, 4.0 s per arm plus 1.0 s drain, 0.0 s idle before each arm.
+
+Phase: **smoke**. Omni frozen at commit 149117ca03ca; file hashes in FREEZE.json, rechecked at the end.
+
+## Every column, mean over repetitions
+
+| Gauge | Native | Omni watches only | Omni governs |
+|---|---:|---:|---:|
+| work per energy (served requests per kJ) | 98.61 | 98.66 | 98.62 |
+| energy, GPU (J) | 902.5 | 902.1 | 902.4 |
+| energy per served request (J) | 10.14 | 10.14 | 10.14 |
+| power, GPU mean (W) | 178.8 | 178.6 | 179 |
+| requests served | 89 | 89 | 89 |
+| requests not served | 0 | 0 | 0 |
+| response time, mean (ms) | 32.73 | 32.9 | 33.35 |
+| response time, 95th percentile (ms) | 70.91 | 71.23 | 70.8 |
+| response time, 99th percentile (ms) | 86.53 | 86.71 | 86.38 |
+| temperature, peak (C) | 60 | 60 | 60 |
+| temperature, mean (C) | 60 | 60 | 60 |
+
+## Omni governs against native, 2 paired repetitions
+
+| Gauge | Native | Omni governs | Change | 95% interval of the difference | Verdict |
+|---|---:|---:|---:|---:|---|
+| **work per energy (served requests per kJ) (primary)** | 98.61 | 98.62 | +0.0% | -0.3651 to +0.3848 | better, not proven |
+| energy, GPU (J) | 902.5 | 902.4 | -0.0% | -3.521 to +3.341 | better, not proven |
+| energy per served request (J) | 10.14 | 10.14 | -0.0% | -0.03956 to +0.03754 | better, not proven |
+| power, GPU mean (W) | 178.8 | 179 | +0.1% | -0.8886 to +1.192 | worse, not proven |
+| requests served | 89 | 89 | +0.0% | +0 to +0 | equal |
+| requests not served | 0 | 0 | +0 | +0 to +0 | equal |
+| response time, mean (ms) | 32.73 | 33.35 | +1.9% | -11.51 to +12.74 | worse, not proven |
+| response time, 95th percentile (ms) | 70.91 | 70.8 | -0.2% | -0.2618 to +0.02913 | better, not proven |
+| response time, 99th percentile (ms) | 86.53 | 86.38 | -0.2% | -0.3374 to +0.0425 | better, not proven |
+| temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
+| temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
+
+## Omni watches only against native, 2 paired repetitions
+
+| Gauge | Native | Omni watches only | Change | 95% interval of the difference | Verdict |
+|---|---:|---:|---:|---:|---|
+| **work per energy (served requests per kJ) (primary)** | 98.61 | 98.66 | +0.0% | -0.0759 to +0.1743 | better, not proven |
+| energy, GPU (J) | 902.5 | 902.1 | -0.0% | -1.594 to +0.6937 | better, not proven |
+| energy per served request (J) | 10.14 | 10.14 | -0.0% | -0.01791 to +0.007795 | better, not proven |
+| power, GPU mean (W) | 178.8 | 178.6 | -0.1% | -0.3881 to -0.07035 | better, proven |
+| requests served | 89 | 89 | +0.0% | +0 to +0 | equal |
+| requests not served | 0 | 0 | +0 | +0 to +0 | equal |
+| response time, mean (ms) | 32.73 | 32.9 | +0.5% | -2.371 to +2.708 | worse, not proven |
+| response time, 95th percentile (ms) | 70.91 | 71.23 | +0.5% | -4.853 to +5.496 | worse, not proven |
+| response time, 99th percentile (ms) | 86.53 | 86.71 | +0.2% | -2.649 to +3.02 | worse, not proven |
+| temperature, peak (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
+| temperature, mean (C) | 60 | 60 | +0.0% | +0 to +0 | equal |
+
+## Verdict on the preregistered question
+
+Work per energy under Omni against native: 98.61 -> 98.62 served requests per kJ, difference +0.009843 (95% interval -0.3651 to +0.3848).
+Guardrails: requests served held (not below -1%), 95th-percentile response time held (not above +10%).
+Watch against native on the same outcome: better, not proven.
+**Verdict: better, not proven.**
+
+## The control
+
+- Power-limit writes executed: Native 0, Omni watches only 0, Omni governs 4.
+- Every arm ended at the start limit.
+- Energy is the device's own power.draw integrated over time; no number here is modelled.
+
+PASS  GPU bench: governor contract (watch writes nothing, shield floor, share floor, busy gate, read-back, blind, SLO reflex, kill) and the one-command paired run with its validity checks
+PASS  GPU bench: watch writes nothing, limit never below draw x 1.3, read-back, blind and SLO reflexes, kill restores; paired run validity
+convey: w0 1900m x2, w1 2800m, w2 left at 500m (crowded); requests untouched; no rollout; kill restored 500m; only when needed: calm 500m, p95 300 ms conveys, 150 ms holds, 100 ms returns 500m, blind conveys; hold blocks expansion; HPA target 50 -> 95 once clean (the guaranteed share, same queue promise), held for the autoscaler's window, then 76; closed machine with work: in service 3, open 2
+PASS test_convey
+PASS  energy to where the work is: idle machine CPU conveyed to serving pods in place, band-bounded, kill restores
+active nodes: 2 of 4 counted (control plane and cordoned worker excluded); kill switch restored the node pool once
+PASS test_active_nodes
+PASS  full-engine controller options: parked and control-plane nodes excluded, kill switch restores the node pool once
+PASS test_schedutil
+PASS  schedutil model: 1.25 map tips at 80%, OPP snap, uclamp, RT to policy max, rate limit, iowait boost, Omni ceiling and kill
+PASS test_cpufreq_ceiling
+PASS  cpufreq ceiling writer: scaling_max_freq on every policy, clamped; restore puts cpuinfo_max_freq back
+no automated fallback: 10 failed decisions logged and skipped, nothing restored or stopped; only the human switch turns Omni off
+PASS test_failsafe
+PASS  no automated fallback: failed decisions are skipped; only the human switch turns the whole harness off and on
+capture replay: over-provisioned 40.0 -> 10.0 node-hours (never below the request floor); under-provisioned: never recommends fewer nodes; deterministic
+PlanetLab vessel: format load, 12 workloads, all arms run, observe identical to HPA+CA
+PASS test_fleet_realdata_paths
+PASS  capture replay and PlanetLab vessel on inputs in the real formats
+PASS  cluster capture script parses
+primary seed 346410161: energy delta -47.20 kWh, p = 1.0e-04, better in 493/500
+primary seed 360555127: energy delta -47.69 kWh, p = 1.0e-04, better in 498/500
+  346410161 time_healthy                     +0.1185  p_holm 2.4e-03  better
+  346410161 recovery_minutes                -39.4000  p_holm 2.4e-03  better
+  346410161 recovered                        +0.0740  p_holm 2.4e-03  better
+  346410161 sla_violation_physical           -0.0650  p_holm 2.4e-03  better
+  346410161 violation_backlog                -0.0098  p_holm 2.4e-03  better
+  346410161 violation_power                  -0.0593  p_holm 2.4e-03  better
+  346410161 violation_heat                   -0.0533  p_holm 2.4e-03  better
+  346410161 availability                     +0.0016  p_holm 7.6e-03  better
+  346410161 invariant_violations_ex_power    -6.9060  p_holm 2.4e-03  better
+  346410161 scale_reversals                  -0.2560  p_holm 2.4e-03  better
+  346410161 machine_round_trips              +0.5960  p_holm 2.4e-03  worse
+  346410161 thermal_travel                   -0.1206  p_holm 2.4e-03  better
+  360555127 time_healthy                     +0.1286  p_holm 2.4e-03  better
+  360555127 recovery_minutes                -43.1900  p_holm 2.4e-03  better
+  360555127 recovered                        +0.0820  p_holm 2.4e-03  better
+  360555127 sla_violation_physical           -0.0771  p_holm 2.4e-03  better
+  360555127 violation_backlog                -0.0117  p_holm 2.4e-03  better
+  360555127 violation_power                  -0.0725  p_holm 2.4e-03  better
+  360555127 violation_heat                   -0.0625  p_holm 2.4e-03  better
+  360555127 availability                     +0.0003  p_holm 1.3e-01  not significant
+  360555127 invariant_violations_ex_power    -6.8040  p_holm 2.4e-03  better
+  360555127 scale_reversals                  -0.2980  p_holm 2.4e-03  better
+  360555127 machine_round_trips              +0.7210  p_holm 2.4e-03  worse
+  360555127 thermal_travel                   -0.1226  p_holm 2.4e-03  better
+PASS  multiplicity analysis reproduces results/MULTIPLICITY.json
+
+VERIFICATION: PASS

@@ -18,6 +18,7 @@ KEYS = ["worker nodes in service, mean", "node-hours", "energy, parked workers s
 LABEL = {"energy, parked workers still on at idle power (Wh)": "energy, parked workers still on at idle power (Wh, declared model)",
          "energy (Wh)": "energy, parked workers at 25 W standby (Wh, declared model; kind never does this)",
          "energy per core-hour (Wh)": "energy per core-hour (Wh, the 25 W standby model)"}
+NEUTRAL = {"CPU used (cores), mean", "utilisation (used / allocatable)"}   # more is not better or worse by itself
 NOTE = ["**Energy on kind is a declared model, not a meter.** Every worker stays powered and Ready in every arm; the first",
         "energy row counts a parked worker at its full idle power, which is what kind does. The second counts it at the",
         "declared standby power, which needs a node autoscaler that really removes the machine; this run has none.", ""]
@@ -67,7 +68,7 @@ def main(root):
             out["paired"][a][k] = {"native": nb, "omni": ob, "diff": float(d.mean()), "ci95": [float(d.mean() - half), float(d.mean() + half)], "significant": bool(sig)}
             ch_s = f"{ch:+.1f}%" if ch is not None else f"{ob - nb:+.3g} (native is 0)"
             L.append(f"| {LABEL.get(k, k)} | {nb:.4g} | {ob:.4g} | {ch_s} | {d.mean() - half:+.4g} to {d.mean() + half:+.4g} | "
-                     f"{('yes, better' if better else 'yes, worse') if sig else 'no'} |")
+                     f"{(('yes, more' if d.mean() > 0 else 'yes, less') if k in NEUTRAL else ('yes, better' if better else 'yes, worse')) if sig else 'no'} |")
         L.append("")
     (root / "LIVE_REPS.json").write_text(json.dumps(out, indent=1)); (root / "LIVE_REPS.md").write_text("\n".join(L))
     print("\n".join(L))

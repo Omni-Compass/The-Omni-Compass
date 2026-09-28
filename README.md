@@ -80,6 +80,9 @@ Omni-Compass LLC. See `LICENSE`.
 | `pilot/selfpilot.py` | End-to-end self-pilot: the shipped controller against a simulated cluster, captured and scored |
 | `scripts/kind_pilot.sh`, `deploy/kind/` | Live pilot on a real Kubernetes control plane (kind) |
 | `docker-compose.yml`, `deploy/local/` | Local lab: one command builds a kind cluster on your Docker and runs the live pilot |
+| **`STATE_OF_PLAY.md`** | **Current facts only: measured, built, simulated and open** |
+| **`docs/CANONICAL_ENGINE.md`** | **The one engine the software runs; the printed chart as a named variant** |
+| **`RELEASE_MANIFEST.json`** | **The release's identity: fingerprints of the engine, C++ twins, GPU protocol, live evidence and verification** |
 | **`docs/INTEGRATION_MANUAL.md`** | **The manual in the box: wiring Omni-Compass in yourself, from watching only to running the stack, stack by stack** |
 | **`docs/METRICS_CATALOG.md`** | **Every gauge Omni-Compass produces, where it comes from, and whether it is measured or modelled** |
 | **`docs/COMPARISON.md`** | **What Kubernetes, OpenShift, Turbonomic, Borg, Twine and others control, and where Omni-Compass differs** |

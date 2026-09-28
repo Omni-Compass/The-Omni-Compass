@@ -2,12 +2,13 @@ name: benchmark-reps
 # Repeated live runs, paired on one runner: each repetition runs native, omni (B: on top) and strict (C: Omni-Compass
 # decides replicas and nodes) back to back on the SAME runner, each on a fresh six-worker kind cluster, in an order
 # rotated by repetition (scripts/kind_paired.sh). Aggregated with paired intervals (tools/live_reps.py).
-# Started by hand or by a pushed commit whose message contains [reps].
+# Started by hand or by a pushed commit whose message contains [reps]; add [open-load] for the fixed-rate load.
 on:
   workflow_dispatch:
     inputs:
       duration_s: {description: "Measured seconds per run", default: "900"}
       arms: {description: "Arms, in rotation order", default: "native omni"}
+      loadgen: {description: "closed (waits for answers) or open (fixed rate, equal work)", default: "closed"}
   push:
 jobs:
   run:
@@ -31,6 +32,7 @@ jobs:
           ARMS: ${{ github.event.inputs.arms || 'native omni' }}
           DURATION: ${{ github.event.inputs.duration_s || '900' }}
           CLOSURE: tuning/GLOBAL_LEAGUE_PREREGISTRATION.json
+          LOADGEN: ${{ github.event.inputs.loadgen || (contains(github.event.head_commit.message, '[open-load]') && 'open' || 'closed') }}
       - uses: actions/upload-artifact@v4
         if: always()
         with: {name: "paired-${{ matrix.rep }}", path: "bench-*-${{ matrix.rep }}"}
