@@ -51,9 +51,44 @@ def gauges(rows):
     return {k: float(v) for k, v in g.items()}
 
 
+def pod_starts(d):
+    """Every serving pod created in the measured window, timed from the API server's own record: wait = time its Ready
+    condition turned True - its creationTimestamp (1 s resolution); a pod not Ready by the end of the window waits until
+    the end. Reads pod_watch.json (kubectl get pods -w --output-watch-events -o json), window_start.txt, window_end.txt."""
+    import json as _j, datetime as _dt
+    from pathlib import Path as _P
+    d = _P(d); f = d / "pod_watch.json"
+    if not f.exists():
+        return {}
+    ts = lambda s: _dt.datetime.strptime(s, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=_dt.timezone.utc).timestamp()
+    t0 = float((d / "window_start.txt").read_text().split()[0]); t1 = float((d / "window_end.txt").read_text().split()[0])
+    text = f.read_text(); dec = _j.JSONDecoder(); i = 0; pods = {}
+    while i < len(text):
+        while i < len(text) and text[i].isspace():
+            i += 1
+        if i >= len(text):
+            break
+        try:
+            ev, i = dec.raw_decode(text, i)
+        except ValueError:
+            break
+        o = ev.get("object", ev); m = o.get("metadata", {}); uid = m.get("uid")
+        if not uid or not m.get("creationTimestamp"):
+            continue
+        rec = pods.setdefault(uid, {"created": ts(m["creationTimestamp"]), "ready": None})
+        for c in (o.get("status", {}) or {}).get("conditions", []) or []:
+            if c.get("type") == "Ready" and c.get("status") == "True" and c.get("lastTransitionTime") and rec["ready"] is None:
+                rec["ready"] = ts(c["lastTransitionTime"])
+    waits = [((r["ready"] if r["ready"] is not None else t1) - r["created"]) for r in pods.values() if t0 <= r["created"] <= t1]
+    waits = [max(0.0, w) for w in waits]
+    return {"pods started": float(len(waits)), "pod start wait, total (s)": float(sum(waits)),
+            "pod start wait, mean (s)": float(sum(waits) / len(waits)) if waits else 0.0}
+
+
 LOWER_BETTER = {"worker nodes in service, mean", "node-hours", "power (W), mean", "power (W), peak", "energy (Wh)",
                 "energy per core-hour (Wh)", "node-hours per core-hour", "pending pods, pod-minutes", "pending pods, peak",
-                "HPA shortfall (desired > current), minutes", "HPA replicas, mean", "response time (ms), mean", "response time (ms), median",
+                "HPA shortfall (desired > current), minutes", "HPA replicas, mean", "pods started", "pod start wait, total (s)",
+                "pod start wait, mean (s)", "response time (ms), mean", "response time (ms), median",
                 "response time (ms), 95th percentile", "response time (ms), 99th percentile", "failed requests (%)"}
 HIGHER_BETTER = {"utilisation (used / allocatable)", "CPU used (cores), mean"}
 

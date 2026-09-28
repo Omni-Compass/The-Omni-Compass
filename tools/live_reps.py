@@ -6,17 +6,18 @@ import csv, json, math, sys
 from pathlib import Path
 import numpy as np
 ROOT = Path(__file__).resolve().parents[1]; sys.path.insert(0, str(ROOT))
-from pilot.bench_report import gauges, latency, LOWER_BETTER
+from pilot.bench_report import gauges, latency, pod_starts, LOWER_BETTER
 
 T95 = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262}
 KEYS = ["worker nodes in service, mean", "node-hours", "energy (Wh)", "response time (ms), mean", "response time (ms), 95th percentile",
         "response time (ms), 99th percentile", "failed requests (%)", "pending pods, pod-minutes", "utilisation (used / allocatable)",
-        "CPU used (cores), mean", "energy per core-hour (Wh)", "HPA replicas, mean"]
+        "CPU used (cores), mean", "energy per core-hour (Wh)", "HPA replicas, mean",
+        "pods started", "pod start wait, total (s)", "pod start wait, mean (s)"]
 
 
 def arm_gauges(d):
     rows = list(csv.DictReader(open(d / "capture.csv")))
-    g = gauges(rows); g.update(latency(str(d / "latency.csv")))
+    g = gauges(rows); g.update(latency(str(d / "latency.csv"))); g.update(pod_starts(d))
     return g
 
 

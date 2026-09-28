@@ -251,6 +251,8 @@ def main():
     test_pod_reflex.main(); check("fast pod reflex: the HPA's own rule read from the live queue; calm writes nothing; hands back; kill restores", True)
     from tests import test_muscles_levers
     test_muscles_levers.main(); check("live levers: rightsize, coldstart, batch pace, containment, cooling; kill restores every one, also from a fresh process", True)
+    from tests import test_pod_starts
+    test_pod_starts.main(); check("exact pod-start timing from the API server's watch stream (creation to Ready, window-bounded)", True)
     from tests import test_convey
     test_convey.main(); check("energy to where the work is: idle machine CPU conveyed to serving pods in place, band-bounded, kill restores", True)
     from tests import test_active_nodes

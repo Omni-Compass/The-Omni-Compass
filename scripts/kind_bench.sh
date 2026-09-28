@@ -122,6 +122,11 @@ load_pid=$!
 # drain that moves a pod is seen exactly as a client sees it: kube-proxy sends the request to another ready endpoint.
 INTERVAL=5 DURATION="$DURATION" python scripts/latency_probe.py "$PROBE_URL" "$OUT_DIR/latency.csv" &
 probe_pid=$!
+# every start of a serving pod, timed exactly: the API server's own record of each pod from creation to Ready, streamed
+# for the whole measured window (pilot/bench_report.py pod_starts), in every arm alike
+date -u +%s > "$OUT_DIR/window_start.txt"
+kubectl get pods -n default -l run=php-apache -w --output-watch-events -o json > "$OUT_DIR/pod_watch.json" 2>"$OUT_DIR/pod_watch.err" &
+watch_pid=$!
 omni_pid=""
 if [ "$ARM" != "native" ]; then
   echo "== ARM $ARM: Omni-Compass driving HPA target + node pool + power sensing${DRY:+ (dry run: watches only, writes nothing)}"
@@ -141,6 +146,9 @@ ACTIVE_ONLY=1 INTERVAL=15 DURATION="$DURATION" POWER_CMD="bash scripts/kind_powe
   bash fleet/capture/kube_capture.sh
 wait "$load_pid" || true
 wait "$probe_pid" || true
+date -u +%s > "$OUT_DIR/window_end.txt"
+kill "$watch_pid" 2>/dev/null || true; wait "$watch_pid" 2>/dev/null || true
+kubectl get pods -n default -l run=php-apache -o json > "$OUT_DIR/pods_end.json"
 [ -n "$omni_pid" ] && { wait "$omni_pid" || true; }
 kubectl get nodes -o wide > "$OUT_DIR/nodes_end.txt"
 kubectl get hpa php-apache -o json > "$OUT_DIR/hpa_end.json"
