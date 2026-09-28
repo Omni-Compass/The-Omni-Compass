@@ -25,6 +25,8 @@ GROUPS = {
                      "omni_controller/gpu_governor.py", "omnicompass/adapter.py", "omni_controller/muscles.py"],
     "live_set_20": ["results/live/LIVE_REPS_20.md", "results/live/raw/run-36366603505/SHA256SUMS_ALL.txt"],
     "live_set_21": ["results/live/LIVE_REPS_21.md", "results/live/SET21_ARTIFACTS.json"],
+    "live_set_22": ["results/live/LIVE_REPS_22.md", "results/live/SET22_ARTIFACTS.json",
+                    "results/live/reaggregated/LIVE_REPS_36488547793.md"],
     "preregistration": ["results/PREREGISTRATION.json", "results/LOCK_AMENDMENTS.json"],
     "mechanism": ["results/MECHANISM_IDENTITY.json", "tools/mechanism_identity.py", "docs/TRACKING_THEOREM.md",
                   "tools/tracking_bounds.py", "results/TRACKING_BOUNDS.json", "docs/EVIDENCE_LEDGER.md", "RECEIPT.md"],
@@ -41,6 +43,9 @@ LIVE = {
     "set_21": {"run_id": 36466558583, "execution_commit": "9e64f7b", "repetitions": 10, "plant": "kind (GitHub Actions)",
                "engine_components_identical_to_release": SAME,
                "raw": "GitHub artifacts, digests in results/live/SET21_ARTIFACTS.json; recomputed by reaggregate run 36485672281"},
+    "set_22": {"run_id": 36488547793, "execution_commit": "cfdc17c", "repetitions": 10, "plant": "kind (GitHub Actions)",
+               "load": "open-loop, fixed rate (equal work)", "engine_components_identical_to_release": SAME,
+               "raw": "GitHub artifacts, digests in results/live/SET22_ARTIFACTS.json; recomputed by the reaggregate workflow"},
 }
 
 

@@ -15,28 +15,30 @@ measures real joules is built and tested but has not been run on a card. That ru
 
 ## Measured on real systems: the newest set, Omni-Compass against Kubernetes as it runs today
 
-Set 21 (`results/live/LIVE_REPS_21.md`): 10 paired repetitions on real Kubernetes (kind), each pair on one machine,
-Kubernetes with its autoscaler alone against the same Kubernetes with Omni-Compass on top.
+Set 22 (`results/live/LIVE_REPS_22.md`): 10 paired repetitions on real Kubernetes (kind), each pair on one machine,
+Kubernetes with its autoscaler alone against the same Kubernetes with Omni-Compass on top. The load is sent at a fixed
+rate, so both arms were given **the same work**.
 
 | Result | Kubernetes alone | With Omni-Compass | Change (95% interval) |
 |---|---:|---:|---|
-| **Response time, 95th percentile** | 304.9 ms | 191.4 ms | **−37%** (proven) |
-| Response time, 99th percentile | 438.1 ms | 298.7 ms | −32% (proven) |
-| Response time, mean | 151.9 ms | 107.5 ms | −29% (proven) |
+| **Energy, parked machines still on at idle power** (declared model, no meter) | 160.3 Wh | 160.1 Wh | **−0.1%, no difference** |
+| **Response time, 95th percentile** | 407.9 ms | 158.8 ms | **−61%** (proven) |
+| Response time, 99th percentile | 639.4 ms | 245.1 ms | −62% (proven) |
+| Response time, mean | 179.9 ms | 98.4 ms | −45% (proven) |
 | Failed requests | 0 | 0 | equal |
-| Replicas, mean | 8.94 | 7.84 | −12% (proven) |
-| Machines in service, mean (all stayed powered) | 6 | 4.75 | −21% (proven) |
-| CPU used by the service | 0.91 cores | 1.15 cores | +26% (proven): more requests were served, see below |
-| Requests served (estimated from response times) | | | **+28%** (+22% to +35%) |
-| Energy per request (the model row below ÷ estimated requests) | | | about **−21%** (a model and an estimate) |
-| **Energy, parked machines still on at idle power** (declared model, no meter) | 159 Wh | 161.9 Wh | **+1.8%, worse** (proven) |
+| Pods waiting to start, pod-minutes | 0.265 | 0.025 | −91% (proven) |
+| Replicas, mean | 8.93 | 6.91 | −23% (proven) |
+| Machines in service, mean (all stayed powered) | 6 | 4.14 | −31% (proven) |
+| CPU used by the service | 1.036 cores | 0.957 cores | −7.6% (proven) |
+| Omni's own CPU (its controller and every command it ran) | 0 | 0.070 cores | +0.070 (proven) |
+| **CPU used, service and Omni together** | 1.036 cores | 1.026 cores | **−0.9%, no difference** |
 
-- **More work was served.** The load is closed-loop (each generator waits for its answer before sending the next), so
-  faster answers bring more requests: an estimated 28% more requests were served with Omni-Compass, at about the same
-  CPU per request, so the CPU and energy rows compare unequal work. The next set runs a fixed-rate load so the work is
-  equal and work per energy is measured directly rather than estimated.
-- **No energy saving is shown on kind.** Every machine stays powered; energy is a declared model. The kill switch
-  restored every setting in every run; watch mode writes nothing.
+- **Same work, much faster answers**, with no failed requests and far less waiting.
+- **No energy saving is shown on kind.** Every machine stays powered; energy is a declared model, and counted at the
+  idle power a parked machine really draws it is unchanged.
+- **No CPU saving once Omni's own cost is counted.** The service used 7.6% less CPU; the controller spent almost all
+  of it. Cutting the controller's cost is the next improvement.
+- The kill switch restored every setting in every run.
 
 ## Built and tested, not yet run on real hardware
 

@@ -51,6 +51,7 @@ id `29d9808dfb8f…`; the printed configuration `printed_eight_line`, id `cd333d
 
 | Class | Statement | Where |
 |---|---|---|
+| L | Set 22, real Kubernetes (kind), 10 paired repetitions, equal work (fixed-rate load): p95 response time −61% (proven), replicas −23% (proven), pending pod-minutes −91% (proven), 0 failed requests. | `results/live/LIVE_REPS_22.md` |
 | L | Set 21, real Kubernetes (kind), 10 paired repetitions: p95 response time −37% (proven), replicas −12% (proven), 0 failed requests. | `results/live/LIVE_REPS_21.md` |
 | L | Omni patched a real Kubernetes API in place (no restart); the kill switch restored every setting in every run; watch mode wrote nothing. | same, `results/live/` |
 | S | Set 21 energy is a declared model, not a meter: +1.8% worse with parked machines at idle power. | same (energy table) |
@@ -72,6 +73,7 @@ Nothing here is deleted when a later result looks better.
 | Class | Statement | Where |
 |---|---|---|
 | L | Set 21: modelled energy 1.8% **worse** with every machine powered (the only honest energy row on kind). | `results/live/LIVE_REPS_21.md` |
+| L | Set 22, equal work: no CPU saving once Omni's own CPU is counted (service −7.6%, controller +0.070 cores, together −0.9%, not proven); modelled energy unchanged (−0.1%). | `results/live/LIVE_REPS_22.md` |
 | L | Set 20: the "same work" reading was wrong; requests were +35%. | `results/live/LIVE_REPS_20.md` addendum |
 | L | Sets 1–2: machine savings **withdrawn** — a broken probe had blinded the latency sense. | `results/live/LIVE_REPS_PROBE_DEFECT.md` |
 | L | Set 3 with a working probe: Omni kept all 6 machines; no significant difference except more waiting pods. | `docs/HISTORY.md` |
