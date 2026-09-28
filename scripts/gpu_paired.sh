@@ -76,6 +76,12 @@ if [ "$PHASE" = "confirm" ] && grep -q '"dirty": true' "$OUT/FREEZE.json"; then
   echo "confirmation phase refuses uncommitted Omni code: commit it first, then run (FREEZE.json lists the files)"; exit 1
 fi
 
+if [ -n "${WALL_METER:-}" ]; then
+  # the whole machine at the wall, from a smart plug Omni never reads (tools/wall_meter.py)
+  w=$($PY tools/wall_meter.py "$WALL_METER" --once) || { echo "wall meter $WALL_METER unreadable"; exit 1; }
+  echo "wall meter ${WALL_METER%%:*} reads $w W" | tee "$OUT/wall_meter.txt"
+fi
+
 echo "== calibrate the workload at the start limit (once, for every arm)"
 $PY tools/gpu_workload.py calibrate --out "$OUT" --device "cuda:$GPU" ${SIM:+--sim} $WL_ARGS
 SERVICE_MS=$($PY -c "import json;print(json.load(open('$OUT/calib.json'))['service_ms'])")
@@ -83,7 +89,9 @@ SLO_MS="${SLO_MS:-$($PY -c "print(round(10*$SERVICE_MS,1))")}"   # response-time
 echo "service time ${SERVICE_MS} ms, response-time target ${SLO_MS} ms" | tee "$OUT/slo.txt"
 
 fail=0
-for rep in $(seq 1 "$REPS"); do
+# REP_ONLY=k runs repetition k alone (its rotation included): one repetition per machine when repetitions are spread
+# over several machines of one type; the three arms of a repetition always share one machine
+for rep in ${REP_ONLY:-$(seq 1 "$REPS")}; do
   k=$(( (rep - 1) % 3 )); order=("${ARMS[@]:$k}" "${ARMS[@]:0:$k}")
   for arm in "${order[@]}"; do
     D="$OUT/rep-$rep/$arm"; mkdir -p "$D"
@@ -94,6 +102,8 @@ for rep in $(seq 1 "$REPS"); do
     $SMI --query-gpu=timestamp,index,power.draw,temperature.gpu,utilization.gpu,power.limit,clocks.sm \
       --format=csv,noheader,nounits -lms "$SAMPLE_MS" > "$D/smi.csv" 2>"$D/smi.err" &
     smi_pid=$!
+    wall_pid=""
+    if [ -n "${WALL_METER:-}" ]; then $PY tools/wall_meter.py "$WALL_METER" "$D/wall.csv" 2>"$D/wall.err" & wall_pid=$!; sleep 2; fi
     rapl energy_uj > "$D/rapl_start.txt"; rapl max_energy_range_uj > "$D/rapl_range.txt"
     date -u +%s.%N > "$D/window_start.txt"
     gov_pid=""
@@ -109,6 +119,7 @@ for rep in $(seq 1 "$REPS"); do
       --duration "$DURATION" --drain "$DRAIN" > "$D/workload.log" 2>&1
     date -u +%s.%N > "$D/window_end.txt"
     rapl energy_uj > "$D/rapl_end.txt"
+    [ -n "$wall_pid" ] && { kill "$wall_pid" 2>/dev/null || true; wait "$wall_pid" 2>/dev/null || true; }
     if [ -n "$gov_pid" ]; then
       touch "$D/kill"; wait "$gov_pid" && echo 0 > "$D/governor_exit.txt" || echo $? > "$D/governor_exit.txt"
     fi
@@ -121,6 +132,12 @@ for rep in $(seq 1 "$REPS"); do
 done
 
 freeze "$OUT/FREEZE_END.json"
+# each repetition carries its machine's own record, so repetitions from several machines can be pooled
+for r in "$OUT"/rep-*; do
+  for f in receipt.json snapshot.txt calib.json slo.txt FREEZE.json FREEZE_END.json wall_meter.txt; do
+    [ -f "$OUT/$f" ] && cp "$OUT/$f" "$r/$f"
+  done
+done
 echo "== table"
 set +e; $PY tools/gpu_reps.py "$OUT"; rc=$?; set -e
 (cd "$OUT" && find . -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)

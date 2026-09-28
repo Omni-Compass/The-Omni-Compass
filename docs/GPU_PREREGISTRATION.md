@@ -29,7 +29,9 @@ Nothing seen in smoke may change them.
 ## Design
 
 - **Arms:** native (no Omni), watch (Omni runs, may not write), omni (Omni writes the GPU power limit).
-- **Repetitions:** 10 in confirmation, each with all three arms back to back, order rotated.
+- **Repetitions:** 10 in confirmation, each with all three arms back to back, order rotated. Repetitions may run on
+  separate machines of one GPU type (`REP_ONLY`, the GitHub workflow); the three arms of a repetition always share
+  one machine, so every comparison is paired within a machine.
 - **Per arm:** 60 s idle, then the pinned workload for 600 s plus 30 s drain.
 - **Workload:** `tools/gpu_workload.py`, calibrated once at the start power limit before any arm. The seed is
   20260928, and the load phases are 30, 60, 80, 30, 60 and 30% of full-power capacity.
@@ -44,7 +46,9 @@ Nothing seen in smoke may change them.
   - requests not served;
   - response time: mean, 95th and 99th percentile;
   - peak temperature;
-  - CPU package energy (RAPL), where present.
+  - CPU package energy (RAPL), where present;
+  - where a smart plug is fitted (`WALL_METER`), whole-machine energy at the wall and work per wall kJ. The plug is
+    read by the bench only, never by Omni. An arm whose plug readings have a gap over 5 s has no wall number.
 
 ## Analysis
 

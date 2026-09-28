@@ -1,0 +1,74 @@
+name: gpu-bench
+# The GPU test (scripts/gpu_paired.sh) on GitHub's own GPU machines: native / watch / Omni on a real NVIDIA GPU,
+# energy from the GPU's own meter. One repetition per machine (its three arms back to back on that machine, order
+# rotated), repetitions in parallel, pooled into one table, and every raw file committed back to this branch under
+# results/gpu/github-<run id>/.
+#
+# Needs a GPU larger runner: an organisation owner creates one under
+# Settings > Actions > Runners > New runner > GitHub-hosted, image "NVIDIA GPU-Optimized Image for Linux", GPU size,
+# and gives it a label (default here: gpu-t4; or set the repository variable GPU_RUNNER). Billed per minute.
+# The test checks in its first minute that the machine lets it set the GPU power limit; if not, the job stops there.
+#
+# Start it: Actions > gpu-bench > Run workflow (phase smoke or confirm), or push a commit whose message contains [gpu]
+# (smoke) or [gpu-confirm] (the preregistered confirmation, docs/GPU_PREREGISTRATION.md).
+on:
+  workflow_dispatch:
+    inputs:
+      phase: {description: "smoke (look, 2 repetitions, 300 s arms) or confirm (preregistered: 10 repetitions, 600 s arms)", default: "smoke"}
+      runner: {description: "GPU runner label", default: ""}
+  push:
+permissions:
+  contents: write
+jobs:
+  run:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[gpu]') || contains(github.event.head_commit.message, '[gpu-confirm]')
+    strategy:
+      fail-fast: false
+      matrix:
+        rep: ${{ fromJSON((inputs.phase == 'confirm' || contains(github.event.head_commit.message, '[gpu-confirm]')) && '[1,2,3,4,5,6,7,8,9,10]' || '[1,2]') }}
+    runs-on: ${{ inputs.runner || vars.GPU_RUNNER || 'gpu-t4' }}
+    timeout-minutes: 90
+    env:
+      PHASE: ${{ (inputs.phase == 'confirm' || contains(github.event.head_commit.message, '[gpu-confirm]')) && 'confirm' || 'smoke' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: The GPU
+        run: nvidia-smi && nvidia-smi --query-gpu=name,driver_version,power.limit,power.min_limit,power.max_limit --format=csv
+      - name: Python with PyTorch
+        run: |
+          python3 -m venv /tmp/v
+          /tmp/v/bin/pip install -q torch numpy
+          /tmp/v/bin/python -c "import torch; print(torch.__version__, torch.cuda.is_available(), torch.cuda.get_device_name(0))"
+      - name: The test (one repetition on this machine)
+        run: |
+          DUR=300; [ "$PHASE" = confirm ] && DUR=600
+          sudo env "PATH=$PATH" PYTHON=/tmp/v/bin/python PHASE="$PHASE" REP_ONLY=${{ matrix.rep }} REPS=${{ matrix.rep }} \
+            DURATION=$DUR OUT=gpu-out bash scripts/gpu_paired.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: "gpu-rep-${{ matrix.rep }}", path: "gpu-out"}
+  pool:
+    needs: run
+    if: always() && needs.run.result != 'skipped'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: {pattern: "gpu-rep-*", path: parts}
+      - name: Pool the repetitions and write the table
+        run: |
+          D=results/gpu/github-${{ github.run_id }}
+          mkdir -p "$D"
+          for p in parts/gpu-rep-*; do
+            cp -r "$p"/rep-* "$D"/ 2>/dev/null || true                 # the repetition, with its machine's own records
+            mkdir -p "$D/machine-${p##*-}"; cp "$p"/*.* "$D/machine-${p##*-}"/ 2>/dev/null || true   # that machine's run log and table
+          done
+          python3 tools/gpu_reps.py "$D" || echo "the table marks this run INVALID (see GPU_REPS.md)"
+          (cd "$D" && find . -type f ! -name SHA256SUMS_ALL.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS_ALL.txt)
+          cat "$D/GPU_REPS.md" >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Commit every raw file back to this branch
+        run: |
+          git config user.name "gpu-bench"; git config user.email "gpu-bench@users.noreply.github.com"
+          git add results/gpu
+          git commit -m "GPU bench raw files: run ${{ github.run_id }}" || exit 0
+          for i in 1 2 3 4; do git pull --rebase -q origin "${{ github.ref_name }}" && git push -q origin "HEAD:${{ github.ref_name }}" && break; sleep $((2**i)); done

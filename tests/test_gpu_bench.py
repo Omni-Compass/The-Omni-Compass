@@ -88,7 +88,7 @@ def bench():
     d = Path(tempfile.mkdtemp())
     state(d)
     env = dict(os.environ, NVIDIA_SMI=SMI, SIM="1", REPS="2", DURATION="5", DRAIN="1", COOLDOWN="0", INTERVAL="1",
-               SAMPLE_MS="200", OUT=str(d / "run"), WORKLOAD_ARGS="--calib 5 --target-ms 20")
+               SAMPLE_MS="200", OUT=str(d / "run"), WORKLOAD_ARGS="--calib 5 --target-ms 20", WALL_METER="cmd:echo 250")
     r = subprocess.run(["bash", str(ROOT / "scripts" / "gpu_paired.sh")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=600)
     assert r.returncode == 0, r.stdout[-3000:] + r.stderr[-2000:]
     out = json.loads((d / "run" / "GPU_REPS.json").read_text())
@@ -97,6 +97,7 @@ def bench():
     assert all(c["writes"] > 0 for c in out["checks"]["omni"].values())
     assert "energy, GPU (J)" in out["paired"]["omni"] and (d / "run" / "SHA256SUMS.txt").exists()
     assert "work per energy (served requests per kJ)" in out["paired"]["omni"] and out["freeze"]["phase"] == "smoke"
+    assert "energy, whole machine at the wall (J)" in out["paired"]["omni"] and out["headline"]["wall"], "wall meter not integrated"
     assert out["headline"]["valid"] and out["headline"]["verdict"] and "Verdict on the preregistered question" in (d / "run" / "GPU_REPS.md").read_text()
     # every Omni decision records the whole chain
     dec = [json.loads(x) for x in open(d / "run" / "rep-1" / "omni" / "audit.jsonl") if '"decision"' in x]
@@ -119,8 +120,44 @@ def bench():
     assert reps(str(d / "run")) == 2
 
 
+def pooled():
+    """Repetitions spread over machines (REP_ONLY): each machine's run carries its own records; pooled, they make one
+    valid table."""
+    import shutil
+    d = Path(tempfile.mkdtemp()); state(d)
+    for k in (1, 2):
+        env = dict(os.environ, NVIDIA_SMI=SMI, SIM="1", REP_ONLY=str(k), DURATION="4", DRAIN="1", COOLDOWN="0", INTERVAL="1",
+                   SAMPLE_MS="200", OUT=str(d / f"m{k}"), WORKLOAD_ARGS="--calib 5 --target-ms 20")
+        r = subprocess.run(["bash", str(ROOT / "scripts" / "gpu_paired.sh")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=600)
+        assert r.returncode == 0, r.stdout[-2000:] + r.stderr[-1000:]
+        shutil.copytree(d / f"m{k}" / f"rep-{k}", d / "pool" / f"rep-{k}")
+    from tools.gpu_reps import main as reps
+    assert reps(str(d / "pool")) == 0
+    out = json.loads((d / "pool" / "GPU_REPS.json").read_text())
+    assert sorted(out["checks"]["omni"]) == ["1", "2"] and not out["problems"]
+
+
+def plugs():
+    """The smart-plug readers against a stand-in plug on this machine: Shelly Gen1, Shelly Gen2/3, Tasmota."""
+    import http.server, threading
+    from tools.wall_meter import read
+    body = {"/meter/0": {"power": 101.5}, "/rpc/Switch.GetStatus?id=0": {"apower": 202.5},
+            "/cm?cmnd=Status%208": {"StatusSNS": {"ENERGY": {"Power": 303}}}}
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            b = json.dumps(body[self.path]).encode(); self.send_response(200); self.end_headers(); self.wfile.write(b)
+
+        def log_message(self, *a):
+            pass
+    srv = http.server.HTTPServer(("127.0.0.1", 0), H); threading.Thread(target=srv.serve_forever, daemon=True).start()
+    ip = f"127.0.0.1:{srv.server_port}"
+    assert (read(f"shelly1:{ip}"), read(f"shelly2:{ip}"), read(f"tasmota:{ip}"), read("cmd:echo 44")) == (101.5, 202.5, 303.0, 44.0)
+    srv.shutdown()
+
+
 def main():
-    governor(); bench()
+    plugs(); governor(); bench(); pooled()
     print("PASS  GPU bench: governor contract (watch writes nothing, shield floor, read-back, blind, SLO reflex, kill) "
           "and the one-command paired run with its validity checks")
 

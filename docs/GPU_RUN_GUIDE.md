@@ -1,6 +1,48 @@
 # Running the GPU test yourself, step by step
 
-This gets the first real-meter result for Omni-Compass. It costs roughly $10 to $25 in rented GPU time. You type a
+There are three ways to get real-machine numbers:
+- **Your own tower:** a machine you control, with a smart plug measuring the whole machine at the wall (section A).
+- **GitHub's GPU machines:** they run the test from the repository with one click (section B).
+- **A rented cloud GPU:** sections 1 to 6.
+
+## A. Your own tower, measured at the wall
+
+You need:
+- an NVIDIA graphics card (a GeForce RTX works);
+- Linux on that machine (a spare drive or a USB boot is fine);
+- a smart plug that reports watts, for example a Shelly Plus Plug or any plug running Tasmota, which cost about
+  $20 to $30.
+
+Plug the tower into the smart plug, and connect the plug to your home Wi-Fi with its own app. Note its IP address,
+shown in the app or on your router's device list. Then on the tower:
+
+```bash
+python3 tools/wall_meter.py shelly2:192.168.1.50 --once        # prints the tower's watts right now
+sudo WALL_METER=shelly2:192.168.1.50 bash scripts/gpu_paired.sh                  # trial run
+sudo WALL_METER=shelly2:192.168.1.50 PHASE=confirm bash scripts/gpu_paired.sh    # the real test
+```
+
+Use `shelly1:` for older Shelly plugs and `tasmota:` for Tasmota plugs. The table then adds whole-machine energy at
+the wall and requests served per wall kilojoule. The plug is read by the test only; Omni never sees it, so its number
+is independent of Omni.
+
+## B. GitHub's own GPU machines
+
+1. **One-time setup, by an owner of the Omni-Compass organisation on GitHub:**
+   1. Go to **Settings → Actions → Runners → New runner → New GitHub-hosted runner**.
+   2. Choose the image **NVIDIA GPU-Optimized Image for Linux** and a GPU size.
+   3. Name its label `gpu-t4`, or set the repository variable `GPU_RUNNER` to the label you chose.
+
+   GPU runners are billed per minute on paid plans.
+2. **To run:** go to **Actions → gpu-bench → Run workflow**, then choose `smoke` or `confirm`.
+3. **Results:** each repetition runs on its own GPU machine. The results are pooled into one table, shown on the run's
+   summary page, and every raw file is committed back to the branch under `results/gpu/github-<run id>/`.
+
+If GitHub's machines don't allow changing the GPU power limit, the job stops in its first minute and says so.
+
+## C. A rented cloud GPU
+
+This costs roughly $10 to $25 in rented GPU time. You type a
 handful of commands; the machine does the rest.
 
 ## 1. Rent the right kind of machine

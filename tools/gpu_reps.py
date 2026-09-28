@@ -19,11 +19,12 @@ from pathlib import Path
 
 T95 = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228, 11: 2.201,
        12: 2.179, 13: 2.160, 14: 2.145, 15: 2.131, 16: 2.120, 17: 2.110, 18: 2.101, 19: 2.093, 20: 2.086}
-LOWER = {"energy, GPU (J)", "energy per served request (J)", "power, GPU mean (W)", "temperature, peak (C)",
+LOWER = {"energy, whole machine at the wall (J)", "energy, GPU (J)", "energy per served request (J)", "power, GPU mean (W)", "temperature, peak (C)",
          "temperature, mean (C)", "requests not served", "response time, mean (ms)", "response time, 95th percentile (ms)",
          "response time, 99th percentile (ms)", "energy, CPU package (J)"}
 PRIMARY = "work per energy (served requests per kJ)"
-KEYS = [PRIMARY, "energy, GPU (J)", "energy per served request (J)", "power, GPU mean (W)", "requests served", "requests not served",
+WALL = "work per wall energy (served requests per kJ, whole machine)"
+KEYS = [PRIMARY, WALL, "energy, whole machine at the wall (J)", "energy, GPU (J)", "energy per served request (J)", "power, GPU mean (W)", "requests served", "requests not served",
         "response time, mean (ms)", "response time, 95th percentile (ms)", "response time, 99th percentile (ms)",
         "temperature, peak (C)", "temperature, mean (C)", "energy, CPU package (J)"]
 
@@ -69,7 +70,15 @@ def arm(d, gpus):
          "response time, mean (ms)": sum(ms) / served if served else float("nan"),
          "response time, 95th percentile (ms)": pct(ms, 0.95), "response time, 99th percentile (ms)": pct(ms, 0.99),
          "temperature, peak (C)": peak, "temperature, mean (C)": sum(temps) / len(temps) if temps else float("nan"),
-         "energy, CPU package (J)": float("nan")}
+         "energy, CPU package (J)": float("nan"), "energy, whole machine at the wall (J)": float("nan"), WALL: float("nan")}
+    if (d / "wall.csv").exists():
+        w = [(float(r["epoch_s"]), float(r["watts"])) for r in csv.DictReader(open(d / "wall.csv")) if r["watts"]]
+        w = [x for x in w if t0 <= x[0] <= t1]
+        # a gap in the plug's readings longer than 5 s leaves the arm without a wall number, never an interpolated one
+        if len(w) > 1 and w[0][0] - t0 < 5 and t1 - w[-1][0] < 5 and all(b[0] - a[0] < 5 for a, b in zip(w, w[1:])):
+            wj = sum((b[0] - a[0]) * (a[1] + b[1]) / 2.0 for a, b in zip(w, w[1:]))
+            g["energy, whole machine at the wall (J)"] = wj
+            g[WALL] = served / (wj / 1000.0) if wj > 0 else float("nan")
     if (d / "rapl_start.txt").exists() and (d / "rapl_end.txt").exists():
         a = [int(x) for x in (d / "rapl_start.txt").read_text().split()]; b = [int(x) for x in (d / "rapl_end.txt").read_text().split()]
         rng = [int(x) for x in (d / "rapl_range.txt").read_text().split()] if (d / "rapl_range.txt").exists() else [0] * len(a)
@@ -99,12 +108,17 @@ def main(root):
     root = Path(root)
     receipt = json.loads((root / "receipt.json").read_text()) if (root / "receipt.json").exists() else {}
     gpus = [int(x) for x in str(receipt.get("gpus", "0")).split(",")]
-    start = (root / "snapshot.txt").read_text().split() if (root / "snapshot.txt").exists() else []
+    if not receipt and sorted(root.glob("rep-*/receipt.json")):
+        receipt = json.loads(sorted(root.glob("rep-*/receipt.json"))[0].read_text())
+        gpus = [int(x) for x in str(receipt.get("gpus", "0")).split(",")]
+    start0 = (root / "snapshot.txt").read_text().split() if (root / "snapshot.txt").exists() else []
+    start = start0
     runs, checks, problems = {}, {}, []
     for d in sorted(root.glob("rep-*/*")):
         if not (d / "requests.csv").exists():
             continue
         rep, a = d.parent.name.split("-", 1)[1], d.name
+        start = (d.parent / "snapshot.txt").read_text().split() if (d.parent / "snapshot.txt").exists() else start0
         g, c = arm(d, gpus)
         runs.setdefault(a, {})[rep] = g; checks.setdefault(a, {})[rep] = c
         lim = [f"{x:.2f}" for x in c["limits_seen"]]
@@ -117,8 +131,9 @@ def main(root):
         if not c["restored"]:
             problems.append(f"{a} rep {rep}: the limit at the end differs from the start (kill switch did not restore)")
     fz = [json.loads((root / f).read_text()) for f in ("FREEZE.json", "FREEZE_END.json") if (root / f).exists()]
-    if len(fz) == 2 and fz[0]["files"] != fz[1]["files"]:
-        problems.append("Omni changed during the run: the frozen file hashes at the end differ from the start")
+    fz += [json.loads(f.read_text()) for f in sorted(root.glob("rep-*/FREEZE*.json"))]
+    if fz and any(x["files"] != fz[0]["files"] for x in fz):
+        problems.append("Omni changed during the run: the frozen file hashes differ between the start, the end, or the machines")
     if fz and fz[0].get("phase") == "confirm" and fz[0].get("dirty"):
         problems.append("confirmation run on uncommitted Omni code")
     out = {"freeze": fz[0] if fz else None, "receipt": receipt, "start_limit_w": start, "checks": checks, "problems": problems, "means": {}, "paired": {}}
@@ -175,7 +190,7 @@ def main(root):
             head = prim
         wv = out["paired"].get("watch", {}).get(PRIMARY, {}).get("verdict")
         out["headline"] = {"primary": prim, "guardrail_served": g_served, "guardrail_p95": g_p95, "verdict": head,
-                           "watch_primary": wv, "valid": not problems}
+                           "watch_primary": wv, "wall": po.get(WALL, {}).get("verdict"), "valid": not problems}
         c = po[PRIMARY]
         L += ["## Verdict on the preregistered question", "",
               f"Work per energy under Omni against native: {_f(c['native'])} -> {_f(c['omni'])} served requests per kJ, "
@@ -183,6 +198,8 @@ def main(root):
               f"Guardrails: requests served {'held' if g_served else 'FAILED'} (not below -1%), "
               f"95th-percentile response time {'held' if g_p95 else 'FAILED'} (not above +10%).",
               f"Watch against native on the same outcome: {wv or 'n/a'}.",
+              *([f"Whole machine at the wall (smart plug Omni never reads): {po[WALL]['verdict']}, "
+                 f"{_f(po[WALL]['native'])} -> {_f(po[WALL]['omni'])} served requests per kJ."] if WALL in po else []),
               f"**Verdict: {head}{'' if not problems else ' (the run is INVALID; see above)'}.**", ""]
     L += ["## The control", "", f"- Power-limit writes executed: " + ", ".join(f"{names[a]} {wr[a]}" for a in cols) + ".",
           "- Every arm ended at the start limit." if not any("restore" in p for p in problems) else "- An arm did NOT end at the start limit.",
