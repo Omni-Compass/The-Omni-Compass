@@ -182,8 +182,42 @@ def guards():
     assert g.restore() and json.load(open(p))["limit"]["0"] == 300.0
 
 
+def lock():
+    """The speed lock: response time against a run without Omni at the same arrival rate. Over the line (0.99): the
+    start limit at once; under the line less the margin: a step down, sized by the slack, at most once per hold;
+    in between: held. Off unless a baseline file is given."""
+    from omni_controller.gpu_governor import GpuGovernor, window_stats, baseline_at
+    d = Path(tempfile.mkdtemp()); p = state(d, draw_w=150.0, util=40)
+    base = {"bins": [{"rate": 5.0, "mean": 100.0, "p95": 200.0, "p99": 300.0}, {"rate": 15.0, "mean": 200.0, "p95": 400.0, "p99": 600.0}]}
+    assert baseline_at(base, 10.0) == {"mean": 150.0, "p95": 300.0, "p99": 450.0} and baseline_at(base, 1.0)["mean"] == 100.0
+    (d / "base.json").write_text(json.dumps(base)); lat = d / "lat.csv"
+    def probe(scale):                       # 600 requests over 60 s (10 per second), latencies scale x the baseline
+        rows = [(i / 10.0, 150.0 * scale * (0.5 + (i % 100) / 99.0)) for i in range(600)]
+        lat.write_text("elapsed_seconds,latency_ms,ok\n" + "".join(f"{t:.1f},{m:.2f},1\n" for t, m in rows))
+    probe(0.5); st = window_stats(str(lat), 60.0)
+    assert abs(st["rate"] - 10.0) < 0.2 and st["n"] == 600, st
+    g = GpuGovernor(args(d, "cap", baseline_file=str(d / "base.json"), speed_gain=0.01, lock_margin=0.08, lock_step=0.02,
+                         lock_boost=5.0, lock_window_s=60.0, lock_floor=0.5, lock_hold_s=10.0, latency_file=str(lat), slo_ms=0.0))
+    t = [0.0]; g.clock = lambda: t[0]
+    lim = lambda: json.load(open(p))["limit"]["0"]
+    probe(0.5); g.step()
+    assert lim() == 270.0, "half the baseline's response time: a boosted step down, 5 x 2% of 300 W"
+    probe(0.5); g.step()
+    assert lim() == 270.0, "inside the hold: no second step"
+    t[0] = 11.0; probe(0.5); g.step()
+    assert lim() == 240.0, "after the hold: the next step"
+    t[0] = 22.0; probe(0.95); g.step()
+    assert lim() == 240.0, "between the line and the margin: held"
+    t[0] = 33.0; probe(1.05); g.step()
+    assert lim() == 300.0, "slower than the line: the start limit at once"
+    last = [x for x in recs(d / "audit-cap.jsonl") if "decision" in x][-1]["decision"]["0"]
+    assert last["shield_bound"] == "speed_lock_release" and last["speed_lock"]["line"] == 0.99, last
+    lat.unlink(); t[0] = 44.0; g.step()
+    assert lim() == 300.0, "blind: the start limit"
+
+
 def main():
-    plugs(); governor(); guards(); bench(); pooled()
+    plugs(); governor(); guards(); lock(); bench(); pooled()
     print("PASS  GPU bench: governor contract (watch writes nothing, shield floor, share floor, busy gate, read-back, blind, SLO reflex, kill) "
           "and the one-command paired run with its validity checks")
 

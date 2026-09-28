@@ -15,6 +15,14 @@ Every decision (--interval seconds), for each GPU in --gpus:
   reflexes  a blind sense (nvidia-smi unreadable, or the response-time file stale or empty): the start limit, at once
             a response-time breach (p95 > --slo-ms), and for --slo-clear decisions after it: the start limit, at once
   read-back no new write until the last one is read back from the device (power.limit within 1 W of what I wrote)
+  speed lock (--baseline-file, from tools/gpu_baseline.py on a run without Omni): the limit is set by response time
+            alone. Over the last --lock-window-s of the response-time file, the mean, 95th and 99th percentile are each
+            divided by the baseline's at the same arrival rate; the worst of the three is the speed ratio. The line is
+            1 - --speed-gain (0.99: at least 1% faster than without Omni). Above the line: the start limit, at once.
+            Under the line less --lock-margin: lower by --lock-step x start, times the slack in margins (up to
+            --lock-boost), at most once per --lock-hold-s (the window must see the step before the next). Between: held. Never under --lock-floor x start.
+            Speed won elsewhere (CPU conveyed to the serving pods, shorter queues) shows as a ratio under the line,
+            and the lock spends it on watts; with nothing won elsewhere it holds the start limit.
 Modes
   watch     everything above is computed and audited; nothing is written (the control arm)
   cap       the limit is written with nvidia-smi -i <gpu> -pl <W>
@@ -35,6 +43,38 @@ from omni_controller.muscles import latency_sense
 FIELDS = "index,power.draw,temperature.gpu,utilization.gpu,power.limit,power.min_limit,clocks.sm"
 REASONS = ("clocks_event_reasons.active", "clocks_throttle_reasons.active")   # newer, older drivers
 STATE = ("E", "U", "I_U", "S", "B", "B_dot")
+
+
+def window_stats(path, window_s, now=None):
+    """Mean, 95th and 99th percentile (ms) and arrival rate (served per second) of the successful requests in the last
+    window_s of the response-time file; None when blind (stale beyond two windows, or under 20 requests)."""
+    try:
+        age = (now if now is not None else time.time()) - os.path.getmtime(path)
+        rows = [l.split(",") for l in Path(path).read_text().splitlines()[1:] if l.strip()]
+    except OSError:
+        return None
+    if not rows or age > 2.0 * window_s:
+        return None
+    t_end = float(rows[-1][0])
+    ms = sorted(float(r[1]) for r in rows if float(r[0]) >= t_end - window_s and r[2].strip() == "1")
+    if len(ms) < 20:
+        return None
+    span = min(window_s, max(1.0, t_end - float(rows[0][0])))
+    return {"mean": sum(ms) / len(ms), "p95": ms[min(len(ms) - 1, int(0.95 * len(ms)))],
+            "p99": ms[min(len(ms) - 1, int(0.99 * len(ms)))], "rate": len(ms) / span, "n": len(ms)}
+
+
+def baseline_at(base, rate):
+    """The baseline's mean, p95 and p99 at an arrival rate, linear between its rate bins, flat beyond the ends."""
+    bins = base["bins"]
+    if rate <= bins[0]["rate"]:
+        return bins[0]
+    if rate >= bins[-1]["rate"]:
+        return bins[-1]
+    for lo, hi in zip(bins, bins[1:]):
+        if lo["rate"] <= rate <= hi["rate"]:
+            f = (rate - lo["rate"]) / (hi["rate"] - lo["rate"])
+            return {k: lo[k] + f * (hi[k] - lo[k]) for k in ("mean", "p95", "p99")}
 
 
 def throttle(smi, gpus):
@@ -82,6 +122,10 @@ class GpuGovernor:
         self.reasons_ok = True     # False once the driver shows it does not report clock-limit reasons
         self.util_avg = {}         # gpu -> utilization smoothed over decisions (busy gate)
         self.gated = {}            # gpu -> True while the busy gate holds the start limit
+        bf = getattr(a, "baseline_file", "")
+        self.baseline = json.loads(Path(bf).read_text()) if bf else None   # speed lock: the run without Omni
+        self.lock_at = {}          # gpu -> time of the lock's last change
+        self.clock = time.time     # replaceable, so a simulation in virtual time can drive the lock's hold
         s = query(a.smi, self.gpus)
         if s is None:
             raise SystemExit("nvidia-smi unreadable at start: no snapshot, so I take no authority")
@@ -117,6 +161,34 @@ class GpuGovernor:
         ok = all(v is not None and abs(v - self.start[int(g)]) < 1.0 for g, v in back.items())
         self.audit({"restored": back, "start": {str(g): self.start[g] for g in self.gpus}, "ok": ok, "writes": self.writes})
         return ok
+
+    def speed_lock(self, g, cur, slo_clean):
+        """The limit from response time against the run without Omni (see the module docstring). Returns
+        (want_w, bound, why, record)."""
+        a, start = self.a, self.start[g]
+        st = window_stats(a.latency_file, a.lock_window_s) if a.latency_file else None
+        if st is None or not slo_clean:
+            return int(start), "speed_lock_blind", "speed lock: no response-time window (or SLO reflex), the start limit", None
+        b = baseline_at(self.baseline, st["rate"])
+        ratios = {k: st[k] / b[k] for k in ("mean", "p95", "p99")}
+        ratio = max(ratios.values())
+        line = 1.0 - a.speed_gain
+        aim = line * (1.0 - a.lock_margin)
+        floor = max(self.min[g], a.lock_floor * start)
+        if ratio > line:
+            want, bound = start, "speed_lock_release"
+        elif ratio < aim and self.clock() - self.lock_at.get(g, -1e18) >= a.lock_hold_s:
+            mult = min(a.lock_boost, max(1.0, (aim - ratio) / max(1e-6, line * a.lock_margin)))
+            want, bound = max(floor, cur - mult * a.lock_step * start), "speed_lock_spend"
+        else:
+            want, bound = cur, "speed_lock_hold"
+        want = int(min(start, max(floor, want)))
+        if want != int(cur):
+            self.lock_at[g] = self.clock()
+        rec = {"rate": round(st["rate"], 2), "ratios": {k: round(v, 4) for k, v in ratios.items()},
+               "line": line, "aim": round(aim, 4), "n": st["n"]}
+        why = f"speed lock: worst ratio {ratio:.3f} vs line {line:.3f} ({bound.split('_')[-1]}), limit {want} W"
+        return want, bound, why, rec
 
     def step(self):
         a = self.a
@@ -182,6 +254,9 @@ class GpuGovernor:
                        else f"busy gate: utilization {self.util_avg[g]:.2f}, the limit read at start" if bound == "busy_gate"
                        else f"engine cap {cap:.3f} of {self.start[g]:.0f} W; floor draw {r['draw']:.0f} W x {1 + a.headroom:.2f}, "
                             f"share floor {getattr(a, 'min_share', 0.0):.2f}")
+                lock = None
+                if self.baseline is not None:
+                    want, bound, why, lock = self.speed_lock(g, cur, slo_clean)
                 self.cap[g] = want / self.start[g]
                 rec["decision"][str(g)] = {
                     "telemetry": {"util": r["util"], "draw_w": r["draw"], "temp_c": r["temp"], "limit_w": cur,
@@ -192,7 +267,8 @@ class GpuGovernor:
                     "state_projected_next": {k: round(v, 4) for k, v in self.projected[g].items()},
                     "admissible": bool(d["change_permitted"]), "requested_cap": round(requested, 4),
                     "granted_cap": round(cap, 4), "shield_bound": bound, "want_w": want,
-                    "engine_cap": round(requested, 3), "E": round(d["state"]["E"], 3), "U": round(d["state"]["U"], 3)}
+                    "engine_cap": round(requested, 3), "E": round(d["state"]["E"], 3), "U": round(d["state"]["U"], 3),
+                    "speed_lock": lock}
             if cur is not None and abs(want - cur) < a.min_change_w and not (want == self.start[g] and cur != want):
                 continue
             if cur is not None and want == int(cur):
@@ -214,6 +290,14 @@ def parser():
     ap.add_argument("--min-share", type=float, default=0.70, help="limit never below this share of the start limit (0: off)")
     ap.add_argument("--util-gate", type=float, default=0.5, help="smoothed utilization at which the start limit returns (0: off)")
     ap.add_argument("--util-band", type=float, default=0.1, help="the cap resumes below --util-gate less this band")
+    ap.add_argument("--baseline-file", default="", help="speed lock: baseline from tools/gpu_baseline.py (off when empty)")
+    ap.add_argument("--speed-gain", type=float, default=0.01, help="speed lock line: at least this much faster than baseline")
+    ap.add_argument("--lock-boost", type=float, default=5.0, help="largest multiple of --lock-step in one step down")
+    ap.add_argument("--lock-margin", type=float, default=0.08, help="spend watts only while this far under the line")
+    ap.add_argument("--lock-step", type=float, default=0.02, help="share of the start limit given up per decision")
+    ap.add_argument("--lock-hold-s", type=float, default=10.0, help="seconds between two steps down")
+    ap.add_argument("--lock-window-s", type=float, default=60.0, help="response-time window the lock reads")
+    ap.add_argument("--lock-floor", type=float, default=0.5, help="the lock never holds the limit under this share of start")
     ap.add_argument("--min-change-w", type=float, default=5.0)
     ap.add_argument("--temp-limit", type=float, default=83.0, help="GPU temperature read as heat 1.0")
     ap.add_argument("--latency-file", default="")
