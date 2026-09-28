@@ -1,0 +1,230 @@
+{
+ "repetitions": {
+  "native": [
+   "1",
+   "10",
+   "2",
+   "3",
+   "4",
+   "5",
+   "6",
+   "7",
+   "8",
+   "9"
+  ],
+  "omni": [
+   "1",
+   "10",
+   "2",
+   "3",
+   "4",
+   "5",
+   "6",
+   "7",
+   "8",
+   "9"
+  ]
+ },
+ "means": {
+  "native": {
+   "worker nodes in service, mean": 6.0,
+   "node-hours": 1.5154999999999998,
+   "energy, parked workers still on at idle power (Wh)": 160.26254166666666,
+   "energy (Wh)": 160.26254166666666,
+   "response time (ms), mean": 179.91535012213063,
+   "response time (ms), 95th percentile": 407.8764999999998,
+   "response time (ms), 99th percentile": 639.4316000000001,
+   "failed requests (%)": 0.0,
+   "pending pods, pod-minutes": 0.265,
+   "utilisation (used / allocatable)": 0.04316080891057904,
+   "CPU used (cores), mean": 1.035859413853897,
+   "energy per core-hour (Wh)": 640.7564878642579,
+   "HPA replicas, mean": 8.93010347041674,
+   "pods started": 3.6,
+   "pod start wait, total (s)": 12.3,
+   "pod start wait, mean (s)": 2.7833333333333337
+  },
+  "omni": {
+   "worker nodes in service, mean": 4.138537083298429,
+   "node-hours": 1.047,
+   "energy, parked workers still on at idle power (Wh)": 160.13337500000003,
+   "energy (Wh)": 124.783375,
+   "response time (ms), mean": 98.42396280657206,
+   "response time (ms), 95th percentile": 158.77249999999995,
+   "response time (ms), 99th percentile": 245.0666000000001,
+   "failed requests (%)": 0.0,
+   "pending pods, pod-minutes": 0.025,
+   "utilisation (used / allocatable)": 0.057557063723460054,
+   "CPU used (cores), mean": 0.9568502082405248,
+   "energy per core-hour (Wh)": 534.1080711280548,
+   "HPA replicas, mean": 6.906297566136603,
+   "pods started": 3.0,
+   "pod start wait, total (s)": 5.6,
+   "pod start wait, mean (s)": 1.69
+  }
+ },
+ "paired": {
+  "omni": {
+   "worker nodes in service, mean": {
+    "native": 6.0,
+    "omni": 4.13853708329843,
+    "diff": -1.8614629167015704,
+    "ci95": [
+     -2.2562303751586574,
+     -1.466695458244483
+    ],
+    "significant": true
+   },
+   "node-hours": {
+    "native": 1.5154999999999998,
+    "omni": 1.047,
+    "diff": -0.46849999999999997,
+    "ci95": [
+     -0.567360937143489,
+     -0.36963906285651094
+    ],
+    "significant": true
+   },
+   "energy, parked workers still on at idle power (Wh)": {
+    "native": 160.26254166666666,
+    "omni": 160.133375,
+    "diff": -0.12916666666665436,
+    "ci95": [
+     -0.666677096689491,
+     0.4083437633561824
+    ],
+    "significant": false
+   },
+   "energy (Wh)": {
+    "native": 160.26254166666666,
+    "omni": 124.783375,
+    "diff": -35.47916666666665,
+    "ci95": [
+     -42.82179959041203,
+     -28.136533742921277
+    ],
+    "significant": true
+   },
+   "response time (ms), mean": {
+    "native": 179.91535012213063,
+    "omni": 98.42396280657208,
+    "diff": -81.49138731555855,
+    "ci95": [
+     -99.01106364855825,
+     -63.97171098255886
+    ],
+    "significant": true
+   },
+   "response time (ms), 95th percentile": {
+    "native": 407.8764999999998,
+    "omni": 158.77249999999992,
+    "diff": -249.10399999999987,
+    "ci95": [
+     -298.27008409957466,
+     -199.9379159004251
+    ],
+    "significant": true
+   },
+   "response time (ms), 99th percentile": {
+    "native": 639.4316000000001,
+    "omni": 245.06660000000005,
+    "diff": -394.36500000000007,
+    "ci95": [
+     -476.381220070673,
+     -312.3487799293271
+    ],
+    "significant": true
+   },
+   "failed requests (%)": {
+    "native": 0.0,
+    "omni": 0.0,
+    "diff": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "significant": false
+   },
+   "pending pods, pod-minutes": {
+    "native": 0.265,
+    "omni": 0.025000000000000022,
+    "diff": -0.24,
+    "ci95": [
+     -0.4257317622570548,
+     -0.0542682377429452
+    ],
+    "significant": true
+   },
+   "utilisation (used / allocatable)": {
+    "native": 0.04316080891057904,
+    "omni": 0.05755706372346005,
+    "diff": 0.014396254812881006,
+    "ci95": [
+     0.011062409289367215,
+     0.0177301003363948
+    ],
+    "significant": true
+   },
+   "CPU used (cores), mean": {
+    "native": 1.035859413853897,
+    "omni": 0.9568502082405249,
+    "diff": -0.07900920561337213,
+    "ci95": [
+     -0.09367701806032193,
+     -0.06434139316642233
+    ],
+    "significant": true
+   },
+   "energy per core-hour (Wh)": {
+    "native": 640.7564878642579,
+    "omni": 534.1080711280547,
+    "diff": -106.64841673620317,
+    "ci95": [
+     -161.20685439934644,
+     -52.0899790730599
+    ],
+    "significant": true
+   },
+   "HPA replicas, mean": {
+    "native": 8.93010347041674,
+    "omni": 6.906297566136603,
+    "diff": -2.023805904280137,
+    "ci95": [
+     -2.6982170733805746,
+     -1.349394735179699
+    ],
+    "significant": true
+   },
+   "pods started": {
+    "native": 3.6,
+    "omni": 3.0,
+    "diff": -0.6,
+    "ci95": [
+     -2.6566377999054667,
+     1.4566377999054665
+    ],
+    "significant": false
+   },
+   "pod start wait, total (s)": {
+    "native": 12.3,
+    "omni": 5.6000000000000005,
+    "diff": -6.7,
+    "ci95": [
+     -15.86071213170679,
+     2.4607121317067913
+    ],
+    "significant": false
+   },
+   "pod start wait, mean (s)": {
+    "native": 2.7833333333333337,
+    "omni": 1.6900000000000004,
+    "diff": -1.0933333333333333,
+    "ci95": [
+     -2.6526455202214425,
+     0.465978853554776
+    ],
+    "significant": false
+   }
+  }
+ }
+}
