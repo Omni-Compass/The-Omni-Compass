@@ -1,12 +1,32 @@
 # Omni-Compass
 
-A six-state control engine that governs Kubernetes: Kubernetes stays as the execution layer, Omni-Compass is the single authority above it.
+A six-state control engine that supervises Kubernetes and hardware from above: Kubernetes and its autoscalers stay the
+execution layer.
 
 **Where it stands, plainly.** Omni-Compass is a small supervisory governor. It reads power and queue, writes caps and
 taints, and can be killed clean. It does not replace your autoscaler. Use it on top, in shadow first. Connectors for
 RAPL, nvidia-smi and a site meter are in the controller; nobody has yet published a run of them on real hardware. On
 kind, energy is a declared model, not a meter. The first metered test is one command on any NVIDIA GPU machine:
 `sudo bash scripts/gpu_paired.sh` (`docs/GPU_BENCH.md`).
+
+## What each piece of evidence establishes, and what it does not
+
+| Piece | What it establishes | What it does not establish |
+|---|---|---|
+| The engine equations (`omnicompass/core.py`) | The proposed governing mechanism | That it describes any real system |
+| RK4 with microsteps | The equations executed numerically, with small step error | Anything outside the equations |
+| Cross-check against a second solver | The result is not an artifact of RK4 or its step size | Anything outside the equations |
+| Many sampled runs (Monte Carlo) | No failure seen over the sampled starting states and parameters | Behaviour outside the sample, or on real systems |
+| Dwell tests (basin capture and retention) | Objective pass/fail tests of trajectories inside the model | Any external certification |
+| Ablations, sensitivity, disturbance tests | Which parts of the mechanism matter, and how it recovers, inside the model | Real-world recovery |
+| Python / C++ parity | Two independent implementations compute the same thing | That either is right about the world |
+| Shield adversarial tests, 100M-decision soak | The safety logic holds under generated bad inputs; the code runs long without failing | Behaviour under real faults |
+| Fleet and cluster simulators (`fleet/`, `k8s_controlplane/`) | Behaviour against modelled plants with declared assumptions | Real savings; the plant and Omni are in the same program |
+| Live Kubernetes on kind (`results/live/LIVE_PAIRED.md`) | Omni changes a real control plane: faster responses, fewer pod starts, zero failures, a clean kill switch | Energy or money: kind has no meter and every machine stayed on |
+| GPU bench (`scripts/gpu_paired.sh`) | Not run yet. This is where real joules enter | |
+| Production data centre | Not run | |
+
+Dollar figures computed by multiplying modelled per-stack coefficients are not results and do not appear here.
 
 ## Start here (evaluators, pilots, licensees)
 
