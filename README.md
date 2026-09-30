@@ -17,7 +17,7 @@ kind, energy is a declared model, not a meter. The first metered test is one com
 | RK4 with microsteps | The equations executed numerically, with small step error | Anything outside the equations |
 | Cross-check against a second solver | The result is not an artifact of RK4 or its step size | Anything outside the equations |
 | Many sampled runs (Monte Carlo) | No failure seen over the sampled starting states and parameters | Behaviour outside the sample, or on real systems |
-| Dwell tests (basin capture and retention) | Objective pass/fail tests of trajectories inside the model | Any external certification | 
+| Dwell tests (basin capture and retention) | Objective pass/fail tests of trajectories inside the model | Any external certification |  
 | Ablations, sensitivity, disturbance tests | Which parts of the mechanism matter, and how it recovers, inside the model | Real-world recovery |
 | Python / C++ parity | Two independent implementations compute the same thing | That either is right about the world |
 | Shield adversarial tests, 100M-decision soak | The safety logic holds under generated bad inputs; the code runs long without failing | Behaviour under real faults |
