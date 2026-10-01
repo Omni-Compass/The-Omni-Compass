@@ -1,0 +1,40 @@
+# Least-privilege additions for the live levers (applied on top of rbac-omni.yaml). Named objects where Kubernetes allows.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: omni-compass-levers, namespace: default}
+rules:
+  - apiGroups: ["apps"]                   # coldstart: the one idle deployment (record replicas, scale it)
+    resources: ["deployments"]
+    resourceNames: ["idle-worker"]
+    verbs: ["get", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale"]
+    resourceNames: ["idle-worker"]
+    verbs: ["get", "patch", "update"]
+  - apiGroups: [""]                       # coldstart afferent: the one work-queue ConfigMap, read-only
+    resources: ["configmaps"]
+    resourceNames: ["omni-work"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: omni-compass-levers, namespace: default}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: omni-compass-levers}
+subjects: [{kind: ServiceAccount, name: omni-compass, namespace: omni-compass}]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: omni-compass-contain, namespace: agents}
+rules:
+  - apiGroups: [""]                       # containment: the quota object only
+    resources: ["resourcequotas"]
+    verbs: ["get", "create", "patch", "delete"]
+  - apiGroups: [""]                       # containment: in-place CPU limit of agent pods (no pod create/delete)
+    resources: ["pods/resize"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: omni-compass-contain, namespace: agents}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: omni-compass-contain}
+subjects: [{kind: ServiceAccount, name: omni-compass, namespace: omni-compass}]

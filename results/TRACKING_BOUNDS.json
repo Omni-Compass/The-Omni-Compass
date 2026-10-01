@@ -1,0 +1,40 @@
+{
+ "population": "benchmarks/core_evidence.py, seed 223387268, 500 fixtures",
+ "evidence_class": "V",
+ "rho": 0.88,
+ "h": 0.01,
+ "KP": 12.0,
+ "U_AUTHORITY": 25.0,
+ "nearest_target": {
+  "drift_max_observed": 6.838749843812445,
+  "drift_bound_F_bar_max": 8.990278673956375,
+  "F_bar_global": 16.859401076758505,
+  "drift_within_bound_all": true,
+  "F_bar_below_U_AUTHORITY_all": true,
+  "saturated_microsteps": 0,
+  "microsteps": 100000,
+  "epsilon_h": 0.0037763125371750306,
+  "ultimate_bound": 0.031469271143125255,
+  "basin_tol": 0.1,
+  "ultimate_bound_inside_basin": true,
+  "error_sign_changes": 747,
+  "error_growth_steps": 27061,
+  "invariance_failures": 0
+ },
+ "wrong_target": {
+  "drift_max_observed": 7.013457262577544,
+  "drift_bound_F_bar_max": 8.990278673956375,
+  "F_bar_global": 16.859401076758505,
+  "drift_within_bound_all": true,
+  "F_bar_below_U_AUTHORITY_all": true,
+  "saturated_microsteps": 5,
+  "microsteps": 100000,
+  "epsilon_h": 0.024302558810306074,
+  "ultimate_bound": 0.2025213234192173,
+  "basin_tol": 0.1,
+  "ultimate_bound_inside_basin": false,
+  "error_sign_changes": 733,
+  "error_growth_steps": 26525,
+  "invariance_failures": 0
+ }
+}

@@ -1,0 +1,60 @@
+PASS  reference engine SHA-256
+PASS  pre-registered file unchanged or amended on record (SHA-256): omnicompass/core.py
+PASS  pre-registered file unchanged or amended on record (SHA-256): omnicompass/adapter.py
+PASS  pre-registered file unchanged or amended on record (SHA-256): omnicompass/shield.py  (amended in e9703a6: two bugs found by the 2,000,000-case adversarial property te...)
+PASS  pre-registered file unchanged or amended on record (SHA-256): omnicompass/stack_sim.py
+PASS  pre-registered file unchanged or amended on record (SHA-256): benchmarks/stack_benchmark.py
+SKIP  program fingerprints (recorded with Python 3.12, running 3.11; ast.dump output is interpreter-version dependent; SHA-256 checks above are authoritative)
+stack_sim provenance: 11/11 blocks byte-identical to reference engine
+PASS test_stack_sim_provenance
+PASS  stack simulator provenance
+engine function parity (20,000 random cases): max |diff| = 3.553e-15
+sampling parity (seed 223387268): 500/500 identical
+fixture parity (500 frozen fixtures): max |diff| = 8.882e-15, mismatches = 0
+PASS test_core_parity
+PASS  core parity vs reference engine and 500 fixtures
+native arm vs reference engine simulator: 60/60 identical
+PASS test_native_equivalence
+PASS  native arm equals reference simulator
+processed 500 current-engine fixtures
+PASS  C++ core vs 500 fixtures  (max abs 3.55e-15)
+processed 4320 governor steps
+C++ vs Python governor (power_protect): 4320 directives, discrete mismatches = 0, max |diff| = 4.441e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (power_protect)
+processed 4320 governor steps
+C++ vs Python governor (throughput): 4320 directives, discrete mismatches = 0, max |diff| = 3.331e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (throughput)
+processed 4320 governor steps
+C++ vs Python governor (fleet): 4320 directives, discrete mismatches = 0, max |diff| = 4.441e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (fleet)
+processed 4320 governor steps
+C++ vs Python governor (fleet_balanced): 4320 directives, discrete mismatches = 0, max |diff| = 4.441e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (fleet_balanced)
+processed 4320 governor steps
+C++ vs Python governor (fleet_wear): 4320 directives, discrete mismatches = 0, max |diff| = 4.441e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (fleet_wear)
+C++ vs Python shield: 11520 action sets, mismatches = 0
+PASS test_cpp_shield_parity
+PASS  C++ shield vs Python shield (enforce and violations)
+shield properties over 1,000,000 cases: {'P1': 0, 'P2': 0, 'P3': 0, 'P4': 0}
+PASS test_shield_properties
+PASS  shield properties: no invariant violated, idempotent, no invented action, minimal intervention (random + adversarial)
+C++ vs Python shield, adversarial: 200,000 cases, mismatches = 0
+PASS test_cpp_shield_adversarial
+PASS  C++ shield vs Python shield on the adversarial generator
+C++ vs Python closure law: 12,960 decisions, mismatches = 0
+PASS test_cpp_closure_parity
+PASS  C++ closure law vs Python closure law, every decision and reserve
+C++ vs Python shield: 4608 action sets, mismatches = 11
+PASS  negative control: parity test detects a C++ shield that no longer blocks rollouts during a security block
+C++ HPA vs harness HPA: 691200 steps, 480 streams, mismatches = 0
+PASS test_cpp_hpa_parity
+PASS  independent C++ HPA replica law vs fleet harness HPA
+C++ HPA vs harness HPA: 345600 steps, 240 streams, mismatches = 208204
+PASS  negative control: parity test detects a C++ HPA with 5% instead of 10% tolerance
+PASS  C++ governor contract smoke test (bounds, security, determinism, both modes)

@@ -1,0 +1,110 @@
+{
+ "picks": {
+  "web": {
+   "k8s_hpa70_ca": {
+    "tone_H": 960,
+    "rho": 0.75,
+    "rho_max": 0.99,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   },
+   "openshift": {
+    "tone_H": 960,
+    "rho": 0.75,
+    "rho_max": 0.99,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   }
+  },
+  "multi": {
+   "k8s_hpa70_ca": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "rho_max": 0.99,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   },
+   "openshift": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "rho_max": 0.99,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   }
+  },
+  "batch": {
+   "k8s_hpa70_ca": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "rho_max": 0.97,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   },
+   "openshift": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "rho_max": 0.97,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   }
+  }
+ },
+ "sha256": "0d0e7735522a1da1ce9de2cc54fa32f9c6e421841091d87ad809b65489126966",
+ "base_settings": "tuning/CLOSURE_FINAL_DEV.json",
+ "heldout_seeds": [
+  700901,
+  700902,
+  700903,
+  700904,
+  700905,
+  700906,
+  700907,
+  700908,
+  700909,
+  700910,
+  700911,
+  700912,
+  700913,
+  700914,
+  700915,
+  700916,
+  700917,
+  700918,
+  700919,
+  700920,
+  700921,
+  700922,
+  700923,
+  700924,
+  700925,
+  700926,
+  700927,
+  700928,
+  700929,
+  700930
+ ]
+}

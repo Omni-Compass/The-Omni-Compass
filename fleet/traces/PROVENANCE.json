@@ -1,0 +1,43 @@
+{
+  "source": "https://github.com/beloglazov/planetlab-workload-traces (CoMon/PlanetLab VM CPU utilization, March 2011)",
+  "format": "one integer CPU percent per line, 288 lines = 24 h at 5-minute resolution",
+  "acquisition": "copies supplied with an uploaded harness package (OmniCompass_k8s_harness.zip); the repository could not be re-downloaded in the build environment, so byte identity with the upstream files is not independently confirmed",
+  "files": {
+    "20110303_146-179_surfsnel_dsl_internl_net_root": {
+      "sha256": "6fbc3e6a34e328c4991cb5bf2b4d66baa1b76dfc78c4f8af926518c7add329b7",
+      "lines": 288
+    },
+    "20110303_75-130-96-12_static_oxfr_ma_charter_com_irisaple_wup": {
+      "sha256": "d169ac6090c88481e15ea5af63fbaa050cb7b75f929d8085bef84483312b3599",
+      "lines": 288
+    },
+    "20110303_75-130-96-12_static_oxfr_ma_charter_com_root": {
+      "sha256": "3ec2aa408473cb327d84c18bd987f1d42785b88a07b80413868d8f3f6fd2cfb0",
+      "lines": 288
+    },
+    "20110303_ait05_us_es_irisaple_wup": {
+      "sha256": "05afb88829c33b2351559f9b4de5f0f35ffb7854050e53126310e2dbdc3ed0ba",
+      "lines": 288
+    },
+    "20110303_ait05_us_es_princeton_codeen": {
+      "sha256": "5923c0b4f7bcc4b32e1140c71abfad3c9013fd4d227a8e7812610cf792b688b2",
+      "lines": 288
+    },
+    "20110303_ait05_us_es_root": {
+      "sha256": "694f4f59a4d900433b86d90367f4798e9192add34c14c91e6c520e4ee42b8e1c",
+      "lines": 288
+    },
+    "20110303_chimay_infonet_fundp_ac_be_irisaple_HEAP": {
+      "sha256": "c411767f05dbb657762c7de677ffe64d8fa9fb4bed9281ab8799e7da7a72ea4c",
+      "lines": 288
+    },
+    "20110303_chronos_disy_inf_uni-konstanz_de_root": {
+      "sha256": "69b3e564a5615b1838a1ced7300b2d7993a43cc1813a63e60117d3f9b5c96b00",
+      "lines": 288
+    },
+    "20110306_75-130-96-12_static_oxfr_ma_charter_com_irisaple_wup": {
+      "sha256": "76999499112a94d028f2f52cf925bba7439b75f22931430622f5c6a884e041f5",
+      "lines": 288
+    }
+  }
+}

@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+"""A stand-in for nvidia-smi for the harness's own tests (no GPU on CI). State in $FAKE_SMI_STATE (JSON):
+limit per GPU, default/min/max limit, the draw the GPU would take unlimited (draw_w), utilization %, temperature.
+Supports: --query-gpu=<fields> --format=csv,noheader,nounits [-i N] [-lms MS]   and   -i N -pl W.
+Every -pl is appended to $FAKE_SMI_STATE.writes. FAKE_SMI_BLIND=1 makes every query fail. Optional state keys:
+"enforced_cap" (another authority holds enforced.power.limit at or under it), "management" (power.management, default
+Enabled), "refuse_pl" (every -pl fails), "no_enforced" (the driver does not know enforced.power.limit)."""
+import datetime, json, os, sys, time
+
+path = os.environ["FAKE_SMI_STATE"]
+st = json.load(open(path))
+args = sys.argv[1:]
+gpu = args[args.index("-i") + 1] if "-i" in args else None
+if "-pl" in args:
+    w = float(args[args.index("-pl") + 1])
+    if st.get("refuse_pl") or not st["min"] <= w <= st["max"]:
+        print(f"Provided power limit {w} W is not a valid power limit", file=sys.stderr); sys.exit(2)
+    st["limit"][gpu or "0"] = w
+    json.dump(st, open(path, "w"))
+    open(path + ".writes", "a").write(f"{gpu} {w}\n")
+    print(f"Power limit for GPU {gpu} was set to {w:.2f} W"); sys.exit(0)
+if os.environ.get("FAKE_SMI_BLIND") == "1":
+    sys.exit(9)
+fields = [a for a in args if a.startswith("--query-gpu=")][0].split("=", 1)[1].split(",")
+if st.get("no_enforced") and "enforced.power.limit" in fields:
+    print("Field \"enforced.power.limit\" is not a valid field to query.", file=sys.stderr); sys.exit(2)
+lms = int(args[args.index("-lms") + 1]) if "-lms" in args else 0
+
+
+def row(g):
+    st = json.load(open(path)); lim = float(st["limit"][g])
+    v = {"index": g, "power.draw": min(lim, st["draw_w"]), "temperature.gpu": st["temp"], "utilization.gpu": st["util"],
+         "power.limit": lim, "enforced.power.limit": min(lim, float(st.get("enforced_cap", lim))),
+         "power.management": st.get("management", "Enabled"), "power.min_limit": st["min"], "power.max_limit": st["max"], "power.default_limit": st["default"],
+         "clocks_event_reasons.active": "0x0000000000000004" if lim < st["draw_w"] else "0x0000000000000000",
+         "uuid": "GPU-fake-0000", "vbios_version": "00.00.00.00.00", "name": "Fake GPU", "driver_version": "0.0", "persistence_mode": "Enabled", "clocks.sm": 1500,
+         "timestamp": datetime.datetime.utcnow().strftime("%Y/%m/%d %H:%M:%S.%f")[:-3]}
+    return ", ".join(f"{v[f]:.2f}" if isinstance(v[f], float) else str(v[f]) for f in fields)
+
+
+while True:
+    for g in ([gpu] if gpu else sorted(st["limit"])):
+        print(row(g), flush=True)
+    if not lms:
+        break
+    time.sleep(lms / 1000.0)

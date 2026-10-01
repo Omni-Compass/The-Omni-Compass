@@ -1,0 +1,24 @@
+{
+ "run": "36215048554, commit 0639a1d",
+ "result": "stopped by its own receipt check before the benchmark",
+ "cause": "the receipt command 'kubectl auth can-i create pods/eviction' is the wrong form (it reads 'eviction' as a pod name); correct form 'create pods --subresource=eviction'",
+ "receipts_must_not": {
+  "delete nodes": "no",
+  "create pods": "no",
+  "delete pods": "no",
+  "delete deployments": "no",
+  "patch deployment/load-generator": "no",
+  "patch deployments in kube-system": "no",
+  "patch hpa in kube-system": "no",
+  "get secrets (any namespace)": "no",
+  "create namespaces": "no",
+  "patch configmap/omni-security": "no"
+ },
+ "receipts_must": {
+  "patch hpa/php-apache": "yes",
+  "patch nodes": "yes",
+  "patch pods/resize": "yes",
+  "patch deployment/php-apache": "yes",
+  "get configmap/omni-security": "yes"
+ }
+}

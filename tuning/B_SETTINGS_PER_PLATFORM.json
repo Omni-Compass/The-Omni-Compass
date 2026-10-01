@@ -1,0 +1,234 @@
+{
+ "batch": {
+  "k8s_hpa70_ca": {
+   "lag": 16,
+   "rise": 0.0,
+   "lead": 12,
+   "early": true,
+   "veto": true
+  },
+  "openshift": {
+   "lag": 16,
+   "rise": 0.0,
+   "lead": 12,
+   "early": true,
+   "veto": true
+  },
+  "gke_optimize": {
+   "lag": 8,
+   "rise": 0.0,
+   "lead": 6,
+   "early": true,
+   "veto": true
+  },
+  "aks_nap": {
+   "lag": 16,
+   "rise": 0.0,
+   "lead": 3,
+   "early": true,
+   "veto": true
+  },
+  "turbonomic": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 6,
+   "early": true,
+   "veto": true
+  },
+  "cast_ai": {
+   "lag": 16,
+   "rise": 0.0,
+   "lead": 12,
+   "early": true,
+   "veto": true
+  },
+  "spot_ocean": {
+   "lag": 16,
+   "rise": 0.05,
+   "lead": 3,
+   "early": true,
+   "veto": true
+  }
+ },
+ "gpu": {
+  "k8s_hpa70_ca": {
+   "lag": 8,
+   "rise": 0.0,
+   "lead": 3,
+   "early": true,
+   "veto": true
+  },
+  "openshift": {
+   "lag": 16,
+   "rise": 0.0,
+   "lead": 3,
+   "early": true,
+   "veto": false
+  },
+  "gke_optimize": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false
+  },
+  "aks_nap": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false
+  },
+  "turbonomic": {
+   "lag": 8,
+   "rise": 0.0,
+   "lead": 3,
+   "early": true,
+   "veto": false
+  },
+  "cast_ai": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false
+  },
+  "spot_ocean": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false
+  }
+ },
+ "web": {
+  "k8s_hpa70_ca": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  },
+  "openshift": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  },
+  "gke_optimize": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  },
+  "aks_nap": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  },
+  "turbonomic": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  },
+  "cast_ai": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  },
+  "spot_ocean": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  }
+ },
+ "multi": {
+  "k8s_hpa70_ca": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  },
+  "openshift": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  },
+  "gke_optimize": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  },
+  "aks_nap": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  },
+  "turbonomic": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  },
+  "cast_ai": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  },
+  "spot_ocean": {
+   "lag": 4,
+   "rise": 0.0,
+   "lead": 3,
+   "early": false,
+   "veto": false,
+   "flip_guard": 0,
+   "confirm": 1
+  }
+ }
+}

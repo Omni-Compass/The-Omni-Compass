@@ -1,0 +1,1005 @@
+{
+ "seeds": "heldout",
+ "omni_per_vessel": {
+  "web": "speed159",
+  "multi": "speed159",
+  "batch": "speed112",
+  "gpu": "omni_fleet"
+ },
+ "attack_list": [
+  {
+   "vessel": "web",
+   "competitor": "k8s_hpa70_ca",
+   "gauge": "energy_kwh",
+   "competitor_value": 13.348461669959256,
+   "omni_value": 17.11365446279436,
+   "omni_worse_by_pct": 28.206941638141565
+  },
+  {
+   "vessel": "web",
+   "competitor": "k8s_hpa70_ca",
+   "gauge": "node_hours",
+   "competitor_value": 35.97402777777778,
+   "omni_value": 51.833749999999995,
+   "omni_worse_by_pct": 44.08659024836592
+  },
+  {
+   "vessel": "web",
+   "competitor": "k8s_hpa70_ca",
+   "gauge": "pod_changes",
+   "competitor_value": 635.9,
+   "omni_value": 687.9666666666667,
+   "omni_worse_by_pct": 8.187870210200767
+  },
+  {
+   "vessel": "web",
+   "competitor": "openshift",
+   "gauge": "energy_kwh",
+   "competitor_value": 13.807795003292586,
+   "omni_value": 17.11365446279436,
+   "omni_worse_by_pct": 23.94197957540261
+  },
+  {
+   "vessel": "web",
+   "competitor": "openshift",
+   "gauge": "node_hours",
+   "competitor_value": 37.88791666666667,
+   "omni_value": 51.833749999999995,
+   "omni_worse_by_pct": 36.80812924085295
+  },
+  {
+   "vessel": "web",
+   "competitor": "openshift",
+   "gauge": "pod_changes",
+   "competitor_value": 637.9666666666667,
+   "omni_value": 687.9666666666667,
+   "omni_worse_by_pct": 7.837400073149067
+  },
+  {
+   "vessel": "web",
+   "competitor": "gke_optimize",
+   "gauge": "energy_kwh",
+   "competitor_value": 11.227795003292593,
+   "omni_value": 17.11365446279436,
+   "omni_worse_by_pct": 52.42222054976702
+  },
+  {
+   "vessel": "web",
+   "competitor": "gke_optimize",
+   "gauge": "node_hours",
+   "competitor_value": 27.137916666666673,
+   "omni_value": 51.833749999999995,
+   "omni_worse_by_pct": 91.00121294007461
+  },
+  {
+   "vessel": "web",
+   "competitor": "gke_optimize",
+   "gauge": "pod_changes",
+   "competitor_value": 629.4333333333333,
+   "omni_value": 687.9666666666667,
+   "omni_worse_by_pct": 9.299369803526982
+  },
+  {
+   "vessel": "web",
+   "competitor": "aks_nap",
+   "gauge": "energy_kwh",
+   "competitor_value": 10.631995003292596,
+   "omni_value": 17.11365446279436,
+   "omni_worse_by_pct": 60.96371807449567
+  },
+  {
+   "vessel": "web",
+   "competitor": "aks_nap",
+   "gauge": "node_hours",
+   "competitor_value": 24.65541666666667,
+   "omni_value": 51.833749999999995,
+   "omni_worse_by_pct": 110.2327074848326
+  },
+  {
+   "vessel": "web",
+   "competitor": "aks_nap",
+   "gauge": "pod_changes",
+   "competitor_value": 623.3,
+   "omni_value": 687.9666666666667,
+   "omni_worse_by_pct": 10.374886357559229
+  },
+  {
+   "vessel": "web",
+   "competitor": "turbonomic",
+   "gauge": "energy_kwh",
+   "competitor_value": 11.070253094821892,
+   "omni_value": 17.11365446279436,
+   "omni_worse_by_pct": 54.59135682091373
+  },
+  {
+   "vessel": "web",
+   "competitor": "turbonomic",
+   "gauge": "node_hours",
+   "competitor_value": 26.48152777777778,
+   "omni_value": 51.833749999999995,
+   "omni_worse_by_pct": 95.7354969659144
+  },
+  {
+   "vessel": "web",
+   "competitor": "cast_ai",
+   "gauge": "energy_kwh",
+   "competitor_value": 10.465195003292594,
+   "omni_value": 17.11365446279436,
+   "omni_worse_by_pct": 63.52924582303536
+  },
+  {
+   "vessel": "web",
+   "competitor": "cast_ai",
+   "gauge": "node_hours",
+   "competitor_value": 23.960416666666667,
+   "omni_value": 51.833749999999995,
+   "omni_worse_by_pct": 116.33075384749152
+  },
+  {
+   "vessel": "web",
+   "competitor": "cast_ai",
+   "gauge": "pod_changes",
+   "competitor_value": 620.9,
+   "omni_value": 687.9666666666667,
+   "omni_worse_by_pct": 10.801524668491973
+  },
+  {
+   "vessel": "web",
+   "competitor": "spot_ocean",
+   "gauge": "energy_kwh",
+   "competitor_value": 10.614995003292595,
+   "omni_value": 17.11365446279436,
+   "omni_worse_by_pct": 61.2215027655311
+  },
+  {
+   "vessel": "web",
+   "competitor": "spot_ocean",
+   "gauge": "node_hours",
+   "competitor_value": 24.58458333333333,
+   "omni_value": 51.833749999999995,
+   "omni_worse_by_pct": 110.83843194413845
+  },
+  {
+   "vessel": "web",
+   "competitor": "spot_ocean",
+   "gauge": "pod_changes",
+   "competitor_value": 622.3,
+   "omni_value": 687.9666666666667,
+   "omni_worse_by_pct": 10.552252397021803
+  },
+  {
+   "vessel": "multi",
+   "competitor": "k8s_hpa70_ca",
+   "gauge": "energy_kwh",
+   "competitor_value": 53.042808693264455,
+   "omni_value": 68.27902968432964,
+   "omni_worse_by_pct": 28.724385767678882
+  },
+  {
+   "vessel": "multi",
+   "competitor": "k8s_hpa70_ca",
+   "gauge": "node_hours",
+   "competitor_value": 142.82527777777779,
+   "omni_value": 206.9786111111111,
+   "omni_worse_by_pct": 44.917352398326614
+  },
+  {
+   "vessel": "multi",
+   "competitor": "k8s_hpa70_ca",
+   "gauge": "pod_changes",
+   "competitor_value": 2576.633333333333,
+   "omni_value": 2793.9666666666667,
+   "omni_worse_by_pct": 8.43477923388401
+  },
+  {
+   "vessel": "multi",
+   "competitor": "openshift",
+   "gauge": "energy_kwh",
+   "competitor_value": 55.10440869326447,
+   "omni_value": 68.27902968432964,
+   "omni_worse_by_pct": 23.908469945482867
+  },
+  {
+   "vessel": "multi",
+   "competitor": "openshift",
+   "gauge": "node_hours",
+   "competitor_value": 151.4152777777778,
+   "omni_value": 206.9786111111111,
+   "omni_worse_by_pct": 36.695988772599264
+  },
+  {
+   "vessel": "multi",
+   "competitor": "openshift",
+   "gauge": "pod_changes",
+   "competitor_value": 2582.4333333333334,
+   "omni_value": 2793.9666666666667,
+   "omni_worse_by_pct": 8.191240819382237
+  },
+  {
+   "vessel": "multi",
+   "competitor": "gke_optimize",
+   "gauge": "energy_kwh",
+   "competitor_value": 44.315775359931145,
+   "omni_value": 68.27902968432964,
+   "omni_worse_by_pct": 54.07386902241882
+  },
+  {
+   "vessel": "multi",
+   "competitor": "gke_optimize",
+   "gauge": "node_hours",
+   "competitor_value": 106.46263888888889,
+   "omni_value": 206.9786111111111,
+   "omni_worse_by_pct": 94.41431592460056
+  },
+  {
+   "vessel": "multi",
+   "competitor": "gke_optimize",
+   "gauge": "pod_changes",
+   "competitor_value": 2549.7,
+   "omni_value": 2793.9666666666667,
+   "omni_worse_by_pct": 9.58021205109098
+  },
+  {
+   "vessel": "multi",
+   "competitor": "aks_nap",
+   "gauge": "energy_kwh",
+   "competitor_value": 42.08397499184471,
+   "omni_value": 68.27902968432964,
+   "omni_worse_by_pct": 62.24472545086622
+  },
+  {
+   "vessel": "multi",
+   "competitor": "aks_nap",
+   "gauge": "node_hours",
+   "competitor_value": 97.16347222222223,
+   "omni_value": 206.9786111111111,
+   "omni_worse_by_pct": 113.0210112682378
+  },
+  {
+   "vessel": "multi",
+   "competitor": "aks_nap",
+   "gauge": "pod_changes",
+   "competitor_value": 2536.7,
+   "omni_value": 2793.9666666666667,
+   "omni_worse_by_pct": 10.141785259063612
+  },
+  {
+   "vessel": "multi",
+   "competitor": "turbonomic",
+   "gauge": "energy_kwh",
+   "competitor_value": 43.934930311659535,
+   "omni_value": 68.27902968432964,
+   "omni_worse_by_pct": 55.40944118946201
+  },
+  {
+   "vessel": "multi",
+   "competitor": "turbonomic",
+   "gauge": "node_hours",
+   "competitor_value": 104.87736111111111,
+   "omni_value": 206.9786111111111,
+   "omni_worse_by_pct": 97.35299297989583
+  },
+  {
+   "vessel": "multi",
+   "competitor": "cast_ai",
+   "gauge": "energy_kwh",
+   "competitor_value": 41.45164165851137,
+   "omni_value": 68.27902968432964,
+   "omni_worse_by_pct": 64.71972388169516
+  },
+  {
+   "vessel": "multi",
+   "competitor": "cast_ai",
+   "gauge": "node_hours",
+   "competitor_value": 94.52874999999999,
+   "omni_value": 206.9786111111111,
+   "omni_worse_by_pct": 118.9583709835485
+  },
+  {
+   "vessel": "multi",
+   "competitor": "cast_ai",
+   "gauge": "pod_changes",
+   "competitor_value": 2534.2,
+   "omni_value": 2793.9666666666667,
+   "omni_worse_by_pct": 10.250440638728856
+  },
+  {
+   "vessel": "multi",
+   "competitor": "spot_ocean",
+   "gauge": "energy_kwh",
+   "competitor_value": 42.13237499184469,
+   "omni_value": 68.27902968432964,
+   "omni_worse_by_pct": 62.05834515036477
+  },
+  {
+   "vessel": "multi",
+   "competitor": "spot_ocean",
+   "gauge": "node_hours",
+   "competitor_value": 97.3651388888889,
+   "omni_value": 206.9786111111111,
+   "omni_worse_by_pct": 112.57979341796131
+  },
+  {
+   "vessel": "multi",
+   "competitor": "spot_ocean",
+   "gauge": "pod_changes",
+   "competitor_value": 2534.366666666667,
+   "omni_value": 2793.9666666666667,
+   "omni_worse_by_pct": 10.243190277649907
+  },
+  {
+   "vessel": "batch",
+   "competitor": "k8s_hpa70_ca",
+   "gauge": "start_stop",
+   "competitor_value": 14.133333333333333,
+   "omni_value": 23.3,
+   "omni_worse_by_pct": 64.85849056603773
+  },
+  {
+   "vessel": "batch",
+   "competitor": "k8s_hpa70_ca",
+   "gauge": "node_reversals",
+   "competitor_value": 0.9666666666666667,
+   "omni_value": 3.6666666666666665,
+   "omni_worse_by_pct": 279.3103448275862
+  },
+  {
+   "vessel": "batch",
+   "competitor": "openshift",
+   "gauge": "start_stop",
+   "competitor_value": 15.1,
+   "omni_value": 23.3,
+   "omni_worse_by_pct": 54.3046357615894
+  },
+  {
+   "vessel": "batch",
+   "competitor": "openshift",
+   "gauge": "node_reversals",
+   "competitor_value": 1.0,
+   "omni_value": 3.6666666666666665,
+   "omni_worse_by_pct": 266.66666666666663
+  },
+  {
+   "vessel": "batch",
+   "competitor": "gke_optimize",
+   "gauge": "energy_kwh",
+   "competitor_value": 68.63432949561407,
+   "omni_value": 69.78908522750095,
+   "omni_worse_by_pct": 1.682475432299026
+  },
+  {
+   "vessel": "batch",
+   "competitor": "gke_optimize",
+   "gauge": "node_hours",
+   "competitor_value": 93.92555555555555,
+   "omni_value": 98.04430555555555,
+   "omni_worse_by_pct": 4.3851217867578365
+  },
+  {
+   "vessel": "batch",
+   "competitor": "aks_nap",
+   "gauge": "energy_kwh",
+   "competitor_value": 65.53561359649123,
+   "omni_value": 69.78908522750095,
+   "omni_worse_by_pct": 6.490320907344721
+  },
+  {
+   "vessel": "batch",
+   "competitor": "aks_nap",
+   "gauge": "node_hours",
+   "competitor_value": 83.59861111111111,
+   "omni_value": 98.04430555555555,
+   "omni_worse_by_pct": 17.279825887591173
+  },
+  {
+   "vessel": "batch",
+   "competitor": "turbonomic",
+   "gauge": "energy_kwh",
+   "competitor_value": 68.17203782894738,
+   "omni_value": 69.78908522750095,
+   "omni_worse_by_pct": 2.372009771236341
+  },
+  {
+   "vessel": "batch",
+   "competitor": "turbonomic",
+   "gauge": "node_hours",
+   "competitor_value": 92.38458333333334,
+   "omni_value": 98.04430555555555,
+   "omni_worse_by_pct": 6.126262649041071
+  },
+  {
+   "vessel": "batch",
+   "competitor": "cast_ai",
+   "gauge": "energy_kwh",
+   "competitor_value": 66.00511699561405,
+   "omni_value": 69.78908522750095,
+   "omni_worse_by_pct": 5.732840731330483
+  },
+  {
+   "vessel": "batch",
+   "competitor": "cast_ai",
+   "gauge": "node_hours",
+   "competitor_value": 85.16513888888888,
+   "omni_value": 98.04430555555555,
+   "omni_worse_by_pct": 15.122580476818731
+  },
+  {
+   "vessel": "batch",
+   "competitor": "spot_ocean",
+   "gauge": "energy_kwh",
+   "competitor_value": 65.39245219298245,
+   "omni_value": 69.78908522750095,
+   "omni_worse_by_pct": 6.723456434304392
+  },
+  {
+   "vessel": "batch",
+   "competitor": "spot_ocean",
+   "gauge": "node_hours",
+   "competitor_value": 83.11972222222221,
+   "omni_value": 98.04430555555555,
+   "omni_worse_by_pct": 17.955525998309003
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "k8s_hpa70_ca",
+   "gauge": "start_stop",
+   "competitor_value": 16.6,
+   "omni_value": 24.866666666666667,
+   "omni_worse_by_pct": 49.799196787148595
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "k8s_hpa70_ca",
+   "gauge": "node_reversals",
+   "competitor_value": 2.966666666666667,
+   "omni_value": 5.566666666666666,
+   "omni_worse_by_pct": 87.64044943820225
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "openshift",
+   "gauge": "start_stop",
+   "competitor_value": 18.066666666666666,
+   "omni_value": 24.866666666666667,
+   "omni_worse_by_pct": 37.63837638376384
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "openshift",
+   "gauge": "node_reversals",
+   "competitor_value": 3.0,
+   "omni_value": 5.566666666666666,
+   "omni_worse_by_pct": 85.55555555555556
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "gke_optimize",
+   "gauge": "node_hours",
+   "competitor_value": 57.67763888888888,
+   "omni_value": 60.83611111111111,
+   "omni_worse_by_pct": 5.476077528601256
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "aks_nap",
+   "gauge": "node_hours",
+   "competitor_value": 53.68583333333332,
+   "omni_value": 60.83611111111111,
+   "omni_worse_by_pct": 13.318742271135054
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "turbonomic",
+   "gauge": "node_hours",
+   "competitor_value": 56.502638888888896,
+   "omni_value": 60.83611111111111,
+   "omni_worse_by_pct": 7.669504128371585
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "cast_ai",
+   "gauge": "node_hours",
+   "competitor_value": 53.72041666666666,
+   "omni_value": 60.83611111111111,
+   "omni_worse_by_pct": 13.245791611403693
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "spot_ocean",
+   "gauge": "node_hours",
+   "competitor_value": 53.16055555555555,
+   "omni_value": 60.83611111111111,
+   "omni_worse_by_pct": 14.438441200137952
+  }
+ ],
+ "means": {
+  "web": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": 13.348461669959256,
+    "p95_ms": 125.0522837168813,
+    "p99_ms": 573.7166183720329,
+    "mean_ms": 216.49847081340465,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 9.3,
+    "node_reversals": 1.2,
+    "node_hours": 35.97402777777778,
+    "pod_changes": 635.9,
+    "work_completed": 0.9999927450925263,
+    "time_healthy": 1.0
+   },
+   "openshift": {
+    "energy_kwh": 13.807795003292586,
+    "p95_ms": 124.93452195854223,
+    "p99_ms": 546.0269634901526,
+    "mean_ms": 216.18064249971954,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 7.1,
+    "node_reversals": 0.6333333333333333,
+    "node_hours": 37.88791666666667,
+    "pod_changes": 637.9666666666667,
+    "work_completed": 0.9999927450925263,
+    "time_healthy": 1.0
+   },
+   "gke_optimize": {
+    "energy_kwh": 11.227795003292593,
+    "p95_ms": 125.6237116849501,
+    "p99_ms": 1170.0097767884565,
+    "mean_ms": 233.24909304190038,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 15.4,
+    "node_reversals": 4.366666666666666,
+    "node_hours": 27.137916666666673,
+    "pod_changes": 629.4333333333333,
+    "work_completed": 0.9999927450925263,
+    "time_healthy": 1.0
+   },
+   "aks_nap": {
+    "energy_kwh": 10.631995003292596,
+    "p95_ms": 125.9316797315434,
+    "p99_ms": 1636.4562152201286,
+    "mean_ms": 239.18291742571773,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 18.833333333333332,
+    "node_reversals": 6.133333333333334,
+    "node_hours": 24.65541666666667,
+    "pod_changes": 623.3,
+    "work_completed": 0.9999927450925263,
+    "time_healthy": 1.0
+   },
+   "turbonomic": {
+    "energy_kwh": 11.070253094821892,
+    "p95_ms": 8066.863009434602,
+    "p99_ms": 28742.01589265498,
+    "mean_ms": 1323.83344072942,
+    "violation_backlog": 0.006296296296296296,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 12.666666666666666,
+    "node_reversals": 2.8333333333333335,
+    "node_hours": 26.48152777777778,
+    "pod_changes": 862.4333333333333,
+    "work_completed": 0.9999909476021462,
+    "time_healthy": 0.993287037037037
+   },
+   "cast_ai": {
+    "energy_kwh": 10.465195003292594,
+    "p95_ms": 126.16391700507528,
+    "p99_ms": 1932.1575057575415,
+    "mean_ms": 241.75862512828056,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 22.866666666666667,
+    "node_reversals": 9.566666666666666,
+    "node_hours": 23.960416666666667,
+    "pod_changes": 620.9,
+    "work_completed": 0.9999927450925263,
+    "time_healthy": 1.0
+   },
+   "spot_ocean": {
+    "energy_kwh": 10.614995003292595,
+    "p95_ms": 125.84296375416726,
+    "p99_ms": 1617.6565370068151,
+    "mean_ms": 237.56878509403126,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 23.333333333333332,
+    "node_reversals": 9.8,
+    "node_hours": 24.58458333333333,
+    "pod_changes": 622.3,
+    "work_completed": 0.9999927450925263,
+    "time_healthy": 1.0
+   },
+   "speed159": {
+    "energy_kwh": 17.11365446279436,
+    "p95_ms": 110.13163051145764,
+    "p99_ms": 122.80553397178332,
+    "mean_ms": 145.33766872166285,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 5.833333333333333,
+    "node_reversals": 0.6333333333333333,
+    "node_hours": 51.833749999999995,
+    "pod_changes": 687.9666666666667,
+    "work_completed": 0.9999942289186647,
+    "time_healthy": 1.0
+   }
+  },
+  "multi": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": 53.042808693264455,
+    "p95_ms": 127.09823888298406,
+    "p99_ms": 287.3983127682104,
+    "mean_ms": 218.75044140204196,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 37.166666666666664,
+    "node_reversals": 4.666666666666667,
+    "node_hours": 142.82527777777779,
+    "pod_changes": 2576.633333333333,
+    "work_completed": 0.9999929205743735,
+    "time_healthy": 1.0
+   },
+   "openshift": {
+    "energy_kwh": 55.10440869326447,
+    "p95_ms": 126.85612586800607,
+    "p99_ms": 262.94699597479786,
+    "mean_ms": 217.22532622028302,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 28.733333333333334,
+    "node_reversals": 2.2666666666666666,
+    "node_hours": 151.4152777777778,
+    "pod_changes": 2582.4333333333334,
+    "work_completed": 0.9999929205743735,
+    "time_healthy": 1.0
+   },
+   "gke_optimize": {
+    "energy_kwh": 44.315775359931145,
+    "p95_ms": 127.94983614902755,
+    "p99_ms": 928.4341703279929,
+    "mean_ms": 237.43126716361127,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 62.766666666666666,
+    "node_reversals": 17.133333333333333,
+    "node_hours": 106.46263888888889,
+    "pod_changes": 2549.7,
+    "work_completed": 0.9999929205743735,
+    "time_healthy": 1.0
+   },
+   "aks_nap": {
+    "energy_kwh": 42.08397499184471,
+    "p95_ms": 128.30399782883785,
+    "p99_ms": 1275.6378362623095,
+    "mean_ms": 249.89458112259857,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 75.13333333333334,
+    "node_reversals": 24.166666666666668,
+    "node_hours": 97.16347222222223,
+    "pod_changes": 2536.7,
+    "work_completed": 0.9999929035608554,
+    "time_healthy": 1.0
+   },
+   "turbonomic": {
+    "energy_kwh": 43.934930311659535,
+    "p95_ms": 18779.829296754007,
+    "p99_ms": 71995.84933582433,
+    "mean_ms": 2832.5119808298555,
+    "violation_backlog": 0.022546296296296297,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 51.96666666666667,
+    "node_reversals": 10.833333333333334,
+    "node_hours": 104.87736111111111,
+    "pod_changes": 3532.766666666667,
+    "work_completed": 0.9999717294752403,
+    "time_healthy": 0.9758333333333333
+   },
+   "cast_ai": {
+    "energy_kwh": 41.45164165851137,
+    "p95_ms": 128.6199370400221,
+    "p99_ms": 1636.7426219250808,
+    "mean_ms": 258.4824636147152,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 93.3,
+    "node_reversals": 38.3,
+    "node_hours": 94.52874999999999,
+    "pod_changes": 2534.2,
+    "work_completed": 0.9999929035608554,
+    "time_healthy": 1.0
+   },
+   "spot_ocean": {
+    "energy_kwh": 42.13237499184469,
+    "p95_ms": 128.13200381184453,
+    "p99_ms": 1245.81392637066,
+    "mean_ms": 246.64886577081995,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 97.03333333333333,
+    "node_reversals": 41.166666666666664,
+    "node_hours": 97.3651388888889,
+    "pod_changes": 2534.366666666667,
+    "work_completed": 0.9999929035608552,
+    "time_healthy": 1.0
+   },
+   "speed159": {
+    "energy_kwh": 68.27902968432964,
+    "p95_ms": 112.12063634857685,
+    "p99_ms": 137.8027591519565,
+    "mean_ms": 145.5742306402137,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 24.2,
+    "node_reversals": 2.8,
+    "node_hours": 206.9786111111111,
+    "pod_changes": 2793.9666666666667,
+    "work_completed": 0.9999961790286302,
+    "time_healthy": 1.0
+   }
+  },
+  "batch": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": 70.49941282894741,
+    "p95_ms": 100.0,
+    "p99_ms": 1277.2105662157846,
+    "mean_ms": 135.56019404565788,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 14.133333333333333,
+    "node_reversals": 0.9666666666666667,
+    "node_hours": 100.1425,
+    "pod_changes": 0.0,
+    "work_completed": 1.0,
+    "time_healthy": 1.0
+   },
+   "openshift": {
+    "energy_kwh": 70.58291282894739,
+    "p95_ms": 100.0,
+    "p99_ms": 1351.4428973295314,
+    "mean_ms": 138.9216833565356,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 15.1,
+    "node_reversals": 1.0,
+    "node_hours": 100.42083333333333,
+    "pod_changes": 0.0,
+    "work_completed": 1.0,
+    "time_healthy": 1.0
+   },
+   "gke_optimize": {
+    "energy_kwh": 68.63432949561407,
+    "p95_ms": 100.0,
+    "p99_ms": 1944.3701527830124,
+    "mean_ms": 155.9271438584172,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 28.6,
+    "node_reversals": 3.2333333333333334,
+    "node_hours": 93.92555555555555,
+    "pod_changes": 0.0,
+    "work_completed": 1.0,
+    "time_healthy": 1.0
+   },
+   "aks_nap": {
+    "energy_kwh": 65.53561359649123,
+    "p95_ms": 809.4947761646712,
+    "p99_ms": 3635.4758819397043,
+    "mean_ms": 252.02418405017843,
+    "violation_backlog": 0.0005092592592592593,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 91.9,
+    "node_reversals": 23.733333333333334,
+    "node_hours": 83.59861111111111,
+    "pod_changes": 0.0,
+    "work_completed": 0.999986857630585,
+    "time_healthy": 0.999212962962963
+   },
+   "turbonomic": {
+    "energy_kwh": 68.17203782894738,
+    "p95_ms": 102.19298245614054,
+    "p99_ms": 2128.297890286396,
+    "mean_ms": 168.28628336885757,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 34.9,
+    "node_reversals": 5.666666666666667,
+    "node_hours": 92.38458333333334,
+    "pod_changes": 0.0,
+    "work_completed": 1.0,
+    "time_healthy": 0.9999537037037036
+   },
+   "cast_ai": {
+    "energy_kwh": 66.00511699561405,
+    "p95_ms": 1795.2244908514306,
+    "p99_ms": 4487.489377316966,
+    "mean_ms": 350.10745084201443,
+    "violation_backlog": 0.0003935185185185185,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 166.66666666666666,
+    "node_reversals": 51.96666666666667,
+    "node_hours": 85.16513888888888,
+    "pod_changes": 0.0,
+    "work_completed": 0.9999698831378337,
+    "time_healthy": 0.9994444444444445
+   },
+   "spot_ocean": {
+    "energy_kwh": 65.39245219298245,
+    "p95_ms": 176.77221353208333,
+    "p99_ms": 1862.7142359964332,
+    "mean_ms": 166.78007947097214,
+    "violation_backlog": 0.00020833333333333335,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 144.8,
+    "node_reversals": 76.8,
+    "node_hours": 83.11972222222221,
+    "pod_changes": 0.0,
+    "work_completed": 0.9999955546000948,
+    "time_healthy": 0.9997685185185186
+   },
+   "speed112": {
+    "energy_kwh": 69.78908522750095,
+    "p95_ms": 100.0,
+    "p99_ms": 337.3793527352472,
+    "mean_ms": 115.17320968723776,
+    "violation_backlog": 0.0,
+    "violation_power": 0.0,
+    "violation_heat": 0.0,
+    "start_stop": 23.3,
+    "node_reversals": 3.6666666666666665,
+    "node_hours": 98.04430555555555,
+    "pod_changes": 0.0,
+    "work_completed": 1.0,
+    "time_healthy": 1.0
+   }
+  },
+  "gpu": {
+   "k8s_hpa70_ca": {
+    "energy_kwh": 194.3871859649129,
+    "p95_ms": 1344602.1929824532,
+    "p99_ms": 1447740.3508771895,
+    "mean_ms": 452230.0923959241,
+    "violation_backlog": 0.2686574074074074,
+    "violation_power": 0.4984027777777778,
+    "violation_heat": 0.4249305555555555,
+    "start_stop": 16.6,
+    "node_reversals": 2.966666666666667,
+    "node_hours": 61.16444444444444,
+    "pod_changes": 0.0,
+    "work_completed": 0.9373158493038108,
+    "time_healthy": 0.4598148148148148
+   },
+   "openshift": {
+    "energy_kwh": 194.40198596491285,
+    "p95_ms": 1344880.7017543828,
+    "p99_ms": 1448584.6491228037,
+    "mean_ms": 452297.3451706359,
+    "violation_backlog": 0.26875,
+    "violation_power": 0.49425925925925934,
+    "violation_heat": 0.4257638888888889,
+    "start_stop": 18.066666666666666,
+    "node_reversals": 3.0,
+    "node_hours": 61.19222222222223,
+    "pod_changes": 0.0,
+    "work_completed": 0.9372863576468454,
+    "time_healthy": 0.45699074074074075
+   },
+   "gke_optimize": {
+    "energy_kwh": 191.86628596491263,
+    "p95_ms": 1345720.6140350846,
+    "p99_ms": 1449068.5672514588,
+    "mean_ms": 452908.8587892021,
+    "violation_backlog": 0.2714120370370371,
+    "violation_power": 0.4926157407407408,
+    "violation_heat": 0.42043981481481485,
+    "start_stop": 36.63333333333333,
+    "node_reversals": 7.666666666666667,
+    "node_hours": 57.67763888888888,
+    "pod_changes": 0.0,
+    "work_completed": 0.9372561614269167,
+    "time_healthy": 0.46208333333333335
+   },
+   "aks_nap": {
+    "energy_kwh": 188.96541052631648,
+    "p95_ms": 1348950.8771929792,
+    "p99_ms": 1452461.1111111082,
+    "mean_ms": 454445.98605337343,
+    "violation_backlog": 0.2759953703703704,
+    "violation_power": 0.48486111111111124,
+    "violation_heat": 0.4136805555555556,
+    "start_stop": 62.8,
+    "node_reversals": 13.333333333333334,
+    "node_hours": 53.68583333333332,
+    "pod_changes": 0.0,
+    "work_completed": 0.937095056367307,
+    "time_healthy": 0.47226851851851853
+   },
+   "turbonomic": {
+    "energy_kwh": 191.01951052631642,
+    "p95_ms": 1345942.1052631547,
+    "p99_ms": 1449287.134502921,
+    "mean_ms": 452680.45001130475,
+    "violation_backlog": 0.2700462962962963,
+    "violation_power": 0.501851851851852,
+    "violation_heat": 0.42020833333333335,
+    "start_stop": 35.266666666666666,
+    "node_reversals": 6.3,
+    "node_hours": 56.502638888888896,
+    "pod_changes": 0.0,
+    "work_completed": 0.9372531333000056,
+    "time_healthy": 0.45668981481481485
+   },
+   "cast_ai": {
+    "energy_kwh": 188.95625964912355,
+    "p95_ms": 1353920.1754385936,
+    "p99_ms": 1457461.2440191356,
+    "mean_ms": 456771.9402242479,
+    "violation_backlog": 0.27969907407407407,
+    "violation_power": 0.4758333333333333,
+    "violation_heat": 0.4066435185185185,
+    "start_stop": 67.9,
+    "node_reversals": 15.366666666666667,
+    "node_hours": 53.72041666666666,
+    "pod_changes": 0.0,
+    "work_completed": 0.9368780222225653,
+    "time_healthy": 0.4804166666666666
+   },
+   "spot_ocean": {
+    "energy_kwh": 188.56901052631636,
+    "p95_ms": 1351599.9999999972,
+    "p99_ms": 1454987.559808609,
+    "mean_ms": 455833.95007578004,
+    "violation_backlog": 0.2784953703703704,
+    "violation_power": 0.471712962962963,
+    "violation_heat": 0.4101620370370371,
+    "start_stop": 71.63333333333334,
+    "node_reversals": 15.033333333333333,
+    "node_hours": 53.16055555555555,
+    "pod_changes": 0.0,
+    "work_completed": 0.9369841258546207,
+    "time_healthy": 0.483912037037037
+   },
+   "omni_fleet": {
+    "energy_kwh": 182.448258440088,
+    "p95_ms": 1346642.4198152972,
+    "p99_ms": 1450237.705290928,
+    "mean_ms": 454459.1858072353,
+    "violation_backlog": 0.27037037037037037,
+    "violation_power": 0.47995370370370366,
+    "violation_heat": 0.3984490740740741,
+    "start_stop": 24.866666666666667,
+    "node_reversals": 5.566666666666666,
+    "node_hours": 60.83611111111111,
+    "pod_changes": 0.0,
+    "work_completed": 0.9371744592933123,
+    "time_healthy": 0.4979398148148148
+   }
+  }
+ }
+}

@@ -1,0 +1,33 @@
+name: archive-run
+# Copies the raw files of a finished live run (every artifact: capture CSV, response-time CSV, audit log, controller
+# log, SHA-256 manifest per repetition, and the aggregate) into the repository under results/live/raw/run-<id>/, so
+# they live with the code and survive the artifact retention window. The run id is read from
+# .github/archive_request.txt; pushing a change to that file starts this workflow.
+on:
+  push:
+    paths: [".github/archive_request.txt"]
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: req
+        run: echo "run=$(tr -d '[:space:]' < .github/archive_request.txt)" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ steps.req.outputs.run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: results/live/raw/run-${{ steps.req.outputs.run }}
+      - run: |
+          d="results/live/raw/run-${{ steps.req.outputs.run }}"
+          find "$d" -type f | sort
+          ( cd "$d" && find . -type f ! -name SHA256SUMS_ALL.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS_ALL.txt )
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$d"
+          git commit -m "Raw files of live run ${{ steps.req.outputs.run }} archived with the code"
+          git push

@@ -1,0 +1,34 @@
+# The shadow-pilot kit (scripts/pilot_shadow.sh) run end to end on kind with the demo workload and load: read-only
+# identity proven, closure-law recommendations logged, zero writes asserted, SHADOW_REPORT.md produced.
+# Started by hand or by a pushed commit whose message contains [shadow].
+name: live-shadow
+on:
+  workflow_dispatch:
+  push:
+jobs:
+  shadow:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[shadow]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - uses: helm/kind-action@v1
+        with: {cluster_name: omni-shadow, config: deploy/kind/cluster-full.yaml}
+      - run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.9.0/components.yaml
+          kubectl -n kube-system patch deployment metrics-server --type=json -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+          kubectl -n kube-system rollout status deployment/metrics-server --timeout=300s
+          kubectl apply -f deploy/kind/demo.yaml -f deploy/kind/loadgen.yaml
+          kubectl rollout status deployment/php-apache --timeout=300s
+          for i in $(seq 1 30); do kubectl top nodes >/dev/null 2>&1 && break; sleep 10; done
+      - run: bash scripts/pilot_shadow.sh
+        env: {DURATION: "600", OUT_DIR: shadow_out}
+      - if: always()
+        run: |
+          { cat shadow_out/SHADOW_REPORT.md; cat shadow_out/rbac_shadow.txt; tail -n 30 shadow_out/controller.log; } >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: live-shadow, path: shadow_out}

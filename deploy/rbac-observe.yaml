@@ -1,0 +1,28 @@
+# Read-only access for --mode observe.
+apiVersion: v1
+kind: Namespace
+metadata: {name: omni-compass}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: omni-compass, namespace: omni-compass}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata: {name: omni-compass-observe}
+rules:
+  - apiGroups: [""]
+    resources: [nodes, pods]
+    verbs: [get, list]
+  - apiGroups: [metrics.k8s.io]
+    resources: [nodes, pods]
+    verbs: [get, list]
+  - apiGroups: [autoscaling]
+    resources: [horizontalpodautoscalers]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata: {name: omni-compass-observe}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: omni-compass-observe}
+subjects: [{kind: ServiceAccount, name: omni-compass, namespace: omni-compass}]

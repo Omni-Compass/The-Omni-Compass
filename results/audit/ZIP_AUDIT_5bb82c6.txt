@@ -1,0 +1,44 @@
+=== verify.py
+exit 0
+92
+VERIFICATION: PASS
+=== mechanism
+exit 0
+operating point: {'E': 0.095, 'U': 0.976, 'I_U': -0.038, 'S': 0.315, 'B': 0.102, 'B_dot': 0.022}
+modes (engine time constant -> decisions):
+  lambda = -7.904+0.000i   tau = 0.127 -> 1.3 decisions
+  lambda = -3.099+0.000i   tau = 0.323 -> 3.2 decisions
+  lambda = -0.719+0.000i   tau = 1.39 -> 13.9 decisions
+  lambda = -0.200+0.980i   tau = 5 -> 50.0 decisions, period 64 decisions
+  lambda = -0.200-0.980i   tau = 5 -> 50.0 decisions, period 64 decisions
+  lambda = -0.167+0.000i   tau = 5.98 -> 59.8 decisions
+mean movement per decision (assimilation vs equations):
+  E      observation 0.0200  equations 0.0200  -> equations do 50%
+  U      observation 0.0171  equations 0.0173  -> equations do 50%
+  I_U    observation 0.0178  equations 0.0178  -> equations do 50%
+  S      observation 0.0660  equations 0.0666  -> equations do 50%
+  B      observation 0.0021  equations 0.0017  -> equations do 45%
+  B_dot  observation 0.0091  equations 0.0089  -> equations do 49%
+controller u applied during governance: False
+compute: 86.5 microseconds per decision (Python)
+=== closure heldout reproduction
+exit 0
+closure held-out identical: True losing cells 41
+=== site league held-out reproduction
+exit 0
+site league identical: True
+=== protocol faults (20 runs per level)
+exit 0
+web    A cast_ai       conveyed   34/100  pages    86  recovery    7.3 min  persist   36.8 min  timeouts 4.85%  energy 12.22
+web    A k8s_hpa70_ca  conveyed   33/100  pages    74  recovery    9.1 min  persist   37.0 min  timeouts 4.03%  energy 16.16
+web    C C-strict      conveyed   35/100  pages    63  recovery    6.7 min  persist   30.0 min  timeouts 3.68%  energy 13.49
+multi  A cast_ai       conveyed    4/100  pages   122  recovery    6.0 min  persist   71.7 min  timeouts 1.80%  energy 44.23
+multi  A k8s_hpa70_ca  conveyed    4/100  pages    61  recovery    6.8 min  persist   57.7 min  timeouts 1.48%  energy 57.50
+multi  C C-strict      conveyed    4/100  pages    43  recovery    4.7 min  persist   52.6 min  timeouts 1.37%  energy 45.47
+batch  A cast_ai       conveyed   42/100  pages    48  recovery    5.4 min  persist   42.8 min  timeouts 11.23%  energy 74.45
+batch  A k8s_hpa70_ca  conveyed   83/100  pages    51  recovery    4.9 min  persist   17.5 min  timeouts 7.19%  energy 87.26
+batch  C C-strict      conveyed   83/100  pages    50  recovery    5.1 min  persist   19.1 min  timeouts 7.85%  energy 76.60
+gpu    A cast_ai       conveyed    8/100  pages   206  recovery  102.9 min  persist  228.1 min  timeouts 70.05%  energy 204.22
+gpu    A k8s_hpa70_ca  conveyed    8/100  pages   159  recovery  106.6 min  persist  227.5 min  timeouts 67.19%  energy 207.89
+gpu    C C-strict      conveyed    8/100  pages   167  recovery  105.3 min  persist  228.2 min  timeouts 67.12%  energy 205.60
+AUDITDONE

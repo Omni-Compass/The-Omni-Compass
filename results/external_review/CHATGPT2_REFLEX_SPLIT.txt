@@ -1,0 +1,54 @@
+
+== omni_k8s_protect
+gauge                         ours   ChatGPT     split  split vs ours
+time_healthy                 0.908     0.910     0.908  equal
+recovered                    0.970     0.970     0.970  equal
+sla_violation_physical       0.080     0.076     0.080  equal
+violation_backlog            0.068     0.033     0.068  equal
+violation_power              0.023     0.072     0.023  equal
+violation_heat               0.001     0.036     0.001  equal
+recovery_minutes            27.400    25.650    27.400  equal
+energy_kwh                 131.588   136.359   131.590  equal
+peak_power_kw               28.553    35.629    28.553  equal
+node_hours                 159.066   160.295   159.066  equal
+scale_reversals              3.020     3.110     3.020  equal
+node_start_stop             12.850    13.470    12.850  equal
+machine_round_trips          2.570     2.590     2.570  equal
+mean_queue                1083.526   620.980  1083.495  equal
+p95_queue                 2831.410  1731.217  2831.287  equal
+
+== omni_direct
+gauge                         ours   ChatGPT     split  split vs ours
+time_healthy                 0.913     0.910     0.914  equal
+recovered                    0.970     0.970     0.970  equal
+sla_violation_physical       0.078     0.076     0.078  equal
+violation_backlog            0.072     0.036     0.072  equal
+violation_power              0.011     0.072     0.012  equal
+violation_heat               0.001     0.041     0.001  equal
+recovery_minutes            27.200    25.950    27.100  equal
+energy_kwh                 129.349   134.141   129.389  equal
+peak_power_kw               28.181    34.738    28.184  equal
+node_hours                 152.577   152.731   152.615  equal
+scale_reversals              5.360     5.580     5.360  equal
+node_start_stop             11.760    12.210    11.790  equal
+machine_round_trips          2.610     2.730     2.620  equal
+mean_queue                1129.073   662.944  1127.065  split better
+p95_queue                 2979.271  1798.078  2968.254  equal
+
+== omni_k8s_throughput
+gauge                         ours   ChatGPT     split  split vs ours
+time_healthy                 0.923     0.920     0.923  equal
+recovered                    1.000     1.000     1.000  equal
+sla_violation_physical       0.065     0.068     0.065  equal
+violation_backlog            0.017     0.017     0.017  equal
+violation_power              0.059     0.062     0.059  equal
+violation_heat               0.025     0.025     0.025  equal
+recovery_minutes            15.550    16.350    15.550  equal
+energy_kwh                 121.246   121.747   121.247  equal
+peak_power_kw               37.214    38.650    37.214  equal
+node_hours                 139.223   139.277   139.226  equal
+scale_reversals              1.970     1.960     1.970  equal
+node_start_stop              9.510     9.520     9.510  equal
+machine_round_trips          1.780     1.790     1.780  equal
+mean_queue                 254.902   254.907   254.902  equal
+p95_queue                  991.513   992.414   991.513  equal

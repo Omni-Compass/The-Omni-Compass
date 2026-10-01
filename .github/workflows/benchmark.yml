@@ -1,0 +1,53 @@
+name: benchmark
+# Native vs Omni-Compass on identical six-worker kind clusters, run side by side on two machines at the same time:
+# one arm with Omni-Compass not running, one with Omni-Compass driving. The compare job writes BENCHMARK.md
+# and BENCHMARK.pdf (every gauge side by side, minute-by-minute timeline, significance) to the run summary and the
+# "benchmark" artifact.
+# Started by hand (Actions -> benchmark -> Run workflow) or by a pushed commit whose message contains [bench].
+on:
+  workflow_dispatch:
+    inputs:
+      duration_s:
+        description: "Measured seconds per arm (after a 2-minute warm-up)"
+        default: "1200"
+  push:
+jobs:
+  arm:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[bench]')
+    strategy:
+      fail-fast: false
+      matrix: {arm: [native, omni]}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - uses: helm/kind-action@v1
+        with: {cluster_name: "omni-bench", config: deploy/kind/cluster-full.yaml}
+      - run: bash scripts/kind_bench.sh
+        env:
+          ARM: ${{ matrix.arm }}
+          OUT_DIR: bench_${{ matrix.arm }}
+          DURATION: ${{ github.event.inputs.duration_s || '1200' }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: "bench-${{ matrix.arm }}", path: "bench_${{ matrix.arm }}"}
+  compare:
+    needs: arm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with: {pattern: "bench-*"}
+      - run: >
+          python pilot/bench_report.py --native bench-native/capture.csv --omni bench-omni/capture.csv
+          --audit bench-omni/audit.jsonl --kill bench-omni/kill_switch.txt --out BENCHMARK.md
+      - run: python pilot/bench_pdf.py BENCHMARK.md BENCHMARK.pdf
+      - run: cat BENCHMARK.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with: {name: benchmark, path: "BENCHMARK.*"}

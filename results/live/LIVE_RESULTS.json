@@ -1,0 +1,189 @@
+{
+ "side_by_side": {
+  "nodes_native": 6.0,
+  "nodes_omni": 3.2,
+  "energy_native_wh": 219,
+  "energy_omni_wh": 218,
+  "epc_change": "+8% (not significant; 872 to 944 Wh per core-hour, from minute averages)",
+  "util_native": 0.068,
+  "util_omni": 0.116,
+  "standby_note": "100 W each, the same as idle"
+ },
+ "gauges": [
+  [
+   "Duration (min)",
+   "20.10",
+   "20.13",
+   ""
+  ],
+  [
+   "Worker nodes in service, mean",
+   "6.00",
+   "3.20",
+   "-46.7%"
+  ],
+  [
+   "Worker nodes in service, min",
+   "6.00",
+   "3.00",
+   "-50.0%"
+  ],
+  [
+   "CPU used (cores), mean",
+   "0.819",
+   "0.745",
+   "-9.1%"
+  ],
+  [
+   "CPU allocatable (cores), mean",
+   "12.00",
+   "6.40",
+   "-46.7%"
+  ],
+  [
+   "Utilisation",
+   "0.068",
+   "0.116",
+   "+70.5%"
+  ],
+  [
+   "Workers powered (in service + standby)",
+   "6.00",
+   "6.00",
+   "0"
+  ],
+  [
+   "Node-hours in service",
+   "2.01",
+   "1.07",
+   "-46.6%"
+  ],
+  [
+   "Power (W), mean, parked workers on standby at 100 W",
+   "657",
+   "654",
+   "-0.5%"
+  ],
+  [
+   "Power (W), peak, parked workers on standby at 100 W",
+   "691",
+   "687",
+   "-0.6%"
+  ],
+  [
+   "Energy (Wh), parked workers on standby at 100 W",
+   "219",
+   "218",
+   "-0.5%"
+  ],
+  [
+   "Energy (Wh), parked workers in low-power standby at 50 W",
+   "219",
+   "171",
+   "-22%"
+  ],
+  [
+   "Energy (Wh), parked workers in deep sleep at 10 W",
+   "219",
+   "133",
+   "-39%"
+  ],
+  [
+   "Energy (Wh), parked workers powered off (as first reported)",
+   "220",
+   "125",
+   "-43%"
+  ],
+  [
+   "Pending pods, pod-minutes",
+   "0.567",
+   "0.267",
+   "-52.9%"
+  ],
+  [
+   "Pending pods, peak",
+   "1",
+   "1",
+   "0"
+  ],
+  [
+   "HPA replicas, mean",
+   "8.71",
+   "6.20",
+   "-28.8%"
+  ],
+  [
+   "HPA replicas, peak",
+   "10",
+   "8",
+   "-20.0%"
+  ],
+  [
+   "HPA shortfall, minutes",
+   "0.833",
+   "1.07",
+   "+28.0%"
+  ]
+ ],
+ "significance": [
+  [
+   "Wh per core-hour, standby at 100 W (2-minute blocks from minute averages)",
+   "872",
+   "944",
+   "+8.2%",
+   "[-150, +292]",
+   "not significant"
+  ],
+  [
+   "Node-hours in service per core-hour",
+   "7.8535",
+   "4.6976",
+   "-40.2%",
+   "[-5.0982, -1.1072]",
+   "fewer (not energy while parked nodes stay powered)"
+  ],
+  [
+   "Utilisation",
+   "0.0694",
+   "0.1224",
+   "+76.3%",
+   "[+0.0217, +0.0830]",
+   "better"
+  ],
+  [
+   "Pending-pod minutes per hour",
+   "1.7253",
+   "0.8333",
+   "-51.7%",
+   "[-3.4961, +1.6667]",
+   "not significant"
+  ],
+  [
+   "HPA shortfall minutes per hour",
+   "2.5458",
+   "3.3399",
+   "+31.2%",
+   "[-3.3277, +5.0066]",
+   "not significant"
+  ]
+ ],
+ "nodes_decided": "5 4 3 then 3 for the remaining 17 minutes",
+ "hpa_target": "78-79% (Kubernetes alone: 50%)",
+ "other_runs": [
+  [
+   "live-kind, run 36205408388",
+   "1 node; baseline 10 min (Omni observing) then Omni target mode 10 min",
+   "0 writes while observing; kill switch restored 50; pending-pod minutes -48.6% (significant, but the baseline phase included warm-up); energy per core-hour no significant difference (one node cannot be parked)"
+  ],
+  [
+   "live-kind-full, run 36205869009",
+   "1 control plane + 3 workers",
+   "node pool never resized: 3 of 3 every minute at about 8% utilisation, because the fleet law needs more than 3 nodes of slack; kill switch restored target and workers"
+  ],
+  [
+   "live-kind-full, run 36207925928",
+   "1 control plane + 6 workers; sequential baseline then full engine",
+   "nodes in service 6 to 5 to 4 to 3; node-hours in service per core-hour -38.2%, utilisation +63.7% (significant); the reported kWh per core-hour -35.8% counted parked workers as powered off; with parked workers on standby the saving largely disappears; kill switch restored target 50 and 6 of 6 workers"
+  ]
+ ]
+}

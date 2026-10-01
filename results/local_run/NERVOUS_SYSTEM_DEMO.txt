@@ -1,0 +1,13 @@
+Live controller on the stand-in cluster (fake kubectl; no pods run). Decision trail as written to the audit.
+
+1 calm, idle machines (decision 1) machines 6 -> 6 | gate: node organ has no contraction authority | node calm 0.586 | blind [] | proprioception {}
+1 calm, idle machines (decision 2) machines 6 -> 5 | gate: release permitted | node calm 0.824 | blind [] | proprioception {'hpa default/web': 0.0}
+1 calm, idle machines (decision 3) machines 5 -> 4 | gate: release permitted | node calm 0.889 | blind [] | proprioception {'nodes': 0.0}
+1 calm, idle machines (decision 4) machines 4 -> 3 | gate: release permitted | node calm 0.906 | blind [] | proprioception {'nodes': 0.0}
+1 calm, idle machines (decision 5) machines 3 -> 3 | gate: release permitted | node calm 0.911 | blind [] | proprioception {'nodes': 0.0}
+2 latency breached now (p95 900 ms) machines 4 -> 4 | gate: latency breached now; node organ has no contraction authority | node calm 0.913 | blind [] | proprioception {}
+3 latency probe frozen (15 min old) machines 4 -> 4 | gate: latency breached now; node organ has no contraction authority; a sense is blind | node calm 0.843 | blind ['latency'] | proprioception {'hpa default/web': 0.0}
+4 drain refused (decision 1)       machines 4 -> 3 | gate: release permitted | node calm 0.9 | blind [] | proprioception {}
+4 drain refused (decision 2)       machines 4 -> 4 | gate: last node command did not land | node calm 0.815 | blind [] | proprioception {'nodes': 0.333, 'hpa default/web': 0.0}
+4 drain refused (decision 3)       machines 4 -> 3 | gate: release permitted | node calm 0.882 | blind [] | proprioception {}
+5 pods scaling up (HPA 2 -> 5)     machines 4 -> 4 | gate: pods scaling up; last node command did not land | node calm 0.785 | blind [] | proprioception {'nodes': 0.333}

@@ -1,0 +1,345 @@
+{
+ "muscle": "gpupack",
+ "seeds": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8
+ ],
+ "means": {
+  "native_spread": {
+   "wait_mean_min": 1.7704800909044756,
+   "wait_p95_min": 7.674999999999997,
+   "energy_kwh": 2277.045,
+   "idle_gpu_hours_powered": 1878.8854166666652,
+   "frag_blocked_min": 376.25,
+   "jobs_done": 268.875,
+   "migrations": 0.0
+  },
+  "native_binpack": {
+   "wait_mean_min": 0.6995742363066746,
+   "wait_p95_min": 5.0,
+   "energy_kwh": 2040.4525000000108,
+   "idle_gpu_hours_powered": 826.6833333333335,
+   "frag_blocked_min": 91.125,
+   "jobs_done": 268.875,
+   "migrations": 0.0
+  },
+  "omni": {
+   "wait_mean_min": 0.8611770835289707,
+   "wait_p95_min": 5.0,
+   "energy_kwh": 2006.7925000000064,
+   "idle_gpu_hours_powered": 678.5729166666672,
+   "frag_blocked_min": 99.875,
+   "jobs_done": 268.875,
+   "migrations": 7.0
+  },
+  "omni_no_engine": {
+   "wait_mean_min": 0.8587546029088158,
+   "wait_p95_min": 5.0,
+   "energy_kwh": 2006.9537500000065,
+   "idle_gpu_hours_powered": 679.2895833333341,
+   "frag_blocked_min": 99.875,
+   "jobs_done": 268.875,
+   "migrations": 7.0
+  }
+ },
+ "vs": {
+  "native_spread": {
+   "omni": {
+    "wait_mean_min": {
+     "native": 1.7704800909044756,
+     "omni": 0.8611770835289707,
+     "better_by": 0.513591207292805,
+     "ci95": [
+      -1.4987268870451775,
+      -0.3323880552431023
+     ],
+     "verdict": "better"
+    },
+    "wait_p95_min": {
+     "native": 7.674999999999997,
+     "omni": 5.0,
+     "better_by": 0.34853420195439716,
+     "ci95": [
+      -8.024999999999991,
+      0.0
+     ],
+     "verdict": "not significant"
+    },
+    "energy_kwh": {
+     "native": 2277.045,
+     "omni": 2006.7925000000064,
+     "better_by": 0.11868562105711292,
+     "ci95": [
+      -310.4742812499842,
+      -220.3056874999981
+     ],
+     "verdict": "better"
+    },
+    "idle_gpu_hours_powered": {
+     "native": 1878.8854166666652,
+     "omni": 678.5729166666672,
+     "better_by": 0.6388428423322775,
+     "ci95": [
+      -1385.3695833333322,
+      -984.4121874999958
+     ],
+     "verdict": "better"
+    },
+    "frag_blocked_min": {
+     "native": 376.25,
+     "omni": 99.875,
+     "better_by": 0.7345514950166113,
+     "ci95": [
+      -412.51875,
+      -159.996875
+     ],
+     "verdict": "better"
+    },
+    "jobs_done": {
+     "native": 268.875,
+     "omni": 268.875,
+     "better_by": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "verdict": "tie"
+    },
+    "migrations": {
+     "native": 0.0,
+     "omni": 7.0,
+     "better_by": -1.0,
+     "ci95": [
+      5.0,
+      9.0
+     ],
+     "verdict": "worse"
+    }
+   },
+   "omni_no_engine": {
+    "wait_mean_min": {
+     "native": 1.7704800909044756,
+     "omni": 0.8587546029088158,
+     "better_by": 0.5149594692871646,
+     "ci95": [
+      -1.4989640064943013,
+      -0.33244150343283563
+     ],
+     "verdict": "better"
+    },
+    "wait_p95_min": {
+     "native": 7.674999999999997,
+     "omni": 5.0,
+     "better_by": 0.34853420195439716,
+     "ci95": [
+      -8.024999999999991,
+      0.0
+     ],
+     "verdict": "not significant"
+    },
+    "energy_kwh": {
+     "native": 2277.045,
+     "omni": 2006.9537500000065,
+     "better_by": 0.11861480559233285,
+     "ci95": [
+      -310.1314687499972,
+      -220.19440624999814
+     ],
+     "verdict": "better"
+    },
+    "idle_gpu_hours_powered": {
+     "native": 1878.8854166666652,
+     "omni": 679.2895833333341,
+     "better_by": 0.6384614105215297,
+     "ci95": [
+      -1384.6091666666637,
+      -983.2541666666625
+     ],
+     "verdict": "better"
+    },
+    "frag_blocked_min": {
+     "native": 376.25,
+     "omni": 99.875,
+     "better_by": 0.7345514950166113,
+     "ci95": [
+      -412.51875,
+      -159.996875
+     ],
+     "verdict": "better"
+    },
+    "jobs_done": {
+     "native": 268.875,
+     "omni": 268.875,
+     "better_by": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "verdict": "tie"
+    },
+    "migrations": {
+     "native": 0.0,
+     "omni": 7.0,
+     "better_by": -1.0,
+     "ci95": [
+      5.0,
+      9.0
+     ],
+     "verdict": "worse"
+    }
+   }
+  },
+  "native_binpack": {
+   "omni": {
+    "wait_mean_min": {
+     "native": 0.6995742363066746,
+     "omni": 0.8611770835289707,
+     "better_by": -0.23100171337849806,
+     "ci95": [
+      0.11210192899049241,
+      0.21323608057788346
+     ],
+     "verdict": "worse"
+    },
+    "wait_p95_min": {
+     "native": 5.0,
+     "omni": 5.0,
+     "better_by": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "verdict": "tie"
+    },
+    "energy_kwh": {
+     "native": 2040.4525000000108,
+     "omni": 2006.7925000000064,
+     "better_by": 0.016496340885173374,
+     "ci95": [
+      -40.16340625001041,
+      -26.626250000001107
+     ],
+     "verdict": "better"
+    },
+    "idle_gpu_hours_powered": {
+     "native": 826.6833333333335,
+     "omni": 678.5729166666672,
+     "better_by": 0.17916221447148195,
+     "ci95": [
+      -177.43968749999968,
+      -116.79119791666687
+     ],
+     "verdict": "better"
+    },
+    "frag_blocked_min": {
+     "native": 91.125,
+     "omni": 99.875,
+     "better_by": -0.09602194787379972,
+     "ci95": [
+      -10.0,
+      25.75
+     ],
+     "verdict": "not significant"
+    },
+    "jobs_done": {
+     "native": 268.875,
+     "omni": 268.875,
+     "better_by": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "verdict": "tie"
+    },
+    "migrations": {
+     "native": 0.0,
+     "omni": 7.0,
+     "better_by": -1.0,
+     "ci95": [
+      5.0,
+      9.0
+     ],
+     "verdict": "worse"
+    }
+   },
+   "omni_no_engine": {
+    "wait_mean_min": {
+     "native": 0.6995742363066746,
+     "omni": 0.8587546029088158,
+     "better_by": -0.22753892059049582,
+     "ci95": [
+      0.1110687961665806,
+      0.2083868228942254
+     ],
+     "verdict": "worse"
+    },
+    "wait_p95_min": {
+     "native": 5.0,
+     "omni": 5.0,
+     "better_by": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "verdict": "tie"
+    },
+    "energy_kwh": {
+     "native": 2040.4525000000108,
+     "omni": 2006.9537500000065,
+     "better_by": 0.01641731429670826,
+     "ci95": [
+      -39.95000000000951,
+      -26.603750000001213
+     ],
+     "verdict": "better"
+    },
+    "idle_gpu_hours_powered": {
+     "native": 826.6833333333335,
+     "omni": 679.2895833333341,
+     "better_by": 0.17829529646579628,
+     "ci95": [
+      -176.37937499999956,
+      -116.93333333333155
+     ],
+     "verdict": "better"
+    },
+    "frag_blocked_min": {
+     "native": 91.125,
+     "omni": 99.875,
+     "better_by": -0.09602194787379972,
+     "ci95": [
+      -10.0,
+      25.75
+     ],
+     "verdict": "not significant"
+    },
+    "jobs_done": {
+     "native": 268.875,
+     "omni": 268.875,
+     "better_by": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "verdict": "tie"
+    },
+    "migrations": {
+     "native": 0.0,
+     "omni": 7.0,
+     "better_by": -1.0,
+     "ci95": [
+      5.0,
+      9.0
+     ],
+     "verdict": "worse"
+    }
+   }
+  }
+ }
+}

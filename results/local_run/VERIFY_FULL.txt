@@ -1,0 +1,230 @@
+PASS  reference engine SHA-256
+PASS  pre-registered file unchanged or amended on record (SHA-256): omnicompass/core.py
+PASS  pre-registered file unchanged or amended on record (SHA-256): omnicompass/adapter.py
+PASS  pre-registered file unchanged or amended on record (SHA-256): omnicompass/shield.py  (amended in e9703a6: two bugs found by the 2,000,000-case adversarial property te...)
+PASS  pre-registered file unchanged or amended on record (SHA-256): omnicompass/stack_sim.py
+PASS  pre-registered file unchanged or amended on record (SHA-256): benchmarks/stack_benchmark.py
+SKIP  program fingerprints (recorded with Python 3.12, running 3.11; ast.dump output is interpreter-version dependent; SHA-256 checks above are authoritative)
+stack_sim provenance: 11/11 blocks byte-identical to reference engine
+PASS test_stack_sim_provenance
+PASS  stack simulator provenance
+engine function parity (20,000 random cases): max |diff| = 3.553e-15
+sampling parity (seed 223387268): 500/500 identical
+fixture parity (500 frozen fixtures): max |diff| = 8.882e-15, mismatches = 0
+PASS test_core_parity
+PASS  core parity vs reference engine and 500 fixtures
+native arm vs reference engine simulator: 60/60 identical
+PASS test_native_equivalence
+PASS  native arm equals reference simulator
+processed 500 current-engine fixtures
+PASS  C++ core vs 500 fixtures  (max abs 3.55e-15)
+processed 4320 governor steps
+C++ vs Python governor (power_protect): 4320 directives, discrete mismatches = 0, max |diff| = 4.441e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (power_protect)
+processed 4320 governor steps
+C++ vs Python governor (throughput): 4320 directives, discrete mismatches = 0, max |diff| = 3.331e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (throughput)
+processed 4320 governor steps
+C++ vs Python governor (fleet): 4320 directives, discrete mismatches = 0, max |diff| = 4.441e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (fleet)
+processed 4320 governor steps
+C++ vs Python governor (fleet_balanced): 4320 directives, discrete mismatches = 0, max |diff| = 4.441e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (fleet_balanced)
+processed 4320 governor steps
+C++ vs Python governor (fleet_wear): 4320 directives, discrete mismatches = 0, max |diff| = 4.441e-16
+PASS test_cpp_governor_parity
+PASS  C++ governor vs Python governor (fleet_wear)
+C++ vs Python shield: 11520 action sets, mismatches = 0
+PASS test_cpp_shield_parity
+PASS  C++ shield vs Python shield (enforce and violations)
+shield properties over 1,000,000 cases: {'P1': 0, 'P2': 0, 'P3': 0, 'P4': 0}
+PASS test_shield_properties
+PASS  shield properties: no invariant violated, idempotent, no invented action, minimal intervention (random + adversarial)
+C++ vs Python shield, adversarial: 200,000 cases, mismatches = 0
+PASS test_cpp_shield_adversarial
+PASS  C++ shield vs Python shield on the adversarial generator
+C++ vs Python closure law: 12,960 decisions, mismatches = 0
+PASS test_cpp_closure_parity
+PASS  C++ closure law vs Python closure law, every decision and reserve
+C++ vs Python shield: 4608 action sets, mismatches = 11
+PASS  negative control: parity test detects a C++ shield that no longer blocks rollouts during a security block
+C++ HPA vs harness HPA: 691200 steps, 480 streams, mismatches = 0
+PASS test_cpp_hpa_parity
+PASS  independent C++ HPA replica law vs fleet harness HPA
+C++ HPA vs harness HPA: 345600 steps, 240 streams, mismatches = 208204
+PASS  negative control: parity test detects a C++ HPA with 5% instead of 10% tolerance
+PASS  C++ governor contract smoke test (bounds, security, determinism, both modes)
+PASS  soak test (power_protect), 100,000,000 decisions, no failures, memory flat after warm-up  (2977 ns per decision, RSS checkpoints [3904, 3904, 3904, 3904] kB)
+PASS  soak test (power_protect) reproduces results/SOAK.json (decisions, failures, state ranges)
+PASS  soak test (throughput), 100,000,000 decisions, no failures, memory flat after warm-up  (2994 ns per decision, RSS checkpoints [3888, 3888, 3888, 3888] kB)
+PASS  soak test (throughput) reproduces results/SOAK.json (decisions, failures, state ranges)
+processed 1440 governor steps
+C++ vs Python governor (power_protect): 1440 directives, discrete mismatches = 95, max |diff| = 3.331e-16
+PASS  negative control: parity test detects a mutated C++ governor (dwell 3 instead of 4)
+processed 1440 governor steps
+C++ vs Python governor (power_protect): 1440 directives, discrete mismatches = 47, max |diff| = 3.331e-16
+PASS  negative control: parity test detects a C++ governor without the equation (2) release gate
+processed 1440 governor steps
+C++ vs Python governor (power_protect): 1440 directives, discrete mismatches = 114, max |diff| = 2.060e-01
+PASS  negative control: parity test detects a C++ governor with a wrong equation (2) add gate
+PASS  held-out seed 346410161: 20 scenarios x 18 arms replay identically
+PASS  held-out seed 346410161: observe mode identical to native
+PASS  held-out seed 346410161: omni_k8s_protect invariant violations I1-I5 = 0
+PASS  held-out seed 346410161: omni_direct invariant violations I1-I5 = 0
+PASS  held-out seed 346410161: omni_direct_no_dynamics invariant violations I1-I5 = 0
+PASS  held-out seed 346410161: omni_k8s_throughput invariant violations I1-I3, I5 = 0 (I4 not enforced in throughput mode)
+PASS  held-out seed 346410161: layered observe mode identical to Kubernetes alone
+PASS  held-out seed 360555127: 20 scenarios x 18 arms replay identically
+PASS  held-out seed 360555127: observe mode identical to native
+PASS  held-out seed 360555127: omni_k8s_protect invariant violations I1-I5 = 0
+PASS  held-out seed 360555127: omni_direct invariant violations I1-I5 = 0
+PASS  held-out seed 360555127: omni_direct_no_dynamics invariant violations I1-I5 = 0
+PASS  held-out seed 360555127: omni_k8s_throughput invariant violations I1-I3, I5 = 0 (I4 not enforced in throughput mode)
+PASS  held-out seed 360555127: layered observe mode identical to Kubernetes alone
+PASS  fleet pre-registered file unchanged or amended on record (SHA-256): omnicompass/core.py
+PASS  fleet pre-registered file unchanged or amended on record (SHA-256): omnicompass/shield.py  (amended in e9703a6: two bugs found by the 2,000,000-case adversarial property te...)
+PASS  fleet pre-registered file unchanged or amended on record (SHA-256): fleet/harness.py
+PASS  fleet pre-registered file unchanged or amended on record (SHA-256): fleet/sim.py
+PASS  fleet pre-registered file unchanged or amended on record (SHA-256): fleet/benchmark.py
+PASS  fleet held-out (web): 5 scenarios x 12 arms replay identically
+PASS  fleet (web): observe mode identical to HPA 0.7 + Cluster Autoscaler
+PASS  fleet held-out (multi): 5 scenarios x 12 arms replay identically
+PASS  fleet (multi): observe mode identical to HPA 0.7 + Cluster Autoscaler
+PASS  fleet held-out (batch): 5 scenarios x 9 arms replay identically
+PASS  fleet (batch): observe mode identical to HPA 0.7 + Cluster Autoscaler
+PASS  fleet held-out (gpu): 5 scenarios x 9 arms replay identically
+PASS  fleet (gpu): observe mode identical to HPA 0.7 + Cluster Autoscaler
+PASS  fleet held-out (gpu_always_on): 5 scenarios x 9 arms replay identically
+PASS  fleet (gpu_always_on): observe mode identical to HPA 0.7 + Cluster Autoscaler
+PASS  recorded-trace (PlanetLab) runs replay identically
+PASS  recorded traces match their registered SHA-256
+external HPA, inclusive window: 678 / 172800 steps differ; exclusive window (upstream): 0 / 172800 differ
+PASS test_hpa_three_way
+PASS  three-way HPA agreement (harness, C++, external implementation with upstream window)
+cluster_1k_nodes  web              saved          830 MWh/yr  $        85,119 to $       115,022         332 tCO2
+cluster_1k_nodes  multi            saved          816 MWh/yr  $        90,111 to $       105,643         326 tCO2
+cluster_1k_nodes  batch            saved          478 MWh/yr  $        50,461 to $        64,059         191 tCO2
+cluster_1k_nodes  gpu              saved        1,997 MWh/yr  $       186,464 to $       293,466         799 tCO2
+cluster_1k_nodes  gpu_always_on    saved        2,366 MWh/yr  $       219,320 to $       353,406         947 tCO2
+cluster_1k_nodes  planetlab_shapes saved        1,062 MWh/yr  $       121,078 to $       132,880         425 tCO2
+fleet_100k_nodes  web              saved       77,066 MWh/yr  $     5,269,265 to $     7,120,400      30,827 tCO2
+fleet_100k_nodes  multi            saved       75,745 MWh/yr  $     5,578,295 to $     6,539,801      30,298 tCO2
+fleet_100k_nodes  batch            saved       44,396 MWh/yr  $     3,123,800 to $     3,965,550      17,758 tCO2
+fleet_100k_nodes  gpu              saved      185,419 MWh/yr  $    11,542,985 to $    18,166,925      74,168 tCO2
+fleet_100k_nodes  gpu_always_on    saved      219,743 MWh/yr  $    13,576,936 to $    21,877,542      87,897 tCO2
+fleet_100k_nodes  planetlab_shapes saved       98,635 MWh/yr  $     7,495,331 to $     8,225,924      39,454 tCO2
+PASS  C++ savings projector matches Python reference and reproduces results/SAVINGS.csv
+node_hours_per_core_hour         baseline     0.0902  omni     0.0778  change  -13.8%  95% CI [-0.0181, -0.0078]  better
+kwh_per_core_hour                baseline     0.0355  omni     0.0328  change   -7.7%  95% CI [-0.0041, -0.0016]  better
+utilisation                      baseline     0.3521  omni     0.4019  change  +14.1%  95% CI [+0.0328, +0.0677]  better
+pending_pod_minutes_per_hour     baseline     3.9896  omni     4.5938  change  +15.1%  95% CI [-4.3130, +5.0740]  no significant difference
+hpa_shortfall_minutes_per_hour   baseline     3.5417  omni     4.7188  change  +33.2%  95% CI [+0.5521, +1.8125]  worse
+controller decisions logged: 3712, writes: 832
+self-pilot: energy per core-hour -7.7%, node-hours per core-hour -13.8%, pending-pod time no significant difference, HPA shortfall worse
+PASS test_selfpilot
+PASS  end-to-end self-pilot: shipped controller, simulated cluster, capture and scoring (energy lower, no significant pending-pod increase)
+node_hours_per_core_hour         baseline     0.5457  omni     0.3270  change  -40.1%  95% CI [-0.2944, -0.1442]  better
+kwh_per_core_hour                baseline     0.1201  omni     0.0763  change  -36.4%  95% CI [-0.0594, -0.0288]  better
+utilisation                      baseline     0.0624  omni     0.1042  change  +66.9%  95% CI [+0.0279, +0.0553]  better
+pending_pod_minutes_per_hour     baseline     0.0000  omni     0.0000  change    n/a   95% CI [+0.0000, +0.0000]  no significant difference
+hpa_shortfall_minutes_per_hour   baseline     0.0000  omni     0.0000  change    n/a   95% CI [+0.0000, +0.0000]  no significant difference
+node_hours_per_core_hour         baseline     0.5457  omni     0.5453  change   -0.1%  95% CI [-0.0956, +0.0905]  no significant difference
+kwh_per_core_hour                baseline     0.1201  omni     0.1200  change   -0.1%  95% CI [-0.0193, +0.0188]  no significant difference
+utilisation                      baseline     0.0624  omni     0.0625  change   +0.1%  95% CI [-0.0101, +0.0100]  no significant difference
+pending_pod_minutes_per_hour     baseline     0.0000  omni     0.0000  change    n/a   95% CI [+0.0000, +0.0000]  no significant difference
+hpa_shortfall_minutes_per_hour   baseline     0.0000  omni     0.0000  change    n/a   95% CI [+0.0000, +0.0000]  no significant difference
+node_hours_per_core_hour         baseline     0.5457  omni     0.3269  change  -40.1%  95% CI [-0.2946, -0.1442]  better
+utilisation                      baseline     0.0624  omni     0.1042  change  +66.9%  95% CI [+0.0280, +0.0558]  better
+pending_pod_minutes_per_hour     baseline     0.0000  omni    52.7812  change    n/a   95% CI [+50.5938, +55.0945]  worse
+hpa_shortfall_minutes_per_hour   baseline     0.0000  omni    17.5938  change    n/a   95% CI [+16.8333, +18.3750]  worse
+node_hours_per_core_hour         baseline     0.5449  omni     0.3273  change  -39.9%  95% CI [-0.2938, -0.1432]  better
+kwh_per_core_hour                baseline     0.1199  omni     0.0764  change  -36.3%  95% CI [-0.0592, -0.0286]  better
+utilisation                      baseline     0.0626  omni     0.1042  change  +66.6%  95% CI [+0.0277, +0.0553]  better
+pending_pod_minutes_per_hour     baseline     0.0000  omni     0.0000  change    n/a   95% CI [+0.0000, +0.0000]  no significant difference
+hpa_shortfall_minutes_per_hour   baseline     0.0000  omni     0.0000  change    n/a   95% CI [+0.0000, +0.0000]  no significant difference
+pilot score: gain detected; identical clusters show no significant difference; service regression detected; measured power used
+PASS test_pilot_score
+PASS  pilot scoring: detects a real gain, no false gain on identical clusters, detects a service regression
+observe: 0 writes
+target: HPA targets web 70 -> 79, api 60 -> 79 (cpu metric at index 1), memory-only HPA untouched, 2 patches
+kill switch (new process): originals restored from the HPA annotation, records removed
+nodepool dry-run: 5 node commands logged, none executed
+nodepool live: 4 node commands executed, targets [19, 19, 19, 19] (within the 2-node step of 20, above the request floor)
+PASS test_omni_controller
+PASS  live controller against a fake cluster: observe writes nothing, target bounded, kill restores, node pool bounded and dry-run safe
+muscles: power cap, heat, security, rollout, batch, CPU frequency and GPU connectors; kill restores; observe writes nothing
+PASS test_muscles
+PASS  live muscles: power cap, heat, security, rollout, batch, CPU frequency and GPU connectors; kill restores; observe writes nothing
+nervous-system invariants over 300,000 states: {'N1': 0, 'N2': 0, 'N3': 0, 'N4': 0, 'N5': 0, 'N6': 0}
+PASS test_nervous_system
+PASS  nervous system: observe executes nothing, kill removes authority, security blocks capacity expansion, stress never grants contraction, envelopes in hardware range, deterministic
+PASS test_conveyance: conservation, Lyapunov ascent, exact exponential convergence, projection bounds, budget never exceeded
+PASS  conveyance law: budget conserved, Lyapunov ascent, exact exponential convergence, bounds, budget never exceeded
+blind sense never granted contraction in 75,362 blind states; frozen probe detected; failures read as pressure; release refused while blind or after an order that did not land
+PASS test_two_way
+PASS  two-way nervous system: blind senses never grant contraction, frozen probe detected, failures read as pressure, no new order before the last one landed
+PASS test_node_release_gate: attribution, coordination and headroom gate over 200,000 random states
+PASS  machine-organ release gate: own engine view, pods-first coordination, headroom at the engine's rho
+PASS test_hardware_plant: GPU arms distinct, C sized by the device law under the engine cap, no lost work, no extra heat
+PASS  hardware plant: GPU arms B and C distinct; C = min(engine cap, (want/rho)^(1/gamma)); no lost work, no extra heat
+cpufreq lever over 1,941 random (utilisation, cap, envelope) cases: schedutil floor, envelope, exact restore hold
+PASS test_cpufreq_contract
+PASS  CPU-frequency lever via kernel policy files: schedutil floor, nervous envelope, never above the operator ceiling, exact restore on kill
+PASS test_strict_replicas
+PASS  strict C live mode: Omni-Compass sets replicas, HPA pinned, kill restores the range
+levers: rightsize, coldstart, batch pace, containment, cooling; kill restores every one
+PASS test_muscles_levers
+PASS  live levers: rightsize, coldstart, batch pace, containment, cooling; kill restores every one, also from a fresh process
+active nodes: 2 of 4 counted (control plane and cordoned worker excluded); kill switch restored the node pool once
+PASS test_active_nodes
+PASS  full-engine controller options: parked and control-plane nodes excluded, kill switch restores the node pool once
+PASS test_schedutil
+PASS  schedutil model: 1.25 map tips at 80%, OPP snap, uclamp, RT to policy max, rate limit, iowait boost, Omni ceiling and kill
+PASS test_cpufreq_ceiling
+PASS  cpufreq ceiling writer: scaling_max_freq on every policy, clamped; restore puts cpuinfo_max_freq back
+decision failed (1 in a row): RuntimeError('kubectl: the server is currently unable to handle the request') 
+decision failed (1 in a row): RuntimeError('kubectl: the server is currently unable to handle the request') 
+decision failed (2 in a row): RuntimeError('kubectl: the server is currently unable to handle the request') 
+decision failed (1 in a row): RuntimeError('kubectl: the server is currently unable to handle the request') 
+decision failed (2 in a row): RuntimeError('kubectl: the server is currently unable to handle the request') 
+decision failed (3 in a row): RuntimeError('kubectl: the server is currently unable to handle the request') 
+failsafe ok
+PASS  controller fail-safe: a failed decision is skipped; three in a row restore native settings and stop
+capture replay: over-provisioned 40.0 -> 10.0 node-hours (never below the request floor); under-provisioned: never recommends fewer nodes; deterministic
+PlanetLab vessel: format load, 12 workloads, all arms run, observe identical to HPA+CA
+PASS test_fleet_realdata_paths
+PASS  capture replay and PlanetLab vessel on inputs in the real formats
+PASS  cluster capture script parses
+primary seed 346410161: energy delta -47.20 kWh, p = 1.0e-04, better in 493/500
+primary seed 360555127: energy delta -47.69 kWh, p = 1.0e-04, better in 498/500
+  346410161 time_healthy                     +0.1185  p_holm 2.4e-03  better
+  346410161 recovery_minutes                -39.4000  p_holm 2.4e-03  better
+  346410161 recovered                        +0.0740  p_holm 2.4e-03  better
+  346410161 sla_violation_physical           -0.0650  p_holm 2.4e-03  better
+  346410161 violation_backlog                -0.0098  p_holm 2.4e-03  better
+  346410161 violation_power                  -0.0593  p_holm 2.4e-03  better
+  346410161 violation_heat                   -0.0533  p_holm 2.4e-03  better
+  346410161 availability                     +0.0016  p_holm 7.6e-03  better
+  346410161 invariant_violations_ex_power    -6.9060  p_holm 2.4e-03  better
+  346410161 scale_reversals                  -0.2560  p_holm 2.4e-03  better
+  346410161 machine_round_trips              +0.5960  p_holm 2.4e-03  worse
+  346410161 thermal_travel                   -0.1206  p_holm 2.4e-03  better
+  360555127 time_healthy                     +0.1286  p_holm 2.4e-03  better
+  360555127 recovery_minutes                -43.1900  p_holm 2.4e-03  better
+  360555127 recovered                        +0.0820  p_holm 2.4e-03  better
+  360555127 sla_violation_physical           -0.0771  p_holm 2.4e-03  better
+  360555127 violation_backlog                -0.0117  p_holm 2.4e-03  better
+  360555127 violation_power                  -0.0725  p_holm 2.4e-03  better
+  360555127 violation_heat                   -0.0625  p_holm 2.4e-03  better
+  360555127 availability                     +0.0003  p_holm 1.3e-01  not significant
+  360555127 invariant_violations_ex_power    -6.8040  p_holm 2.4e-03  better
+  360555127 scale_reversals                  -0.2980  p_holm 2.4e-03  better
+  360555127 machine_round_trips              +0.7210  p_holm 2.4e-03  worse
+  360555127 thermal_travel                   -0.1226  p_holm 2.4e-03  better
+PASS  multiplicity analysis reproduces results/MULTIPLICITY.json
+
+VERIFICATION: PASS

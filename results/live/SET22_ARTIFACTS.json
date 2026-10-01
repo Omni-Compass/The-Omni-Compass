@@ -1,0 +1,20 @@
+{
+ "run_id": 36488547793,
+ "execution_commit": "cfdc17c",
+ "load": "open-loop, fixed rate (deploy/kind/loadgen-open.yaml, RATE 6/s per generator)",
+ "recomputed_by": "reaggregate workflow; results/live/reaggregated/LIVE_REPS_36488547793.md",
+ "artifacts": {
+  "paired-1": "f9d0c9c095a0d3b467ebb540ce5ba4c1876934cb1910db3d037ba6dbb9ecd9b6",
+  "paired-2": "0e3d99e22a91f13d3dae6dbf8fe726d26ea1eebdca4ffc235d7406bfec0f827e",
+  "paired-3": "ea0ba37e3909de30b33dabeaa709de837ade14b7e287c9982f1b846232fe67cc",
+  "paired-4": "3d1adfeedfcde4e3ea8cbba4cf06aad5013e2215d5d51a64496d3fc1c6ea8552",
+  "paired-5": "1f92e3edffc90ecec6cb96586922611b9e0649243a603cd7be4678b77c0f9879",
+  "paired-6": "0cc9160b5df23fcfa85ae9b9258bafdba34884a24e608c7083322783580524e0",
+  "paired-7": "caa51909594b25ad59a919b0819dac139e7009be13ad64187991515b43f6daa3",
+  "paired-8": "ee38d7bc1ab908b39fb699a07dd9a28ee9961e2b4ac42022b395c60929a1e65e",
+  "paired-9": "4b8f277561125c318be13df7a39c9d9db64515878382facd2d52d2865063264d",
+  "paired-10": "99745a44428d2a91cfa3d531034da8d492b658e07373fd249f75086a06a29f4d",
+  "live-reps": "4ada78ebf4b3e99597323f39dbeb34b22c575a98e0707db9db9c0d58326d68cd"
+ },
+ "expires": "2026-12-27"
+}

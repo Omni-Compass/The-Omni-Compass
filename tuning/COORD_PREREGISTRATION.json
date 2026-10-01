@@ -1,0 +1,47 @@
+{
+ "setting": {
+  "closure": {
+   "rho_max": 0.99,
+   "delta": 0.02,
+   "H_add": 6,
+   "H_rel": 40,
+   "a": 0.5,
+   "b": 0.005,
+   "g": 0.05,
+   "push_release": 0.2,
+   "turn": true,
+   "delta_rel": 0.08,
+   "dwell": 0,
+   "tone": true,
+   "tone_H": 960,
+   "z": 0.0
+  },
+  "direct": {
+   "window": 20,
+   "kb": 0.5,
+   "push_release": 0.2,
+   "tol": 0.1,
+   "beta": -1.0
+  },
+  "speed": {
+   "rho0": 0.8,
+   "rho_min": 0.8,
+   "kI": 0.0,
+   "kE": 0.0
+  }
+ },
+ "coord": true,
+ "seeds": [
+  712001,
+  712100
+ ],
+ "cells": "7 platforms x 4 workloads x 13 gauges = 364",
+ "rule": "Holm-Bonferroni at family alpha 0.05 and the 0.5% practical tolerance, as tuning/CONFIRMATORY.json",
+ "code_sha256": {
+  "omnicompass/closure.py": "9dc306df62dd234d8af98b2eb3dfb83e75eaa2fc30f1d02d50bb7a9418fd51d1",
+  "fleet/sim_slo.py": "c1feadd5e47ba76bdeac0e7bc40f232bcf9b001e04cc39f16e1389bd85798015",
+  "tuning/confirmatory.py": "ebc0c92ca94c3d46c2096ecf1280f79bc75625f08804dad76343df2d4081c250",
+  "tuning/GLOBAL_LEAGUE_PREREGISTRATION.json": "437e62f707ff55b23e3c1dd323c8eb2f35493f07cc91d086f82f232991d7af15"
+ },
+ "frozen_at_utc": "2026-09-27T02:56:38Z"
+}

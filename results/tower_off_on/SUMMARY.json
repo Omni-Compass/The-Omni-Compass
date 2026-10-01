@@ -1,0 +1,1083 @@
+{
+  "scenarios": 100,
+  "steps": 72,
+  "seed_base": 360555127,
+  "arms": [
+    "k8s_ref_70",
+    "omni_k8s_observe",
+    "omni_k8s_throughput"
+  ],
+  "allocation_law": {
+    "rho0": 0.914,
+    "rho_min": 0.627,
+    "kI": 0.252,
+    "kE": 0.297,
+    "kq": 0.795,
+    "up_max": 2,
+    "down_max": 1,
+    "guard_queue": 0.05,
+    "power_ceiling": 0.95,
+    "power_ceiling_backlog": 1.0,
+    "spread_step": 0.05,
+    "backlog_release": false,
+    "size_at_full_cap": false,
+    "push_release": 0.005,
+    "push_add": -9.0,
+    "U_gate": 0.481,
+    "margin": 0.006,
+    "cap_min": 0.706,
+    "B_cap": 0.4,
+    "cap_gain": 0.6,
+    "S_rollback": 0.55,
+    "route_network": 0.2,
+    "down_band": 4,
+    "down_dwell": 4,
+    "down_after_add": 4,
+    "min_nodes": 8,
+    "max_nodes": 40
+  },
+  "means": {
+    "k8s_ref_70": {
+      "availability": 0.9996241120609182,
+      "time_healthy": 0.8027777777777778,
+      "recovered": 0.92,
+      "machine_round_trips": 0.935,
+      "scale_reversals": 2.13,
+      "node_start_stop": 5.44,
+      "power_cap_travel": 0.25527838739342257,
+      "thermal_travel": 0.7388112362860091,
+      "invariant_violations": 8.98,
+      "invariant_violations_ex_power": 6.59,
+      "sla_violation_physical": 0.13069444444444442,
+      "sla_violation_total": 0.1552777777777778,
+      "violation_backlog": 0.03180555555555556,
+      "violation_power": 0.1225,
+      "violation_heat": 0.07319444444444445,
+      "mean_queue": 473.9019243167892,
+      "p95_queue": 1467.1595217143984,
+      "recovery_minutes": 55.0,
+      "energy_kwh": 168.8186427820431,
+      "peak_power_kw": 37.349282668204175,
+      "node_hours": 134.76250000000007,
+      "idle_node_hours": 45.19999999999999,
+      "contradictions": 8.83,
+      "security_violations": 0.93,
+      "pages": 0.72,
+      "human_interventions": 0.51,
+      "machines_started": 4.41,
+      "machines_stopped": 1.03
+    },
+    "omni_k8s_observe": {
+      "availability": 0.9996241120609182,
+      "time_healthy": 0.8027777777777778,
+      "recovered": 0.92,
+      "machine_round_trips": 0.935,
+      "scale_reversals": 2.13,
+      "node_start_stop": 5.44,
+      "power_cap_travel": 0.25527838739342257,
+      "thermal_travel": 0.7388112362860091,
+      "invariant_violations": 8.98,
+      "invariant_violations_ex_power": 6.59,
+      "sla_violation_physical": 0.13069444444444442,
+      "sla_violation_total": 0.1552777777777778,
+      "violation_backlog": 0.03180555555555556,
+      "violation_power": 0.1225,
+      "violation_heat": 0.07319444444444445,
+      "mean_queue": 473.9019243167892,
+      "p95_queue": 1467.1595217143984,
+      "recovery_minutes": 55.0,
+      "energy_kwh": 168.8186427820431,
+      "peak_power_kw": 37.349282668204175,
+      "node_hours": 134.76250000000007,
+      "idle_node_hours": 45.19999999999999,
+      "contradictions": 8.83,
+      "security_violations": 0.93,
+      "pages": 0.72,
+      "human_interventions": 0.51,
+      "machines_started": 4.41,
+      "machines_stopped": 1.03
+    },
+    "omni_k8s_throughput": {
+      "availability": 0.9999911976809753,
+      "time_healthy": 0.9229166666666666,
+      "recovered": 1.0,
+      "machine_round_trips": 1.78,
+      "scale_reversals": 1.97,
+      "node_start_stop": 9.51,
+      "power_cap_travel": 0.8298072643572154,
+      "thermal_travel": 0.6180883146246562,
+      "invariant_violations": 2.41,
+      "invariant_violations_ex_power": 0.0,
+      "sla_violation_physical": 0.06458333333333333,
+      "sla_violation_total": 0.06458333333333333,
+      "violation_backlog": 0.017222222222222222,
+      "violation_power": 0.05861111111111111,
+      "violation_heat": 0.024861111111111108,
+      "mean_queue": 254.9022501796471,
+      "p95_queue": 991.5126417038056,
+      "recovery_minutes": 15.55,
+      "energy_kwh": 121.24586763484506,
+      "peak_power_kw": 37.21374298741232,
+      "node_hours": 139.2233333333333,
+      "idle_node_hours": 50.62916666666668,
+      "contradictions": 0.0,
+      "security_violations": 0.0,
+      "pages": 0.0,
+      "human_interventions": 0.0,
+      "machines_started": 6.06,
+      "machines_stopped": 3.45
+    }
+  },
+  "paired": {
+    "omni_k8s_observe_vs_k8s_ref_70": [
+      {
+        "metric": "availability",
+        "base_mean": 0.9996241120609182,
+        "cand_mean": 0.9996241120609182,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "time_healthy",
+        "base_mean": 0.8027777777777778,
+        "cand_mean": 0.8027777777777778,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "recovered",
+        "base_mean": 0.92,
+        "cand_mean": 0.92,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "machine_round_trips",
+        "base_mean": 0.935,
+        "cand_mean": 0.935,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "scale_reversals",
+        "base_mean": 2.13,
+        "cand_mean": 2.13,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "node_start_stop",
+        "base_mean": 5.44,
+        "cand_mean": 5.44,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "power_cap_travel",
+        "base_mean": 0.25527838739342257,
+        "cand_mean": 0.25527838739342257,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "thermal_travel",
+        "base_mean": 0.7388112362860091,
+        "cand_mean": 0.7388112362860091,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "invariant_violations",
+        "base_mean": 8.98,
+        "cand_mean": 8.98,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "invariant_violations_ex_power",
+        "base_mean": 6.59,
+        "cand_mean": 6.59,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "sla_violation_physical",
+        "base_mean": 0.13069444444444442,
+        "cand_mean": 0.13069444444444442,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "sla_violation_total",
+        "base_mean": 0.1552777777777778,
+        "cand_mean": 0.1552777777777778,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "violation_backlog",
+        "base_mean": 0.03180555555555556,
+        "cand_mean": 0.03180555555555556,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "violation_power",
+        "base_mean": 0.1225,
+        "cand_mean": 0.1225,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "violation_heat",
+        "base_mean": 0.07319444444444445,
+        "cand_mean": 0.07319444444444445,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "mean_queue",
+        "base_mean": 473.9019243167892,
+        "cand_mean": 473.9019243167892,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "p95_queue",
+        "base_mean": 1467.1595217143984,
+        "cand_mean": 1467.1595217143984,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "recovery_minutes",
+        "base_mean": 55.0,
+        "cand_mean": 55.0,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "energy_kwh",
+        "base_mean": 168.8186427820431,
+        "cand_mean": 168.8186427820431,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "peak_power_kw",
+        "base_mean": 37.349282668204175,
+        "cand_mean": 37.349282668204175,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "node_hours",
+        "base_mean": 134.76250000000007,
+        "cand_mean": 134.76250000000007,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "idle_node_hours",
+        "base_mean": 45.19999999999999,
+        "cand_mean": 45.19999999999999,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "contradictions",
+        "base_mean": 8.83,
+        "cand_mean": 8.83,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "scale_reversals",
+        "base_mean": 2.13,
+        "cand_mean": 2.13,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "security_violations",
+        "base_mean": 0.93,
+        "cand_mean": 0.93,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "pages",
+        "base_mean": 0.72,
+        "cand_mean": 0.72,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      },
+      {
+        "metric": "human_interventions",
+        "base_mean": 0.51,
+        "cand_mean": 0.51,
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "better": 0,
+        "worse": 0,
+        "tied": 100,
+        "n": 100
+      }
+    ],
+    "omni_k8s_throughput_vs_k8s_ref_70": [
+      {
+        "metric": "availability",
+        "base_mean": 0.9996241120609182,
+        "cand_mean": 0.9999911976809753,
+        "mean_delta": 0.0003670856200571615,
+        "ci95": [
+          -1.8644222648703053e-05,
+          0.001127251181690917
+        ],
+        "better": 12,
+        "worse": 10,
+        "tied": 78,
+        "n": 100
+      },
+      {
+        "metric": "time_healthy",
+        "base_mean": 0.8027777777777778,
+        "cand_mean": 0.9229166666666666,
+        "mean_delta": 0.12013888888888888,
+        "ci95": [
+          0.09555555555555557,
+          0.1470868055555556
+        ],
+        "better": 66,
+        "worse": 0,
+        "tied": 34,
+        "n": 100
+      },
+      {
+        "metric": "recovered",
+        "base_mean": 0.92,
+        "cand_mean": 1.0,
+        "mean_delta": 0.08,
+        "ci95": [
+          0.03,
+          0.14
+        ],
+        "better": 8,
+        "worse": 0,
+        "tied": 92,
+        "n": 100
+      },
+      {
+        "metric": "machine_round_trips",
+        "base_mean": 0.935,
+        "cand_mean": 1.78,
+        "mean_delta": 0.845,
+        "ci95": [
+          0.6,
+          1.105
+        ],
+        "better": 9,
+        "worse": 51,
+        "tied": 40,
+        "n": 100
+      },
+      {
+        "metric": "scale_reversals",
+        "base_mean": 2.13,
+        "cand_mean": 1.97,
+        "mean_delta": -0.16,
+        "ci95": [
+          -0.38,
+          0.07
+        ],
+        "better": 45,
+        "worse": 23,
+        "tied": 32,
+        "n": 100
+      },
+      {
+        "metric": "node_start_stop",
+        "base_mean": 5.44,
+        "cand_mean": 9.51,
+        "mean_delta": 4.07,
+        "ci95": [
+          3.6,
+          4.53
+        ],
+        "better": 5,
+        "worse": 91,
+        "tied": 4,
+        "n": 100
+      },
+      {
+        "metric": "power_cap_travel",
+        "base_mean": 0.25527838739342257,
+        "cand_mean": 0.8298072643572154,
+        "mean_delta": 0.5745288769637928,
+        "ci95": [
+          0.4452510329939047,
+          0.6871765313232371
+        ],
+        "better": 4,
+        "worse": 96,
+        "tied": 0,
+        "n": 100
+      },
+      {
+        "metric": "thermal_travel",
+        "base_mean": 0.7388112362860091,
+        "cand_mean": 0.6180883146246562,
+        "mean_delta": -0.12072292166135278,
+        "ci95": [
+          -0.14461189250508735,
+          -0.09396598868055041
+        ],
+        "better": 83,
+        "worse": 17,
+        "tied": 0,
+        "n": 100
+      },
+      {
+        "metric": "invariant_violations",
+        "base_mean": 8.98,
+        "cand_mean": 2.41,
+        "mean_delta": -6.57,
+        "ci95": [
+          -8.1,
+          -5.07
+        ],
+        "better": 68,
+        "worse": 0,
+        "tied": 32,
+        "n": 100
+      },
+      {
+        "metric": "invariant_violations_ex_power",
+        "base_mean": 6.59,
+        "cand_mean": 0.0,
+        "mean_delta": -6.59,
+        "ci95": [
+          -8.14025,
+          -5.14
+        ],
+        "better": 68,
+        "worse": 0,
+        "tied": 32,
+        "n": 100
+      },
+      {
+        "metric": "sla_violation_physical",
+        "base_mean": 0.13069444444444442,
+        "cand_mean": 0.06458333333333333,
+        "mean_delta": -0.0661111111111111,
+        "ci95": [
+          -0.08555555555555555,
+          -0.048329861111111094
+        ],
+        "better": 47,
+        "worse": 5,
+        "tied": 48,
+        "n": 100
+      },
+      {
+        "metric": "sla_violation_total",
+        "base_mean": 0.1552777777777778,
+        "cand_mean": 0.06458333333333333,
+        "mean_delta": -0.09069444444444445,
+        "ci95": [
+          -0.11153125,
+          -0.07152777777777779
+        ],
+        "better": 64,
+        "worse": 0,
+        "tied": 36,
+        "n": 100
+      },
+      {
+        "metric": "violation_backlog",
+        "base_mean": 0.03180555555555556,
+        "cand_mean": 0.017222222222222222,
+        "mean_delta": -0.014583333333333335,
+        "ci95": [
+          -0.02625,
+          -0.004861111111111111
+        ],
+        "better": 10,
+        "worse": 10,
+        "tied": 80,
+        "n": 100
+      },
+      {
+        "metric": "violation_power",
+        "base_mean": 0.1225,
+        "cand_mean": 0.05861111111111111,
+        "mean_delta": -0.0638888888888889,
+        "ci95": [
+          -0.08305555555555555,
+          -0.045277777777777785
+        ],
+        "better": 46,
+        "worse": 3,
+        "tied": 51,
+        "n": 100
+      },
+      {
+        "metric": "violation_heat",
+        "base_mean": 0.07319444444444445,
+        "cand_mean": 0.024861111111111108,
+        "mean_delta": -0.04833333333333333,
+        "ci95": [
+          -0.0675,
+          -0.03166666666666667
+        ],
+        "better": 31,
+        "worse": 0,
+        "tied": 69,
+        "n": 100
+      },
+      {
+        "metric": "mean_queue",
+        "base_mean": 473.9019243167892,
+        "cand_mean": 254.9022501796471,
+        "mean_delta": -218.99967413714205,
+        "ci95": [
+          -461.89373567557897,
+          -40.799283724782484
+        ],
+        "better": 19,
+        "worse": 54,
+        "tied": 27,
+        "n": 100
+      },
+      {
+        "metric": "p95_queue",
+        "base_mean": 1467.1595217143984,
+        "cand_mean": 991.5126417038056,
+        "mean_delta": -475.6468800105927,
+        "ci95": [
+          -827.4446726625243,
+          -192.80238525766197
+        ],
+        "better": 21,
+        "worse": 17,
+        "tied": 62,
+        "n": 100
+      },
+      {
+        "metric": "recovery_minutes",
+        "base_mean": 55.0,
+        "cand_mean": 15.55,
+        "mean_delta": -39.45,
+        "ci95": [
+          -55.95,
+          -25.498749999999994
+        ],
+        "better": 62,
+        "worse": 0,
+        "tied": 38,
+        "n": 100
+      },
+      {
+        "metric": "energy_kwh",
+        "base_mean": 168.8186427820431,
+        "cand_mean": 121.24586763484506,
+        "mean_delta": -47.57277514719804,
+        "ci95": [
+          -49.27766657763557,
+          -45.64175523861967
+        ],
+        "better": 99,
+        "worse": 1,
+        "tied": 0,
+        "n": 100
+      },
+      {
+        "metric": "peak_power_kw",
+        "base_mean": 37.349282668204175,
+        "cand_mean": 37.21374298741232,
+        "mean_delta": -0.1355396807918649,
+        "ci95": [
+          -1.10877907247395,
+          0.8651826029356269
+        ],
+        "better": 48,
+        "worse": 51,
+        "tied": 1,
+        "n": 100
+      },
+      {
+        "metric": "node_hours",
+        "base_mean": 134.76250000000007,
+        "cand_mean": 139.2233333333333,
+        "mean_delta": 4.460833333333238,
+        "ci95": [
+          2.1941458333332227,
+          6.780999999999929
+        ],
+        "better": 45,
+        "worse": 55,
+        "tied": 0,
+        "n": 100
+      },
+      {
+        "metric": "idle_node_hours",
+        "base_mean": 45.19999999999999,
+        "cand_mean": 50.62916666666668,
+        "mean_delta": 5.429166666666666,
+        "ci95": [
+          3.013166666666667,
+          7.942562499999998
+        ],
+        "better": 44,
+        "worse": 56,
+        "tied": 0,
+        "n": 100
+      },
+      {
+        "metric": "contradictions",
+        "base_mean": 8.83,
+        "cand_mean": 0.0,
+        "mean_delta": -8.83,
+        "ci95": [
+          -11.01,
+          -6.85
+        ],
+        "better": 68,
+        "worse": 0,
+        "tied": 32,
+        "n": 100
+      },
+      {
+        "metric": "scale_reversals",
+        "base_mean": 2.13,
+        "cand_mean": 1.97,
+        "mean_delta": -0.16,
+        "ci95": [
+          -0.38,
+          0.06
+        ],
+        "better": 45,
+        "worse": 23,
+        "tied": 32,
+        "n": 100
+      },
+      {
+        "metric": "security_violations",
+        "base_mean": 0.93,
+        "cand_mean": 0.0,
+        "mean_delta": -0.93,
+        "ci95": [
+          -1.54,
+          -0.41
+        ],
+        "better": 12,
+        "worse": 0,
+        "tied": 88,
+        "n": 100
+      },
+      {
+        "metric": "pages",
+        "base_mean": 0.72,
+        "cand_mean": 0.0,
+        "mean_delta": -0.72,
+        "ci95": [
+          -1.32025,
+          -0.23
+        ],
+        "better": 10,
+        "worse": 0,
+        "tied": 90,
+        "n": 100
+      },
+      {
+        "metric": "human_interventions",
+        "base_mean": 0.51,
+        "cand_mean": 0.0,
+        "mean_delta": -0.51,
+        "ci95": [
+          -0.97,
+          -0.14
+        ],
+        "better": 10,
+        "worse": 0,
+        "tied": 90,
+        "n": 100
+      }
+    ]
+  },
+  "by_family": {
+    "alert_incident": {
+      "k8s_ref_70": {
+        "time_healthy": 1.0,
+        "sla_violation_physical": 0.0,
+        "recovery_minutes": 5.0,
+        "contradictions": 0.0,
+        "energy_kwh": 155.41207998143665
+      },
+      "omni_k8s_throughput": {
+        "time_healthy": 1.0,
+        "sla_violation_physical": 0.0,
+        "recovery_minutes": 5.0,
+        "contradictions": 0.0,
+        "energy_kwh": 100.55678582559241
+      }
+    },
+    "compound_failure": {
+      "k8s_ref_70": {
+        "time_healthy": 0.22569444444444445,
+        "sla_violation_physical": 0.6944444444444444,
+        "recovery_minutes": 360.0,
+        "contradictions": 37.25,
+        "energy_kwh": 247.74841133606574
+      },
+      "omni_k8s_throughput": {
+        "time_healthy": 0.517361111111111,
+        "sla_violation_physical": 0.4375,
+        "recovery_minutes": 102.5,
+        "contradictions": 0.0,
+        "energy_kwh": 234.3978246067024
+      }
+    },
+    "demand_spike": {
+      "k8s_ref_70": {
+        "time_healthy": 0.5029761904761905,
+        "sla_violation_physical": 0.3402777777777778,
+        "recovery_minutes": 161.78571428571428,
+        "contradictions": 9.357142857142858,
+        "energy_kwh": 203.03720480405534
+      },
+      "omni_k8s_throughput": {
+        "time_healthy": 0.7777777777777778,
+        "sla_violation_physical": 0.17857142857142858,
+        "recovery_minutes": 32.142857142857146,
+        "contradictions": 0.0,
+        "energy_kwh": 158.42961678953543
+      }
+    },
+    "deployment_rollout": {
+      "k8s_ref_70": {
+        "time_healthy": 0.7962962962962963,
+        "sla_violation_physical": 0.15046296296296294,
+        "recovery_minutes": 29.166666666666668,
+        "contradictions": 20.0,
+        "energy_kwh": 164.3364421831064
+      },
+      "omni_k8s_throughput": {
+        "time_healthy": 0.9074074074074074,
+        "sla_violation_physical": 0.07638888888888888,
+        "recovery_minutes": 12.5,
+        "contradictions": 0.0,
+        "energy_kwh": 123.21530138453652
+      }
+    },
+    "kubernetes_terraform_conflict": {
+      "k8s_ref_70": {
+        "time_healthy": 0.7395833333333334,
+        "sla_violation_physical": 0.17708333333333334,
+        "recovery_minutes": 53.333333333333336,
+        "contradictions": 19.666666666666668,
+        "energy_kwh": 172.1788997922199
+      },
+      "omni_k8s_throughput": {
+        "time_healthy": 0.8854166666666666,
+        "sla_violation_physical": 0.09143518518518517,
+        "recovery_minutes": 20.0,
+        "contradictions": 0.0,
+        "energy_kwh": 128.88997926464836
+      }
+    },
+    "node_rack_failure": {
+      "k8s_ref_70": {
+        "time_healthy": 0.9039351851851852,
+        "sla_violation_physical": 0.028935185185185185,
+        "recovery_minutes": 12.916666666666666,
+        "contradictions": 2.9166666666666665,
+        "energy_kwh": 158.99259688393622
+      },
+      "omni_k8s_throughput": {
+        "time_healthy": 0.9930555555555555,
+        "sla_violation_physical": 0.006944444444444445,
+        "recovery_minutes": 5.0,
+        "contradictions": 0.0,
+        "energy_kwh": 108.07977472217128
+      }
+    },
+    "normal_variation": {
+      "k8s_ref_70": {
+        "time_healthy": 0.9972222222222221,
+        "sla_violation_physical": 0.0,
+        "recovery_minutes": 5.0,
+        "contradictions": 0.2,
+        "energy_kwh": 153.0932392554787
+      },
+      "omni_k8s_throughput": {
+        "time_healthy": 1.0,
+        "sla_violation_physical": 0.0,
+        "recovery_minutes": 5.0,
+        "contradictions": 0.0,
+        "energy_kwh": 98.83044778254227
+      }
+    },
+    "power_thermal_network": {
+      "k8s_ref_70": {
+        "time_healthy": 0.7476851851851852,
+        "sla_violation_physical": 0.17939814814814817,
+        "recovery_minutes": 42.5,
+        "contradictions": 3.6666666666666665,
+        "energy_kwh": 159.76907590316966
+      },
+      "omni_k8s_throughput": {
+        "time_healthy": 0.9456018518518517,
+        "sla_violation_physical": 0.0474537037037037,
+        "recovery_minutes": 10.0,
+        "contradictions": 0.0,
+        "energy_kwh": 114.9844435888109
+      }
+    },
+    "security_policy": {
+      "k8s_ref_70": {
+        "time_healthy": 0.8611111111111112,
+        "sla_violation_physical": 0.0,
+        "recovery_minutes": 19.375,
+        "contradictions": 20.75,
+        "energy_kwh": 153.70091302487134
+      },
+      "omni_k8s_throughput": {
+        "time_healthy": 1.0,
+        "sla_violation_physical": 0.0,
+        "recovery_minutes": 5.0,
+        "contradictions": 0.0,
+        "energy_kwh": 101.08099885076574
+      }
+    },
+    "telemetry_fault": {
+      "k8s_ref_70": {
+        "time_healthy": 1.0,
+        "sla_violation_physical": 0.0,
+        "recovery_minutes": 5.0,
+        "contradictions": 0.0,
+        "energy_kwh": 154.6986454153832
+      },
+      "omni_k8s_throughput": {
+        "time_healthy": 1.0,
+        "sla_violation_physical": 0.0,
+        "recovery_minutes": 5.0,
+        "contradictions": 0.0,
+        "energy_kwh": 100.30986032516176
+      }
+    }
+  },
+  "observe_mode_identical_to_native": null,
+  "layered_observe_identical_to_kubernetes": 100,
+  "tails": {
+    "k8s_ref_70": {
+      "time_healthy_p05": 0.2625,
+      "recovery_minutes_p95": 360.0,
+      "sla_violation_physical_p95": 0.5715277777777776,
+      "energy_kwh_p95": 228.57255398719775,
+      "time_healthy_min": 0.1527777777777778,
+      "recovered_fraction": 0.92
+    },
+    "omni_k8s_observe": {
+      "time_healthy_p05": 0.2625,
+      "recovery_minutes_p95": 360.0,
+      "sla_violation_physical_p95": 0.5715277777777776,
+      "energy_kwh_p95": 228.57255398719775,
+      "time_healthy_min": 0.1527777777777778,
+      "recovered_fraction": 0.92
+    },
+    "omni_k8s_throughput": {
+      "time_healthy_p05": 0.6666666666666666,
+      "recovery_minutes_p95": 50.0,
+      "sla_violation_physical_p95": 0.29236111111111107,
+      "energy_kwh_p95": 186.6726321740773,
+      "time_healthy_min": 0.3888888888888889,
+      "recovered_fraction": 1.0
+    }
+  }
+}

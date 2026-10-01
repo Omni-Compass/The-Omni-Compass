@@ -1,0 +1,1423 @@
+{
+ "note": "THEORETICAL SIMULATION of device physics; constants declared in hardware/plant.py",
+ "seed": 515151,
+ "scenarios": 24,
+ "vessels": {
+  "cpu_web": {
+   "means": {
+    "A": {
+     "energy_kwh": 115.16931689877617,
+     "work": 174.63117011640372,
+     "kwh_per_work": 0.6720224682886703,
+     "peak_kw": 33.95354447371782,
+     "slo_breach_min": 0.0,
+     "p95_latency_x": 1.0000225312982727,
+     "mean_latency_x": 1.0016970625575539,
+     "heat_over_min": 26.708333333333332,
+     "power_over_min": 8.0,
+     "mean_setting": 0.6146824388750999,
+     "setting_changes": 206.04166666666666
+    },
+    "S": {
+     "energy_kwh": 103.34167359386943,
+     "work": 173.78560907244346,
+     "kwh_per_work": 0.6141317089767232,
+     "peak_kw": 20.474982907048062,
+     "slo_breach_min": 70.45833333333333,
+     "p95_latency_x": 6.577406975749073,
+     "mean_latency_x": 2.0819722989950606,
+     "heat_over_min": 0.0,
+     "power_over_min": 0.0,
+     "mean_setting": 0.5712732717130161,
+     "setting_changes": 138.29166666666666
+    },
+    "B": {
+     "energy_kwh": 110.89932107703267,
+     "work": 174.62743858045755,
+     "kwh_per_work": 0.6502747216374358,
+     "peak_kw": 34.07370797566214,
+     "slo_breach_min": 0.16666666666666666,
+     "p95_latency_x": 1.0403416067765523,
+     "mean_latency_x": 1.0071544989728376,
+     "heat_over_min": 8.875,
+     "power_over_min": 10.166666666666666,
+     "mean_setting": 0.5931695295195544,
+     "setting_changes": 191.83333333333334
+    },
+    "C": {
+     "energy_kwh": 111.23820606668009,
+     "work": 174.62743858045755,
+     "kwh_per_work": 0.652120329410162,
+     "peak_kw": 34.07370797566214,
+     "slo_breach_min": 0.16666666666666666,
+     "p95_latency_x": 1.0403416067765523,
+     "mean_latency_x": 1.0071544989728376,
+     "heat_over_min": 8.958333333333334,
+     "power_over_min": 10.166666666666666,
+     "mean_setting": 0.5957965254594679,
+     "setting_changes": 187.41666666666666
+    }
+   },
+   "paired_vs_A": {
+    "S": {
+     "energy_kwh": {
+      "delta": -11.827643304906756,
+      "ci95": [
+       -16.388344707317557,
+       -7.402066250042061
+      ],
+      "significant": true
+     },
+     "work": {
+      "delta": -0.8455610439602358,
+      "ci95": [
+       -1.7420030355780745,
+       -1.053083546291112e-13
+      ],
+      "significant": true
+     },
+     "kwh_per_work": {
+      "delta": -0.05789075931194709,
+      "ci95": [
+       -0.07993919914716398,
+       -0.03723456596449164
+      ],
+      "significant": true
+     },
+     "peak_kw": {
+      "delta": -13.47856156666976,
+      "ci95": [
+       -16.193767146795174,
+       -10.612677824916176
+      ],
+      "significant": true
+     },
+     "slo_breach_min": {
+      "delta": 70.45833333333333,
+      "ci95": [
+       43.37291666666667,
+       98.75104166666667
+      ],
+      "significant": true
+     },
+     "p95_latency_x": {
+      "delta": 5.577384444450801,
+      "ci95": [
+       3.430038862262783,
+       7.852540764446226
+      ],
+      "significant": true
+     },
+     "mean_latency_x": {
+      "delta": 1.0802752364375068,
+      "ci95": [
+       0.6610213388278683,
+       1.5139498785660988
+      ],
+      "significant": true
+     },
+     "heat_over_min": {
+      "delta": -26.708333333333332,
+      "ci95": [
+       -39.376041666666666,
+       -15.248958333333329
+      ],
+      "significant": true
+     },
+     "power_over_min": {
+      "delta": -8.0,
+      "ci95": [
+       -11.958333333333334,
+       -4.375
+      ],
+      "significant": true
+     },
+     "mean_setting": {
+      "delta": -0.04340916716208374,
+      "ci95": [
+       -0.059590471590208784,
+       -0.02819366832694053
+      ],
+      "significant": true
+     },
+     "setting_changes": {
+      "delta": -67.75,
+      "ci95": [
+       -90.37604166666667,
+       -45.87395833333333
+      ],
+      "significant": true
+     }
+    },
+    "B": {
+     "energy_kwh": {
+      "delta": -4.269995821743502,
+      "ci95": [
+       -5.792552297185599,
+       -2.741574817654226
+      ],
+      "significant": true
+     },
+     "work": {
+      "delta": -0.0037315359461622677,
+      "ci95": [
+       -0.011194607838381406,
+       -4.026408835973901e-14
+      ],
+      "significant": true
+     },
+     "kwh_per_work": {
+      "delta": -0.021747746651234582,
+      "ci95": [
+       -0.029497429904842568,
+       -0.013670385463659174
+      ],
+      "significant": true
+     },
+     "peak_kw": {
+      "delta": 0.12016350194432308,
+      "ci95": [
+       -0.30533242284065754,
+       0.47776540111601234
+      ],
+      "significant": false
+     },
+     "slo_breach_min": {
+      "delta": 0.16666666666666666,
+      "ci95": [
+       0.0,
+       0.4583333333333333
+      ],
+      "significant": false
+     },
+     "p95_latency_x": {
+      "delta": 0.040319075478279655,
+      "ci95": [
+       0.023340148173589124,
+       0.05695126299035267
+      ],
+      "significant": true
+     },
+     "mean_latency_x": {
+      "delta": 0.005457436415283669,
+      "ci95": [
+       0.003798824273243594,
+       0.007174019555840563
+      ],
+      "significant": true
+     },
+     "heat_over_min": {
+      "delta": -17.833333333333332,
+      "ci95": [
+       -29.208333333333332,
+       -8.083333333333334
+      ],
+      "significant": true
+     },
+     "power_over_min": {
+      "delta": 2.1666666666666665,
+      "ci95": [
+       0.8333333333333334,
+       3.7083333333333335
+      ],
+      "significant": true
+     },
+     "mean_setting": {
+      "delta": -0.021512909355545503,
+      "ci95": [
+       -0.028887880164650114,
+       -0.013986418036559548
+      ],
+      "significant": true
+     },
+     "setting_changes": {
+      "delta": -14.208333333333334,
+      "ci95": [
+       -31.41875,
+       5.833333333333333
+      ],
+      "significant": false
+     }
+    },
+    "C": {
+     "energy_kwh": {
+      "delta": -3.931110832096096,
+      "ci95": [
+       -5.4407386189035005,
+       -2.4579002674743227
+      ],
+      "significant": true
+     },
+     "work": {
+      "delta": -0.0037315359461622677,
+      "ci95": [
+       -0.011194607838383774,
+       -3.907985046680551e-14
+      ],
+      "significant": true
+     },
+     "kwh_per_work": {
+      "delta": -0.019902138878508387,
+      "ci95": [
+       -0.0282109252984347,
+       -0.012492010951743144
+      ],
+      "significant": true
+     },
+     "peak_kw": {
+      "delta": 0.12016350194432308,
+      "ci95": [
+       -0.2999474137465767,
+       0.5039568457339614
+      ],
+      "significant": false
+     },
+     "slo_breach_min": {
+      "delta": 0.16666666666666666,
+      "ci95": [
+       0.0,
+       0.4583333333333333
+      ],
+      "significant": false
+     },
+     "p95_latency_x": {
+      "delta": 0.040319075478279655,
+      "ci95": [
+       0.02316965359353582,
+       0.0570871741068002
+      ],
+      "significant": true
+     },
+     "mean_latency_x": {
+      "delta": 0.005457436415283669,
+      "ci95": [
+       0.0038140086911789078,
+       0.007223073224135647
+      ],
+      "significant": true
+     },
+     "heat_over_min": {
+      "delta": -17.75,
+      "ci95": [
+       -29.084374999999998,
+       -7.832291666666663
+      ],
+      "significant": true
+     },
+     "power_over_min": {
+      "delta": 2.1666666666666665,
+      "ci95": [
+       0.8333333333333334,
+       3.75
+      ],
+      "significant": true
+     },
+     "mean_setting": {
+      "delta": -0.018885913415631877,
+      "ci95": [
+       -0.026623607374132763,
+       -0.011186456164983491
+      ],
+      "significant": true
+     },
+     "setting_changes": {
+      "delta": -18.625,
+      "ci95": [
+       -40.041666666666664,
+       4.083333333333333
+      ],
+      "significant": false
+     }
+    }
+   },
+   "families": [
+    "steady",
+    "diurnal",
+    "spike",
+    "flash_crowd",
+    "slow_ramp",
+    "lull",
+    "burst_train",
+    "mixed",
+    "steady",
+    "diurnal",
+    "spike",
+    "flash_crowd",
+    "slow_ramp",
+    "lull",
+    "burst_train",
+    "mixed",
+    "steady",
+    "diurnal",
+    "spike",
+    "flash_crowd",
+    "slow_ramp",
+    "lull",
+    "burst_train",
+    "mixed"
+   ]
+  },
+  "gpu_mlperf_median": {
+   "means": {
+    "A": {
+     "energy_kwh": 142.25487879946493,
+     "work": 174.63117011640372,
+     "kwh_per_work": 0.8238918330735686,
+     "peak_kw": 38.40287111492674,
+     "slo_breach_min": 0.0,
+     "p95_latency_x": 1.0000225312982727,
+     "mean_latency_x": 1.0016970625575539,
+     "heat_over_min": 22.458333333333332,
+     "power_over_min": 6.5,
+     "mean_setting": 1.0,
+     "setting_changes": 0.0
+    },
+    "S": {
+     "energy_kwh": 117.03798136977673,
+     "work": 174.62918956320803,
+     "kwh_per_work": 0.6794982068074505,
+     "peak_kw": 28.28802588541168,
+     "slo_breach_min": 7.125,
+     "p95_latency_x": 1.520662737149025,
+     "mean_latency_x": 1.0673534123824175,
+     "heat_over_min": 0.0,
+     "power_over_min": 0.0,
+     "mean_setting": 0.7000000000000001,
+     "setting_changes": 0.0
+    },
+    "B": {
+     "energy_kwh": 119.25378661629331,
+     "work": 174.63117011640375,
+     "kwh_per_work": 0.6905800230445384,
+     "peak_kw": 37.088904033276684,
+     "slo_breach_min": 0.041666666666666664,
+     "p95_latency_x": 1.0070296987203706,
+     "mean_latency_x": 1.0030881872136412,
+     "heat_over_min": 6.125,
+     "power_over_min": 6.208333333333333,
+     "mean_setting": 0.7126132371626136,
+     "setting_changes": 18.625
+    },
+    "C": {
+     "energy_kwh": 101.7954698104496,
+     "work": 174.63117011640375,
+     "kwh_per_work": 0.584025638919247,
+     "peak_kw": 36.094899397508584,
+     "slo_breach_min": 0.041666666666666664,
+     "p95_latency_x": 1.0070296987203706,
+     "mean_latency_x": 1.0030881872136412,
+     "heat_over_min": 5.666666666666667,
+     "power_over_min": 6.208333333333333,
+     "mean_setting": 0.5087830666501119,
+     "setting_changes": 76.16666666666667
+    }
+   },
+   "paired_vs_A": {
+    "S": {
+     "energy_kwh": {
+      "delta": -25.216897429688213,
+      "ci95": [
+       -27.188625575749196,
+       -23.004855211711117
+      ],
+      "significant": true
+     },
+     "work": {
+      "delta": -0.0019805531956992675,
+      "ci95": [
+       -0.005941659587184252,
+       6.513308411134251e-14
+      ],
+      "significant": false
+     },
+     "kwh_per_work": {
+      "delta": -0.14439362626611787,
+      "ci95": [
+       -0.1443947912437231,
+       -0.14439129631090766
+      ],
+      "significant": true
+     },
+     "peak_kw": {
+      "delta": -10.114845229515064,
+      "ci95": [
+       -11.630760815917359,
+       -8.533275761447983
+      ],
+      "significant": true
+     },
+     "slo_breach_min": {
+      "delta": 7.125,
+      "ci95": [
+       2.6666666666666665,
+       12.333333333333334
+      ],
+      "significant": true
+     },
+     "p95_latency_x": {
+      "delta": 0.5206402058507522,
+      "ci95": [
+       0.14176731773764312,
+       0.9993654650677348
+      ],
+      "significant": true
+     },
+     "mean_latency_x": {
+      "delta": 0.06565634982486375,
+      "ci95": [
+       0.026564910127328714,
+       0.11326781509702685
+      ],
+      "significant": true
+     },
+     "heat_over_min": {
+      "delta": -22.458333333333332,
+      "ci95": [
+       -33.5,
+       -12.540624999999995
+      ],
+      "significant": true
+     },
+     "power_over_min": {
+      "delta": -6.5,
+      "ci95": [
+       -10.041666666666666,
+       -3.375
+      ],
+      "significant": true
+     },
+     "mean_setting": {
+      "delta": -0.29999999999999993,
+      "ci95": [
+       -0.29999999999999993,
+       -0.29999999999999993
+      ],
+      "significant": true
+     },
+     "setting_changes": {
+      "delta": 0.0,
+      "ci95": [
+       0.0,
+       0.0
+      ],
+      "significant": false
+     }
+    },
+    "B": {
+     "energy_kwh": {
+      "delta": -23.001092183171654,
+      "ci95": [
+       -24.858811580833496,
+       -21.059882984599756
+      ],
+      "significant": true
+     },
+     "work": {
+      "delta": 2.2500519965736505e-14,
+      "ci95": [
+       2.3684757858670005e-15,
+       4.739912166466346e-14
+      ],
+      "significant": true
+     },
+     "kwh_per_work": {
+      "delta": -0.1333118100290302,
+      "ci95": [
+       -0.1394221309096065,
+       -0.12641016946513023
+      ],
+      "significant": true
+     },
+     "peak_kw": {
+      "delta": -1.3139670816500575,
+      "ci95": [
+       -2.3862903279491174,
+       -0.40590684901027907
+      ],
+      "significant": true
+     },
+     "slo_breach_min": {
+      "delta": 0.041666666666666664,
+      "ci95": [
+       0.0,
+       0.125
+      ],
+      "significant": false
+     },
+     "p95_latency_x": {
+      "delta": 0.007007167422098032,
+      "ci95": [
+       0.0015829454211939893,
+       0.013594876922412078
+      ],
+      "significant": true
+     },
+     "mean_latency_x": {
+      "delta": 0.0013911246560875112,
+      "ci95": [
+       0.0006901360662564628,
+       0.0021900413323702444
+      ],
+      "significant": true
+     },
+     "heat_over_min": {
+      "delta": -16.333333333333332,
+      "ci95": [
+       -27.835416666666664,
+       -6.75
+      ],
+      "significant": true
+     },
+     "power_over_min": {
+      "delta": -0.2916666666666667,
+      "ci95": [
+       -0.7083333333333334,
+       0.08333333333333333
+      ],
+      "significant": false
+     },
+     "mean_setting": {
+      "delta": -0.28738676283738646,
+      "ci95": [
+       -0.29562057879059056,
+       -0.27794677683445557
+      ],
+      "significant": true
+     },
+     "setting_changes": {
+      "delta": 18.625,
+      "ci95": [
+       5.623958333333333,
+       34.58437500000001
+      ],
+      "significant": true
+     }
+    },
+    "C": {
+     "energy_kwh": {
+      "delta": -40.459408989015344,
+      "ci95": [
+       -43.9392936320428,
+       -36.950720989930595
+      ],
+      "significant": true
+     },
+     "work": {
+      "delta": 2.2500519965736505e-14,
+      "ci95": [
+       3.552713678800501e-15,
+       4.618527782440651e-14
+      ],
+      "significant": true
+     },
+     "kwh_per_work": {
+      "delta": -0.23986619415432156,
+      "ci95": [
+       -0.26140825750963015,
+       -0.21763095614545036
+      ],
+      "significant": true
+     },
+     "peak_kw": {
+      "delta": -2.3079717174181575,
+      "ci95": [
+       -3.659332076888315,
+       -1.0535027807865056
+      ],
+      "significant": true
+     },
+     "slo_breach_min": {
+      "delta": 0.041666666666666664,
+      "ci95": [
+       0.0,
+       0.125
+      ],
+      "significant": false
+     },
+     "p95_latency_x": {
+      "delta": 0.007007167422098032,
+      "ci95": [
+       0.0016214099327000926,
+       0.013831738764456225
+      ],
+      "significant": true
+     },
+     "mean_latency_x": {
+      "delta": 0.0013911246560875112,
+      "ci95": [
+       0.0006548798666652226,
+       0.002225081659636485
+      ],
+      "significant": true
+     },
+     "heat_over_min": {
+      "delta": -16.791666666666668,
+      "ci95": [
+       -28.541666666666668,
+       -6.915624999999997
+      ],
+      "significant": true
+     },
+     "power_over_min": {
+      "delta": -0.2916666666666667,
+      "ci95": [
+       -0.7083333333333334,
+       0.08333333333333333
+      ],
+      "significant": false
+     },
+     "mean_setting": {
+      "delta": -0.49121693334988814,
+      "ci95": [
+       -0.5174699811923084,
+       -0.46457611706365165
+      ],
+      "significant": true
+     },
+     "setting_changes": {
+      "delta": 76.16666666666667,
+      "ci95": [
+       47.540625,
+       108.25312500000001
+      ],
+      "significant": true
+     }
+    }
+   },
+   "families": [
+    "steady",
+    "diurnal",
+    "spike",
+    "flash_crowd",
+    "slow_ramp",
+    "lull",
+    "burst_train",
+    "mixed",
+    "steady",
+    "diurnal",
+    "spike",
+    "flash_crowd",
+    "slow_ramp",
+    "lull",
+    "burst_train",
+    "mixed",
+    "steady",
+    "diurnal",
+    "spike",
+    "flash_crowd",
+    "slow_ramp",
+    "lull",
+    "burst_train",
+    "mixed"
+   ]
+  },
+  "gpu_mlperf_least_favourable": {
+   "means": {
+    "A": {
+     "energy_kwh": 142.25487879946493,
+     "work": 174.63117011640372,
+     "kwh_per_work": 0.8238918330735686,
+     "peak_kw": 38.40287111492674,
+     "slo_breach_min": 0.0,
+     "p95_latency_x": 1.0000225312982727,
+     "mean_latency_x": 1.0016970625575539,
+     "heat_over_min": 22.458333333333332,
+     "power_over_min": 6.5,
+     "mean_setting": 1.0,
+     "setting_changes": 0.0
+    },
+    "S": {
+     "energy_kwh": 118.43029909239442,
+     "work": 174.61822960161234,
+     "kwh_per_work": 0.6875119442437178,
+     "peak_kw": 28.34467371186484,
+     "slo_breach_min": 8.333333333333334,
+     "p95_latency_x": 1.6279615308175046,
+     "mean_latency_x": 1.0882410305957215,
+     "heat_over_min": 0.0,
+     "power_over_min": 0.0,
+     "mean_setting": 0.7000000000000001,
+     "setting_changes": 0.0
+    },
+    "B": {
+     "energy_kwh": 120.76957912739225,
+     "work": 174.63101629879012,
+     "kwh_per_work": 0.6991478525121,
+     "peak_kw": 37.53167134171767,
+     "slo_breach_min": 0.041666666666666664,
+     "p95_latency_x": 1.0080669932587902,
+     "mean_latency_x": 1.003262003429646,
+     "heat_over_min": 6.708333333333333,
+     "power_over_min": 6.416666666666667,
+     "mean_setting": 0.7143332740771117,
+     "setting_changes": 21.458333333333332
+    },
+    "C": {
+     "energy_kwh": 104.46398173116354,
+     "work": 174.63101629879012,
+     "kwh_per_work": 0.5990380353180036,
+     "peak_kw": 36.65509896400283,
+     "slo_breach_min": 0.041666666666666664,
+     "p95_latency_x": 1.0080669932587902,
+     "mean_latency_x": 1.003262003429646,
+     "heat_over_min": 6.0,
+     "power_over_min": 6.416666666666667,
+     "mean_setting": 0.5149319686434392,
+     "setting_changes": 86.45833333333333
+    }
+   },
+   "paired_vs_A": {
+    "S": {
+     "energy_kwh": {
+      "delta": -23.82457970707053,
+      "ci95": [
+       -25.695329365230947,
+       -21.732272371308063
+      ],
+      "significant": true
+     },
+     "work": {
+      "delta": -0.01294051479140279,
+      "ci95": [
+       -0.03879042009989678,
+       -5.802765675374151e-14
+      ],
+      "significant": true
+     },
+     "kwh_per_work": {
+      "delta": -0.1363798888298507,
+      "ci95": [
+       -0.1363875106471304,
+       -0.13636466352537344
+      ],
+      "significant": true
+     },
+     "peak_kw": {
+      "delta": -10.0581974030619,
+      "ci95": [
+       -11.607892299116408,
+       -8.438956462798838
+      ],
+      "significant": true
+     },
+     "slo_breach_min": {
+      "delta": 8.333333333333334,
+      "ci95": [
+       3.3333333333333335,
+       14.041666666666666
+      ],
+      "significant": true
+     },
+     "p95_latency_x": {
+      "delta": 0.627938999519232,
+      "ci95": [
+       0.19807186239247462,
+       1.1773916262726023
+      ],
+      "significant": true
+     },
+     "mean_latency_x": {
+      "delta": 0.08654396803816755,
+      "ci95": [
+       0.03869771774232535,
+       0.14227680991615868
+      ],
+      "significant": true
+     },
+     "heat_over_min": {
+      "delta": -22.458333333333332,
+      "ci95": [
+       -33.5,
+       -12.540624999999995
+      ],
+      "significant": true
+     },
+     "power_over_min": {
+      "delta": -6.5,
+      "ci95": [
+       -10.041666666666666,
+       -3.375
+      ],
+      "significant": true
+     },
+     "mean_setting": {
+      "delta": -0.29999999999999993,
+      "ci95": [
+       -0.29999999999999993,
+       -0.29999999999999993
+      ],
+      "significant": true
+     },
+     "setting_changes": {
+      "delta": 0.0,
+      "ci95": [
+       0.0,
+       0.0
+      ],
+      "significant": false
+     }
+    },
+    "B": {
+     "energy_kwh": {
+      "delta": -21.4852996720727,
+      "ci95": [
+       -23.308315513550014,
+       -19.623789784974818
+      ],
+      "significant": true
+     },
+     "work": {
+      "delta": -0.00015381761361865642,
+      "ci95": [
+       -0.0004614528408476796,
+       0.0
+      ],
+      "significant": false
+     },
+     "kwh_per_work": {
+      "delta": -0.1247439805614687,
+      "ci95": [
+       -0.13113442923625077,
+       -0.11731606330931732
+      ],
+      "significant": true
+     },
+     "peak_kw": {
+      "delta": -0.8711997732090734,
+      "ci95": [
+       -1.7731487405330097,
+       -0.12168313376217539
+      ],
+      "significant": true
+     },
+     "slo_breach_min": {
+      "delta": 0.041666666666666664,
+      "ci95": [
+       0.0,
+       0.125
+      ],
+      "significant": false
+     },
+     "p95_latency_x": {
+      "delta": 0.008044461960517649,
+      "ci95": [
+       0.0017621986623618116,
+       0.015453647647878222
+      ],
+      "significant": true
+     },
+     "mean_latency_x": {
+      "delta": 0.0015649408720920892,
+      "ci95": [
+       0.0008371964253839809,
+       0.002396248272444216
+      ],
+      "significant": true
+     },
+     "heat_over_min": {
+      "delta": -15.75,
+      "ci95": [
+       -26.917708333333334,
+       -6.541666666666667
+      ],
+      "significant": true
+     },
+     "power_over_min": {
+      "delta": -0.08333333333333333,
+      "ci95": [
+       -0.5,
+       0.3333333333333333
+      ],
+      "significant": false
+     },
+     "mean_setting": {
+      "delta": -0.2856667259228884,
+      "ci95": [
+       -0.2950746143041015,
+       -0.27475213151744465
+      ],
+      "significant": true
+     },
+     "setting_changes": {
+      "delta": 21.458333333333332,
+      "ci95": [
+       6.247916666666668,
+       41.04270833333334
+      ],
+      "significant": true
+     }
+    },
+    "C": {
+     "energy_kwh": {
+      "delta": -37.790897068301405,
+      "ci95": [
+       -40.94283829640048,
+       -34.50309923836255
+      ],
+      "significant": true
+     },
+     "work": {
+      "delta": -0.00015381761361865642,
+      "ci95": [
+       -0.0004614528408476796,
+       2.960594732344521e-17
+      ],
+      "significant": false
+     },
+     "kwh_per_work": {
+      "delta": -0.22485379775556494,
+      "ci95": [
+       -0.2458062613254722,
+       -0.2026052010096976
+      ],
+      "significant": true
+     },
+     "peak_kw": {
+      "delta": -1.747772150923904,
+      "ci95": [
+       -2.9704362685806522,
+       -0.6758812964492064
+      ],
+      "significant": true
+     },
+     "slo_breach_min": {
+      "delta": 0.041666666666666664,
+      "ci95": [
+       0.0,
+       0.125
+      ],
+      "significant": false
+     },
+     "p95_latency_x": {
+      "delta": 0.008044461960517649,
+      "ci95": [
+       0.001874574720992959,
+       0.015553940128060061
+      ],
+      "significant": true
+     },
+     "mean_latency_x": {
+      "delta": 0.0015649408720920892,
+      "ci95": [
+       0.0008219856992609042,
+       0.002420979268892644
+      ],
+      "significant": true
+     },
+     "heat_over_min": {
+      "delta": -16.458333333333332,
+      "ci95": [
+       -28.0,
+       -6.74895833333333
+      ],
+      "significant": true
+     },
+     "power_over_min": {
+      "delta": -0.08333333333333333,
+      "ci95": [
+       -0.5,
+       0.2916666666666667
+      ],
+      "significant": false
+     },
+     "mean_setting": {
+      "delta": -0.48506803135656096,
+      "ci95": [
+       -0.5123309688614565,
+       -0.4579473751844556
+      ],
+      "significant": true
+     },
+     "setting_changes": {
+      "delta": 86.45833333333333,
+      "ci95": [
+       52.790625,
+       124.17083333333335
+      ],
+      "significant": true
+     }
+    }
+   },
+   "families": [
+    "steady",
+    "diurnal",
+    "spike",
+    "flash_crowd",
+    "slow_ramp",
+    "lull",
+    "burst_train",
+    "mixed",
+    "steady",
+    "diurnal",
+    "spike",
+    "flash_crowd",
+    "slow_ramp",
+    "lull",
+    "burst_train",
+    "mixed",
+    "steady",
+    "diurnal",
+    "spike",
+    "flash_crowd",
+    "slow_ramp",
+    "lull",
+    "burst_train",
+    "mixed"
+   ]
+  },
+  "gpu_mlperf_most_favourable": {
+   "means": {
+    "A": {
+     "energy_kwh": 142.25487879946493,
+     "work": 174.63117011640372,
+     "kwh_per_work": 0.8238918330735686,
+     "peak_kw": 38.40287111492674,
+     "slo_breach_min": 0.0,
+     "p95_latency_x": 1.0000225312982727,
+     "mean_latency_x": 1.0016970625575539,
+     "heat_over_min": 22.458333333333332,
+     "power_over_min": 6.5,
+     "mean_setting": 1.0,
+     "setting_changes": 0.0
+    },
+    "S": {
+     "energy_kwh": 113.87816544140001,
+     "work": 174.6311701164037,
+     "kwh_per_work": 0.661396710701372,
+     "peak_kw": 28.13258857743102,
+     "slo_breach_min": 5.375,
+     "p95_latency_x": 1.3004419758883288,
+     "mean_latency_x": 1.03795169921606,
+     "heat_over_min": 0.0,
+     "power_over_min": 0.0,
+     "mean_setting": 0.7000000000000001,
+     "setting_changes": 0.0
+    },
+    "B": {
+     "energy_kwh": 115.6447881930489,
+     "work": 174.63117011640372,
+     "kwh_per_work": 0.6703204629428524,
+     "peak_kw": 36.17393073413123,
+     "slo_breach_min": 0.041666666666666664,
+     "p95_latency_x": 1.0055264387142493,
+     "mean_latency_x": 1.0026277622401145,
+     "heat_over_min": 5.25,
+     "power_over_min": 5.833333333333333,
+     "mean_setting": 0.708265598919494,
+     "setting_changes": 15.666666666666666
+    },
+    "C": {
+     "energy_kwh": 95.79647446550946,
+     "work": 174.63117011640372,
+     "kwh_per_work": 0.5503831891677998,
+     "peak_kw": 34.81624662113192,
+     "slo_breach_min": 0.041666666666666664,
+     "p95_latency_x": 1.0055264387142493,
+     "mean_latency_x": 1.0026277622401145,
+     "heat_over_min": 4.708333333333333,
+     "power_over_min": 5.833333333333333,
+     "mean_setting": 0.49622232637716285,
+     "setting_changes": 51.208333333333336
+    }
+   },
+   "paired_vs_A": {
+    "S": {
+     "energy_kwh": {
+      "delta": -28.376713358064944,
+      "ci95": [
+       -30.59557369793695,
+       -25.887384845542986
+      ],
+      "significant": true
+     },
+     "work": {
+      "delta": -4.144832625267251e-14,
+      "ci95": [
+       -6.987003568307652e-14,
+       -1.6579330501069005e-14
+      ],
+      "significant": true
+     },
+     "kwh_per_work": {
+      "delta": -0.16249512237219663,
+      "ci95": [
+       -0.1624951223721968,
+       -0.16249512237219643
+      ],
+      "significant": true
+     },
+     "peak_kw": {
+      "delta": -10.270282537495723,
+      "ci95": [
+       -11.705457401144713,
+       -8.76663631592043
+      ],
+      "significant": true
+     },
+     "slo_breach_min": {
+      "delta": 5.375,
+      "ci95": [
+       1.875,
+       9.5
+      ],
+      "significant": true
+     },
+     "p95_latency_x": {
+      "delta": 0.30041944459005626,
+      "ci95": [
+       0.0618185034568033,
+       0.6045646031297428
+      ],
+      "significant": true
+     },
+     "mean_latency_x": {
+      "delta": 0.03625463665850631,
+      "ci95": [
+       0.012521265746046601,
+       0.06572740858146371
+      ],
+      "significant": true
+     },
+     "heat_over_min": {
+      "delta": -22.458333333333332,
+      "ci95": [
+       -33.5,
+       -12.540624999999995
+      ],
+      "significant": true
+     },
+     "power_over_min": {
+      "delta": -6.5,
+      "ci95": [
+       -10.041666666666666,
+       -3.375
+      ],
+      "significant": true
+     },
+     "mean_setting": {
+      "delta": -0.29999999999999993,
+      "ci95": [
+       -0.29999999999999993,
+       -0.29999999999999993
+      ],
+      "significant": true
+     },
+     "setting_changes": {
+      "delta": 0.0,
+      "ci95": [
+       0.0,
+       0.0
+      ],
+      "significant": false
+     }
+    },
+    "B": {
+     "energy_kwh": {
+      "delta": -26.61009060641604,
+      "ci95": [
+       -28.630686925378892,
+       -24.46852080545998
+      ],
+      "significant": true
+     },
+     "work": {
+      "delta": 4.736951571734001e-15,
+      "ci95": [
+       1.1842378929335002e-15,
+       9.473903143468002e-15
+      ],
+      "significant": true
+     },
+     "kwh_per_work": {
+      "delta": -0.15357137013071612,
+      "ci95": [
+       -0.15860137618967668,
+       -0.1481162978641004
+      ],
+      "significant": true
+     },
+     "peak_kw": {
+      "delta": -2.2289403807955073,
+      "ci95": [
+       -3.482939905811357,
+       -1.0393804966040305
+      ],
+      "significant": true
+     },
+     "slo_breach_min": {
+      "delta": 0.041666666666666664,
+      "ci95": [
+       0.0,
+       0.125
+      ],
+      "significant": false
+     },
+     "p95_latency_x": {
+      "delta": 0.005503907415976755,
+      "ci95": [
+       0.0016721936194907712,
+       0.010240909486197724
+      ],
+      "significant": true
+     },
+     "mean_latency_x": {
+      "delta": 0.0009306996825606447,
+      "ci95": [
+       0.000454727183557894,
+       0.0014430928191462287
+      ],
+      "significant": true
+     },
+     "heat_over_min": {
+      "delta": -17.208333333333332,
+      "ci95": [
+       -29.125,
+       -7.333333333333333
+      ],
+      "significant": true
+     },
+     "power_over_min": {
+      "delta": -0.6666666666666666,
+      "ci95": [
+       -1.25,
+       -0.20833333333333334
+      ],
+      "significant": true
+     },
+     "mean_setting": {
+      "delta": -0.2917344010805059,
+      "ci95": [
+       -0.2975549262729012,
+       -0.2853386735810893
+      ],
+      "significant": true
+     },
+     "setting_changes": {
+      "delta": 15.666666666666666,
+      "ci95": [
+       5.0,
+       28.834375
+      ],
+      "significant": true
+     }
+    },
+    "C": {
+     "energy_kwh": {
+      "delta": -46.45840433395548,
+      "ci95": [
+       -50.456965392061804,
+       -42.537026159244995
+      ],
+      "significant": true
+     },
+     "work": {
+      "delta": 4.736951571734001e-15,
+      "ci95": [
+       1.1842378929335002e-15,
+       9.473903143468002e-15
+      ],
+      "significant": true
+     },
+     "kwh_per_work": {
+      "delta": -0.2735086439057686,
+      "ci95": [
+       -0.29506936504273346,
+       -0.25146910315697973
+      ],
+      "significant": true
+     },
+     "peak_kw": {
+      "delta": -3.58662449379482,
+      "ci95": [
+       -5.1725581804985765,
+       -2.040704526474385
+      ],
+      "significant": true
+     },
+     "slo_breach_min": {
+      "delta": 0.041666666666666664,
+      "ci95": [
+       0.0,
+       0.125
+      ],
+      "significant": false
+     },
+     "p95_latency_x": {
+      "delta": 0.005503907415976755,
+      "ci95": [
+       0.0017012222320373545,
+       0.0103169209146036
+      ],
+      "significant": true
+     },
+     "mean_latency_x": {
+      "delta": 0.0009306996825606447,
+      "ci95": [
+       0.00044841217301145274,
+       0.0014596330320501584
+      ],
+      "significant": true
+     },
+     "heat_over_min": {
+      "delta": -17.75,
+      "ci95": [
+       -29.917708333333334,
+       -7.62395833333333
+      ],
+      "significant": true
+     },
+     "power_over_min": {
+      "delta": -0.6666666666666666,
+      "ci95": [
+       -1.2916666666666667,
+       -0.20833333333333334
+      ],
+      "significant": true
+     },
+     "mean_setting": {
+      "delta": -0.5037776736228371,
+      "ci95": [
+       -0.5276129370216056,
+       -0.47926314024972494
+      ],
+      "significant": true
+     },
+     "setting_changes": {
+      "delta": 51.208333333333336,
+      "ci95": [
+       35.5,
+       66.91666666666667
+      ],
+      "significant": true
+     }
+    }
+   },
+   "families": [
+    "steady",
+    "diurnal",
+    "spike",
+    "flash_crowd",
+    "slow_ramp",
+    "lull",
+    "burst_train",
+    "mixed",
+    "steady",
+    "diurnal",
+    "spike",
+    "flash_crowd",
+    "slow_ramp",
+    "lull",
+    "burst_train",
+    "mixed",
+    "steady",
+    "diurnal",
+    "spike",
+    "flash_crowd",
+    "slow_ramp",
+    "lull",
+    "burst_train",
+    "mixed"
+   ]
+  }
+ }
+}

@@ -1,0 +1,237 @@
+{
+  "primary": {
+    "346410161": {
+      "metric": "energy_kwh",
+      "mean_delta": -47.19654994609255,
+      "p": 9.999000099990002e-05,
+      "better": 493,
+      "n": 500
+    },
+    "360555127": {
+      "metric": "energy_kwh",
+      "mean_delta": -47.6942897550979,
+      "p": 9.999000099990002e-05,
+      "better": 498,
+      "n": 500
+    }
+  },
+  "secondary": [
+    {
+      "seed": 346410161,
+      "metric": "time_healthy",
+      "mean_delta": 0.1184722222222222,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 346410161,
+      "metric": "recovery_minutes",
+      "mean_delta": -39.4,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 346410161,
+      "metric": "recovered",
+      "mean_delta": 0.074,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 346410161,
+      "metric": "sla_violation_physical",
+      "mean_delta": -0.06497222222222222,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 346410161,
+      "metric": "violation_backlog",
+      "mean_delta": -0.009805555555555555,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 346410161,
+      "metric": "violation_power",
+      "mean_delta": -0.059305555555555556,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 346410161,
+      "metric": "violation_heat",
+      "mean_delta": -0.05327777777777778,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 346410161,
+      "metric": "availability",
+      "mean_delta": 0.0016027232179184083,
+      "p": 0.0037996200379962005,
+      "direction": "better",
+      "p_holm": 0.007599240075992401,
+      "verdict": "better"
+    },
+    {
+      "seed": 346410161,
+      "metric": "invariant_violations_ex_power",
+      "mean_delta": -6.906,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 346410161,
+      "metric": "scale_reversals",
+      "mean_delta": -0.256,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 346410161,
+      "metric": "machine_round_trips",
+      "mean_delta": 0.596,
+      "p": 9.999000099990002e-05,
+      "direction": "worse",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "worse"
+    },
+    {
+      "seed": 346410161,
+      "metric": "thermal_travel",
+      "mean_delta": -0.120638648821319,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 360555127,
+      "metric": "time_healthy",
+      "mean_delta": 0.12858333333333336,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 360555127,
+      "metric": "recovery_minutes",
+      "mean_delta": -43.19,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 360555127,
+      "metric": "recovered",
+      "mean_delta": 0.082,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 360555127,
+      "metric": "sla_violation_physical",
+      "mean_delta": -0.07713888888888888,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 360555127,
+      "metric": "violation_backlog",
+      "mean_delta": -0.01172222222222222,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 360555127,
+      "metric": "violation_power",
+      "mean_delta": -0.0725,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 360555127,
+      "metric": "violation_heat",
+      "mean_delta": -0.06250000000000001,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 360555127,
+      "metric": "availability",
+      "mean_delta": 0.00025591267796744343,
+      "p": 0.12958704129587043,
+      "direction": "better",
+      "p_holm": 0.12958704129587043,
+      "verdict": "not significant"
+    },
+    {
+      "seed": 360555127,
+      "metric": "invariant_violations_ex_power",
+      "mean_delta": -6.804,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 360555127,
+      "metric": "scale_reversals",
+      "mean_delta": -0.298,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    },
+    {
+      "seed": 360555127,
+      "metric": "machine_round_trips",
+      "mean_delta": 0.721,
+      "p": 9.999000099990002e-05,
+      "direction": "worse",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "worse"
+    },
+    {
+      "seed": 360555127,
+      "metric": "thermal_travel",
+      "mean_delta": -0.12257541625653957,
+      "p": 9.999000099990002e-05,
+      "direction": "better",
+      "p_holm": 0.0023997600239976003,
+      "verdict": "better"
+    }
+  ],
+  "method": "Primary-endpoint and multiplicity analysis of the held-out comparison.\n\nPrimary comparison: omni_k8s_throughput vs k8s_ref_70. Primary metric: energy_kwh.\nSecondary metrics are tested with a paired sign-flip permutation test (two-sided, 10,000 permutations per test,\nseeded) and Holm-Bonferroni adjusted across all secondary metrics and both held-out seeds together."
+}

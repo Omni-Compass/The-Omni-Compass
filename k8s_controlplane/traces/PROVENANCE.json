@@ -1,0 +1,15 @@
+{
+  "traces": [
+    {
+      "id": "planetlab_comon_2011",
+      "files": "traces/planetlab/",
+      "source": "https://github.com/beloglazov/planetlab-workload-traces",
+      "origin": "CoMon / PlanetLab VM CPU utilization, March-April 2011",
+      "sample": "one value per 5 minutes, percent CPU, 288 samples = 24 h",
+      "license": "as published by the CoMon/PlanetLab trace release used in CloudSim",
+      "what_it_is": "Recorded host/VM CPU utilization. Not metrics-server millicores, not a kubelet scrape.",
+      "how_we_use_it": "Open-loop: treat percent/100 as the HPA resource metric (usage/request) that metrics-server would expose. Closed-loop: use the series shape as demand into the 15s plant.",
+      "kind_cluster": "not available in this environment; see scripts/kind_capture.sh for the live capture contract"
+    }
+  ]
+}

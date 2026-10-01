@@ -1,0 +1,257 @@
+{
+ "muscle": "health",
+ "seeds": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8
+ ],
+ "means": {
+  "native_fixed": {
+   "goodput_pct": 73.4035483514811,
+   "lost_gpu_hours": 13057.946888526987,
+   "restarts": 18.375,
+   "straggler_node_hours": 1497.8791666668749,
+   "checkpoint_overhead_pct": 3.2986111111111116
+  },
+  "native_detect": {
+   "goodput_pct": 80.64598046231357,
+   "lost_gpu_hours": 11802.109769298102,
+   "restarts": 27.0,
+   "straggler_node_hours": 571.5604166667221,
+   "checkpoint_overhead_pct": 6.573660714285715
+  },
+  "omni": {
+   "goodput_pct": 91.38622232671935,
+   "lost_gpu_hours": 11929.412659366657,
+   "restarts": 18.375,
+   "straggler_node_hours": 4.964583333333324,
+   "checkpoint_overhead_pct": 5.726686507936508
+  },
+  "omni_no_engine": {
+   "goodput_pct": 91.76495921555673,
+   "lost_gpu_hours": 11059.210981202443,
+   "restarts": 18.375,
+   "straggler_node_hours": 5.002083333333321,
+   "checkpoint_overhead_pct": 5.456349206349206
+  }
+ },
+ "vs": {
+  "native_fixed": {
+   "omni": {
+    "goodput_pct": {
+     "native": 73.4035483514811,
+     "omni": 91.38622232671935,
+     "better_by": 0.24498371508051756,
+     "ci95": [
+      15.739970535163591,
+      19.931025380892336
+     ],
+     "verdict": "better"
+    },
+    "lost_gpu_hours": {
+     "native": 13057.946888526987,
+     "omni": 11929.412659366657,
+     "better_by": 0.08642508954848685,
+     "ci95": [
+      -3183.640326305883,
+      1328.5835500862158
+     ],
+     "verdict": "not significant"
+    },
+    "restarts": {
+     "native": 18.375,
+     "omni": 18.375,
+     "better_by": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "verdict": "tie"
+    },
+    "straggler_node_hours": {
+     "native": 1497.8791666668749,
+     "omni": 4.964583333333324,
+     "better_by": 0.9966855915725293,
+     "ci95": [
+      -1859.9113541669574,
+      -1162.3518229168365
+     ],
+     "verdict": "better"
+    },
+    "checkpoint_overhead_pct": {
+     "native": 3.2986111111111116,
+     "omni": 5.726686507936508,
+     "better_by": -0.7360902255639095,
+     "ci95": [
+      2.0771329365079363,
+      2.8472222222222223
+     ],
+     "verdict": "worse"
+    }
+   },
+   "omni_no_engine": {
+    "goodput_pct": {
+     "native": 73.4035483514811,
+     "omni": 91.76495921555673,
+     "better_by": 0.2501433687667925,
+     "ci95": [
+      16.084182289817058,
+      20.368350614302173
+     ],
+     "verdict": "better"
+    },
+    "lost_gpu_hours": {
+     "native": 13057.946888526987,
+     "omni": 11059.210981202443,
+     "better_by": 0.15306662865053308,
+     "ci95": [
+      -3884.141622100528,
+      -115.17464433324935
+     ],
+     "verdict": "better"
+    },
+    "restarts": {
+     "native": 18.375,
+     "omni": 18.375,
+     "better_by": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "verdict": "tie"
+    },
+    "straggler_node_hours": {
+     "native": 1497.8791666668749,
+     "omni": 5.002083333333321,
+     "better_by": 0.9966605561752594,
+     "ci95": [
+      -1860.095572916957,
+      -1161.59453125017
+     ],
+     "verdict": "better"
+    },
+    "checkpoint_overhead_pct": {
+     "native": 3.2986111111111116,
+     "omni": 5.456349206349206,
+     "better_by": -0.6541353383458642,
+     "ci95": [
+      1.8191964285714286,
+      2.562003968253968
+     ],
+     "verdict": "worse"
+    }
+   }
+  },
+  "native_detect": {
+   "omni": {
+    "goodput_pct": {
+     "native": 80.64598046231357,
+     "omni": 91.38622232671935,
+     "better_by": 0.13317764633570006,
+     "ci95": [
+      8.91211249660816,
+      12.135802412326491
+     ],
+     "verdict": "better"
+    },
+    "lost_gpu_hours": {
+     "native": 11802.109769298102,
+     "omni": 11929.412659366657,
+     "better_by": -0.01078645196130267,
+     "ci95": [
+      -1439.3473781392786,
+      1792.6229876739228
+     ],
+     "verdict": "not significant"
+    },
+    "restarts": {
+     "native": 27.0,
+     "omni": 18.375,
+     "better_by": 0.3194444444444444,
+     "ci95": [
+      -10.625,
+      -6.5
+     ],
+     "verdict": "better"
+    },
+    "straggler_node_hours": {
+     "native": 571.5604166667221,
+     "omni": 4.964583333333324,
+     "better_by": 0.9913139832840662,
+     "ci95": [
+      -722.4270833334502,
+      -404.1958333333873
+     ],
+     "verdict": "better"
+    },
+    "checkpoint_overhead_pct": {
+     "native": 6.573660714285715,
+     "omni": 5.726686507936508,
+     "better_by": 0.12884361441237516,
+     "ci95": [
+      -1.200427827380953,
+      -0.42286706349206393
+     ],
+     "verdict": "better"
+    }
+   },
+   "omni_no_engine": {
+    "goodput_pct": {
+     "native": 80.64598046231357,
+     "omni": 91.76495921555673,
+     "better_by": 0.137873936053628,
+     "ci95": [
+      9.212068451330339,
+      12.621527198786849
+     ],
+     "verdict": "better"
+    },
+    "lost_gpu_hours": {
+     "native": 11802.109769298102,
+     "omni": 11059.210981202443,
+     "better_by": 0.06294626999896487,
+     "ci95": [
+      -2729.0960769288945,
+      1538.3820978657711
+     ],
+     "verdict": "not significant"
+    },
+    "restarts": {
+     "native": 27.0,
+     "omni": 18.375,
+     "better_by": 0.3194444444444444,
+     "ci95": [
+      -10.625,
+      -6.5
+     ],
+     "verdict": "better"
+    },
+    "straggler_node_hours": {
+     "native": 571.5604166667221,
+     "omni": 5.002083333333321,
+     "better_by": 0.9912483734221749,
+     "ci95": [
+      -722.4733333334503,
+      -404.00625000005397
+     ],
+     "verdict": "better"
+    },
+    "checkpoint_overhead_pct": {
+     "native": 6.573660714285715,
+     "omni": 5.456349206349206,
+     "better_by": 0.16996793057913626,
+     "ci95": [
+      -1.4583333333333337,
+      -0.708085317460318
+     ],
+     "verdict": "better"
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+cpp/build/
+build/
+out/
+replay/
+planetlab_out/
+*.o
+kind_pilot_out/
+lab_results/

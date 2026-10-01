@@ -1,0 +1,49 @@
+{
+ "purpose": "Omni-Compass alone v2, chosen on development seeds 101-130 only: queue-matched pod staffing (the fewest pods whose M/M/c wait is no longer than the operator's own 70% HPA target gives), 24-hour warm reserve, 2-decision calm dwell, release band 0.12, wake a parked machine anywhere in the site before cold-booting one. Frozen before any fresh-seed run.",
+ "setting": {
+  "closure": {
+   "rho_max": 0.99,
+   "delta": 0.02,
+   "H_add": 6,
+   "H_rel": 40,
+   "a": 0.5,
+   "b": 0.005,
+   "g": 0.05,
+   "push_release": 0.2,
+   "turn": true,
+   "delta_rel": 0.12,
+   "dwell": 2,
+   "tone": true,
+   "tone_H": 1440,
+   "z": 0.0,
+   "wake_first": true,
+   "coord": true
+  },
+  "direct": {
+   "window": 20,
+   "kb": 0.5,
+   "push_release": 0.2,
+   "tol": 0.1,
+   "beta": -1.0,
+   "ref_u": 0.7
+  },
+  "speed": {
+   "rho0": 0.8,
+   "rho_min": 0.8,
+   "kI": 0.0,
+   "kE": 0.0
+  }
+ },
+ "fresh_seeds": [
+  714001,
+  714030
+ ],
+ "rule": "same three-column rule as results/THREE_WAY.md",
+ "code_sha256": {
+  "omnicompass/closure.py": "9fb6f89cc71fc7d9698f2e22dc1e7e48d334cdce19e520b046f964ef78172fee",
+  "fleet/sim_slo.py": "309f35513d5c35cea50797f20608490586dbb3e29e9baaf4f8417ad99c4492b7",
+  "tools/three_way.py": "b7b937e09a4039fca94b6a74fba69cdb2068d5ccc5d8b62cbb2cf28ec04950ed"
+ },
+ "frozen_at_utc": "2026-09-27T07:36:31Z",
+ "sha256": "eebf8432704de5835606d62d2f1838fbb9bcedb4783b27768458a2c64caba20d"
+}

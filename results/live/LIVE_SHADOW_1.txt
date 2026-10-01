@@ -1,0 +1,17 @@
+Shadow pilot kit on real Kubernetes (scripts/pilot_shadow.sh, commit 2cb4252)
+GitHub Actions run 36287164470, job 108529989241, kind, 600 s, 27 September 2026. Result: success.
+
+Read-only identity (kubectl auth can-i receipts)
+- Can: list pods yes; list nodes yes; list hpa yes.
+- Cannot: patch nodes no; delete pods no; create pods no; patch deployments no; patch hpa no; create pods/eviction no;
+  get secrets no.
+
+Shadow report
+- Decisions logged: 40. Writes by Omni-Compass: 0 (must be 0).
+- Node-hours used by the cluster: 1.14.
+- Node-hours Omni-Compass would have used: 1.12 (-1.4%).
+
+What this proves: the pilot kit installs with a read-only identity, runs the engine on live telemetry, logs every
+recommendation, and cannot change the cluster.
+What it does not prove: savings. The kit's demo load keeps the cluster near its needed size, so there is almost
+nothing to recommend away. Savings come from a customer's own cluster.

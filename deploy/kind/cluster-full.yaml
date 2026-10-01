@@ -1,0 +1,14 @@
+# Multi-node kind cluster for the full-engine pilot: one control plane (runs the load generator and system
+# add-ons, never parked) and six workers that form the node pool Omni-Compass sizes. Six, not three: the fleet
+# law only releases a node when the pool has more than down_band (3) nodes beyond what load needs, so a
+# three-worker pool can never scale down.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+  - role: worker
+  - role: worker
+  - role: worker
+  - role: worker
+  - role: worker
+  - role: worker

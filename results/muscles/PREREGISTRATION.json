@@ -1,0 +1,33 @@
+{
+ "purpose": "Problem-map muscles (omnilab/): constants were chosen on development seeds 1-8 only. Frozen before any run on the held-out seeds below.",
+ "frozen_utc": "2026-09-26T05:06:55Z",
+ "held_out_seeds": "90001-90030 (30 per muscle)",
+ "opponent_rule": "each Omni arm is compared with every native arm; verdict from a paired bootstrap 95% CI",
+ "muscles": [
+  "rightsize",
+  "coldstart",
+  "gpupack",
+  "powersmooth",
+  "health",
+  "cooling",
+  "inference",
+  "containment",
+  "vmenergy"
+ ],
+ "sha256": {
+  "omnilab/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "omnilab/bench.py": "9a78f0e8dcc5196a377475198fc80cd10fe6e772c26ab2e13a2af39728026df9",
+  "omnilab/coldstart.py": "61af24f7e9f09829a8bbcc0085b0806a0c17924a00c552bc443996a0a30b28f5",
+  "omnilab/common.py": "5b2eb3ce733d0815f040a3c542498d875a9982e18f6e0aa3272c00e3e5f6e422",
+  "omnilab/containment.py": "e82ca99d629a820790214808feb67361843e14ded78f76e3e19dd5a691019d5c",
+  "omnilab/cooling.py": "ac3bbe771ba7bb19ce51c1dd745ff5d709f703f24778678af0416dc29819eabf",
+  "omnilab/gpupack.py": "95b339947f1930ac9465f024b95c2ff297dc7bca8b0fd1637cb0dae21db704c6",
+  "omnilab/health.py": "01045d215367ab41cbf744cb4b4aabf188f0bc9b358566b9b705dd5624e0da2b",
+  "omnilab/inference.py": "e63884cd4165d59dd8c50ca272815ee6b9c26eef417ca00d072727f9d33fbce6",
+  "omnilab/powersmooth.py": "bde9f6e65611f1403d915803fb4845d6a6ee32803e06da3ea07bc83769336570",
+  "omnilab/rightsize.py": "8ece5f3ebabd00b05687c63c63462c037729c8aa1a6e4874040805d163200b77",
+  "omnilab/vmenergy.py": "3fe5b31e3797da8e0bdb035d996506421decd9cff5a2e3e8fc634ff0f5f5e92b",
+  "omnicompass/core.py": "bd615f156169f6794b41439c4ce0726deb6a0b620fac76e072d24b357ab8b0a4",
+  "omnicompass/adapter.py": "57ca59da4024ccea2769083998fdeb7b7c9c05b5c0dbca638375350be7dd93ac"
+ }
+}

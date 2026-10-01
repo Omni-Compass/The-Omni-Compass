@@ -1,0 +1,37 @@
+{
+  "capture": "/home/workdir/artifacts/omni/OmniCompass/k8s_controlplane/fixtures/METRICS_SERVER_CAPTURE.csv",
+  "traces": 9,
+  "rows": 51840,
+  "M1_hpa_vs_filled_status": {
+    "traces": 9,
+    "agreement": 51840,
+    "n": 51840,
+    "mean_replica_changes": 0.8888888888888888,
+    "source": "independent HPA v2 algorithm, not kube-apiserver"
+  },
+  "M2_observe_hpa_path_identical": {
+    "pass": 9,
+    "n": 9
+  },
+  "M3_finite_state": {
+    "pass": 51840,
+    "n": 51840
+  },
+  "M4_push_bounded": {
+    "pass": 51840,
+    "n": 51840
+  },
+  "M5_S_above_Sminus": {
+    "pass": 51840,
+    "n": 51840
+  },
+  "M6_shield_on_directives": {
+    "steps": 51840,
+    "violations": 73
+  },
+  "M7_cpp_parity": null,
+  "omni_rho_mean": 0.9055825197429601,
+  "omni_rho_min": 0.8321616615543491,
+  "omni_rho_max": 0.914,
+  "grade_note": "Mechanism scores on recorded utilization. Cluster HPA agreement is blocked until cluster_desired_replicas is filled."
+}

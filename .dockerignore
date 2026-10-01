@@ -1,0 +1,6 @@
+.git
+lab_results
+kind_pilot_out
+cpp/build
+**/__pycache__
+docs/handoff

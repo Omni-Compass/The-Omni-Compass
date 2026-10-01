@@ -1,0 +1,98 @@
+{
+ "run": "36214629046 (2026-09-26 03:23-03:48 UTC), commit c182a63",
+ "change": "latency afferent (p95 over 500 ms SLO as queue pressure) and power-cap usage reflex",
+ "gauges": [
+  [
+   "Worker nodes in service, mean",
+   "6.00",
+   "3.62",
+   "-39.7%"
+  ],
+  [
+   "Energy (Wh), standby counted",
+   "222",
+   "219",
+   "-1.5%"
+  ],
+  [
+   "Energy per core-hour (Wh)",
+   "725",
+   "931",
+   "+28.5% worse"
+  ],
+  [
+   "CPU used (cores), mean",
+   "0.917",
+   "0.697",
+   "-24.0%"
+  ],
+  [
+   "HPA replicas, mean",
+   "9.01",
+   "6.27",
+   "-30.4%"
+  ],
+  [
+   "Pending pods, pod-minutes",
+   "0.55",
+   "0",
+   "-100%"
+  ],
+  [
+   "Response time (ms), mean",
+   "265",
+   "291",
+   "+10.0% worse"
+  ],
+  [
+   "Response time (ms), median",
+   "240",
+   "241",
+   "+0.6%"
+  ],
+  [
+   "Response time (ms), 95th percentile",
+   "481",
+   "600",
+   "+24.6% worse"
+  ],
+  [
+   "Response time (ms), 99th percentile",
+   "596",
+   "777",
+   "+30.3% worse"
+  ],
+  [
+   "Failed requests (%)",
+   "0",
+   "0",
+   "0"
+  ]
+ ],
+ "significance": [
+  [
+   "kWh per core-hour",
+   "0.7568",
+   "1.0625",
+   "+40.4%",
+   "[+0.0289, +0.6674]",
+   "worse"
+  ],
+  [
+   "Node-hours per core-hour",
+   "6.8625",
+   "5.9729",
+   "-13.0%",
+   "[-2.8963, +1.2561]",
+   "not significant"
+  ]
+ ],
+ "actions": {
+  "power_cap_pod_resizes": 88,
+  "power_cap_per_minute": "alternated 0.695 / 1.0 (oscillation)",
+  "hpa_target": "77% every minute (fleet law floor rho_min 0.769)",
+  "nodes": "5 5 4 ... 3"
+ },
+ "kill_switch": "restored target 50; workers 6 of 6",
+ "diagnosis": "The latency nerve halved the tail slowdown (p95 +65% to +25%, median equal) but the power cap oscillated (cap, slower, uncap) and the HPA target could not fall below the fleet law floor of 76.9%, so the app ran on 6-8 replicas instead of 10. Fix: SLO reflex (no densifying beyond the native target and no capping while the SLO is breached or within 3 decisions after)."
+}

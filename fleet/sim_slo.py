@@ -1,0 +1,704 @@
+"""Fleet simulation with a response-time gauge and a response-time nerve (speed-first mode).
+
+fleet/sim.py is frozen by results/fleet/PREREGISTRATION.json and has no response-time gauge: its scoring checks that
+work finishes and backlog stays small, but never how long a request waits. This module runs the same plant, the same
+HPA, Cluster Autoscaler and Karpenter-lite, the same boot delay and power model, and adds:
+
+  response time   per workload and tick, R = S + Wq + W_backlog, where
+                  S = S0 / cap                        service time (a power cap slows the CPU)
+                  Wq = S * u^(sqrt(2(c+1)) - 1) / (c (1 - u))   queueing delay, Sakasegawa's M/M/c approximation,
+                                                      c = scheduled pods, u = demand / scheduled capacity (<= 0.99)
+                  W_backlog = backlog / capacity * TICK      time to drain work already waiting
+                  S0 = 100 ms. Gauges: demand-weighted p95, p99 and mean over every (tick, workload).
+                  Job vessels (batch, gpu) have no request queue: R = S + W_backlog (job wait).
+  latency nerve   (omni arms, when lat_gain > 0) the governor's queue observation becomes
+                  max(queue, lat_gain * max(0, R_recent / (slo_mult * S0) - 1)), R_recent = worst demand-weighted
+                  response time over the ticks since the last decision. The engine equations are unchanged.
+
+Arm names and behaviour are those of fleet/sim.py; k8s_hpa50_ca (HPA target 0.5) is added because 50% is the
+target of the live lab workload. With lat_gain = 0 and the frozen fleet law, omni_fleet here reproduces the
+frozen omni_fleet trace (checked by tests/test_sim_slo.py).
+"""
+from __future__ import annotations
+
+import copy, hashlib, math, sys
+from dataclasses import dataclass
+from pathlib import Path
+from types import SimpleNamespace
+from typing import Dict
+
+import numpy as np
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from fleet.harness import TICK, STEPS, Scenario, hpa_step, BOOT_TICKS as BOOT
+from fleet.sim import ALLOC, OMNI_EVERY, _resize, _cluster_autoscaler, _karpenter
+from omnicompass.adapter import Governor, AllocationLaw, mode_law, OBSERVE, AUTOPILOT
+from omnicompass.shield import enforce, ShieldLimits
+from omnicompass.speed import SpeedGovernor, SpeedLaw
+from omnicompass.mathdrive import MathDrive, MathLaw
+from omnicompass.closure import ClosureNodes, ClosureLaw, AutoClosureLaw, AutoClosureNodes, stress_equilibrium
+
+S0_MS = 100.0
+PACKING = "fluid"     # "bins": whole pods placed first-fit-decreasing on each machine's allocatable cores; capacity a
+                      # machine cannot fill with a whole pod is stranded (fragmentation), as with a real scheduler
+POWER_MODEL = "legacy"   # "dvfs": every node runs schedutil (f = 1.25 u per workload's cores), P = idle + dyn u f^2
+F_MIN = 0.4
+REC = None   # when a list, run() appends each tick's per-cluster pod requests (analysis only)
+
+
+# Vendor opponents: emulations of documented behaviour (not the vendors' binaries). Declared parameters:
+#   openshift      OpenShift ClusterAutoscaler resource, documented example values: utilizationThreshold 0.4,
+#                  unneededTime 5m, delayAfterAdd 10m (HPA 0.7 on the workloads)
+#   gke_balanced   GKE default profile = upstream Cluster Autoscaler (0.5, 10 min): identical to k8s_hpa70_ca
+#   gke_optimize   GKE optimize-utilization: MostAllocated packing and more aggressive scale-down. GKE publishes no
+#                  numbers; declared here as threshold 0.65 (packing lets more nodes qualify) and unneeded time 2 min
+#   aks_nap        AKS node auto-provisioning = Karpenter, WhenEmptyOrUnderutilized, consolidateAfter 0s: identical
+#                  to k8s_hpa70_karpenter
+#   turbonomic     IBM Turbonomic: container requests resized every 10 min to the p99 of per-pod usage (its default
+#                  aggressiveness) over the run so far, one step of at most 50%; nodes suspended/provisioned toward
+#                  a 0.7 packing target (Karpenter-style), HPA 0.7 left in place
+#   cast_ai        CAST AI Evictor: every 60 s, a node active for more than 5 minutes is drained and deleted when its
+#                  pods fit on the remaining capacity (bin-packing); pending pods add nodes at once
+#   spot_ocean     Spot Ocean (NetApp/Flexera): automatic headroom of 5% of requested resources kept as spare
+#                  capacity; every minute the least-utilised node is scaled down when its pods fit elsewhere with the
+#                  headroom kept
+CA_PROFILES = {"openshift": (0.4, 20, 40), "gke_optimize": (0.65, 8, 40)}
+VENDOR_ARMS = ["openshift", "gke_balanced", "gke_optimize", "aks_nap", "turbonomic", "cast_ai", "spot_ocean"]
+
+
+def _add_for_pending(c, extra=0.0):
+    import math as _m
+    p = c.pool
+    need_cores = c.pending + extra
+    if need_cores > 0:
+        need = max(0, int(_m.ceil(need_cores / (p.cores * ALLOC))) - len(p.booting))
+        wake = min(need, p.parked); p.parked -= wake; p.nodes += wake; need -= wake
+        add = min(need, p.max_nodes - p.nodes - len(p.booting) - p.parked)
+        if add > 0:
+            p.booting += [6] * add
+            c.last_add = 0
+        return True
+    return False
+
+
+def _cast_ai(c, t):
+    p = c.pool
+    c.last_add = getattr(c, "last_add", 99) + 1
+    if _add_for_pending(c):
+        return
+    if t % 4 == 0 and c.last_add >= 20 and p.nodes > p.min_nodes and not p.booting and c.reqs <= (p.nodes - 1) * p.cores * ALLOC:
+        p.nodes -= 1
+        if not p.power_off:
+            p.parked += 1
+
+
+def _spot_ocean(c, t):
+    p = c.pool
+    c.last_add = getattr(c, "last_add", 99) + 1
+    spare = p.nodes * p.cores * ALLOC - c.reqs + len(p.booting) * p.cores * ALLOC
+    short = max(0.0, 0.05 * c.reqs - spare) if c.pending <= 0 else 0.0
+    if _add_for_pending(c, short):
+        return
+    if t % 4 == 0 and p.nodes > p.min_nodes and not p.booting and 1.05 * c.reqs <= (p.nodes - 1) * p.cores * ALLOC:
+        p.nodes -= 1
+        if not p.power_off:
+            p.parked += 1
+
+
+def _ca_profile(c, thr, unneeded, after_add):
+    """Upstream Cluster Autoscaler logic with a profile's threshold and timers (ticks of 15 s)."""
+    import math as _m
+    p = c.pool
+    c.ca_since_add += 1
+    if c.pending > 0:
+        need = int(_m.ceil(c.pending / (p.cores * ALLOC))) - len(p.booting)
+        if need > 0:
+            wake = min(need, p.parked); p.parked -= wake; p.nodes += wake; need -= wake
+            add = min(need, p.max_nodes - p.nodes - len(p.booting) - p.parked)
+            if add > 0:
+                p.booting += [6] * add
+            if add > 0 or wake > 0:
+                c.ca_since_add = 0
+        c.ca_under = 0
+        return
+    ru = c.reqs / max(c.alloc, 1e-9)
+    c.ca_under = c.ca_under + 1 if ru < thr else 0
+    if c.ca_under >= unneeded and c.ca_since_add >= after_add and p.nodes > p.min_nodes and not p.booting:
+        p.nodes -= 1
+        if not p.power_off:
+            p.parked += 1
+        c.ca_under = 0
+
+
+def _turbo_nodes(c, t):
+    import math as _m
+    p = c.pool
+    if c.pending > 0:
+        need = max(0, int(_m.ceil(c.pending / (p.cores * ALLOC))) - len(p.booting))
+        wake = min(need, p.parked); p.parked -= wake; p.nodes += wake; need -= wake
+        add = min(need, p.max_nodes - p.nodes - len(p.booting) - p.parked)
+        if add > 0:
+            p.booting += [6] * add
+        return
+    if t % 4 == 0 and p.nodes > p.min_nodes and not p.booting and c.reqs <= 0.7 * (p.nodes - 1) * p.cores * ALLOC:
+        p.nodes -= 1
+        if not p.power_off:
+            p.parked += 1
+
+
+@dataclass(frozen=True)
+class DirectLaw:
+    """Architecture C, strict: Kubernetes keeps only its muscle (scheduler places pods, kubelet runs them); the HPA,
+    Cluster Autoscaler, VPA and Karpenter are off. Omni-Compass sets every workload's replica count itself:
+      up     at once to ceil(replicas x usage / rho* + kb x backlog / request)   (no HPA tolerance band or rate limit)
+      down   to the highest recommendation of the last `window` ticks, only while the engine's push <= push_release
+    rho* is the engine's target (the speed law's), machines follow the speed law."""
+    window: int = 20
+    kb: float = 1.0
+    push_release: float = 0.05
+    tol: float = 0.0
+    beta: float = -1.0   # >= 0: square-root staffing (Halfin-Whitt), replicas = a + beta sqrt(a), a = busy pods: the same
+                         # queueing delay with fewer pods on large services and more headroom on small ones
+    wq: float = -1.0     # >= 0: exact staffing, the fewest replicas c whose M/M/c wait (the plant's own Sakasegawa
+                         # formula) is at most wq x service time at the observed load
+    ref_u: float = -1.0  # > 0: queue-matched staffing, the fewest replicas whose M/M/c wait is no longer than the wait the
+                         # operator's own utilisation target ref_u would give at this load (same latency promise, fewer
+                         # pods where the service is large: the square-root staffing effect)
+
+
+def omni_replicas(w, rho, push, L):
+    import math as _m
+    cur = w.replicas
+    a = cur * w.metric
+    base = a + L.beta * _m.sqrt(a) if L.beta >= 0 else a / max(rho, 1e-9)
+    if L.wq >= 0 and a > 1e-9:
+        c = max(1, int(_m.ceil(a / 0.99)))
+        while c < w.max_rep:
+            u = a / c
+            if u ** (_m.sqrt(2.0 * (c + 1.0)) - 1.0) / (c * (1.0 - u)) <= L.wq:
+                break
+            c += 1
+        base = float(c)
+    if L.ref_u > 0 and a > 1e-9:
+        def _wait(c_):
+            u_ = min(0.99, a / c_)
+            return u_ ** (_m.sqrt(2.0 * (c_ + 1.0)) - 1.0) / (c_ * (1.0 - u_))
+        ref = _wait(max(1, int(_m.ceil(a / L.ref_u - 1e-9))))
+        c = max(1, int(_m.ceil(a / 0.99)))
+        while c < w.max_rep and _wait(c) > ref + 1e-12:
+            c += 1
+        base = float(c)
+    want = max(w.min_rep, min(w.max_rep, int(_m.ceil(base + L.kb * w.backlog / max(w.request, 1e-9) - 1e-9))))
+    if (abs(want - cur) <= L.tol * cur if L.ref_u > 0 else abs(w.metric / max(rho, 1e-9) - 1.0) <= L.tol) and w.backlog <= 1e-9:
+        want = cur
+    w.rec_hist = (w.rec_hist + [want])[-max(1, L.window):]
+    if want > cur:
+        w.replicas = want
+    elif want < cur and push <= L.push_release:
+        w.replicas = max(w.min_rep, max(w.rec_hist))
+
+
+@dataclass(frozen=True)
+class BLaw:
+    """Architecture B (Omni-Compass on top of a platform). The platform's own controllers run unchanged; Omni-Compass
+    intervenes only in two ways, each gated by the engine:
+      veto   a node removal the platform just made is undone while requests are rising (trend over `lag` ticks above
+             `rise`) or the engine has not converged (push > push_hold) or unrelieved need I_U > need_hold: a removal
+             that would be reversed within the boot delay costs a stop, a start, a boot and pending pods
+      early  one node is added ahead when the requests projected `lead` ticks ahead exceed allocatable capacity and no
+             node is booting: the node the platform would add after pods go pending, added before they do
+      flip   a removal within flip_guard ticks of the platform's own last addition is undone (flip-flop damping)
+    Pods, HPA targets and everything else stay the platform's."""
+    lag: int = 8
+    rise: float = 0.02
+    push_hold: float = 9.0
+    need_hold: float = 9.0
+    lead: int = 6
+    early: bool = True
+    veto: bool = True
+    pack: float = 0.0           # consolidate: remove a node when the rest hold every request at this packing (0 = off)
+    pack_calm: int = 8          # ... only after requests have not risen for this many ticks
+    f_rho: float = 0.0          # dvfs: Omni-Compass frequency ceiling (scaling_max_freq) = u / f_rho when calm; 0 = off
+    f_rho_min: float = 0.8      # the engine lowers f_rho toward this as need (I_U) and energy stress (E) rise
+    flip_guard: int = 0         # veto a removal within this many ticks of the platform's last addition (0 = off)
+    confirm: int = 1            # early add only after the rise has been seen this many consecutive ticks
+    tone: bool = False          # muscle tone: a machine the platform powers off is parked instead (alive, low power, the
+                                # platform's next scale-up wakes it at once); parked machines beyond the reserve the law
+                                # expects within tone_H are powered off
+    tone_H: int = 960
+    tone_rho: float = 0.95
+    shift: bool = False         # traffic shift between the site's clusters (multi-cluster sites): a cluster whose pods do
+                                # not fit runs the overflow on another cluster's already-powered spare cores, so the
+                                # platform sees fewer pending pods and adds fewer machines
+
+
+def _omni_on_top(c, before, g, L):
+    import math as _m
+    p = c.pool
+    h = getattr(c, "_rh", []); h.append(c.reqs); c._rh = h[-64:]
+    c._tick = getattr(c, "_tick", 0) + 1
+    trend = (h[-1] - h[-1 - L.lag]) / max(h[-1 - L.lag], 1e-9) if len(h) > L.lag else 0.0
+    veto = early = 0
+    n0, parked0, boot0 = before
+    delta = (p.nodes + len(p.booting)) - (n0 + len(boot0))
+    if delta > 0:
+        c._last_add = c._tick
+    removed = -delta
+    recent = L.flip_guard > 0 and c._tick - getattr(c, "_last_add", -10 ** 9) <= L.flip_guard
+    if removed > 0 and ((L.veto and (trend > L.rise or g.last_push > L.push_hold or g.x.I_U > L.need_hold)) or recent):
+        p.nodes, p.parked, p.booting = n0, parked0, list(boot0)
+        veto = 1
+    if L.tone:
+        th = getattr(c, "_th", []); th.append(c.reqs); c._th = th[-L.tone_H:]
+        off_run = max(0, n0 - p.nodes) if not veto else 0
+        if off_run and p.power_off and p.parked <= parked0:
+            p.parked += off_run
+        keep = max(0, int(_m.ceil(max(c._th) / (L.tone_rho * p.cores * ALLOC) - 1e-9)) - (p.nodes + len(p.booting)))
+        if p.parked > keep:
+            p.parked = keep
+    if L.pack > 0 and not p.booting and p.nodes > p.min_nodes and getattr(c, "_calm", 0) >= L.pack_calm \
+            and c.reqs <= L.pack * (p.nodes - 1) * p.cores * ALLOC and g.last_push <= 0.05:
+        p.nodes -= 1
+        if not p.power_off:
+            p.parked += 1
+        c._calm = 0
+    c._calm = getattr(c, "_calm", 0) + 1 if not (len(h) > 1 and h[-1] > h[-2] * 1.001) else 0
+    if L.f_rho > 0:
+        # frequency ceiling from the engine: run the cores hotter (fewer, slower cycles) while the engine is calm;
+        # rho_f falls toward f_rho_min as unmet need I_U and energy stress E rise; any backlog releases it
+        rho_f = max(L.f_rho_min, L.f_rho - max(0.0, g.x.I_U) - max(0.0, g.x.E))
+        busy = max((w.req_now and (w.metric if w.hpa else 1.0)) for w in c.workloads) if c.workloads else 1.0
+        backlog = sum(w.backlog for w in c.workloads)
+        c.f_ceiling = 1.0 if backlog > 1e-9 else max(F_MIN, min(1.0, busy / rho_f))
+    c._rise = getattr(c, "_rise", 0) + 1 if len(h) > L.lag and h[-1] > h[-1 - L.lag] else 0
+    if L.early and not p.booting and len(h) > L.lag and c._rise >= L.confirm:
+        slope = (h[-1] - h[-1 - L.lag]) / L.lag
+        if slope > 0 and h[-1] + slope * L.lead > p.nodes * p.cores * ALLOC and p.nodes + p.parked < p.max_nodes:
+            if p.parked:
+                p.parked -= 1; p.nodes += 1
+            else:
+                p.booting.append(6)
+            early = 1
+    return veto, early
+
+
+SHIFT_MS = 5.0   # added response time of requests served in another cluster at the same site
+
+
+def _site_closure(scn, cl, L, push):
+    """Whole body: the closure law on the site total (one forecast, one reserve for all clusters). Machines are added
+    to the cluster with the largest shortfall and released from the one with the largest surplus; traffic shift covers
+    the difference between a cluster's own machines and its own requests."""
+    cs = scn.clusters; c = cs[0].pool.cores * ALLOC
+    n = [x.pool.nodes + len(x.pool.booting) for x in cs]
+    N = sum(n)
+    tgt = cl.decide(N, c, push, sum(x.pool.min_nodes for x in cs), sum(x.pool.max_nodes for x in cs))
+    co = getattr(L, "coord", False)
+    while tgt > N:
+        # coordination: never add to a cluster whose pods were just cut (unless it is short of room)
+        i = max(range(len(cs)), key=lambda k: (cs[k].reqs - n[k] * c) if n[k] < cs[k].pool.max_nodes and not
+                (co and getattr(cs[k], "_dpods", 0) < 0 and cs[k].reqs <= n[k] * c) else -1e18)
+        if getattr(L, "wake_first", False) and cs[i].pool.parked == 0:
+            warm = [k for k in range(len(cs)) if cs[k].pool.parked > 0 and n[k] < cs[k].pool.max_nodes]
+            if warm:      # wake a parked machine elsewhere in the site instead of cold-booting one here
+                i = max(warm, key=lambda k: cs[k].reqs - n[k] * c)
+        if co and getattr(cs[i], "_dpods", 0) < 0 and cs[i].reqs <= n[i] * c:
+            break
+        if n[i] >= cs[i].pool.max_nodes:
+            break
+        _resize(cs[i], n[i] + 1, park=True); n[i] += 1; N += 1
+    while tgt < N:
+        # coordination: never release from a cluster whose pods were just added
+        i = max(range(len(cs)), key=lambda k: (n[k] * c - cs[k].reqs) if n[k] > cs[k].pool.min_nodes and not
+                (co and getattr(cs[k], "_dpods", 0) > 0) else -1e18)
+        if co and getattr(cs[i], "_dpods", 0) > 0:
+            break
+        if n[i] <= cs[i].pool.min_nodes:
+            break
+        _resize(cs[i], n[i] - 1, park=L.tone or not cs[i].pool.power_off); n[i] -= 1; N -= 1
+    if L.tone:
+        keep = max(0, cl.reserve(c) - N)
+        tot = sum(x.pool.parked for x in cs)
+        while tot > keep:
+            j = max(range(len(cs)), key=lambda k: cs[k].pool.parked)
+            cs[j].pool.parked -= 1; cs[j]._single_dn = getattr(cs[j], "_single_dn", 0) - 1; tot -= 1
+
+
+def _bin_fracs(c, p, alloc):
+    """Whole-pod placement, first-fit decreasing by size class on machines of p.cores x ALLOC allocatable cores. Service
+    pods are placed as whole units; job workloads (no pods) take the remaining capacity fluidly. Returns, per workload, the
+    fraction of its requested cores that is placed."""
+    import math as _m
+    C = p.cores * ALLOC
+    n_nodes = int(round(alloc / C)) if C > 0 else 0
+    frac_nodes = alloc / C - n_nodes if C > 0 else 0.0          # traffic-shift capacity arrives as a fraction of a node
+    classes = {}
+    for i, w in enumerate(c.workloads):
+        if w.hpa and w.replicas > 0:
+            classes.setdefault(w.request, []).append(i)
+    count = {s: sum(c.workloads[i].replicas for i in ix) for s, ix in classes.items()}
+    placed = {s: 0 for s in classes}
+    bins = [C] * n_nodes + ([frac_nodes * C] if frac_nodes > 1e-9 else [])
+    for rem in bins:
+        for s in sorted(classes, reverse=True):
+            k = min(count[s] - placed[s], int(_m.floor(rem / s + 1e-9)))
+            if k > 0:
+                placed[s] += k; rem -= k * s
+    out = [1.0] * len(c.workloads)
+    used = 0.0
+    for s, ix in classes.items():
+        f = placed[s] / count[s] if count[s] else 1.0
+        for i in ix:
+            out[i] = f; used += c.workloads[i].replicas * s * f
+    jobs = [i for i, w in enumerate(c.workloads) if not (w.hpa and w.replicas > 0)]
+    jreq = sum(c.workloads[i].req_now for i in jobs)
+    jf = min(1.0, max(0.0, alloc - used) / jreq) if jreq > 0 else 1.0
+    for i in jobs:
+        out[i] = jf
+    return out
+
+
+def hpa_target(arm):
+    return {"k8s_hpa50_ca": 0.5, "k8s_hpa60_ca": 0.6, "k8s_hpa80_ca": 0.8}.get(arm, 0.7)
+
+
+def response_ms(w, d, capw, cap, frac, f=1.0):
+    s = S0_MS / max(cap * f, 1e-9)
+    drain = (w.backlog / max(capw, 1e-9)) * TICK * 1000.0 if w.backlog > 1e-12 else 0.0
+    if not w.hpa:
+        return s + drain
+    c = max(1.0, w.replicas * frac)
+    u = min(0.99, d / max(capw, 1e-9))
+    wq = s * u ** (math.sqrt(2.0 * (c + 1.0)) - 1.0) / (c * (1.0 - u)) if u > 0 else 0.0
+    return s + wq + drain
+
+
+def wpct(vals, wts, q):
+    v = np.asarray(vals); wt = np.asarray(wts)
+    if wt.sum() <= 0:
+        return float(np.percentile(v, q)) if len(v) else 0.0
+    o = np.argsort(v); v, wt = v[o], wt[o]
+    cw = np.cumsum(wt) / wt.sum()
+    return float(v[min(len(v) - 1, np.searchsorted(cw, q / 100.0))])
+
+
+def run(scn0: Scenario, arm: str, governor_law: AllocationLaw = None, omni_every: int = OMNI_EVERY,
+        lat_gain: float = 0.0, slo_mult: float = 2.0, speed_law: SpeedLaw = None, math_law: MathLaw = None, b_law: "BLaw" = None, direct_law: "DirectLaw" = None, closure_law: ClosureLaw = None, on_tick=None) -> Dict:
+    """on_tick(t, scn): fault injection hook called at the start of every tick (protocol bench); when given, the result
+    also carries the per-tick series used by the runtime-protocol gauges (worst response, queue, pending, power)."""
+    scn = copy.deepcopy(scn0)
+    series = [] if on_tick is not None else None
+    on_top = arm.startswith("omniB:")          # architecture B: a platform runs, Omni-Compass governs on top of it
+    base = arm.split(":", 1)[1] if on_top else arm
+    mathd = arm == "omni_math"
+    closure = arm in ("omni_closure", "omni_closure_hpa")
+    direct = arm in ("omni_direct", "omni_closure")
+    DL = direct_law or DirectLaw()
+    speed = arm == "omni_speed" or mathd or direct or closure
+    CL = closure_law or ClosureLaw()
+    auto = isinstance(CL, AutoClosureLaw)
+    mk = (lambda: AutoClosureNodes(CL)) if auto else (lambda: ClosureNodes(CL))
+    cl_nodes = [mk() for _ in scn.clusters] if closure else []
+    site = closure and CL.site and len(scn.clusters) > 1   # whole body: one law for the site, traffic shift between clusters
+    cl_site = mk() if site else None
+    single = arm.startswith("omni_fleet") or arm.startswith("omni_single") or speed
+    uses_gov = arm.startswith("omni")
+    B = b_law or BLaw()
+    shift = site or (on_top and B.shift and len(scn.clusters) > 1)
+    glaw = governor_law if governor_law is not None else (mode_law("fleet", AllocationLaw()) if single else AllocationLaw())
+    if single and governor_law is None and not speed:
+        omni_every = 4
+    lim = ShieldLimits(power_limit=1e9) if single else ShieldLimits()
+    govs = [Governor(law=glaw) for _ in scn.clusters] if uses_gov and not speed else []
+    for g in govs:
+        g.set_mode(AUTOPILOT if single or arm == "omni_target" else OBSERVE)
+    b_veto = b_early = 0
+    if speed:
+        govs = [MathDrive(math_law or MathLaw()) if mathd else SpeedGovernor(speed_law or SpeedLaw()) for _ in scn.clusters]
+        if auto:
+            gp = govs[0].g.p   # the engine's own stress equilibrium sets the unit of the margin's stress coupling
+            for nd in cl_nodes + ([cl_site] if site else []):
+                nd.s_eq = stress_equilibrium(gp.delta, gp.alpha_s, gp.beta_s)
+    targets = [hpa_target(base)] * len(scn.clusters)
+    energy = dem = done = 0.0
+    viol_q = viol_p = viol_h = healthy = 0
+    starts = stops = rev = 0
+    last_dir = [0] * len(scn.clusters)
+    node_ticks = 0
+    pod_changes = 0
+    cap_moves = 0
+    park_moves = 0
+    contra = 0
+    R_all, W_all = [], []
+    r_recent = [0.0] * len(scn.clusters)
+    trace = []
+    for t in range(STEPS):
+        if on_tick is not None:
+            on_tick(t, scn)
+        site_power = 0.0
+        stress_q = []
+        tick_r = 0.0; tick_pend = 0.0; tick_dem = tick_srv = 0.0
+        if shift:
+            # traffic shift: a cluster whose pods do not fit runs the overflow on another cluster's spare allocatable
+            # cores (machines already powered); the lent share is split in proportion to spare and to need
+            own = []
+            for c in scn.clusters:
+                p = c.pool
+                ready = p.nodes + sum(1 for b in p.booting if b - 1 <= 0)
+                rq = sum(w.replicas * w.request if w.hpa else w.demand[t] + w.backlog for w in c.workloads)
+                own.append((ready * p.cores * ALLOC, rq))
+            spare = [max(0.0, a - r) for a, r in own]; need = [max(0.0, r - a) for a, r in own]
+            lend = min(sum(spare), sum(need))
+            for c, sp, nd in zip(scn.clusters, spare, need):
+                c._borrow = nd * lend / sum(need) if lend > 0 else 0.0
+                c._lent = sp * lend / sum(spare) if lend > 0 else 0.0
+        for ci, c in enumerate(scn.clusters):
+            p = c.pool
+            p.booting = [b - 1 for b in p.booting]
+            p.nodes += sum(1 for b in p.booting if b <= 0)
+            p.booting = [b for b in p.booting if b > 0]
+            alloc = p.nodes * p.cores * ALLOC
+            if shift:
+                alloc = alloc + c._borrow - c._lent
+            reqs = 0.0
+            for w in c.workloads:
+                w.req_now = w.replicas * w.request if w.hpa else w.demand[t] + w.backlog
+                reqs += w.req_now
+            frac = min(1.0, alloc / reqs) if reqs > 0 else 1.0
+            fw = _bin_fracs(c, p, alloc) if PACKING == "bins" else None
+            if fw is not None:
+                placed = sum(w.req_now * fw[i] for i, w in enumerate(c.workloads))
+                c._stranded = max(0.0, alloc - placed) if placed < reqs else 0.0
+            used = cap_rate = 0.0
+            rs, ws = [], []
+            dvfs = POWER_MODEL == "dvfs"
+            ceil_f = getattr(c, "f_ceiling", 1.0) if dvfs else 1.0
+            dyn_sum = 0.0
+            for wi, w in enumerate(c.workloads):
+                d = w.demand[t]
+                capmax = w.req_now * (fw[wi] if fw is not None else frac) * p.cap
+                f = 1.0
+                if dvfs:
+                    # schedutil on the cores running this workload: f = 1.25 u (u frequency-invariant), then the policy ceiling
+                    u_inv = min(1.0, (d + w.backlog) / max(capmax, 1e-9))
+                    f = min(1.0, max(F_MIN, 1.25 * u_inv), max(F_MIN, ceil_f))
+                capw = capmax * f
+                srv = min(d + w.backlog, capw)
+                dyn_sum += srv * f * f
+                w.backlog = d + w.backlog - srv
+                dem += d; done += srv; used += srv; cap_rate += max(capw, 1e-9)
+                w.metric_next = min(1.0, srv / max(w.replicas * w.request, 1e-9)) if w.hpa else 0.0
+                if base == "turbonomic" and w.hpa:
+                    w.use_hist = getattr(w, "use_hist", []) + [srv / max(1, w.replicas)]
+                if d > 0:
+                    r = response_ms(w, d, capw, p.cap, frac, f)
+                    if shift and c._borrow > 0:
+                        r += SHIFT_MS * min(1.0, c._borrow / max(reqs, 1e-9))   # cross-cluster hop for the shifted share
+                    rs.append(r); ws.append(d)
+            R_all += rs; W_all += ws
+            rc = float(np.average(rs, weights=ws)) if ws else S0_MS
+            r_recent[ci] = max(r_recent[ci], rc)
+            c.pending = max(0.0, reqs - alloc)
+            if fw is not None:
+                c.pending = max(0.0, reqs - sum(w.req_now * fw[i] for i, w in enumerate(c.workloads)))
+            if series is not None:
+                tick_r = max(tick_r, max(rs) if rs else S0_MS)
+                tick_pend = max(tick_pend, c.pending / max(reqs, 1e-9))
+                tick_dem += sum(w.demand[t] for w in c.workloads); tick_srv += used
+            c.reqs, c.alloc, c.used = reqs, alloc, used
+            if closure:
+                cl_nodes[ci].observe(reqs)
+            util = min(1.0, used / max(alloc, 1e-9))
+            if shift and not dvfs:
+                # own machines' idle power; dynamic power follows the work wherever it runs (identical pools)
+                kw = (p.nodes * p.cap * p.idle_kw + p.cap * p.dyn_kw * used / (p.cores * ALLOC) + len(p.booting) * p.idle_kw
+                      + p.parked * p.idle_kw * p.park_frac) * scn.pue
+            elif dvfs:
+                # idle power does not scale with frequency; dynamic power of a core busy b at frequency f is ~ b f^3,
+                # i.e. (work served) x f^2 per core-unit of work
+                kw = (p.nodes * p.idle_kw + p.dyn_kw / (p.cores * ALLOC) * dyn_sum + len(p.booting) * p.idle_kw
+                      + p.parked * p.idle_kw * p.park_frac) * scn.pue
+            else:
+                kw = (p.nodes * p.cap * (p.idle_kw + p.dyn_kw * util) + len(p.booting) * p.idle_kw
+                      + p.parked * p.idle_kw * p.park_frac) * scn.pue
+            c.kw = kw
+            site_power += kw
+            node_ticks += p.nodes + len(p.booting)
+            c.q = min(2.0, sum(w.backlog for w in c.workloads) / max(cap_rate * 8.0, 1e-9))
+            stress_q.append(c.q)
+        if site:
+            cl_site.observe(sum(c.reqs for c in scn.clusters))
+        if REC is not None:
+            REC.append([c.reqs for c in scn.clusters])
+        pstress = site_power / scn.site_limit_kw
+        for c in scn.clusters:
+            c.pool.thermal = 0.97 * c.pool.thermal + 0.03 * (0.30 + 0.65 * min(1.4, pstress))
+        energy += site_power * TICK / 3600.0
+        qmax = max(stress_q); th = max(c.pool.thermal for c in scn.clusters)
+        viol_q += qmax > 0.35; viol_p += pstress > 1.05; viol_h += th > 1.03
+        healthy += (qmax < 0.28 and pstress <= 1.02 and th < 0.96)
+        if series is not None:
+            series.append((tick_r, qmax, tick_pend, pstress, th, tick_dem, tick_srv, site_power))
+        for c in scn.clusters:
+            for w in c.workloads:
+                w.metric = w.metric_next
+        if uses_gov and t % omni_every == 0:
+            if site and not getattr(CL, "coord", False):
+                if auto:
+                    cl_site.S = max(g.g.x.S for g in govs)
+                _site_closure(scn, cl_site, CL, max(g.g.last_push for g in govs))
+            for ci, (c, g) in enumerate(zip(scn.clusters, govs)):
+                load = min(2.0, c.used / max(c.alloc * c.pool.cap, 1e-9)) if c.alloc > 0 else 2.0
+                q = c.q
+                if lat_gain > 0:
+                    q = max(q, min(2.0, lat_gain * max(0.0, r_recent[ci] / (slo_mult * S0_MS) - 1.0)))
+                r_recent[ci] = 0.0
+                obs = {"queue_ratio": q, "load_ratio": load, "power_stress": pstress, "thermal": c.pool.thermal,
+                       "network_stress": 0.0, "drift_ratio": 0.0, "stale": 0.0, "security_block": 0.0}
+                if speed:
+                    p = c.pool
+                    n = p.nodes + len(p.booting)
+                    if mathd:
+                        rho, tgt, capn, _ = g.step(obs, n, c.reqs, p.cores * ALLOC)
+                    else:
+                        g.g.current_cap = p.cap
+                        rho, tgt, capn = g.step(obs, n, c.reqs, p.cores * ALLOC)
+                    targets[ci] = min(0.95, max(0.4, rho))
+                    if site:
+                        p.cap = 1.0
+                        if getattr(CL, "coord", False) and direct:
+                            c._dpods = 0
+                            for w in c.workloads:
+                                if w.hpa:
+                                    before = w.replicas
+                                    omni_replicas(w, targets[ci], g.g.last_push, DL)
+                                    pod_changes += abs(w.replicas - before); c._dpods += w.replicas - before
+                            c._pods_done = True
+                            c.reqs = sum(w.replicas * w.request if w.hpa else w.demand[t] + w.backlog for w in c.workloads)
+                        continue
+                    if closure and getattr(CL, "coord", False) and direct:
+                        # nervous-system coordination: pods are decided first, machines second on the pods just chosen,
+                        # and the two organs may not move against each other in the same decision
+                        c._dpods = 0
+                        for w in c.workloads:
+                            if w.hpa:
+                                before = w.replicas
+                                omni_replicas(w, targets[ci], g.g.last_push, DL)
+                                pod_changes += abs(w.replicas - before); c._dpods += w.replicas - before
+                        c._pods_done = True
+                        c.reqs = sum(w.replicas * w.request if w.hpa else w.demand[t] + w.backlog for w in c.workloads)
+                    if closure:
+                        if auto:
+                            cl_nodes[ci].S = g.g.x.S
+                        tgt = cl_nodes[ci].decide(n, p.cores * ALLOC, g.g.last_push, p.min_nodes, p.max_nodes)
+                        if getattr(c, "_pods_done", False):
+                            fits = c.reqs <= n * p.cores * ALLOC * CL.rho_max
+                            if (tgt < n and c._dpods > 0) or (tgt > n and c._dpods < 0 and fits):
+                                tgt = n
+                        capn = 1.0
+                    tgt = max(p.min_nodes, min(p.max_nodes, tgt))
+                    if tgt != n:
+                        _resize(c, tgt, park=not p.power_off or (closure and CL.tone))
+                    if closure and CL.tone:
+                        # muscle tone: machines the law expects to need within tone_H stay parked (alive, low power,
+                        # instant wake); only machines beyond that reserve are powered off
+                        keep = max(0, cl_nodes[ci].reserve(p.cores * ALLOC) - (p.nodes + len(p.booting)))
+                        if p.parked > keep:
+                            off = p.parked - keep; p.parked -= off
+                            c._single_dn = getattr(c, "_single_dn", 0) - off
+                    if abs(capn - p.cap) > 1e-9:
+                        p.cap = capn; cap_moves += 1
+                    continue
+                g.current_cap = c.pool.cap
+                g.nodes = c.pool.nodes + len(c.pool.booting)
+                d = g.step(obs, 0)
+                if not g.has_authority:
+                    continue
+                targets[ci] = min(0.95, max(0.5, float(d["demand"])))
+                if single:
+                    p = c.pool
+                    n = p.nodes + len(p.booting)
+                    fit = int(math.ceil(c.reqs / (p.cores * ALLOC))) if c.reqs > 0 else p.min_nodes
+                    tgt = max(p.min_nodes, min(p.max_nodes, max(n + int(d["node_delta"]), fit)))
+                    acts = []
+                    if tgt != n:
+                        acts.append({"action": "nodes", "target": tgt, "direction": 1 if tgt > n else -1})
+                    if abs(d["power_cap"] - p.cap) > 1e-9:
+                        acts.append({"action": "power_cap", "target": d["power_cap"], "direction": -1 if d["power_cap"] < p.cap else 1})
+                    cfg = SimpleNamespace(minimum_nodes=p.min_nodes, maximum_nodes=p.max_nodes)
+                    acts, _ = enforce(acts, {"actual_nodes": n, "power_cap": p.cap}, obs, cfg, lim)
+                    for a in acts:
+                        if a["action"] == "nodes":
+                            _resize(c, int(a["target"]), park=(arm == "omni_fleet_park" or not p.power_off))
+                        elif a["action"] == "power_cap":
+                            p.cap = float(a["target"]); cap_moves += 1
+        if uses_gov and t % omni_every == 0 and site and getattr(CL, "coord", False):
+            _site_closure(scn, cl_site, CL, max(g.g.last_push for g in govs))
+        for ci, c in enumerate(scn.clusters):
+            pods_done = getattr(c, "_pods_done", False); c._pods_done = False
+            if not pods_done:
+                c._dpods = 0
+            for w in c.workloads:
+                if w.hpa and not pods_done:
+                    before = w.replicas
+                    if direct:
+                        omni_replicas(w, targets[ci], govs[ci].g.last_push, DL)
+                    else:
+                        hpa_step(w, targets[ci])
+                    pod_changes += abs(w.replicas - before)
+                    c._dpods += w.replicas - before
+            n_before = c.pool.nodes + len(c.pool.booting)
+            parked_before = c.pool.parked
+            if not single:
+                pb = (c.pool.nodes, c.pool.parked, list(c.pool.booting))
+                if base in ("k8s_hpa70_karpenter", "aks_nap"):
+                    _karpenter(c, t)
+                elif base in CA_PROFILES:
+                    _ca_profile(c, *CA_PROFILES[base])
+                elif base == "cast_ai":
+                    _cast_ai(c, t)
+                elif base == "spot_ocean":
+                    _spot_ocean(c, t)
+                elif base == "turbonomic":
+                    _turbo_nodes(c, t)
+                    if t % 40 == 39:
+                        for w in c.workloads:
+                            if w.hpa and getattr(w, "use_hist", None):
+                                want = max(0.05, float(np.percentile(w.use_hist, 99)))
+                                w.request = float(min(w.request * 1.5, max(w.request * 0.5, want)))
+                else:
+                    _cluster_autoscaler(c)
+                if on_top:
+                    v, e = _omni_on_top(c, pb, govs[ci], B)
+                    b_veto += v; b_early += e
+            n_after = c.pool.nodes + len(c.pool.booting)
+            dn = n_after - n_before + (c.pool.parked - parked_before)
+            if single and hasattr(c, "_single_dn"):
+                dn += c._single_dn; c._single_dn = 0
+            park_moves += getattr(c, "_park_moves", 0)
+            c._park_moves = 0
+            starts += max(0, dn); stops += max(0, -dn)
+            if dn:
+                dr = 1 if dn > 0 else -1
+                rev += int(last_dir[ci] != 0 and dr != last_dir[ci]); last_dir[ci] = dr
+                # contradiction gauge: controllers fighting (machines and pods moved in opposite directions this tick)
+                # or a machine change undone within one boot delay of the opposite change
+                fight = (dr > 0 and c._dpods < 0) or (dr < 0 and c._dpods > 0)
+                quick = getattr(c, "_last_dn_t", -10 ** 9) >= t - BOOT and getattr(c, "_last_dn_dir", 0) == -dr
+                contra += int(fight or quick)
+                c._last_dn_t, c._last_dn_dir = t, dr
+        if t % 40 == 0:
+            trace.append(tuple((c.pool.nodes, len(c.pool.booting), round(c.pool.cap, 9), tuple(w.replicas for w in c.workloads)) for c in scn.clusters))
+    out = {"vessel": scn.vessel, "seed": scn.seed, "arm": arm, "energy_kwh": energy, "work_completed": done / max(dem, 1e-9),
+            "time_healthy": healthy / STEPS, "violation_backlog": viol_q / STEPS, "violation_power": viol_p / STEPS,
+            "violation_heat": viol_h / STEPS, "machines_started": starts, "machines_stopped": stops,
+            "node_reversals": rev, "node_hours": node_ticks * TICK / 3600.0, "pod_changes": pod_changes,
+            "cap_moves": cap_moves, "park_moves": park_moves, "contradictions": contra, "b_vetoes": b_veto, "b_early_adds": b_early, "p95_ms": wpct(R_all, W_all, 95), "p99_ms": wpct(R_all, W_all, 99),
+            "mean_ms": float(np.average(R_all, weights=W_all)) if W_all else S0_MS,
+            "trace_hash": hashlib.sha256(repr(trace).encode()).hexdigest()[:16]}
+    if series is not None:
+        out["series"] = series
+        Ra, Wa = np.asarray(R_all), np.asarray(W_all)
+        out["timeouts"] = float(Wa[Ra > 2000.0].sum() / max(Wa.sum(), 1e-9))   # demand share answered after 2 s
+    return out

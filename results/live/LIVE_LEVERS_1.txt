@@ -1,0 +1,25 @@
+Live levers on real Kubernetes (kind, 1 control plane + 6 workers), GitHub Actions run 36270589830, commit 43f6747,
+2026-09-26 20:45-20:48 UTC. Omni-Compass ran as its least-privilege service account (deploy/kind/rbac-omni.yaml +
+rbac-levers.yaml). Script: scripts/kind_levers.sh. Result: LIVE LEVERS: PASS, 19 of 19 checks, 0 lever errors.
+
+Permission receipts (kubectl auth can-i as the Omni service account)
+  can:    patch pods/resize default, patch deployment/idle-worker, patch deployments/scale idle-worker,
+          get configmap/omni-work, patch jobs default, create/delete resourcequotas agents, patch pods/resize agents
+  cannot: delete pods agents, create pods agents, delete deployments agents, patch deployment/load-generator,
+          create resourcequotas default, get secrets (any namespace)
+
+rightsize   php-apache CPU requests: before [200m] after [50m]; after kill [200m]
+coldstart   idle-worker replicas: idle -> 0; work waiting -> 2; idle again -> 0; after kill -> 2
+batch_pace  train-a suspended: stress -> true; calm -> false; stress -> true; after kill -> false
+contain     agent quota present: over budget -> 1; under budget -> 0; over -> 1; after kill -> 0
+            agent CPU limits: before [400m 400m] contained [100m 100m] lifted [400m 400m] after kill [400m 400m]
+cooling     setpoints written to the stand-in building controller: 27.0 27.0 27.0 22.0 (kill restores 22.0)
+records left after kill: none
+
+Earlier runs of the same script (kept for the record): run 36268772674 failed (containment could not lift: Kubernetes
+refuses to raise a pod limit above a standing quota; one failing lever stopped the kill switch); run 36269885518 printed
+PASS but its checks were chained so failures were not counted (containment still not lifted); run 36270202629 failed in
+the script's quota probe once the quota was correctly deleted. Fixes: quota deleted before limits are restored; each
+lever and each kill-switch restore isolated; every check counted on its own line.
+Not covered: the cooling lever writes to a stand-in controller (a CI runner has no chiller); CPU frequency and power caps
+need hardware with cpufreq; traffic shift needs two real clusters behind one load balancer.

@@ -1,0 +1,260 @@
+{
+ "web": {
+  "k8s_hpa70_ca": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": true,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "openshift": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": true,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "losing_cells": 1,
+   "losses": [
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "start_stop",
+     "competitor_value": 7.9,
+     "omni_value": 10.133333333333333,
+     "omni_worse_by_pct": 28.270042194092827
+    }
+   ]
+  },
+  "gke_optimize": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "aks_nap": {
+   "var": {
+    "tone_H": 0,
+    "rho": 0.75,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "turbonomic": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "cast_ai": {
+   "var": {
+    "tone_H": 0,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "spot_ocean": {
+   "var": {
+    "tone_H": 0,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "losing_cells": 0,
+   "losses": []
+  }
+ },
+ "multi": {
+  "k8s_hpa70_ca": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": true,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "losing_cells": 1,
+   "losses": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "start_stop",
+     "competitor_value": 37.3,
+     "omni_value": 42.2,
+     "omni_worse_by_pct": 13.13672922252011
+    }
+   ]
+  },
+  "openshift": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": true,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "losing_cells": 2,
+   "losses": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "start_stop",
+     "competitor_value": 28.1,
+     "omni_value": 42.2,
+     "omni_worse_by_pct": 50.17793594306049
+    },
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "node_reversals",
+     "competitor_value": 2.3666666666666667,
+     "omni_value": 4.366666666666666,
+     "omni_worse_by_pct": 84.50704225352112
+    }
+   ]
+  },
+  "gke_optimize": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "aks_nap": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "losing_cells": 1,
+   "losses": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 43.21640889494282,
+     "omni_value": 43.784747398269275,
+     "omni_worse_by_pct": 1.3150988660535239
+    }
+   ]
+  },
+  "turbonomic": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 0.97,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.02,
+    "delta_rel": 0.08,
+    "H_add": 2
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "cast_ai": {
+   "var": {
+    "tone_H": 0,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 40,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "spot_ocean": {
+   "var": {
+    "tone_H": 0,
+    "rho": 0.7,
+    "wq": -1.0,
+    "rho_max": 1.0,
+    "turn": false,
+    "H_rel": 10,
+    "delta": 0.0,
+    "delta_rel": 0.0,
+    "H_add": 2
+   },
+   "losing_cells": 0,
+   "losses": []
+  }
+ }
+}

@@ -1,0 +1,166 @@
+{
+ "web": {
+  "k8s_hpa70_ca": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.75,
+    "rho_max": 0.99,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   },
+   "losing_cells": 2,
+   "losses": [
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 11.98397244950708,
+     "omni_value": 14.53427761950021,
+     "omni_worse_by_pct": 21.280966563787672
+    },
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "node_hours",
+     "competitor_value": 32.734861111111115,
+     "omni_value": 42.77777777777779,
+     "omni_worse_by_pct": 30.679576224802812
+    }
+   ]
+  },
+  "openshift": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.75,
+    "rho_max": 0.99,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   },
+   "losing_cells": 2,
+   "losses": [
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 12.393772449507082,
+     "omni_value": 14.53427761950021,
+     "omni_worse_by_pct": 17.270812246341176
+    },
+    {
+     "vessel": "web",
+     "competitor": "inc",
+     "gauge": "node_hours",
+     "competitor_value": 34.44236111111111,
+     "omni_value": 42.77777777777779,
+     "omni_worse_by_pct": 24.20106054801702
+    }
+   ]
+  }
+ },
+ "multi": {
+  "k8s_hpa70_ca": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "rho_max": 0.99,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   },
+   "losing_cells": 2,
+   "losses": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 54.46747556160947,
+     "omni_value": 61.78973906493597,
+     "omni_worse_by_pct": 13.443368593508845
+    },
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "node_hours",
+     "competitor_value": 146.39208333333332,
+     "omni_value": 173.52249999999998,
+     "omni_worse_by_pct": 18.53270754053754
+    }
+   ]
+  },
+  "openshift": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "rho_max": 0.99,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   },
+   "losing_cells": 2,
+   "losses": [
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "energy_kwh",
+     "competitor_value": 57.12494222827615,
+     "omni_value": 61.78973906493597,
+     "omni_worse_by_pct": 8.165954580783485
+    },
+    {
+     "vessel": "multi",
+     "competitor": "inc",
+     "gauge": "node_hours",
+     "competitor_value": 157.46486111111108,
+     "omni_value": 173.52249999999998,
+     "omni_worse_by_pct": 10.197601404898979
+    }
+   ]
+  }
+ },
+ "batch": {
+  "k8s_hpa70_ca": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "rho_max": 0.97,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   },
+   "losing_cells": 0,
+   "losses": []
+  },
+  "openshift": {
+   "var": {
+    "tone_H": 960,
+    "rho": 0.7,
+    "rho_max": 0.97,
+    "dwell": 40,
+    "delta_rel": 0.15,
+    "H_rel": 40,
+    "turn": true,
+    "H_add": 2,
+    "delta": 0.02
+   },
+   "losing_cells": 0,
+   "losses": []
+  }
+ }
+}

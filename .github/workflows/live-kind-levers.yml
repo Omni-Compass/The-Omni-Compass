@@ -1,0 +1,29 @@
+# Live proof of the added levers (rightsize, coldstart, batch pace, containment, cooling connector) on kind.
+# Runs on demand (Actions tab -> live-kind-levers -> Run workflow) or on a pushed commit whose message contains [levers].
+name: live-kind-levers
+on:
+  workflow_dispatch:
+  push:
+jobs:
+  levers:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[levers]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - uses: helm/kind-action@v1
+        with: {cluster_name: omni-levers, config: deploy/kind/cluster-full.yaml}
+      - run: bash scripts/kind_levers.sh
+        env: {OUT_DIR: levers_out}
+      - name: Results summary
+        if: always()
+        run: |
+          { echo "## Omni-Compass live levers"; echo '```'; cat levers_out/levers.txt 2>/dev/null || echo "(missing)"; echo '```'
+            echo '```'; cat levers_out/rbac_levers.txt 2>/dev/null; echo '```'
+            echo '```'; tail -n 60 levers_out/controller.log 2>/dev/null; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: live-levers, path: levers_out}

@@ -1,0 +1,578 @@
+{
+ "web": {
+  "losing_cells": 19,
+  "setting": {
+   "clock": 0.1,
+   "g_w": 0.5,
+   "w_release": 0.05,
+   "dwell": 10,
+   "g_cap": 0.0
+  },
+  "losses": [
+   {
+    "vessel": "web",
+    "competitor": "k8s_hpa70_ca",
+    "gauge": "p99_ms",
+    "competitor_value": 9164.44717672578,
+    "omni_value": 10086.258694324973,
+    "omni_worse_by_pct": 10.0585610874625
+   },
+   {
+    "vessel": "web",
+    "competitor": "k8s_hpa70_ca",
+    "gauge": "mean_ms",
+    "competitor_value": 441.58881953128264,
+    "omni_value": 455.5695475633882,
+    "omni_worse_by_pct": 3.166005889131218
+   },
+   {
+    "vessel": "web",
+    "competitor": "k8s_hpa70_ca",
+    "gauge": "start_stop",
+    "competitor_value": 10.1,
+    "omni_value": 16.2,
+    "omni_worse_by_pct": 60.396039603960396
+   },
+   {
+    "vessel": "web",
+    "competitor": "k8s_hpa70_ca",
+    "gauge": "node_reversals",
+    "competitor_value": 1.1,
+    "omni_value": 3.7,
+    "omni_worse_by_pct": 236.36363636363632
+   },
+   {
+    "vessel": "web",
+    "competitor": "openshift",
+    "gauge": "p99_ms",
+    "competitor_value": 8946.34989457622,
+    "omni_value": 10086.258694324973,
+    "omni_worse_by_pct": 12.741607618542083
+   },
+   {
+    "vessel": "web",
+    "competitor": "openshift",
+    "gauge": "mean_ms",
+    "competitor_value": 432.7935783950028,
+    "omni_value": 455.5695475633882,
+    "omni_worse_by_pct": 5.262547853147237
+   },
+   {
+    "vessel": "web",
+    "competitor": "openshift",
+    "gauge": "start_stop",
+    "competitor_value": 8.6,
+    "omni_value": 16.2,
+    "omni_worse_by_pct": 88.37209302325581
+   },
+   {
+    "vessel": "web",
+    "competitor": "openshift",
+    "gauge": "node_reversals",
+    "competitor_value": 0.7,
+    "omni_value": 3.7,
+    "omni_worse_by_pct": 428.57142857142856
+   },
+   {
+    "vessel": "web",
+    "competitor": "gke_optimize",
+    "gauge": "energy_kwh",
+    "competitor_value": 9.929890145391438,
+    "omni_value": 10.969590145391443,
+    "omni_worse_by_pct": 10.470407877397715
+   },
+   {
+    "vessel": "web",
+    "competitor": "gke_optimize",
+    "gauge": "node_hours",
+    "competitor_value": 24.56375,
+    "omni_value": 28.895833333333336,
+    "omni_worse_by_pct": 17.63608298135803
+   },
+   {
+    "vessel": "web",
+    "competitor": "aks_nap",
+    "gauge": "energy_kwh",
+    "competitor_value": 9.390090145391435,
+    "omni_value": 10.969590145391443,
+    "omni_worse_by_pct": 16.820924778610475
+   },
+   {
+    "vessel": "web",
+    "competitor": "aks_nap",
+    "gauge": "node_hours",
+    "competitor_value": 22.314583333333335,
+    "omni_value": 28.895833333333336,
+    "omni_worse_by_pct": 29.493044533656988
+   },
+   {
+    "vessel": "web",
+    "competitor": "turbonomic",
+    "gauge": "energy_kwh",
+    "competitor_value": 9.77049263599434,
+    "omni_value": 10.969590145391443,
+    "omni_worse_by_pct": 12.272641248197113
+   },
+   {
+    "vessel": "web",
+    "competitor": "turbonomic",
+    "gauge": "start_stop",
+    "competitor_value": 12.6,
+    "omni_value": 16.2,
+    "omni_worse_by_pct": 28.571428571428577
+   },
+   {
+    "vessel": "web",
+    "competitor": "turbonomic",
+    "gauge": "node_hours",
+    "competitor_value": 23.909166666666668,
+    "omni_value": 28.895833333333336,
+    "omni_worse_by_pct": 20.85671464919313
+   },
+   {
+    "vessel": "web",
+    "competitor": "cast_ai",
+    "gauge": "energy_kwh",
+    "competitor_value": 9.287990145391436,
+    "omni_value": 10.969590145391443,
+    "omni_worse_by_pct": 18.105101035603408
+   },
+   {
+    "vessel": "web",
+    "competitor": "cast_ai",
+    "gauge": "node_hours",
+    "competitor_value": 21.889166666666664,
+    "omni_value": 28.895833333333336,
+    "omni_worse_by_pct": 32.00974606921232
+   },
+   {
+    "vessel": "web",
+    "competitor": "spot_ocean",
+    "gauge": "energy_kwh",
+    "competitor_value": 9.431190145391437,
+    "omni_value": 10.969590145391443,
+    "omni_worse_by_pct": 16.311833143898056
+   },
+   {
+    "vessel": "web",
+    "competitor": "spot_ocean",
+    "gauge": "node_hours",
+    "competitor_value": 22.48583333333333,
+    "omni_value": 28.895833333333336,
+    "omni_worse_by_pct": 28.50683763851314
+   }
+  ]
+ },
+ "multi": {
+  "losing_cells": 20,
+  "setting": {
+   "clock": 3.0,
+   "g_w": 0.5,
+   "w_release": 0.01,
+   "dwell": 3,
+   "g_cap": 0.0
+  },
+  "losses": [
+   {
+    "vessel": "multi",
+    "competitor": "k8s_hpa70_ca",
+    "gauge": "energy_kwh",
+    "competitor_value": 55.90267485823026,
+    "omni_value": 96.6921748582303,
+    "omni_worse_by_pct": 72.96520265522646
+   },
+   {
+    "vessel": "multi",
+    "competitor": "k8s_hpa70_ca",
+    "gauge": "node_hours",
+    "competitor_value": 149.48458333333332,
+    "omni_value": 319.44083333333333,
+    "omni_worse_by_pct": 113.69483475163271
+   },
+   {
+    "vessel": "multi",
+    "competitor": "k8s_hpa70_ca",
+    "gauge": "pod_changes",
+    "competitor_value": 2698.1,
+    "omni_value": 3131.0,
+    "omni_worse_by_pct": 16.04462399466291
+   },
+   {
+    "vessel": "multi",
+    "competitor": "openshift",
+    "gauge": "energy_kwh",
+    "competitor_value": 58.881074858230235,
+    "omni_value": 96.6921748582303,
+    "omni_worse_by_pct": 64.21604919923595
+   },
+   {
+    "vessel": "multi",
+    "competitor": "openshift",
+    "gauge": "node_hours",
+    "competitor_value": 161.89458333333334,
+    "omni_value": 319.44083333333333,
+    "omni_worse_by_pct": 97.31409584940815
+   },
+   {
+    "vessel": "multi",
+    "competitor": "openshift",
+    "gauge": "pod_changes",
+    "competitor_value": 2709.0,
+    "omni_value": 3131.0,
+    "omni_worse_by_pct": 15.577703949796973
+   },
+   {
+    "vessel": "multi",
+    "competitor": "gke_optimize",
+    "gauge": "energy_kwh",
+    "competitor_value": 47.495974858230284,
+    "omni_value": 96.6921748582303,
+    "omni_worse_by_pct": 103.57972469634471
+   },
+   {
+    "vessel": "multi",
+    "competitor": "gke_optimize",
+    "gauge": "node_hours",
+    "competitor_value": 114.45666666666666,
+    "omni_value": 319.44083333333333,
+    "omni_worse_by_pct": 179.093252176952
+   },
+   {
+    "vessel": "multi",
+    "competitor": "gke_optimize",
+    "gauge": "pod_changes",
+    "competitor_value": 2664.1,
+    "omni_value": 3131.0,
+    "omni_worse_by_pct": 17.525618407717428
+   },
+   {
+    "vessel": "multi",
+    "competitor": "aks_nap",
+    "gauge": "energy_kwh",
+    "competitor_value": 44.77857485823027,
+    "omni_value": 96.6921748582303,
+    "omni_worse_by_pct": 115.93401568575902
+   },
+   {
+    "vessel": "multi",
+    "competitor": "aks_nap",
+    "gauge": "node_hours",
+    "competitor_value": 103.13416666666667,
+    "omni_value": 319.44083333333333,
+    "omni_worse_by_pct": 209.73327623403173
+   },
+   {
+    "vessel": "multi",
+    "competitor": "aks_nap",
+    "gauge": "pod_changes",
+    "competitor_value": 2636.2,
+    "omni_value": 3131.0,
+    "omni_worse_by_pct": 18.769440861846597
+   },
+   {
+    "vessel": "multi",
+    "competitor": "turbonomic",
+    "gauge": "energy_kwh",
+    "competitor_value": 46.83338766543654,
+    "omni_value": 96.6921748582303,
+    "omni_worse_by_pct": 106.45992032216367
+   },
+   {
+    "vessel": "multi",
+    "competitor": "turbonomic",
+    "gauge": "node_hours",
+    "competitor_value": 111.70583333333335,
+    "omni_value": 319.44083333333333,
+    "omni_worse_by_pct": 185.96611636217145
+   },
+   {
+    "vessel": "multi",
+    "competitor": "cast_ai",
+    "gauge": "energy_kwh",
+    "competitor_value": 43.953074858230266,
+    "omni_value": 96.6921748582303,
+    "omni_worse_by_pct": 119.98955743166759
+   },
+   {
+    "vessel": "multi",
+    "competitor": "cast_ai",
+    "gauge": "node_hours",
+    "competitor_value": 99.69458333333333,
+    "omni_value": 319.44083333333333,
+    "omni_worse_by_pct": 220.41944772994188
+   },
+   {
+    "vessel": "multi",
+    "competitor": "cast_ai",
+    "gauge": "pod_changes",
+    "competitor_value": 2628.6,
+    "omni_value": 3131.0,
+    "omni_worse_by_pct": 19.112835730046413
+   },
+   {
+    "vessel": "multi",
+    "competitor": "spot_ocean",
+    "gauge": "energy_kwh",
+    "competitor_value": 44.745674858230274,
+    "omni_value": 96.6921748582303,
+    "omni_worse_by_pct": 116.09278475424598
+   },
+   {
+    "vessel": "multi",
+    "competitor": "spot_ocean",
+    "gauge": "node_hours",
+    "competitor_value": 102.99708333333334,
+    "omni_value": 319.44083333333333,
+    "omni_worse_by_pct": 210.1455138292751
+   },
+   {
+    "vessel": "multi",
+    "competitor": "spot_ocean",
+    "gauge": "pod_changes",
+    "competitor_value": 2637.1,
+    "omni_value": 3131.0,
+    "omni_worse_by_pct": 18.728906753630884
+   }
+  ]
+ },
+ "batch": {
+  "losing_cells": 13,
+  "setting": {
+   "clock": 1.0,
+   "g_w": 2.0,
+   "w_release": 0.01,
+   "dwell": 10,
+   "g_cap": 0.0
+  },
+  "losses": [
+   {
+    "vessel": "batch",
+    "competitor": "k8s_hpa70_ca",
+    "gauge": "start_stop",
+    "competitor_value": 16.5,
+    "omni_value": 41.0,
+    "omni_worse_by_pct": 148.4848484848485
+   },
+   {
+    "vessel": "batch",
+    "competitor": "k8s_hpa70_ca",
+    "gauge": "node_reversals",
+    "competitor_value": 1.4,
+    "omni_value": 11.9,
+    "omni_worse_by_pct": 750.0000000000001
+   },
+   {
+    "vessel": "batch",
+    "competitor": "openshift",
+    "gauge": "start_stop",
+    "competitor_value": 16.8,
+    "omni_value": 41.0,
+    "omni_worse_by_pct": 144.04761904761904
+   },
+   {
+    "vessel": "batch",
+    "competitor": "openshift",
+    "gauge": "node_reversals",
+    "competitor_value": 1.0,
+    "omni_value": 11.9,
+    "omni_worse_by_pct": 1090.0
+   },
+   {
+    "vessel": "batch",
+    "competitor": "gke_optimize",
+    "gauge": "start_stop",
+    "competitor_value": 31.4,
+    "omni_value": 41.0,
+    "omni_worse_by_pct": 30.573248407643312
+   },
+   {
+    "vessel": "batch",
+    "competitor": "gke_optimize",
+    "gauge": "node_reversals",
+    "competitor_value": 3.5,
+    "omni_value": 11.9,
+    "omni_worse_by_pct": 240.0
+   },
+   {
+    "vessel": "batch",
+    "competitor": "aks_nap",
+    "gauge": "energy_kwh",
+    "competitor_value": 70.5413799342105,
+    "omni_value": 73.7593799342105,
+    "omni_worse_by_pct": 4.561861425168083
+   },
+   {
+    "vessel": "batch",
+    "competitor": "aks_nap",
+    "gauge": "node_hours",
+    "competitor_value": 89.89416666666668,
+    "omni_value": 100.62083333333332,
+    "omni_worse_by_pct": 11.932550313794923
+   },
+   {
+    "vessel": "batch",
+    "competitor": "turbonomic",
+    "gauge": "node_reversals",
+    "competitor_value": 5.5,
+    "omni_value": 11.9,
+    "omni_worse_by_pct": 116.36363636363637
+   },
+   {
+    "vessel": "batch",
+    "competitor": "cast_ai",
+    "gauge": "energy_kwh",
+    "competitor_value": 70.98508749999995,
+    "omni_value": 73.7593799342105,
+    "omni_worse_by_pct": 3.908275008057941
+   },
+   {
+    "vessel": "batch",
+    "competitor": "cast_ai",
+    "gauge": "node_hours",
+    "competitor_value": 91.37458333333333,
+    "omni_value": 100.62083333333332,
+    "omni_worse_by_pct": 10.119061190429504
+   },
+   {
+    "vessel": "batch",
+    "competitor": "spot_ocean",
+    "gauge": "energy_kwh",
+    "competitor_value": 70.35009802631573,
+    "omni_value": 73.7593799342105,
+    "omni_worse_by_pct": 4.846165113543229
+   },
+   {
+    "vessel": "batch",
+    "competitor": "spot_ocean",
+    "gauge": "node_hours",
+    "competitor_value": 89.25708333333333,
+    "omni_value": 100.62083333333332,
+    "omni_worse_by_pct": 12.731482562074905
+   }
+  ]
+ },
+ "gpu": {
+  "losing_cells": 14,
+  "setting": {
+   "clock": 0.3,
+   "g_w": 0.5,
+   "w_release": 0.01,
+   "dwell": 10,
+   "g_cap": 0.0
+  },
+  "losses": [
+   {
+    "vessel": "gpu",
+    "competitor": "k8s_hpa70_ca",
+    "gauge": "violation_backlog",
+    "competitor_value": 0.35840277777777774,
+    "omni_value": 0.36104166666666665,
+    "omni_worse_by_pct": 0.7362914163921722
+   },
+   {
+    "vessel": "gpu",
+    "competitor": "k8s_hpa70_ca",
+    "gauge": "start_stop",
+    "competitor_value": 16.8,
+    "omni_value": 28.8,
+    "omni_worse_by_pct": 71.42857142857143
+   },
+   {
+    "vessel": "gpu",
+    "competitor": "k8s_hpa70_ca",
+    "gauge": "node_reversals",
+    "competitor_value": 2.7,
+    "omni_value": 7.6,
+    "omni_worse_by_pct": 181.4814814814815
+   },
+   {
+    "vessel": "gpu",
+    "competitor": "openshift",
+    "gauge": "start_stop",
+    "competitor_value": 19.4,
+    "omni_value": 28.8,
+    "omni_worse_by_pct": 48.453608247422686
+   },
+   {
+    "vessel": "gpu",
+    "competitor": "openshift",
+    "gauge": "node_reversals",
+    "competitor_value": 3.2,
+    "omni_value": 7.6,
+    "omni_worse_by_pct": 137.5
+   },
+   {
+    "vessel": "gpu",
+    "competitor": "aks_nap",
+    "gauge": "energy_kwh",
+    "competitor_value": 193.42647894736916,
+    "omni_value": 196.10907894736914,
+    "omni_worse_by_pct": 1.3868835407637763
+   },
+   {
+    "vessel": "gpu",
+    "competitor": "aks_nap",
+    "gauge": "node_hours",
+    "competitor_value": 54.32958333333333,
+    "omni_value": 58.104166666666664,
+    "omni_worse_by_pct": 6.947565399452415
+   },
+   {
+    "vessel": "gpu",
+    "competitor": "turbonomic",
+    "gauge": "node_reversals",
+    "competitor_value": 5.7,
+    "omni_value": 7.6,
+    "omni_worse_by_pct": 33.33333333333333
+   },
+   {
+    "vessel": "gpu",
+    "competitor": "turbonomic",
+    "gauge": "node_hours",
+    "competitor_value": 56.830416666666665,
+    "omni_value": 58.104166666666664,
+    "omni_worse_by_pct": 2.2413173696597317
+   },
+   {
+    "vessel": "gpu",
+    "competitor": "cast_ai",
+    "gauge": "energy_kwh",
+    "competitor_value": 193.67138421052712,
+    "omni_value": 196.10907894736914,
+    "omni_worse_by_pct": 1.2586757443692203
+   },
+   {
+    "vessel": "gpu",
+    "competitor": "cast_ai",
+    "gauge": "violation_heat",
+    "competitor_value": 0.4563194444444445,
+    "omni_value": 0.4616666666666666,
+    "omni_worse_by_pct": 1.1718155531882508
+   },
+   {
+    "vessel": "gpu",
+    "competitor": "cast_ai",
+    "gauge": "node_hours",
+    "competitor_value": 54.725416666666675,
+    "omni_value": 58.104166666666664,
+    "omni_worse_by_pct": 6.174005070769978
+   },
+   {
+    "vessel": "gpu",
+    "competitor": "spot_ocean",
+    "gauge": "energy_kwh",
+    "competitor_value": 193.14008421052705,
+    "omni_value": 196.10907894736914,
+    "omni_worse_by_pct": 1.5372234867650838
+   },
+   {
+    "vessel": "gpu",
+    "competitor": "spot_ocean",
+    "gauge": "node_hours",
+    "competitor_value": 53.93333333333332,
+    "omni_value": 58.104166666666664,
+    "omni_worse_by_pct": 7.733312731767618
+   }
+  ]
+ }
+}

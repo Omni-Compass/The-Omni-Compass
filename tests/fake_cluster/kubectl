@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+"""Fake kubectl: serves and mutates a JSON cluster state (FAKE_KUBE_STATE); logs every mutating call to FAKE_KUBE_LOG."""
+import json, os, sys
+st_path, log_path = os.environ["FAKE_KUBE_STATE"], os.environ["FAKE_KUBE_LOG"]
+st = json.load(open(st_path)); a = sys.argv[1:]
+def save(): json.dump(st, open(st_path, "w"))
+def log(): open(log_path, "a").write(json.dumps(a) + "\n")
+if a[:2] == ["get", "nodes"]: print(json.dumps({"items": st["nodes"]}))
+elif a[:2] == ["get", "pods"]:
+    items = st["pods"]
+    if "-n" in a:
+        items = [p for p in items if p.get("metadata", {}).get("namespace", "default") == a[a.index("-n") + 1]]
+    if "-l" in a:
+        k, v = a[a.index("-l") + 1].split("=", 1)
+        items = [p for p in items if p.get("metadata", {}).get("labels", {}).get(k) == v]
+    for x in a:
+        if x.startswith("--field-selector=status.phase="):
+            items = [p for p in items if p.get("status", {}).get("phase") == x.split("=", 2)[2]]
+    if "-o" in a and a[a.index("-o") + 1] == "name":
+        print("\n".join(f"pod/{p.get('metadata', {}).get('name', 'p')}" for p in items))
+    else:
+        print(json.dumps({"items": items}))
+elif a[:2] == ["patch", "pod"]:
+    log(); p = next(p for p in st["pods"] if p.get("metadata", {}).get("name") == a[2]); ops = json.loads(a[a.index("-p") + 1])
+    for op in ops:
+        kind = "requests" if "/requests/" in op["path"] else "limits"
+        p["spec"]["containers"][0].setdefault("resources", {}).setdefault(kind, {})["cpu"] = op["value"]
+    save()
+elif a[:2] == ["get", "hpa"]: print(json.dumps({"items": st["hpas"]}))
+elif a[:2] == ["top", "pods"]:
+    pods = st["pods"]
+    if "-n" in a:
+        pods = [p for p in pods if p.get("metadata", {}).get("namespace", "default") == a[a.index("-n") + 1]]
+    if "-l" in a:
+        k, v = a[a.index("-l") + 1].split("=", 1)
+        pods = [p for p in pods if p.get("metadata", {}).get("labels", {}).get(k) == v]
+    print("\n".join(f"{p['metadata']['name']} {p.get('usage', st.get('pod_usage', '100m'))} 50Mi" for p in pods))
+elif a[:2] == ["top", "nodes"]: print("\n".join(f"{n['metadata']['name']} {st['used_per_node']} 10% 1Gi 5%" for n in st["nodes"]))
+elif a[:2] == ["patch", "hpa"] and "--type=merge" in a:
+    log(); name = a[2]; body = json.loads(a[a.index("-p") + 1])
+    for h in st["hpas"]:
+        if h["metadata"]["name"] == name:
+            h["spec"].update(body["spec"])
+    save()
+elif a[:2] == ["patch", "hpa"]:
+    log(); name = a[2]; ops = json.loads(a[a.index("-p") + 1])
+    for h in st["hpas"]:
+        if h["metadata"]["name"] == name:
+            for op in ops:
+                idx = int(op["path"].split("/")[3]); h["spec"]["metrics"][idx]["resource"]["target"]["averageUtilization"] = op["value"]
+    save()
+elif a[:2] == ["annotate", "hpa"]:
+    log(); name, kv = a[2], a[-1]
+    for h in st["hpas"]:
+        if h["metadata"]["name"] == name:
+            ann = h["metadata"].setdefault("annotations", {})
+            if kv.endswith("-"): ann.pop(kv[:-1], None)
+            else: k, v = kv.split("=", 1); ann[k] = v
+    save()
+elif a[:2] == ["get", "deployment"]:
+    print(json.dumps(next(d for d in st.get("deployments", []) if d["metadata"]["name"] == a[2])))
+elif a[:2] == ["patch", "deployment"]:
+    log(); d = next(d for d in st["deployments"] if d["metadata"]["name"] == a[2]); ops = json.loads(a[a.index("-p") + 1])
+    for op in ops:
+        d["spec"]["template"]["spec"]["containers"][0]["resources"]["limits"]["cpu"] = op["value"]
+    save()
+elif a[:2] == ["annotate", "deployment"]:
+    log(); d = next(d for d in st["deployments"] if d["metadata"]["name"] == a[2]); kv = a[-1]
+    ann = d["metadata"].setdefault("annotations", {})
+    if kv.endswith("-"): ann.pop(kv[:-1], None)
+    else: k, v = kv.split("=", 1); ann[k] = v
+    save()
+elif a[0] == "rollout":
+    log(); name = a[2].split("/")[1]; d = next(d for d in st["deployments"] if d["metadata"]["name"] == name)
+    if a[1] == "pause": d["spec"]["paused"] = True
+    elif a[1] == "resume": d["spec"]["paused"] = False
+    elif a[1] == "undo": d["status"]["conditions"] = [{"type": "Progressing", "reason": "NewReplicaSetAvailable"}]
+    save()
+elif a[:2] == ["get", "configmap"]:
+    print(json.dumps(next(c for c in st.get("configmaps", []) if c["metadata"]["name"] == a[2])))
+elif a[:2] == ["get", "jobs"]:
+    print(json.dumps({"items": st.get("jobs", [])}))
+elif a[:2] == ["patch", "job"]:
+    log(); j = next(j for j in st["jobs"] if j["metadata"]["name"] == a[2]); j["spec"].update(json.loads(a[a.index("-p") + 1])["spec"]); save()
+elif a[:2] == ["scale", "deployment"]:
+    log(); d = next(d for d in st["deployments"] if d["metadata"]["name"] == a[2])
+    d["spec"]["replicas"] = int(next(x for x in a if x.startswith("--replicas=")).split("=", 1)[1]); save()
+elif a[:2] == ["annotate", "job"]:
+    log(); j = next(j for j in st["jobs"] if j["metadata"]["name"] == a[2]); kv = a[-1]
+    ann = j["metadata"].setdefault("annotations", {})
+    if kv.endswith("-"): ann.pop(kv[:-1], None)
+    else: k, v = kv.split("=", 1); ann[k] = v
+    save()
+elif a[:2] == ["get", "resourcequota"]:
+    ns = a[a.index("-n") + 1]
+    q = next((q for q in st.get("quotas", []) if q["name"] == a[2] and q["namespace"] == ns), None)
+    if q is None: sys.exit("NotFound")
+    print(json.dumps({"metadata": {"name": q["name"], "namespace": ns, "annotations": q.get("annotations", {})}, "spec": {"hard": q["hard"]}}))
+elif a[:2] == ["annotate", "resourcequota"]:
+    log(); ns = a[a.index("-n") + 1]; q = next(q for q in st["quotas"] if q["name"] == a[2] and q["namespace"] == ns)
+    k, v = a[-1].split("=", 1); q.setdefault("annotations", {})[k] = v; save()
+elif a[:2] == ["create", "quota"]:
+    log(); st.setdefault("quotas", []).append({"name": a[2], "namespace": a[a.index("-n") + 1],
+                                              "hard": next(x for x in a if x.startswith("--hard=")).split("=", 1)[1]}); save()
+elif a[:2] == ["delete", "resourcequota"]:
+    log(); ns = a[a.index("-n") + 1]
+    st["quotas"] = [q for q in st.get("quotas", []) if not (q["name"] == a[2] and q["namespace"] == ns)]; save()
+else:
+    sys.exit(f"fake kubectl: unsupported {a}")

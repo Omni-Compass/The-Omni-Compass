@@ -1,0 +1,15 @@
+{
+ "purpose": "Recorded amendment to the SHA-256 locks of the original pre-registrations. A locked file may change only for a bug fix; the change is listed here with the exact old and new hashes, and verify.py still re-runs every pre-registered held-out result with the changed file, which must reproduce.",
+ "amendments": [
+  {
+   "file": "omnicompass/shield.py",
+   "from_sha256": [
+    "38ca47da32ebedd935e44cfe712d79cb05da8d93703447afdc6702087c298068"
+   ],
+   "to_sha256": "88de572557295e04eb1341e64de16b68d74e4f8fa7c2e8bbe9c1d9c0416ea6f5",
+   "commit": "e9703a6",
+   "reason": "two bugs found by the 2,000,000-case adversarial property test (tests/test_shield_properties.py): I1 was not re-checked after clamping; an out-of-bounds replica request moving toward the bounds was blocked instead of passed (minimal intervention). C++ shield changed identically (adversarial parity 0 mismatches).",
+   "evidence": "verify.py re-runs the pre-registered held-out seeds and the fleet held-out runs with the fixed shield; their checks pass unchanged."
+  }
+ ]
+}

@@ -1,0 +1,320 @@
+{
+ "vessel": "gpu",
+ "losing_cells": 13,
+ "magnitude": 83.12643144032867,
+ "config": {
+  "law": {
+   "rho0": 0.6441799780258853,
+   "rho_min": 0.3809310241680702,
+   "kI": 0.27777013932376093,
+   "kE": 0.05210253446812629,
+   "kq": 0.33162273518647256,
+   "headroom": 0.14382043476704684,
+   "headroom_up": 0.0,
+   "window": 49,
+   "band": 1,
+   "dwell": 36,
+   "after_add": 19,
+   "push_release": 0.1658134228989477,
+   "cap_idle": 0.859908728063434,
+   "cap_busy": 0.2756459836932826,
+   "antic": 0.0,
+   "antic_lag": 10
+  },
+  "every": 4,
+  "lat_gain": 0.21712267841975558,
+  "slo_mult": 1.3242980865044374
+ },
+ "losses": [
+  {
+   "vessel": "gpu",
+   "competitor": "k8s_hpa70_ca",
+   "gauge": "energy_kwh",
+   "competitor_value": 197.82867894736924,
+   "omni_value": 199.20740634672597,
+   "omni_worse_by_pct": 0.6969299935139778
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "k8s_hpa70_ca",
+   "gauge": "node_hours",
+   "competitor_value": 60.45458333333333,
+   "omni_value": 62.70375,
+   "omni_worse_by_pct": 3.7204237340703417
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "gke_optimize",
+   "gauge": "energy_kwh",
+   "competitor_value": 196.27167894736925,
+   "omni_value": 199.20740634672597,
+   "omni_worse_by_pct": 1.4957468214983356
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "gke_optimize",
+   "gauge": "node_hours",
+   "competitor_value": 58.28125,
+   "omni_value": 62.70375,
+   "omni_worse_by_pct": 7.588203753351206
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "aks_nap",
+   "gauge": "energy_kwh",
+   "competitor_value": 193.42647894736916,
+   "omni_value": 199.20740634672597,
+   "omni_worse_by_pct": 2.9886949453956433
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "aks_nap",
+   "gauge": "node_hours",
+   "competitor_value": 54.32958333333333,
+   "omni_value": 62.70375,
+   "omni_worse_by_pct": 15.41364051199853
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "turbonomic",
+   "gauge": "energy_kwh",
+   "competitor_value": 195.22707894736925,
+   "omni_value": 199.20740634672597,
+   "omni_worse_by_pct": 2.0388193179030085
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "turbonomic",
+   "gauge": "node_hours",
+   "competitor_value": 56.830416666666665,
+   "omni_value": 62.70375,
+   "omni_worse_by_pct": 10.334841230854956
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "cast_ai",
+   "gauge": "energy_kwh",
+   "competitor_value": 193.67138421052712,
+   "omni_value": 199.20740634672597,
+   "omni_worse_by_pct": 2.858461593985926
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "cast_ai",
+   "gauge": "violation_heat",
+   "competitor_value": 0.4563194444444445,
+   "omni_value": 0.4654861111111111,
+   "omni_worse_by_pct": 2.0088266626084286
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "cast_ai",
+   "gauge": "node_hours",
+   "competitor_value": 54.725416666666675,
+   "omni_value": 62.70375,
+   "omni_worse_by_pct": 14.578844382180733
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "spot_ocean",
+   "gauge": "energy_kwh",
+   "competitor_value": 193.14008421052705,
+   "omni_value": 199.20740634672597,
+   "omni_worse_by_pct": 3.14141011225064
+  },
+  {
+   "vessel": "gpu",
+   "competitor": "spot_ocean",
+   "gauge": "node_hours",
+   "competitor_value": 53.93333333333332,
+   "omni_value": 62.70375,
+   "omni_worse_by_pct": 16.261588380716944
+  }
+ ],
+ "elite": [
+  {
+   "law": {
+    "rho0": 0.6441799780258853,
+    "rho_min": 0.3809310241680702,
+    "kI": 0.27777013932376093,
+    "kE": 0.05210253446812629,
+    "kq": 0.33162273518647256,
+    "headroom": 0.14382043476704684,
+    "headroom_up": 0.0,
+    "window": 49,
+    "band": 1,
+    "dwell": 36,
+    "after_add": 19,
+    "push_release": 0.1658134228989477,
+    "cap_idle": 0.859908728063434,
+    "cap_busy": 0.2756459836932826,
+    "antic": 0.0,
+    "antic_lag": 10
+   },
+   "every": 4,
+   "lat_gain": 0.21712267841975558,
+   "slo_mult": 1.3242980865044374
+  },
+  {
+   "law": {
+    "rho0": 0.6441799780258853,
+    "rho_min": 0.44822979010187136,
+    "kI": 0.27777013932376093,
+    "kE": 0.10634708385659516,
+    "kq": 0.33162273518647256,
+    "headroom": 0.09716767234284561,
+    "headroom_up": 0.0,
+    "window": 36,
+    "band": 1,
+    "dwell": 36,
+    "after_add": 13,
+    "push_release": 0.12242123141589992,
+    "cap_idle": 0.859908728063434,
+    "cap_busy": 0.34007224018640086,
+    "antic": 0.0,
+    "antic_lag": 9
+   },
+   "every": 4,
+   "lat_gain": 0.21712267841975558,
+   "slo_mult": 1.3242980865044374
+  },
+  {
+   "law": {
+    "rho0": 0.6441799780258853,
+    "rho_min": 0.3809310241680702,
+    "kI": 0.27777013932376093,
+    "kE": 0.10634708385659516,
+    "kq": 0.33162273518647256,
+    "headroom": 0.09716767234284561,
+    "headroom_up": 0.0,
+    "window": 43,
+    "band": 1,
+    "dwell": 36,
+    "after_add": 13,
+    "push_release": 0.14370038495937892,
+    "cap_idle": 0.859908728063434,
+    "cap_busy": 0.34007224018640086,
+    "antic": 0.0,
+    "antic_lag": 9
+   },
+   "every": 4,
+   "lat_gain": 0.21712267841975558,
+   "slo_mult": 1.3242980865044374
+  },
+  {
+   "law": {
+    "rho0": 0.6441799780258853,
+    "rho_min": 0.3809310241680702,
+    "kI": 0.27777013932376093,
+    "kE": 0.10634708385659516,
+    "kq": 0.33162273518647256,
+    "headroom": 0.09716767234284561,
+    "headroom_up": 0.0,
+    "window": 50,
+    "band": 1,
+    "dwell": 36,
+    "after_add": 13,
+    "push_release": 0.14370038495937892,
+    "cap_idle": 0.859908728063434,
+    "cap_busy": 0.34007224018640086,
+    "antic": 0.0,
+    "antic_lag": 9
+   },
+   "every": 4,
+   "lat_gain": 0.21712267841975558,
+   "slo_mult": 1.3242980865044374
+  },
+  {
+   "law": {
+    "rho0": 0.5881616672716218,
+    "rho_min": 0.3809310241680702,
+    "kI": 0.27777013932376093,
+    "kE": 0.05210253446812629,
+    "kq": 0.33162273518647256,
+    "headroom": 0.1201959147653542,
+    "headroom_up": 0.0,
+    "window": 54,
+    "band": 1,
+    "dwell": 36,
+    "after_add": 19,
+    "push_release": 0.1658134228989477,
+    "cap_idle": 0.8494355099514631,
+    "cap_busy": 0.2963668134889038,
+    "antic": 0.0,
+    "antic_lag": 10
+   },
+   "every": 4,
+   "lat_gain": 0.21712267841975558,
+   "slo_mult": 1.3242980865044374
+  },
+  {
+   "law": {
+    "rho0": 0.5927438425360175,
+    "rho_min": 0.3809310241680702,
+    "kI": 0.27777013932376093,
+    "kE": 0.10634708385659516,
+    "kq": 0.33162273518647256,
+    "headroom": 0.16900548903102508,
+    "headroom_up": 0.0,
+    "window": 50,
+    "band": 1,
+    "dwell": 36,
+    "after_add": 8,
+    "push_release": 0.14370038495937892,
+    "cap_idle": 0.8227013668517544,
+    "cap_busy": 0.34007224018640086,
+    "antic": 0.0,
+    "antic_lag": 9
+   },
+   "every": 4,
+   "lat_gain": 0.21712267841975558,
+   "slo_mult": 1.5991055673158687
+  },
+  {
+   "law": {
+    "rho0": 0.6441799780258853,
+    "rho_min": 0.3809310241680702,
+    "kI": 0.27777013932376093,
+    "kE": 0.10634708385659516,
+    "kq": 0.33162273518647256,
+    "headroom": 0.16900548903102508,
+    "headroom_up": 0.0,
+    "window": 50,
+    "band": 1,
+    "dwell": 36,
+    "after_add": 8,
+    "push_release": 0.14370038495937892,
+    "cap_idle": 0.8281592389914707,
+    "cap_busy": 0.34007224018640086,
+    "antic": 0.0,
+    "antic_lag": 9
+   },
+   "every": 4,
+   "lat_gain": 0.21712267841975558,
+   "slo_mult": 1.5991055673158687
+  },
+  {
+   "law": {
+    "rho0": 0.5927438425360175,
+    "rho_min": 0.3809310241680702,
+    "kI": 0.27777013932376093,
+    "kE": 0.10634708385659516,
+    "kq": 0.33162273518647256,
+    "headroom": 0.16900548903102508,
+    "headroom_up": 0.0,
+    "window": 50,
+    "band": 1,
+    "dwell": 36,
+    "after_add": 8,
+    "push_release": 0.14370038495937892,
+    "cap_idle": 0.8281592389914707,
+    "cap_busy": 0.34007224018640086,
+    "antic": 0.0,
+    "antic_lag": 9
+   },
+   "every": 4,
+   "lat_gain": 0.21712267841975558,
+   "slo_mult": 1.5991055673158687
+  }
+ ]
+}

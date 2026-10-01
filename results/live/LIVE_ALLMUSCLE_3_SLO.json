@@ -1,0 +1,78 @@
+{
+ "run": "36216647786 (2026-09-26 04:02-04:28 UTC), commit 052b705",
+ "change": "SLO reflex; eviction receipt fixed",
+ "validity": "INVALID as a test of the engine: the audit holds 3 decisions of 20. The controller process stopped after minute 3 (its log is in the run artifact, which this lab cannot download); a single failed kubectl call ended the loop. For the remaining 17 minutes the cluster held Omni's last settings (4 workers, HPA target 77%, pod CPU limits at 69.5%) with no engine running.",
+ "gauges": [
+  [
+   "Worker nodes in service, mean",
+   "6.00",
+   "4.08",
+   "-32.0%"
+  ],
+  [
+   "Node-hours",
+   "2.03",
+   "1.37",
+   "-32.5%"
+  ],
+  [
+   "Energy (Wh), standby counted",
+   "224",
+   "220",
+   "-1.7%"
+  ],
+  [
+   "Energy per core-hour (Wh)",
+   "734",
+   "832",
+   "+13.3% worse"
+  ],
+  [
+   "HPA replicas, mean",
+   "9.08",
+   "7.36",
+   "-18.9%"
+  ],
+  [
+   "Pending pods, pod-minutes",
+   "0.300",
+   "0",
+   "-100%"
+  ],
+  [
+   "Response time (ms), mean",
+   "270",
+   "160",
+   "-40.7%"
+  ],
+  [
+   "Response time (ms), median",
+   "252",
+   "134",
+   "-47.0%"
+  ],
+  [
+   "Response time (ms), 95th percentile",
+   "479",
+   "320",
+   "-33.2%"
+  ],
+  [
+   "Response time (ms), 99th percentile",
+   "583",
+   "420",
+   "-28.0%"
+  ],
+  [
+   "Failed requests (%)",
+   "0",
+   "0",
+   "0"
+  ]
+ ],
+ "significance": "no metric significant (2-minute blocks, bootstrap 95%): node-hours per core-hour -18.1% [-2.77,+0.28]; kWh per core-hour +18.2% [-0.03,+0.31]",
+ "rbac": "all can receipts yes (HPA, cordon, eviction, pod resize, deployment, security ConfigMap); all cannot receipts no (delete nodes/pods/deployments, create pods, load generator, kube-system, secrets, namespaces, write security ConfigMap)",
+ "kill_switch": "restored target 50; workers 6 of 6; pod CPU limits 500m; no Omni records left",
+ "reading": "The faster response times are real measurements but are not evidence for the engine: the engine was not running for most of the run, the two arms ran on different CI machines, and a capped static configuration answering faster than native points at machine-to-machine noise. Nothing is significant.",
+ "fix": "controller fail-safe (a failed decision is recorded and skipped; 3 in a row restore native settings and stop); the benchmark now prints the controller log and rejects a run with fewer than 80% of decisions"
+}

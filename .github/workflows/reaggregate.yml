@@ -1,0 +1,47 @@
+name: reaggregate
+# Recompute a finished benchmark-reps run's table with the current tools/live_reps.py, from that run's own raw files
+# (its paired-* artifacts), without rerunning anything. The run id comes from the dispatch input, or from
+# results/live/reaggregate_run.txt on a push that changes that file. The table goes to the job summary and log, and to
+# results/live/reaggregated/LIVE_REPS_<run id>.md committed back to the branch.
+on:
+  workflow_dispatch:
+    inputs:
+      run_id: {description: "benchmark-reps run id", required: true}
+  push:
+    paths: ["results/live/reaggregate_run.txt"]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  reaggregate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - id: rid
+        run: |
+          ID="${{ github.event.inputs.run_id }}"
+          [ -z "$ID" ] && ID=$(head -1 results/live/reaggregate_run.txt | tr -dc 0-9)
+          echo "id=$ID" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "paired-*"
+          path: reps
+          merge-multiple: true
+          run-id: ${{ steps.rid.outputs.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: python tools/live_reps.py reps
+      - run: python tools/closed_loop_estimate.py reps | tee -a reps/LIVE_REPS.md
+      - run: cat reps/LIVE_REPS.md >> "$GITHUB_STEP_SUMMARY"
+      - name: commit the recomputed table
+        run: |
+          mkdir -p results/live/reaggregated
+          cp reps/LIVE_REPS.md "results/live/reaggregated/LIVE_REPS_${{ steps.rid.outputs.id }}.md"
+          cp reps/LIVE_REPS.json "results/live/reaggregated/LIVE_REPS_${{ steps.rid.outputs.id }}.json"
+          cp reps/CLOSED_LOOP_ESTIMATE.json "results/live/reaggregated/CLOSED_LOOP_ESTIMATE_${{ steps.rid.outputs.id }}.json" || true
+          git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add results/live/reaggregated
+          git commit -m "Recomputed run ${{ steps.rid.outputs.id }} with the current tools/live_reps.py" || exit 0
+          for i in 1 2 3 4; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break; sleep $((2**i)); done

@@ -1,0 +1,93 @@
+{
+ "run": "36218637030 (2026-09-26 04:42-05:08 UTC), commit 47d0353",
+ "change": "controller fail-safe; benchmark prints controller log and rejects early stops",
+ "validity": "PARTIAL: 16 decisions of 20. Every in-place power-cap resize was refused (RBAC granted patch on pods/resize but kubectl reads the subresource first, which needs get). Two refusals were skipped as designed; the third consecutive refusal triggered the fail-safe, which restored native settings at minute 16 (workers back to 6, HPA target 50) and stopped the controller. The same refusal is what ended run 3. In both RBAC runs no power cap was ever applied: the 'resizes' counted in the report are attempts.",
+ "gauges": [
+  [
+   "Worker nodes in service, mean",
+   "6.00",
+   "4.29",
+   "-28.5%"
+  ],
+  [
+   "Node-hours",
+   "2.02",
+   "1.44",
+   "-29.0%"
+  ],
+  [
+   "Energy (Wh), standby counted",
+   "223",
+   "221",
+   "-1.1%"
+  ],
+  [
+   "Energy per core-hour (Wh)",
+   "726",
+   "784",
+   "+8.1% worse (n.s.)"
+  ],
+  [
+   "Utilisation (used/allocatable)",
+   "0.076",
+   "0.098",
+   "+28.9%"
+  ],
+  [
+   "HPA replicas, mean",
+   "9.29",
+   "8.91",
+   "-4.1%"
+  ],
+  [
+   "Pending pods, pod-minutes",
+   "0.300",
+   "0",
+   "-100%"
+  ],
+  [
+   "Response time (ms), mean",
+   "267",
+   "252",
+   "-5.7%"
+  ],
+  [
+   "Response time (ms), median",
+   "241",
+   "217",
+   "-10.0%"
+  ],
+  [
+   "Response time (ms), 95th percentile",
+   "491",
+   "492",
+   "+0.3% (tie)"
+  ],
+  [
+   "Response time (ms), 99th percentile",
+   "645",
+   "683",
+   "+5.8% worse"
+  ],
+  [
+   "Failed requests (%)",
+   "0",
+   "0",
+   "0"
+  ]
+ ],
+ "significance": {
+  "node_hours_per_core_hour": "-24.0% [-3.07,-0.12] better",
+  "utilisation": "+36.2% [+0.004,+0.050] better",
+  "kwh_per_core_hour": "+8.0% n.s.",
+  "pending_pod_minutes": "-100% n.s.",
+  "hpa_shortfall": "-7.0% n.s."
+ },
+ "actions": {
+  "nodes_decided": "5 4 3 3 4 4 4 4 4 4 4 3 3 3 3 3",
+  "hpa_target": "77% every minute (fleet law floor)",
+  "slo": "p95 stayed under the 500 ms SLO; reflex not triggered"
+ },
+ "kill_switch": "restored target 50; workers 6 of 6; no Omni records left",
+ "fix": "RBAC grants get+patch on pods/resize; a receipt now proves get; a run in which the fail-safe fires is rejected"
+}

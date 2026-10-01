@@ -1,0 +1,40 @@
+name: live-kind
+# Real Kubernetes control plane in CI: kind, metrics-server, the official HPA walkthrough workload, Omni-Compass
+# in observe then target mode, kill-switch restore check, scored result uploaded as an artifact.
+# Runs only when started by hand (Actions tab -> live-kind -> Run workflow) or when a pushed commit message
+# contains [kind], so ordinary pushes do not spend Actions minutes on a 25-minute cluster run.
+on:
+  workflow_dispatch:
+    inputs:
+      phase_s:
+        description: "Seconds per phase (baseline, then Omni target mode)"
+        default: "600"
+  push:
+jobs:
+  kind-pilot:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[kind]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - uses: helm/kind-action@v1
+        with: {cluster_name: omni-pilot}
+      - run: bash scripts/kind_pilot.sh
+        env:
+          OUT_DIR: kind_pilot_out
+          PHASE_S: ${{ github.event.inputs.phase_s || '600' }}
+      - name: Results summary
+        if: always()
+        run: |
+          {
+            echo "## Omni-Compass live kind pilot"
+            for f in observe_writes.txt kill_switch.txt score.txt; do
+              echo "### $f"; echo '```'; cat "kind_pilot_out/$f" 2>/dev/null || echo "(missing)"; echo '```'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: kind-pilot-results, path: kind_pilot_out}

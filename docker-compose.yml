@@ -1,0 +1,12 @@
+# Local lab: `docker compose up --build` creates a kind Kubernetes cluster on your Docker Desktop,
+# runs the Omni-Compass live pilot on it, and writes results to ./lab_results/.
+services:
+  omni:
+    build: {context: ., dockerfile: deploy/local/Dockerfile}
+    image: omnicompass-runner
+    environment:
+      PHASE_S: "${PHASE_S:-300}"
+      KEEP_CLUSTER: "${KEEP_CLUSTER:-0}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./lab_results:/results

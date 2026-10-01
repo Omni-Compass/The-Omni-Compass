@@ -1,0 +1,7 @@
+{
+  "reference_engine": "reference/omni_compass_reference_engine.py",
+  "reference_engine_sha256": "92799376dd9a626cef330d15f3fc3603eeef1dc2e5de6186b3527fdbb9d2b875",
+  "source_engine_sha256": "c527df2d3d217a62886fbc21968d241b9af28d09c381558a1df77a184c531d52",
+  "program_fingerprint": "cd4e6eb22cd50e1484398f7f4aad2cc09c50ec12d9666a4d0223517eab946fe1",
+  "derivation": "tools/strip_reference.py applied to the source engine; comments and docstrings removed; program fingerprint (tools/code_fingerprint.py) identical to the source engine's"
+}
