@@ -31,6 +31,8 @@ GROUPS = {
     "mechanism": ["results/MECHANISM_IDENTITY.json", "tools/mechanism_identity.py", "docs/TRACKING_THEOREM.md",
                   "tools/tracking_bounds.py", "results/TRACKING_BOUNDS.json", "docs/EVIDENCE_LEDGER.md", "RECEIPT.md"],
     "license": ["LICENSE", "NOTICE"],
+    "realms": ["realms/catalog.csv", "realms/plants.py", "realms/presets.py", "realms/harness.py",
+               "tools/realms_catalog.py", "tools/run_realms.py", "docs/REALMS_PREREGISTRATION.md"],
 }
 # engine components checked identical to this release's at each execution commit (tools/mechanism_identity.py
 # components F, C, h, G, dt, recomputed from the source at that commit); the Kubernetes actuator map and shield are as

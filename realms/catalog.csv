@@ -1,0 +1,657 @@
+muscle_id,family_id,family,muscle,realm,template,preset,knob
+161,11,AI Inference Serving,model_replicas,compute_ai_cloud,compute_pool,gpu,capacity
+162,11,AI Inference Serving,model_route_weight,compute_ai_cloud,compute_pool,gpu,setpoint
+163,11,AI Inference Serving,model_load,compute_ai_cloud,compute_pool,gpu,capacity
+164,11,AI Inference Serving,model_unload,compute_ai_cloud,compute_pool,gpu,capacity
+165,11,AI Inference Serving,model_instance_count,compute_ai_cloud,compute_pool,gpu,capacity
+166,11,AI Inference Serving,continuous_batching,compute_ai_cloud,compute_pool,gpu,capacity
+167,11,AI Inference Serving,max_batch_size,compute_ai_cloud,compute_pool,gpu,capacity
+168,11,AI Inference Serving,batch_queue_delay,compute_ai_cloud,compute_pool,gpu,capacity
+169,11,AI Inference Serving,inference_concurrency,compute_ai_cloud,compute_pool,gpu,admission
+170,11,AI Inference Serving,inference_max_tokens,compute_ai_cloud,compute_pool,gpu,capacity
+171,11,AI Inference Serving,kv_cache_budget,compute_ai_cloud,compute_pool,gpu,admission
+172,11,AI Inference Serving,prefix_cache_budget,compute_ai_cloud,compute_pool,gpu,admission
+173,11,AI Inference Serving,speculative_decode_budget,compute_ai_cloud,compute_pool,gpu,admission
+174,11,AI Inference Serving,model_precision,compute_ai_cloud,compute_pool,gpu,power
+175,11,AI Inference Serving,inference_priority,compute_ai_cloud,compute_pool,gpu,admission
+176,11,AI Inference Serving,inference_slo_gate,compute_ai_cloud,compute_pool,gpu,admission
+177,12,AI Training,training_workers,compute_ai_cloud,compute_pool,gpu_batch,capacity
+178,12,AI Training,global_batch_size,compute_ai_cloud,compute_pool,gpu_batch,capacity
+179,12,AI Training,microbatch_size,compute_ai_cloud,compute_pool,gpu_batch,capacity
+180,12,AI Training,gradient_accumulation,compute_ai_cloud,compute_pool,gpu_batch,capacity
+181,12,AI Training,data_parallelism,compute_ai_cloud,compute_pool,gpu_batch,capacity
+182,12,AI Training,tensor_parallelism,compute_ai_cloud,compute_pool,gpu_batch,capacity
+183,12,AI Training,pipeline_parallelism,compute_ai_cloud,compute_pool,gpu_batch,capacity
+184,12,AI Training,expert_parallelism,compute_ai_cloud,compute_pool,gpu_batch,capacity
+185,12,AI Training,checkpoint_interval,compute_ai_cloud,compute_pool,gpu_batch,setpoint
+186,12,AI Training,checkpoint_trigger,compute_ai_cloud,compute_pool,gpu_batch,capacity
+187,12,AI Training,training_preempt,compute_ai_cloud,compute_pool,gpu_batch,admission
+188,12,AI Training,training_gang_size,compute_ai_cloud,compute_pool,gpu_batch,capacity
+189,12,AI Training,elastic_worker_count,compute_ai_cloud,compute_pool,gpu_batch,capacity
+190,12,AI Training,straggler_mitigation,compute_ai_cloud,compute_pool,gpu_batch,capacity
+191,12,AI Training,training_precision,compute_ai_cloud,compute_pool,gpu_batch,power
+192,12,AI Training,compute_comm_overlap,compute_ai_cloud,compute_pool,gpu_batch,capacity
+97,7,Cloud VM & Capacity,vm_count,compute_ai_cloud,compute_pool,node,capacity
+98,7,Cloud VM & Capacity,vm_size,compute_ai_cloud,compute_pool,node,capacity
+99,7,Cloud VM & Capacity,vm_start_stop,compute_ai_cloud,compute_pool,node,capacity
+100,7,Cloud VM & Capacity,vm_migrate,compute_ai_cloud,compute_pool,node,capacity
+101,7,Cloud VM & Capacity,instance_family,compute_ai_cloud,compute_pool,node,capacity
+102,7,Cloud VM & Capacity,asg_min,compute_ai_cloud,compute_pool,node,capacity
+103,7,Cloud VM & Capacity,asg_max,compute_ai_cloud,compute_pool,node,capacity
+104,7,Cloud VM & Capacity,spot_mix,compute_ai_cloud,compute_pool,node,capacity
+105,7,Cloud VM & Capacity,reservation_mix,compute_ai_cloud,compute_pool,node,capacity
+106,7,Cloud VM & Capacity,zone_selection,compute_ai_cloud,compute_pool,node,capacity
+107,7,Cloud VM & Capacity,region_selection,compute_ai_cloud,compute_pool,node,capacity
+108,7,Cloud VM & Capacity,architecture_selection,compute_ai_cloud,compute_pool,node,capacity
+109,7,Cloud VM & Capacity,accelerator_selection,compute_ai_cloud,compute_pool,node,capacity
+110,7,Cloud VM & Capacity,boot_disk_class,compute_ai_cloud,compute_pool,node,capacity
+111,7,Cloud VM & Capacity,placement_group,compute_ai_cloud,compute_pool,node,capacity
+112,7,Cloud VM & Capacity,interruption_response,compute_ai_cloud,compute_pool,node,capacity
+33,3,Container Resources,cpu_request,compute_ai_cloud,compute_pool,server,capacity
+34,3,Container Resources,cpu_limit,compute_ai_cloud,compute_pool,server,capacity
+35,3,Container Resources,memory_request,compute_ai_cloud,compute_pool,server,capacity
+36,3,Container Resources,memory_limit,compute_ai_cloud,compute_pool,server,capacity
+37,3,Container Resources,ephemeral_storage,compute_ai_cloud,compute_pool,server,capacity
+38,3,Container Resources,hugepages,compute_ai_cloud,compute_pool,server,capacity
+39,3,Container Resources,io_weight,compute_ai_cloud,compute_pool,server,setpoint
+40,3,Container Resources,pids_limit,compute_ai_cloud,compute_pool,server,capacity
+41,3,Container Resources,memory_high,compute_ai_cloud,compute_pool,server,capacity
+42,3,Container Resources,memory_reclaim,compute_ai_cloud,compute_pool,server,capacity
+43,3,Container Resources,swap_limit,compute_ai_cloud,compute_pool,server,capacity
+44,3,Container Resources,cgroup_io_max,compute_ai_cloud,compute_pool,server,capacity
+45,3,Container Resources,cpu_weight,compute_ai_cloud,compute_pool,server,setpoint
+46,3,Container Resources,cpu_quota,compute_ai_cloud,compute_pool,server,admission
+47,3,Container Resources,cpuset,compute_ai_cloud,compute_pool,server,capacity
+48,3,Container Resources,runtime_class,compute_ai_cloud,compute_pool,server,capacity
+609,39,"Cross-Cluster, Multi-Region & Edge",multi_cluster_dispatch,compute_ai_cloud,compute_pool,node,capacity
+610,39,"Cross-Cluster, Multi-Region & Edge",region_dispatch,compute_ai_cloud,compute_pool,node,capacity
+611,39,"Cross-Cluster, Multi-Region & Edge",zone_dispatch,compute_ai_cloud,compute_pool,node,capacity
+612,39,"Cross-Cluster, Multi-Region & Edge",edge_dispatch,compute_ai_cloud,compute_pool,node,capacity
+613,39,"Cross-Cluster, Multi-Region & Edge",cloud_capacity_class,compute_ai_cloud,compute_pool,node,capacity
+614,39,"Cross-Cluster, Multi-Region & Edge",workload_migrate_region,compute_ai_cloud,compute_pool,node,capacity
+615,39,"Cross-Cluster, Multi-Region & Edge",data_residency_gate,compute_ai_cloud,compute_pool,node,admission
+616,39,"Cross-Cluster, Multi-Region & Edge",latency_region_gate,compute_ai_cloud,compute_pool,node,admission
+617,39,"Cross-Cluster, Multi-Region & Edge",cost_region_gate,compute_ai_cloud,compute_pool,node,admission
+618,39,"Cross-Cluster, Multi-Region & Edge",carbon_region_gate,compute_ai_cloud,compute_pool,node,admission
+619,39,"Cross-Cluster, Multi-Region & Edge",global_failover,compute_ai_cloud,compute_pool,node,capacity
+620,39,"Cross-Cluster, Multi-Region & Edge",federation_quota,compute_ai_cloud,compute_pool,node,admission
+621,39,"Cross-Cluster, Multi-Region & Edge",cross_cluster_replication,compute_ai_cloud,compute_pool,node,capacity
+622,39,"Cross-Cluster, Multi-Region & Edge",edge_offload,compute_ai_cloud,compute_pool,node,capacity
+623,39,"Cross-Cluster, Multi-Region & Edge",global_admission,compute_ai_cloud,compute_pool,node,admission
+AUDIT-0021,AUDIT,DPU SmartNIC & Programmable IO,dpu_pf_tx_rate,compute_ai_cloud,compute_pool,fabric,capacity
+AUDIT-0022,AUDIT,DPU SmartNIC & Programmable IO,dpu_vf_tx_rate,compute_ai_cloud,compute_pool,fabric,capacity
+AUDIT-0023,AUDIT,DPU SmartNIC & Programmable IO,dpu_sf_tx_rate,compute_ai_cloud,compute_pool,fabric,capacity
+AUDIT-0024,AUDIT,DPU SmartNIC & Programmable IO,dpu_bandwidth_share,compute_ai_cloud,compute_pool,fabric,capacity
+AUDIT-0025,AUDIT,DPU SmartNIC & Programmable IO,dpu_qos_group,compute_ai_cloud,compute_pool,fabric,capacity
+AUDIT-0026,AUDIT,DPU SmartNIC & Programmable IO,sriov_vf_count,compute_ai_cloud,compute_pool,fabric,capacity
+AUDIT-0027,AUDIT,DPU SmartNIC & Programmable IO,smartnic_flow_steering,compute_ai_cloud,compute_pool,fabric,capacity
+AUDIT-0028,AUDIT,DPU SmartNIC & Programmable IO,smartnic_offload_enable,compute_ai_cloud,compute_pool,fabric,capacity
+AUDIT-0029,AUDIT,DPU SmartNIC & Programmable IO,dpu_cpu_budget,compute_ai_cloud,compute_pool,fabric,admission
+AUDIT-0030,AUDIT,DPU SmartNIC & Programmable IO,dpu_memory_budget,compute_ai_cloud,compute_pool,fabric,admission
+AUDIT-0031,AUDIT,DPU SmartNIC & Programmable IO,dpu_service_placement,compute_ai_cloud,compute_pool,fabric,capacity
+AUDIT-0032,AUDIT,DPU SmartNIC & Programmable IO,dpu_failover,compute_ai_cloud,compute_pool,fabric,capacity
+209,14,Distributed Cluster Managers,task_admission,compute_ai_cloud,compute_pool,batch,admission
+210,14,Distributed Cluster Managers,task_priority,compute_ai_cloud,compute_pool,batch,admission
+211,14,Distributed Cluster Managers,resource_reservation,compute_ai_cloud,compute_pool,batch,capacity
+212,14,Distributed Cluster Managers,cluster_quota,compute_ai_cloud,compute_pool,batch,admission
+213,14,Distributed Cluster Managers,task_preemption,compute_ai_cloud,compute_pool,batch,admission
+214,14,Distributed Cluster Managers,binpack_pressure,compute_ai_cloud,compute_pool,batch,capacity
+215,14,Distributed Cluster Managers,spread_pressure,compute_ai_cloud,compute_pool,batch,capacity
+216,14,Distributed Cluster Managers,gang_schedule,compute_ai_cloud,compute_pool,batch,capacity
+217,14,Distributed Cluster Managers,worker_allocation,compute_ai_cloud,compute_pool,batch,capacity
+218,14,Distributed Cluster Managers,maintenance_evacuation,compute_ai_cloud,compute_pool,batch,capacity
+219,14,Distributed Cluster Managers,oversubscription,compute_ai_cloud,compute_pool,batch,capacity
+220,14,Distributed Cluster Managers,resource_reclaim,compute_ai_cloud,compute_pool,batch,capacity
+221,14,Distributed Cluster Managers,queue_fairness,compute_ai_cloud,compute_pool,batch,admission
+222,14,Distributed Cluster Managers,deadline_pressure,compute_ai_cloud,compute_pool,batch,admission
+223,14,Distributed Cluster Managers,scheduler_retry,compute_ai_cloud,compute_pool,batch,admission
+145,10,GPU Fabric & RDMA,nvlink_placement,compute_ai_cloud,compute_pool,fabric,capacity
+146,10,GPU Fabric & RDMA,nvswitch_route,compute_ai_cloud,compute_pool,fabric,capacity
+147,10,GPU Fabric & RDMA,gpu_fabric_quarantine,compute_ai_cloud,compute_pool,fabric,admission
+148,10,GPU Fabric & RDMA,rdma_bandwidth,compute_ai_cloud,compute_pool,fabric,capacity
+149,10,GPU Fabric & RDMA,rdma_route,compute_ai_cloud,compute_pool,fabric,capacity
+150,10,GPU Fabric & RDMA,nic_affinity,compute_ai_cloud,compute_pool,fabric,capacity
+151,10,GPU Fabric & RDMA,collective_concurrency,compute_ai_cloud,compute_pool,fabric,admission
+152,10,GPU Fabric & RDMA,collective_algorithm,compute_ai_cloud,compute_pool,fabric,capacity
+153,10,GPU Fabric & RDMA,collective_chunk_size,compute_ai_cloud,compute_pool,fabric,capacity
+154,10,GPU Fabric & RDMA,rank_placement,compute_ai_cloud,compute_pool,fabric,capacity
+155,10,GPU Fabric & RDMA,gpudirect_policy,compute_ai_cloud,compute_pool,fabric,capacity
+156,10,GPU Fabric & RDMA,congestion_response,compute_ai_cloud,compute_pool,fabric,capacity
+157,10,GPU Fabric & RDMA,rail_selection,compute_ai_cloud,compute_pool,fabric,capacity
+158,10,GPU Fabric & RDMA,fabric_failover,compute_ai_cloud,compute_pool,fabric,capacity
+159,10,GPU Fabric & RDMA,communication_priority,compute_ai_cloud,compute_pool,fabric,admission
+160,10,GPU Fabric & RDMA,fabric_isolation,compute_ai_cloud,compute_pool,fabric,admission
+193,13,HPC & Distributed Compute,job_slots,compute_ai_cloud,compute_pool,batch,capacity
+194,13,HPC & Distributed Compute,mpi_ranks,compute_ai_cloud,compute_pool,batch,capacity
+195,13,HPC & Distributed Compute,rank_mapping,compute_ai_cloud,compute_pool,batch,capacity
+196,13,HPC & Distributed Compute,node_allocation,compute_ai_cloud,compute_pool,batch,capacity
+197,13,HPC & Distributed Compute,job_walltime,compute_ai_cloud,compute_pool,batch,capacity
+198,13,HPC & Distributed Compute,job_priority,compute_ai_cloud,compute_pool,batch,admission
+199,13,HPC & Distributed Compute,job_preemption,compute_ai_cloud,compute_pool,batch,admission
+200,13,HPC & Distributed Compute,checkpoint_restart,compute_ai_cloud,compute_pool,batch,capacity
+201,13,HPC & Distributed Compute,parallel_io_budget,compute_ai_cloud,compute_pool,batch,admission
+202,13,HPC & Distributed Compute,collective_budget,compute_ai_cloud,compute_pool,batch,admission
+203,13,HPC & Distributed Compute,accelerator_share,compute_ai_cloud,compute_pool,batch,capacity
+204,13,HPC & Distributed Compute,cpu_gpu_ratio,compute_ai_cloud,compute_pool,batch,setpoint
+205,13,HPC & Distributed Compute,memory_per_rank,compute_ai_cloud,compute_pool,batch,capacity
+206,13,HPC & Distributed Compute,scratch_budget,compute_ai_cloud,compute_pool,batch,admission
+207,13,HPC & Distributed Compute,scheduler_fair_share,compute_ai_cloud,compute_pool,batch,admission
+208,13,HPC & Distributed Compute,backfill_policy,compute_ai_cloud,compute_pool,batch,capacity
+113,8,Host CPU & Memory,cpufreq_min,compute_ai_cloud,compute_pool,cpu_host,power
+114,8,Host CPU & Memory,cpufreq_max,compute_ai_cloud,compute_pool,cpu_host,power
+115,8,Host CPU & Memory,rapl_package_power,compute_ai_cloud,compute_pool,cpu_host,power
+116,8,Host CPU & Memory,uncore_frequency,compute_ai_cloud,compute_pool,cpu_host,power
+117,8,Host CPU & Memory,energy_perf_preference,compute_ai_cloud,compute_pool,cpu_host,power
+118,8,Host CPU & Memory,cpu_idle_policy,compute_ai_cloud,compute_pool,cpu_host,power
+119,8,Host CPU & Memory,memory_bandwidth,compute_ai_cloud,compute_pool,cpu_host,capacity
+120,8,Host CPU & Memory,numa_balance,compute_ai_cloud,compute_pool,cpu_host,capacity
+121,8,Host CPU & Memory,irq_affinity,compute_ai_cloud,compute_pool,cpu_host,capacity
+122,8,Host CPU & Memory,llc_allocation,compute_ai_cloud,compute_pool,cpu_host,capacity
+123,8,Host CPU & Memory,memory_pressure_gate,compute_ai_cloud,compute_pool,cpu_host,admission
+124,8,Host CPU & Memory,page_reclaim_rate,compute_ai_cloud,compute_pool,cpu_host,capacity
+125,8,Host CPU & Memory,transparent_hugepages,compute_ai_cloud,compute_pool,cpu_host,capacity
+126,8,Host CPU & Memory,core_online_offline,compute_ai_cloud,compute_pool,cpu_host,capacity
+127,8,Host CPU & Memory,thermal_throttle_policy,compute_ai_cloud,compute_pool,cpu_host,power
+128,8,Host CPU & Memory,host_power_profile,compute_ai_cloud,compute_pool,cpu_host,power
+AUDIT-0001,AUDIT,Kubernetes Dynamic Device Allocation,dra_device_class_selection,compute_ai_cloud,compute_pool,gpu,capacity
+AUDIT-0002,AUDIT,Kubernetes Dynamic Device Allocation,dra_claim_capacity,compute_ai_cloud,compute_pool,gpu,capacity
+AUDIT-0003,AUDIT,Kubernetes Dynamic Device Allocation,dra_claim_sharing,compute_ai_cloud,compute_pool,gpu,capacity
+AUDIT-0004,AUDIT,Kubernetes Dynamic Device Allocation,dra_device_taint,compute_ai_cloud,compute_pool,gpu,capacity
+AUDIT-0005,AUDIT,Kubernetes Dynamic Device Allocation,dra_device_eviction,compute_ai_cloud,compute_pool,gpu,admission
+AUDIT-0006,AUDIT,Kubernetes Dynamic Device Allocation,dra_binding_readiness,compute_ai_cloud,compute_pool,gpu,capacity
+AUDIT-0007,AUDIT,Kubernetes Dynamic Device Allocation,dra_binding_failure_response,compute_ai_cloud,compute_pool,gpu,capacity
+AUDIT-0008,AUDIT,Kubernetes Dynamic Device Allocation,dra_device_configuration,compute_ai_cloud,compute_pool,gpu,setpoint
+49,4,Kubernetes Placement & Scheduling,node_selector,compute_ai_cloud,compute_pool,server,capacity
+50,4,Kubernetes Placement & Scheduling,node_affinity,compute_ai_cloud,compute_pool,server,capacity
+51,4,Kubernetes Placement & Scheduling,pod_anti_affinity,compute_ai_cloud,compute_pool,server,capacity
+52,4,Kubernetes Placement & Scheduling,topology_spread,compute_ai_cloud,compute_pool,server,capacity
+53,4,Kubernetes Placement & Scheduling,numa_placement,compute_ai_cloud,compute_pool,server,capacity
+54,4,Kubernetes Placement & Scheduling,gpu_topology,compute_ai_cloud,compute_pool,server,capacity
+55,4,Kubernetes Placement & Scheduling,storage_locality,compute_ai_cloud,compute_pool,server,capacity
+56,4,Kubernetes Placement & Scheduling,network_locality,compute_ai_cloud,compute_pool,server,capacity
+57,4,Kubernetes Placement & Scheduling,taint_toleration,compute_ai_cloud,compute_pool,server,setpoint
+58,4,Kubernetes Placement & Scheduling,priority_class,compute_ai_cloud,compute_pool,server,admission
+59,4,Kubernetes Placement & Scheduling,preemption_policy,compute_ai_cloud,compute_pool,server,admission
+60,4,Kubernetes Placement & Scheduling,device_claim,compute_ai_cloud,compute_pool,server,capacity
+61,4,Kubernetes Placement & Scheduling,failure_domain_spread,compute_ai_cloud,compute_pool,server,capacity
+62,4,Kubernetes Placement & Scheduling,scheduler_backoff,compute_ai_cloud,compute_pool,server,admission
+63,4,Kubernetes Placement & Scheduling,gang_admission,compute_ai_cloud,compute_pool,server,admission
+64,4,Kubernetes Placement & Scheduling,deschedule,compute_ai_cloud,compute_pool,server,capacity
+17,2,Kubernetes Workload Scaling,replicas,compute_ai_cloud,compute_pool,server,capacity
+18,2,Kubernetes Workload Scaling,hpa_cpu_target,compute_ai_cloud,compute_pool,server,setpoint
+19,2,Kubernetes Workload Scaling,hpa_memory_target,compute_ai_cloud,compute_pool,server,setpoint
+20,2,Kubernetes Workload Scaling,hpa_custom_target,compute_ai_cloud,compute_pool,server,setpoint
+21,2,Kubernetes Workload Scaling,vpa_apply,compute_ai_cloud,compute_pool,server,capacity
+22,2,Kubernetes Workload Scaling,scale_to_zero,compute_ai_cloud,compute_pool,server,capacity
+23,2,Kubernetes Workload Scaling,keda_threshold,compute_ai_cloud,compute_pool,server,admission
+24,2,Kubernetes Workload Scaling,rollout_rate,compute_ai_cloud,compute_pool,server,capacity
+25,2,Kubernetes Workload Scaling,max_surge,compute_ai_cloud,compute_pool,server,capacity
+26,2,Kubernetes Workload Scaling,max_unavailable,compute_ai_cloud,compute_pool,server,capacity
+27,2,Kubernetes Workload Scaling,deployment_pause_resume,compute_ai_cloud,compute_pool,server,admission
+28,2,Kubernetes Workload Scaling,rollout_abort,compute_ai_cloud,compute_pool,server,admission
+29,2,Kubernetes Workload Scaling,pod_eviction,compute_ai_cloud,compute_pool,server,admission
+30,2,Kubernetes Workload Scaling,pdb_policy,compute_ai_cloud,compute_pool,server,capacity
+31,2,Kubernetes Workload Scaling,scheduler_queue_priority,compute_ai_cloud,compute_pool,server,admission
+32,2,Kubernetes Workload Scaling,api_priority_fairness,compute_ai_cloud,compute_pool,server,admission
+129,9,NVIDIA GPU Hardware,gpu_allocate,compute_ai_cloud,compute_pool,gpu,capacity
+130,9,NVIDIA GPU Hardware,gpu_power_limit,compute_ai_cloud,compute_pool,gpu,power
+131,9,NVIDIA GPU Hardware,gpu_sm_clock,compute_ai_cloud,compute_pool,gpu,power
+132,9,NVIDIA GPU Hardware,gpu_memory_clock,compute_ai_cloud,compute_pool,gpu,power
+133,9,NVIDIA GPU Hardware,gpu_persistence_mode,compute_ai_cloud,compute_pool,gpu,capacity
+134,9,NVIDIA GPU Hardware,gpu_compute_mode,compute_ai_cloud,compute_pool,gpu,capacity
+135,9,NVIDIA GPU Hardware,mig_mode,compute_ai_cloud,compute_pool,gpu,capacity
+136,9,NVIDIA GPU Hardware,mig_geometry,compute_ai_cloud,compute_pool,gpu,capacity
+137,9,NVIDIA GPU Hardware,gpu_timeslice,compute_ai_cloud,compute_pool,gpu,capacity
+138,9,NVIDIA GPU Hardware,gpu_mps,compute_ai_cloud,compute_pool,gpu,capacity
+139,9,NVIDIA GPU Hardware,gpu_quarantine,compute_ai_cloud,compute_pool,gpu,admission
+140,9,NVIDIA GPU Hardware,gpu_reset,compute_ai_cloud,compute_pool,gpu,capacity
+141,9,NVIDIA GPU Hardware,gpu_thermal_limit,compute_ai_cloud,compute_pool,gpu,power
+142,9,NVIDIA GPU Hardware,gpu_ecc_response,compute_ai_cloud,compute_pool,gpu,capacity
+143,9,NVIDIA GPU Hardware,gpu_job_power_budget,compute_ai_cloud,compute_pool,gpu,admission
+65,5,Node Fleet & Karpenter-Class Control,node_desired,compute_ai_cloud,compute_pool,node,capacity
+66,5,Node Fleet & Karpenter-Class Control,node_pool_min,compute_ai_cloud,compute_pool,node,capacity
+67,5,Node Fleet & Karpenter-Class Control,node_pool_max,compute_ai_cloud,compute_pool,node,capacity
+68,5,Node Fleet & Karpenter-Class Control,node_provision,compute_ai_cloud,compute_pool,node,capacity
+69,5,Node Fleet & Karpenter-Class Control,node_cordon,compute_ai_cloud,compute_pool,node,admission
+70,5,Node Fleet & Karpenter-Class Control,node_drain,compute_ai_cloud,compute_pool,node,admission
+71,5,Node Fleet & Karpenter-Class Control,node_consolidate,compute_ai_cloud,compute_pool,node,capacity
+72,5,Node Fleet & Karpenter-Class Control,node_replace,compute_ai_cloud,compute_pool,node,capacity
+73,5,Node Fleet & Karpenter-Class Control,node_shutdown,compute_ai_cloud,compute_pool,node,capacity
+74,5,Node Fleet & Karpenter-Class Control,node_power_on,compute_ai_cloud,compute_pool,node,capacity
+75,5,Node Fleet & Karpenter-Class Control,nodepool_weight,compute_ai_cloud,compute_pool,node,setpoint
+76,5,Node Fleet & Karpenter-Class Control,disruption_budget,compute_ai_cloud,compute_pool,node,admission
+77,5,Node Fleet & Karpenter-Class Control,consolidation_policy,compute_ai_cloud,compute_pool,node,capacity
+78,5,Node Fleet & Karpenter-Class Control,consolidate_after,compute_ai_cloud,compute_pool,node,capacity
+79,5,Node Fleet & Karpenter-Class Control,expire_after,compute_ai_cloud,compute_pool,node,capacity
+80,5,Node Fleet & Karpenter-Class Control,capacity_class,compute_ai_cloud,compute_pool,node,capacity
+85,6,OpenShift & Machine API,machine_remediation,compute_ai_cloud,compute_pool,node,capacity
+88,6,OpenShift & Machine API,machine_health_gate,compute_ai_cloud,compute_pool,node,admission
+89,6,OpenShift & Machine API,mcp_pause,compute_ai_cloud,compute_pool,node,admission
+90,6,OpenShift & Machine API,mcp_max_unavailable,compute_ai_cloud,compute_pool,node,capacity
+91,6,OpenShift & Machine API,node_config_rollout,compute_ai_cloud,compute_pool,node,capacity
+92,6,OpenShift & Machine API,operator_reconcile_budget,compute_ai_cloud,compute_pool,node,admission
+93,6,OpenShift & Machine API,cluster_version_pacing,compute_ai_cloud,compute_pool,node,capacity
+94,6,OpenShift & Machine API,infra_machine_admission,compute_ai_cloud,compute_pool,node,admission
+95,6,OpenShift & Machine API,machine_failure_domain,compute_ai_cloud,compute_pool,node,capacity
+1,1,Work Admission & Demand Shaping,api_concurrency,compute_ai_cloud,compute_pool,server,admission
+2,1,Work Admission & Demand Shaping,queue_concurrency,compute_ai_cloud,compute_pool,server,admission
+3,1,Work Admission & Demand Shaping,queue_backpressure,compute_ai_cloud,compute_pool,server,admission
+4,1,Work Admission & Demand Shaping,job_admission,compute_ai_cloud,compute_pool,server,admission
+5,1,Work Admission & Demand Shaping,batch_admission,compute_ai_cloud,compute_pool,server,admission
+6,1,Work Admission & Demand Shaping,inference_admission,compute_ai_cloud,compute_pool,server,admission
+7,1,Work Admission & Demand Shaping,load_shed,compute_ai_cloud,compute_pool,server,admission
+8,1,Work Admission & Demand Shaping,priority_gate,compute_ai_cloud,compute_pool,server,admission
+9,1,Work Admission & Demand Shaping,tenant_admission,compute_ai_cloud,compute_pool,server,admission
+10,1,Work Admission & Demand Shaping,burst_limit,compute_ai_cloud,compute_pool,server,admission
+11,1,Work Admission & Demand Shaping,deadline_admission,compute_ai_cloud,compute_pool,server,admission
+12,1,Work Admission & Demand Shaping,work_budget,compute_ai_cloud,compute_pool,server,admission
+13,1,Work Admission & Demand Shaping,request_queue_limit,compute_ai_cloud,compute_pool,server,admission
+14,1,Work Admission & Demand Shaping,retry_admission,compute_ai_cloud,compute_pool,server,admission
+15,1,Work Admission & Demand Shaping,background_work_gate,compute_ai_cloud,compute_pool,server,admission
+16,1,Work Admission & Demand Shaping,maintenance_work_gate,compute_ai_cloud,compute_pool,server,admission
+305,20,Cache & Memory Services,cache_size,distribution_specialized,compute_pool,server,capacity
+306,20,Cache & Memory Services,cache_ttl,distribution_specialized,compute_pool,server,setpoint
+307,20,Cache & Memory Services,cache_eviction_policy,distribution_specialized,compute_pool,server,admission
+308,20,Cache & Memory Services,cache_replicas,distribution_specialized,compute_pool,server,capacity
+309,20,Cache & Memory Services,cache_sharding,distribution_specialized,compute_pool,server,capacity
+310,20,Cache & Memory Services,cache_prefetch,distribution_specialized,compute_pool,server,capacity
+311,20,Cache & Memory Services,cache_writeback_rate,distribution_specialized,compute_pool,server,capacity
+312,20,Cache & Memory Services,cache_admission,distribution_specialized,compute_pool,server,admission
+313,20,Cache & Memory Services,hot_key_isolation,distribution_specialized,compute_pool,server,admission
+314,20,Cache & Memory Services,cache_connection_limit,distribution_specialized,compute_pool,server,admission
+315,20,Cache & Memory Services,cache_memory_limit,distribution_specialized,compute_pool,server,capacity
+316,20,Cache & Memory Services,cache_compression,distribution_specialized,compute_pool,server,capacity
+317,20,Cache & Memory Services,cache_warmup,distribution_specialized,compute_pool,server,capacity
+318,20,Cache & Memory Services,cache_failover,distribution_specialized,compute_pool,server,capacity
+319,20,Cache & Memory Services,cache_flush_rate,distribution_specialized,compute_pool,server,capacity
+401,26,Commerce & Payment Systems,payment_admission,distribution_specialized,compute_pool,commerce,admission
+402,26,Commerce & Payment Systems,payment_concurrency,distribution_specialized,compute_pool,commerce,admission
+403,26,Commerce & Payment Systems,payment_retry,distribution_specialized,compute_pool,commerce,admission
+404,26,Commerce & Payment Systems,payment_timeout,distribution_specialized,compute_pool,commerce,admission
+405,26,Commerce & Payment Systems,fraud_review_gate,distribution_specialized,compute_pool,commerce,admission
+406,26,Commerce & Payment Systems,authorization_route,distribution_specialized,compute_pool,commerce,capacity
+407,26,Commerce & Payment Systems,processor_route_weight,distribution_specialized,compute_pool,commerce,setpoint
+408,26,Commerce & Payment Systems,transaction_queue_limit,distribution_specialized,compute_pool,commerce,admission
+409,26,Commerce & Payment Systems,idempotency_window,distribution_specialized,compute_pool,commerce,setpoint
+410,26,Commerce & Payment Systems,order_reservation,distribution_specialized,compute_pool,commerce,capacity
+411,26,Commerce & Payment Systems,inventory_hold,distribution_specialized,compute_pool,commerce,admission
+412,26,Commerce & Payment Systems,checkout_load_shed,distribution_specialized,compute_pool,commerce,admission
+413,26,Commerce & Payment Systems,refund_queue_rate,distribution_specialized,compute_pool,commerce,capacity
+414,26,Commerce & Payment Systems,settlement_batch,distribution_specialized,compute_pool,commerce,capacity
+415,26,Commerce & Payment Systems,payment_failover,distribution_specialized,compute_pool,commerce,capacity
+338,22,Data Analytics & ETL,executor_size,distribution_specialized,compute_pool,batch,capacity
+339,22,Data Analytics & ETL,dynamic_allocation_min,distribution_specialized,compute_pool,batch,capacity
+340,22,Data Analytics & ETL,dynamic_allocation_max,distribution_specialized,compute_pool,batch,capacity
+341,22,Data Analytics & ETL,shuffle_partitions,distribution_specialized,compute_pool,batch,capacity
+342,22,Data Analytics & ETL,shuffle_bandwidth,distribution_specialized,compute_pool,batch,capacity
+343,22,Data Analytics & ETL,etl_concurrency,distribution_specialized,compute_pool,batch,admission
+344,22,Data Analytics & ETL,stage_parallelism,distribution_specialized,compute_pool,batch,capacity
+345,22,Data Analytics & ETL,query_slots,distribution_specialized,compute_pool,batch,capacity
+346,22,Data Analytics & ETL,spill_threshold,distribution_specialized,compute_pool,batch,admission
+347,22,Data Analytics & ETL,cache_fraction,distribution_specialized,compute_pool,batch,setpoint
+348,22,Data Analytics & ETL,batch_interval,distribution_specialized,compute_pool,batch,setpoint
+349,22,Data Analytics & ETL,stream_backpressure,distribution_specialized,compute_pool,batch,admission
+350,22,Data Analytics & ETL,data_locality_wait,distribution_specialized,compute_pool,batch,capacity
+351,22,Data Analytics & ETL,speculation_policy,distribution_specialized,compute_pool,batch,capacity
+352,22,Data Analytics & ETL,analytics_admission,distribution_specialized,compute_pool,batch,admission
+273,18,Database & Transactions,db_replicas,distribution_specialized,compute_pool,database,capacity
+275,18,Database & Transactions,db_memory,distribution_specialized,compute_pool,database,capacity
+276,18,Database & Transactions,db_cache,distribution_specialized,compute_pool,database,capacity
+277,18,Database & Transactions,query_concurrency,distribution_specialized,compute_pool,database,admission
+278,18,Database & Transactions,read_route,distribution_specialized,compute_pool,database,capacity
+279,18,Database & Transactions,shard_placement,distribution_specialized,compute_pool,database,capacity
+280,18,Database & Transactions,db_failover,distribution_specialized,compute_pool,database,capacity
+281,18,Database & Transactions,replication_lag_gate,distribution_specialized,compute_pool,database,admission
+282,18,Database & Transactions,db_write_throttle,distribution_specialized,compute_pool,database,admission
+283,18,Database & Transactions,db_pool_resize,distribution_specialized,compute_pool,database,capacity
+284,18,Database & Transactions,transaction_concurrency,distribution_specialized,compute_pool,database,admission
+285,18,Database & Transactions,lock_timeout,distribution_specialized,compute_pool,database,admission
+286,18,Database & Transactions,checkpoint_rate,distribution_specialized,compute_pool,database,capacity
+287,18,Database & Transactions,vacuum_compaction_rate,distribution_specialized,compute_pool,database,capacity
+289,19,Messaging & Streaming,partition_count,distribution_specialized,compute_pool,server,capacity
+290,19,Messaging & Streaming,partition_placement,distribution_specialized,compute_pool,server,capacity
+291,19,Messaging & Streaming,producer_quota,distribution_specialized,compute_pool,server,admission
+292,19,Messaging & Streaming,consumer_quota,distribution_specialized,compute_pool,server,admission
+293,19,Messaging & Streaming,broker_io_quota,distribution_specialized,compute_pool,server,admission
+294,19,Messaging & Streaming,message_retention,distribution_specialized,compute_pool,server,capacity
+295,19,Messaging & Streaming,queue_depth_limit,distribution_specialized,compute_pool,server,admission
+296,19,Messaging & Streaming,consumer_concurrency,distribution_specialized,compute_pool,server,admission
+297,19,Messaging & Streaming,producer_batch_size,distribution_specialized,compute_pool,server,capacity
+298,19,Messaging & Streaming,fetch_batch_size,distribution_specialized,compute_pool,server,capacity
+299,19,Messaging & Streaming,rebalance_rate,distribution_specialized,compute_pool,server,capacity
+300,19,Messaging & Streaming,replication_factor,distribution_specialized,compute_pool,server,capacity
+301,19,Messaging & Streaming,retry_backoff,distribution_specialized,compute_pool,server,admission
+302,19,Messaging & Streaming,dead_letter_divert,distribution_specialized,compute_pool,server,capacity
+303,19,Messaging & Streaming,stream_priority,distribution_specialized,compute_pool,server,admission
+304,19,Messaging & Streaming,broker_failover,distribution_specialized,compute_pool,server,capacity
+225,15,Network Routing & Switching,lb_weight,distribution_specialized,compute_pool,network,setpoint
+226,15,Network Routing & Switching,route_weight,distribution_specialized,compute_pool,network,setpoint
+227,15,Network Routing & Switching,rate_limit,distribution_specialized,compute_pool,network,admission
+228,15,Network Routing & Switching,bandwidth_limit,distribution_specialized,compute_pool,network,capacity
+229,15,Network Routing & Switching,qos_class,distribution_specialized,compute_pool,network,capacity
+230,15,Network Routing & Switching,connection_limit,distribution_specialized,compute_pool,network,admission
+231,15,Network Routing & Switching,failover_route,distribution_specialized,compute_pool,network,capacity
+232,15,Network Routing & Switching,nic_rate_limit,distribution_specialized,compute_pool,network,admission
+233,15,Network Routing & Switching,nic_queue_count,distribution_specialized,compute_pool,network,capacity
+234,15,Network Routing & Switching,queue_discipline,distribution_specialized,compute_pool,network,capacity
+235,15,Network Routing & Switching,congestion_control,distribution_specialized,compute_pool,network,capacity
+236,15,Network Routing & Switching,egress_budget,distribution_specialized,compute_pool,network,admission
+237,15,Network Routing & Switching,ingress_budget,distribution_specialized,compute_pool,network,admission
+238,15,Network Routing & Switching,ecmp_weight,distribution_specialized,compute_pool,network,setpoint
+239,15,Network Routing & Switching,path_selection,distribution_specialized,compute_pool,network,capacity
+240,15,Network Routing & Switching,network_isolation,distribution_specialized,compute_pool,network,admission
+373,24,Observability & Telemetry,collector_memory_limit,distribution_specialized,compute_pool,server,capacity
+374,24,Observability & Telemetry,export_concurrency,distribution_specialized,compute_pool,server,admission
+376,24,Observability & Telemetry,cardinality_budget,distribution_specialized,compute_pool,server,admission
+377,24,Observability & Telemetry,retention_window,distribution_specialized,compute_pool,server,setpoint
+378,24,Observability & Telemetry,remote_write_queue,distribution_specialized,compute_pool,server,capacity
+379,24,Observability & Telemetry,telemetry_shed,distribution_specialized,compute_pool,server,admission
+385,25,"Reliability, Security & Recovery",restart,distribution_specialized,compute_pool,server,capacity
+386,25,"Reliability, Security & Recovery",rollback,distribution_specialized,compute_pool,server,capacity
+388,25,"Reliability, Security & Recovery",traffic_divert_recovery,distribution_specialized,compute_pool,server,capacity
+389,25,"Reliability, Security & Recovery",degraded_mode,distribution_specialized,compute_pool,server,capacity
+390,25,"Reliability, Security & Recovery",actuator_freeze,distribution_specialized,compute_pool,server,admission
+391,25,"Reliability, Security & Recovery",workload_isolate,distribution_specialized,compute_pool,server,admission
+393,25,"Reliability, Security & Recovery",credential_rotation_gate,distribution_specialized,compute_pool,server,admission
+394,25,"Reliability, Security & Recovery",policy_enforcement,distribution_specialized,compute_pool,server,capacity
+395,25,"Reliability, Security & Recovery",rate_abuse_gate,distribution_specialized,compute_pool,server,admission
+396,25,"Reliability, Security & Recovery",fault_domain_isolate,distribution_specialized,compute_pool,server,admission
+397,25,"Reliability, Security & Recovery",backup_trigger,distribution_specialized,compute_pool,server,capacity
+400,25,"Reliability, Security & Recovery",kill_switch,distribution_specialized,compute_pool,server,admission
+353,23,Runtime & Application,worker_count,distribution_specialized,compute_pool,server,capacity
+354,23,Runtime & Application,thread_pool,distribution_specialized,compute_pool,server,capacity
+355,23,Runtime & Application,jvm_heap,distribution_specialized,compute_pool,server,capacity
+356,23,Runtime & Application,gc_budget,distribution_specialized,compute_pool,server,admission
+357,23,Runtime & Application,connection_pool_runtime,distribution_specialized,compute_pool,server,capacity
+358,23,Runtime & Application,application_cache_size,distribution_specialized,compute_pool,server,capacity
+359,23,Runtime & Application,runtime_memory,distribution_specialized,compute_pool,server,capacity
+360,23,Runtime & Application,async_concurrency,distribution_specialized,compute_pool,server,admission
+361,23,Runtime & Application,event_loop_workers,distribution_specialized,compute_pool,server,capacity
+362,23,Runtime & Application,process_count,distribution_specialized,compute_pool,server,capacity
+363,23,Runtime & Application,request_timeout,distribution_specialized,compute_pool,server,admission
+364,23,Runtime & Application,background_workers,distribution_specialized,compute_pool,server,capacity
+365,23,Runtime & Application,runtime_cpu_budget,distribution_specialized,compute_pool,server,admission
+366,23,Runtime & Application,runtime_io_budget,distribution_specialized,compute_pool,server,admission
+367,23,Runtime & Application,runtime_restart,distribution_specialized,compute_pool,server,capacity
+321,21,"Search, Indexing & Vector DB",index_workers,distribution_specialized,compute_pool,server,capacity
+322,21,"Search, Indexing & Vector DB",index_refresh_rate,distribution_specialized,compute_pool,server,capacity
+323,21,"Search, Indexing & Vector DB",segment_merge_rate,distribution_specialized,compute_pool,server,capacity
+324,21,"Search, Indexing & Vector DB",search_concurrency,distribution_specialized,compute_pool,server,admission
+325,21,"Search, Indexing & Vector DB",search_timeout,distribution_specialized,compute_pool,server,admission
+326,21,"Search, Indexing & Vector DB",shard_count,distribution_specialized,compute_pool,server,capacity
+327,21,"Search, Indexing & Vector DB",shard_replication,distribution_specialized,compute_pool,server,capacity
+328,21,"Search, Indexing & Vector DB",shard_rebalance,distribution_specialized,compute_pool,server,capacity
+329,21,"Search, Indexing & Vector DB",vector_search_k,distribution_specialized,compute_pool,server,capacity
+330,21,"Search, Indexing & Vector DB",vector_batch_size,distribution_specialized,compute_pool,server,capacity
+331,21,"Search, Indexing & Vector DB",embedding_workers,distribution_specialized,compute_pool,server,capacity
+332,21,"Search, Indexing & Vector DB",index_memory_budget,distribution_specialized,compute_pool,server,admission
+333,21,"Search, Indexing & Vector DB",query_route,distribution_specialized,compute_pool,server,capacity
+334,21,"Search, Indexing & Vector DB",hot_shard_isolation,distribution_specialized,compute_pool,server,admission
+335,21,"Search, Indexing & Vector DB",search_admission,distribution_specialized,compute_pool,server,admission
+241,16,Service Mesh & API Reliability,circuit_breaker,distribution_specialized,compute_pool,server,admission
+242,16,Service Mesh & API Reliability,retry_budget,distribution_specialized,compute_pool,server,admission
+243,16,Service Mesh & API Reliability,service_timeout,distribution_specialized,compute_pool,server,admission
+244,16,Service Mesh & API Reliability,service_concurrency,distribution_specialized,compute_pool,server,admission
+245,16,Service Mesh & API Reliability,connection_pool,distribution_specialized,compute_pool,server,capacity
+246,16,Service Mesh & API Reliability,traffic_divert,distribution_specialized,compute_pool,server,capacity
+247,16,Service Mesh & API Reliability,traffic_mirror,distribution_specialized,compute_pool,server,capacity
+248,16,Service Mesh & API Reliability,canary_weight,distribution_specialized,compute_pool,server,setpoint
+249,16,Service Mesh & API Reliability,outlier_ejection,distribution_specialized,compute_pool,server,admission
+250,16,Service Mesh & API Reliability,health_threshold,distribution_specialized,compute_pool,server,admission
+251,16,Service Mesh & API Reliability,dns_traffic_weight,distribution_specialized,compute_pool,server,setpoint
+252,16,Service Mesh & API Reliability,session_affinity,distribution_specialized,compute_pool,server,capacity
+253,16,Service Mesh & API Reliability,request_hedging,distribution_specialized,compute_pool,server,capacity
+254,16,Service Mesh & API Reliability,fault_injection_gate,distribution_specialized,compute_pool,server,admission
+255,16,Service Mesh & API Reliability,service_failover,distribution_specialized,compute_pool,server,capacity
+257,17,Storage Block/File/Object,volume_size,distribution_specialized,compute_pool,storage,capacity
+258,17,Storage Block/File/Object,iops_limit,distribution_specialized,compute_pool,storage,capacity
+259,17,Storage Block/File/Object,throughput_limit,distribution_specialized,compute_pool,storage,capacity
+260,17,Storage Block/File/Object,replica_count,distribution_specialized,compute_pool,storage,capacity
+261,17,Storage Block/File/Object,storage_tier,distribution_specialized,compute_pool,storage,capacity
+262,17,Storage Block/File/Object,volume_placement,distribution_specialized,compute_pool,storage,capacity
+263,17,Storage Block/File/Object,snapshot_trigger,distribution_specialized,compute_pool,storage,capacity
+264,17,Storage Block/File/Object,rebalance,distribution_specialized,compute_pool,storage,capacity
+265,17,Storage Block/File/Object,recovery_rate,distribution_specialized,compute_pool,storage,capacity
+266,17,Storage Block/File/Object,backfill_rate,distribution_specialized,compute_pool,storage,capacity
+267,17,Storage Block/File/Object,compaction_pressure,distribution_specialized,compute_pool,storage,capacity
+268,17,Storage Block/File/Object,cache_allocation,distribution_specialized,compute_pool,storage,capacity
+269,17,Storage Block/File/Object,object_replication,distribution_specialized,compute_pool,storage,capacity
+270,17,Storage Block/File/Object,erasure_code_profile,distribution_specialized,compute_pool,storage,capacity
+271,17,Storage Block/File/Object,storage_admission,distribution_specialized,compute_pool,storage,admission
+272,17,Storage Block/File/Object,degraded_storage_gate,distribution_specialized,compute_pool,storage,admission
+AUDIT-0009,AUDIT,Telecom RAN & Edge Radio,ran_connection_admission,distribution_specialized,compute_pool,ran,admission
+AUDIT-0010,AUDIT,Telecom RAN & Edge Radio,ran_ue_handover,distribution_specialized,compute_pool,ran,capacity
+AUDIT-0011,AUDIT,Telecom RAN & Edge Radio,ran_cell_traffic_steering,distribution_specialized,compute_pool,ran,capacity
+AUDIT-0012,AUDIT,Telecom RAN & Edge Radio,ran_slice_resource_budget,distribution_specialized,compute_pool,ran,admission
+AUDIT-0013,AUDIT,Telecom RAN & Edge Radio,ran_prb_allocation,distribution_specialized,compute_pool,ran,capacity
+AUDIT-0014,AUDIT,Telecom RAN & Edge Radio,ran_scheduler_weight,distribution_specialized,compute_pool,ran,setpoint
+AUDIT-0015,AUDIT,Telecom RAN & Edge Radio,ran_tx_power,distribution_specialized,compute_pool,ran,power
+AUDIT-0016,AUDIT,Telecom RAN & Edge Radio,ran_antenna_tilt,distribution_specialized,compute_pool,ran,capacity
+AUDIT-0017,AUDIT,Telecom RAN & Edge Radio,ran_carrier_enable,distribution_specialized,compute_pool,ran,capacity
+AUDIT-0018,AUDIT,Telecom RAN & Edge Radio,ran_cell_sleep,distribution_specialized,compute_pool,ran,capacity
+AUDIT-0019,AUDIT,Telecom RAN & Edge Radio,ran_du_cu_placement,distribution_specialized,compute_pool,ran,capacity
+AUDIT-0020,AUDIT,Telecom RAN & Edge Radio,ran_fronthaul_budget,distribution_specialized,compute_pool,ran,admission
+417,27,"Workflow, Logistics & Fulfillment",workflow_admission,distribution_specialized,compute_pool,workflow,admission
+418,27,"Workflow, Logistics & Fulfillment",workflow_worker_rate,distribution_specialized,compute_pool,workflow,capacity
+419,27,"Workflow, Logistics & Fulfillment",task_queue_rate,distribution_specialized,compute_pool,workflow,capacity
+420,27,"Workflow, Logistics & Fulfillment",workflow_retry,distribution_specialized,compute_pool,workflow,admission
+421,27,"Workflow, Logistics & Fulfillment",workflow_backoff,distribution_specialized,compute_pool,workflow,admission
+422,27,"Workflow, Logistics & Fulfillment",workflow_timeout,distribution_specialized,compute_pool,workflow,admission
+423,27,"Workflow, Logistics & Fulfillment",inventory_allocation,distribution_specialized,compute_pool,workflow,capacity
+424,27,"Workflow, Logistics & Fulfillment",fulfillment_route,distribution_specialized,compute_pool,workflow,capacity
+425,27,"Workflow, Logistics & Fulfillment",warehouse_queue,distribution_specialized,compute_pool,workflow,capacity
+426,27,"Workflow, Logistics & Fulfillment",carrier_selection,distribution_specialized,compute_pool,workflow,capacity
+427,27,"Workflow, Logistics & Fulfillment",dispatch_priority,distribution_specialized,compute_pool,workflow,admission
+428,27,"Workflow, Logistics & Fulfillment",shipment_batch,distribution_specialized,compute_pool,workflow,capacity
+429,27,"Workflow, Logistics & Fulfillment",route_replan,distribution_specialized,compute_pool,workflow,capacity
+430,27,"Workflow, Logistics & Fulfillment",sla_escalation,distribution_specialized,compute_pool,workflow,capacity
+431,27,"Workflow, Logistics & Fulfillment",compensation_action,distribution_specialized,compute_pool,workflow,capacity
+AUDIT-0081,AUDIT,Building & Critical Environment HVAC,zone_temperature_target,energy_facility_industrial,thermal_zone,building,setpoint
+AUDIT-0082,AUDIT,Building & Critical Environment HVAC,zone_airflow,energy_facility_industrial,thermal_zone,building,capacity
+AUDIT-0083,AUDIT,Building & Critical Environment HVAC,ahu_fan_speed,energy_facility_industrial,thermal_zone,building,capacity
+AUDIT-0084,AUDIT,Building & Critical Environment HVAC,damper_position,energy_facility_industrial,thermal_zone,building,capacity
+AUDIT-0085,AUDIT,Building & Critical Environment HVAC,economizer_position,energy_facility_industrial,thermal_zone,building,capacity
+AUDIT-0086,AUDIT,Building & Critical Environment HVAC,boiler_setpoint,energy_facility_industrial,thermal_zone,building,setpoint
+AUDIT-0087,AUDIT,Building & Critical Environment HVAC,heat_pump_mode,energy_facility_industrial,thermal_zone,building,admission
+AUDIT-0088,AUDIT,Building & Critical Environment HVAC,humidity_target,energy_facility_industrial,thermal_zone,building,setpoint
+AUDIT-0089,AUDIT,Building & Critical Environment HVAC,occupancy_ventilation,energy_facility_industrial,thermal_zone,building,admission
+AUDIT-0090,AUDIT,Building & Critical Environment HVAC,building_demand_limit,energy_facility_industrial,thermal_zone,building,power
+AUDIT-0091,AUDIT,Building & Critical Environment HVAC,thermal_storage_dispatch,energy_facility_industrial,thermal_zone,building,capacity
+AUDIT-0092,AUDIT,Building & Critical Environment HVAC,hvac_emergency_mode,energy_facility_industrial,thermal_zone,building,admission
+545,35,"Cooling, Chillers & Thermodynamics",supply_air_temperature,energy_facility_industrial,thermal_zone,data_hall,setpoint
+546,35,"Cooling, Chillers & Thermodynamics",return_air_target,energy_facility_industrial,thermal_zone,data_hall,setpoint
+547,35,"Cooling, Chillers & Thermodynamics",coolant_supply_temperature,energy_facility_industrial,thermal_zone,data_hall,setpoint
+548,35,"Cooling, Chillers & Thermodynamics",coolant_flow,energy_facility_industrial,thermal_zone,data_hall,capacity
+549,35,"Cooling, Chillers & Thermodynamics",pump_speed,energy_facility_industrial,thermal_zone,data_hall,capacity
+550,35,"Cooling, Chillers & Thermodynamics",fan_speed,energy_facility_industrial,thermal_zone,data_hall,capacity
+551,35,"Cooling, Chillers & Thermodynamics",chiller_setpoint,energy_facility_industrial,thermal_zone,data_hall,setpoint
+552,35,"Cooling, Chillers & Thermodynamics",compressor_authority,energy_facility_industrial,thermal_zone,data_hall,power
+553,35,"Cooling, Chillers & Thermodynamics",cooling_tower_fan,energy_facility_industrial,thermal_zone,data_hall,capacity
+554,35,"Cooling, Chillers & Thermodynamics",cooling_capacity,energy_facility_industrial,thermal_zone,data_hall,capacity
+555,35,"Cooling, Chillers & Thermodynamics",rack_thermal_budget,energy_facility_industrial,thermal_zone,data_hall,power
+556,35,"Cooling, Chillers & Thermodynamics",gpu_thermal_envelope,energy_facility_industrial,thermal_zone,data_hall,setpoint
+557,35,"Cooling, Chillers & Thermodynamics",cpu_thermal_envelope,energy_facility_industrial,thermal_zone,data_hall,setpoint
+558,35,"Cooling, Chillers & Thermodynamics",thermal_workload_migrate,energy_facility_industrial,thermal_zone,data_hall,admission
+559,35,"Cooling, Chillers & Thermodynamics",thermal_load_shed,energy_facility_industrial,thermal_zone,data_hall,admission
+513,33,Energy Storage & Microgrid,battery_charge_power,energy_facility_industrial,energy_storage,microgrid,power
+514,33,Energy Storage & Microgrid,battery_discharge_power,energy_facility_industrial,energy_storage,microgrid,power
+515,33,Energy Storage & Microgrid,battery_soc_reserve,energy_facility_industrial,energy_storage,microgrid,setpoint
+516,33,Energy Storage & Microgrid,grid_import_limit,energy_facility_industrial,energy_storage,microgrid,power
+517,33,Energy Storage & Microgrid,grid_export_limit,energy_facility_industrial,energy_storage,microgrid,power
+518,33,Energy Storage & Microgrid,pv_curtailment,energy_facility_industrial,energy_storage,microgrid,power
+519,33,Energy Storage & Microgrid,ev_charge_power,energy_facility_industrial,energy_storage,microgrid,power
+520,33,Energy Storage & Microgrid,heat_pump_power,energy_facility_industrial,energy_storage,microgrid,power
+521,33,Energy Storage & Microgrid,electrolyzer_power,energy_facility_industrial,energy_storage,microgrid,power
+522,33,Energy Storage & Microgrid,microgrid_demand_limit,energy_facility_industrial,energy_storage,microgrid,power
+523,33,Energy Storage & Microgrid,peak_shaving,energy_facility_industrial,energy_storage,microgrid,capacity
+524,33,Energy Storage & Microgrid,time_of_use_schedule,energy_facility_industrial,energy_storage,microgrid,setpoint
+525,33,Energy Storage & Microgrid,energy_load_shed,energy_facility_industrial,energy_storage,microgrid,admission
+526,33,Energy Storage & Microgrid,flex_load_admission,energy_facility_industrial,energy_storage,microgrid,admission
+527,33,Energy Storage & Microgrid,storage_dispatch,energy_facility_industrial,energy_storage,microgrid,capacity
+528,33,Energy Storage & Microgrid,microgrid_emergency_reserve,energy_facility_industrial,energy_storage,microgrid,setpoint
+561,36,Facility & Grid Optimization,facility_power_budget,energy_facility_industrial,energy_storage,facility,power
+562,36,Facility & Grid Optimization,utility_demand_limit,energy_facility_industrial,energy_storage,facility,power
+563,36,Facility & Grid Optimization,demand_response,energy_facility_industrial,energy_storage,facility,admission
+564,36,Facility & Grid Optimization,electricity_price_gate,energy_facility_industrial,energy_storage,facility,admission
+565,36,Facility & Grid Optimization,carbon_intensity_gate,energy_facility_industrial,energy_storage,facility,admission
+566,36,Facility & Grid Optimization,renewable_dispatch,energy_facility_industrial,energy_storage,facility,capacity
+567,36,Facility & Grid Optimization,generator_start_stop,energy_facility_industrial,energy_storage,facility,capacity
+568,36,Facility & Grid Optimization,site_battery_dispatch,energy_facility_industrial,energy_storage,facility,capacity
+569,36,Facility & Grid Optimization,pue_target,energy_facility_industrial,energy_storage,facility,setpoint
+570,36,Facility & Grid Optimization,cooling_power_budget,energy_facility_industrial,energy_storage,facility,power
+571,36,Facility & Grid Optimization,it_power_budget,energy_facility_industrial,energy_storage,facility,power
+572,36,Facility & Grid Optimization,rack_power_allocation,energy_facility_industrial,energy_storage,facility,power
+573,36,Facility & Grid Optimization,facility_peak_guard,energy_facility_industrial,energy_storage,facility,capacity
+574,36,Facility & Grid Optimization,grid_frequency_response,energy_facility_industrial,energy_storage,facility,admission
+575,36,Facility & Grid Optimization,facility_islanding,energy_facility_industrial,energy_storage,facility,admission
+AUDIT-0033,AUDIT,Grid Transmission & Distribution,capacitor_bank_switch,energy_facility_industrial,process_loop,feeder_voltage,capacity
+AUDIT-0034,AUDIT,Grid Transmission & Distribution,voltage_regulator_tap,energy_facility_industrial,process_loop,feeder_voltage,setpoint
+AUDIT-0035,AUDIT,Grid Transmission & Distribution,transformer_tap,energy_facility_industrial,process_loop,feeder_voltage,setpoint
+AUDIT-0036,AUDIT,Grid Transmission & Distribution,inverter_real_power,energy_facility_industrial,process_loop,feeder_voltage,power
+AUDIT-0037,AUDIT,Grid Transmission & Distribution,inverter_reactive_power,energy_facility_industrial,process_loop,feeder_voltage,power
+AUDIT-0038,AUDIT,Grid Transmission & Distribution,feeder_voltage_target,energy_facility_industrial,process_loop,feeder_voltage,setpoint
+AUDIT-0039,AUDIT,Grid Transmission & Distribution,feeder_load_transfer,energy_facility_industrial,process_loop,feeder_voltage,capacity
+AUDIT-0040,AUDIT,Grid Transmission & Distribution,distribution_storage_dispatch,energy_facility_industrial,process_loop,feeder_voltage,admission
+AUDIT-0041,AUDIT,Grid Transmission & Distribution,demand_response_dispatch,energy_facility_industrial,process_loop,feeder_voltage,admission
+AUDIT-0042,AUDIT,Grid Transmission & Distribution,frequency_droop_setpoint,energy_facility_industrial,process_loop,feeder_voltage,setpoint
+AUDIT-0043,AUDIT,Grid Transmission & Distribution,grid_protection_mode,energy_facility_industrial,process_loop,feeder_voltage,admission
+AUDIT-0044,AUDIT,Grid Transmission & Distribution,grid_restoration_sequence,energy_facility_industrial,process_loop,feeder_voltage,admission
+465,30,Industrial PLC & Process Automation,plc_cycle_authority,energy_facility_industrial,process_loop,process,admission
+466,30,Industrial PLC & Process Automation,machine_cell_admission,energy_facility_industrial,process_loop,process,admission
+467,30,Industrial PLC & Process Automation,valve_position,energy_facility_industrial,process_loop,process,setpoint
+468,30,Industrial PLC & Process Automation,pump_flow,energy_facility_industrial,process_loop,process,capacity
+469,30,Industrial PLC & Process Automation,compressor_speed,energy_facility_industrial,process_loop,process,capacity
+470,30,Industrial PLC & Process Automation,heater_power,energy_facility_industrial,process_loop,process,power
+471,30,Industrial PLC & Process Automation,furnace_setpoint,energy_facility_industrial,process_loop,process,setpoint
+472,30,Industrial PLC & Process Automation,pressure_setpoint,energy_facility_industrial,process_loop,process,setpoint
+473,30,Industrial PLC & Process Automation,temperature_setpoint,energy_facility_industrial,process_loop,process,setpoint
+474,30,Industrial PLC & Process Automation,mass_flow_setpoint,energy_facility_industrial,process_loop,process,setpoint
+475,30,Industrial PLC & Process Automation,tank_level_target,energy_facility_industrial,process_loop,process,setpoint
+476,30,Industrial PLC & Process Automation,conveyor_rate,energy_facility_industrial,process_loop,process,capacity
+477,30,Industrial PLC & Process Automation,feed_rate,energy_facility_industrial,process_loop,process,capacity
+478,30,Industrial PLC & Process Automation,purge_vent_action,energy_facility_industrial,process_loop,process,admission
+529,34,"PDU, UPS & Electrical Distribution",server_power_cap,energy_facility_industrial,energy_storage,ups,power
+530,34,"PDU, UPS & Electrical Distribution",rack_power_cap,energy_facility_industrial,energy_storage,ups,power
+531,34,"PDU, UPS & Electrical Distribution",pdu_branch_power_limit,energy_facility_industrial,energy_storage,ups,power
+532,34,"PDU, UPS & Electrical Distribution",pdu_outlet_control,energy_facility_industrial,energy_storage,ups,capacity
+534,34,"PDU, UPS & Electrical Distribution",ups_operating_mode,energy_facility_industrial,energy_storage,ups,capacity
+535,34,"PDU, UPS & Electrical Distribution",ups_charge_rate,energy_facility_industrial,energy_storage,ups,power
+536,34,"PDU, UPS & Electrical Distribution",ups_discharge_rate,energy_facility_industrial,energy_storage,ups,power
+537,34,"PDU, UPS & Electrical Distribution",phase_balance,energy_facility_industrial,energy_storage,ups,capacity
+538,34,"PDU, UPS & Electrical Distribution",load_transfer,energy_facility_industrial,energy_storage,ups,admission
+539,34,"PDU, UPS & Electrical Distribution",reactive_power_target,energy_facility_industrial,energy_storage,ups,setpoint
+540,34,"PDU, UPS & Electrical Distribution",voltage_target,energy_facility_industrial,energy_storage,ups,setpoint
+541,34,"PDU, UPS & Electrical Distribution",generator_dispatch,energy_facility_industrial,energy_storage,ups,capacity
+542,34,"PDU, UPS & Electrical Distribution",electrical_isolation,energy_facility_industrial,energy_storage,ups,admission
+543,34,"PDU, UPS & Electrical Distribution",breaker_trip_gate,energy_facility_industrial,energy_storage,ups,admission
+AUDIT-0057,AUDIT,Semiconductor Fab & Precision Manufacturing,tool_job_dispatch,energy_facility_industrial,process_loop,chamber,admission
+AUDIT-0058,AUDIT,Semiconductor Fab & Precision Manufacturing,wafer_route,energy_facility_industrial,process_loop,chamber,capacity
+AUDIT-0059,AUDIT,Semiconductor Fab & Precision Manufacturing,chamber_recipe_selection,energy_facility_industrial,process_loop,chamber,admission
+AUDIT-0060,AUDIT,Semiconductor Fab & Precision Manufacturing,chamber_temperature,energy_facility_industrial,process_loop,chamber,setpoint
+AUDIT-0061,AUDIT,Semiconductor Fab & Precision Manufacturing,chamber_pressure,energy_facility_industrial,process_loop,chamber,setpoint
+AUDIT-0062,AUDIT,Semiconductor Fab & Precision Manufacturing,gas_flow,energy_facility_industrial,process_loop,chamber,capacity
+AUDIT-0063,AUDIT,Semiconductor Fab & Precision Manufacturing,rf_power,energy_facility_industrial,process_loop,chamber,power
+AUDIT-0064,AUDIT,Semiconductor Fab & Precision Manufacturing,vacuum_pump_speed,energy_facility_industrial,process_loop,chamber,capacity
+AUDIT-0065,AUDIT,Semiconductor Fab & Precision Manufacturing,robot_transfer_rate,energy_facility_industrial,process_loop,chamber,capacity
+AUDIT-0066,AUDIT,Semiconductor Fab & Precision Manufacturing,lot_priority,energy_facility_industrial,process_loop,chamber,admission
+AUDIT-0068,AUDIT,Semiconductor Fab & Precision Manufacturing,tool_quarantine,energy_facility_industrial,process_loop,chamber,admission
+AUDIT-0069,AUDIT,Water Wastewater & Pumping,pump_speed_water,energy_facility_industrial,process_loop,water,capacity
+AUDIT-0070,AUDIT,Water Wastewater & Pumping,valve_position_water,energy_facility_industrial,process_loop,water,setpoint
+AUDIT-0071,AUDIT,Water Wastewater & Pumping,reservoir_level_target,energy_facility_industrial,process_loop,water,setpoint
+AUDIT-0072,AUDIT,Water Wastewater & Pumping,line_pressure_target,energy_facility_industrial,process_loop,water,setpoint
+AUDIT-0073,AUDIT,Water Wastewater & Pumping,flow_target_water,energy_facility_industrial,process_loop,water,setpoint
+AUDIT-0074,AUDIT,Water Wastewater & Pumping,aeration_rate,energy_facility_industrial,process_loop,water,power
+AUDIT-0075,AUDIT,Water Wastewater & Pumping,chemical_dose_rate,energy_facility_industrial,process_loop,water,power
+AUDIT-0076,AUDIT,Water Wastewater & Pumping,filtration_backwash,energy_facility_industrial,process_loop,water,admission
+AUDIT-0077,AUDIT,Water Wastewater & Pumping,lift_station_dispatch,energy_facility_industrial,process_loop,water,admission
+AUDIT-0078,AUDIT,Water Wastewater & Pumping,leak_isolation,energy_facility_industrial,process_loop,water,admission
+AUDIT-0079,AUDIT,Water Wastewater & Pumping,water_demand_shed,energy_facility_industrial,process_loop,water,admission
+AUDIT-0080,AUDIT,Water Wastewater & Pumping,water_emergency_shutdown,energy_facility_industrial,process_loop,water,admission
+AUDIT-0045,AUDIT,Automotive EV & Mobile Powertrain,traction_torque_limit,physics_robotics_autonomous,motion_axis,ev_traction,power
+AUDIT-0046,AUDIT,Automotive EV & Mobile Powertrain,regen_braking_level,physics_robotics_autonomous,motion_axis,ev_traction,power
+AUDIT-0047,AUDIT,Automotive EV & Mobile Powertrain,battery_charge_limit,physics_robotics_autonomous,motion_axis,ev_traction,power
+AUDIT-0048,AUDIT,Automotive EV & Mobile Powertrain,battery_discharge_limit,physics_robotics_autonomous,motion_axis,ev_traction,power
+AUDIT-0049,AUDIT,Automotive EV & Mobile Powertrain,battery_thermal_target,physics_robotics_autonomous,motion_axis,ev_traction,power
+AUDIT-0050,AUDIT,Automotive EV & Mobile Powertrain,motor_thermal_limit,physics_robotics_autonomous,motion_axis,ev_traction,power
+AUDIT-0051,AUDIT,Automotive EV & Mobile Powertrain,vehicle_speed_envelope,physics_robotics_autonomous,motion_axis,ev_traction,capacity
+AUDIT-0052,AUDIT,Automotive EV & Mobile Powertrain,energy_recovery_target,physics_robotics_autonomous,motion_axis,ev_traction,power
+AUDIT-0053,AUDIT,Automotive EV & Mobile Powertrain,auxiliary_power_budget,physics_robotics_autonomous,motion_axis,ev_traction,power
+AUDIT-0054,AUDIT,Automotive EV & Mobile Powertrain,fast_charge_current,physics_robotics_autonomous,motion_axis,ev_traction,power
+AUDIT-0055,AUDIT,Automotive EV & Mobile Powertrain,fast_charge_voltage,physics_robotics_autonomous,motion_axis,ev_traction,power
+AUDIT-0056,AUDIT,Automotive EV & Mobile Powertrain,vehicle_safe_state,physics_robotics_autonomous,motion_axis,ev_traction,admission
+481,31,Aviation & Autonomous Flight,throttle_envelope,physics_robotics_autonomous,motion_axis,flight_axis,power
+482,31,Aviation & Autonomous Flight,attitude_target,physics_robotics_autonomous,motion_axis,flight_axis,capacity
+483,31,Aviation & Autonomous Flight,attitude_rate_target,physics_robotics_autonomous,motion_axis,flight_axis,capacity
+484,31,Aviation & Autonomous Flight,velocity_target,physics_robotics_autonomous,motion_axis,flight_axis,capacity
+485,31,Aviation & Autonomous Flight,altitude_target,physics_robotics_autonomous,motion_axis,flight_axis,capacity
+486,31,Aviation & Autonomous Flight,waypoint_authority,physics_robotics_autonomous,motion_axis,flight_axis,capacity
+487,31,Aviation & Autonomous Flight,flight_hold,physics_robotics_autonomous,motion_axis,flight_axis,admission
+488,31,Aviation & Autonomous Flight,return_to_home,physics_robotics_autonomous,motion_axis,flight_axis,admission
+489,31,Aviation & Autonomous Flight,land_action,physics_robotics_autonomous,motion_axis,flight_axis,admission
+490,31,Aviation & Autonomous Flight,mission_admission,physics_robotics_autonomous,motion_axis,flight_axis,admission
+491,31,Aviation & Autonomous Flight,geofence_response,physics_robotics_autonomous,motion_axis,flight_axis,admission
+492,31,Aviation & Autonomous Flight,failsafe_selection,physics_robotics_autonomous,motion_axis,flight_axis,admission
+493,31,Aviation & Autonomous Flight,battery_reserve_threshold,physics_robotics_autonomous,motion_axis,flight_axis,admission
+494,31,Aviation & Autonomous Flight,actuator_saturation_envelope,physics_robotics_autonomous,motion_axis,flight_axis,capacity
+495,31,Aviation & Autonomous Flight,flight_mode_transition,physics_robotics_autonomous,motion_axis,flight_axis,admission
+496,31,Aviation & Autonomous Flight,flight_termination_safe_state,physics_robotics_autonomous,motion_axis,flight_axis,admission
+593,38,Quantum Computing Control Simulation,qubit_mapping,physics_robotics_autonomous,compute_pool,qpu,capacity
+594,38,Quantum Computing Control Simulation,circuit_admission,physics_robotics_autonomous,compute_pool,qpu,admission
+595,38,Quantum Computing Control Simulation,shot_allocation,physics_robotics_autonomous,compute_pool,qpu,capacity
+596,38,Quantum Computing Control Simulation,circuit_scheduling,physics_robotics_autonomous,compute_pool,qpu,admission
+597,38,Quantum Computing Control Simulation,gate_scheduling,physics_robotics_autonomous,compute_pool,qpu,capacity
+598,38,Quantum Computing Control Simulation,pulse_amplitude,physics_robotics_autonomous,compute_pool,qpu,capacity
+599,38,Quantum Computing Control Simulation,pulse_duration,physics_robotics_autonomous,compute_pool,qpu,setpoint
+600,38,Quantum Computing Control Simulation,pulse_phase,physics_robotics_autonomous,compute_pool,qpu,capacity
+601,38,Quantum Computing Control Simulation,pulse_frequency,physics_robotics_autonomous,compute_pool,qpu,power
+602,38,Quantum Computing Control Simulation,coupling_control,physics_robotics_autonomous,compute_pool,qpu,capacity
+603,38,Quantum Computing Control Simulation,reset_scheduling,physics_robotics_autonomous,compute_pool,qpu,capacity
+604,38,Quantum Computing Control Simulation,measurement_scheduling,physics_robotics_autonomous,compute_pool,qpu,capacity
+605,38,Quantum Computing Control Simulation,dynamical_decoupling,physics_robotics_autonomous,compute_pool,qpu,capacity
+606,38,Quantum Computing Control Simulation,noise_aware_routing,physics_robotics_autonomous,compute_pool,qpu,capacity
+607,38,Quantum Computing Control Simulation,error_mitigation_budget,physics_robotics_autonomous,compute_pool,qpu,admission
+608,38,Quantum Computing Control Simulation,quantum_queue_priority,physics_robotics_autonomous,compute_pool,qpu,admission
+449,29,Robotics Fleet & Warehouse Automation,robot_dispatch,physics_robotics_autonomous,compute_pool,robot_fleet,capacity
+450,29,Robotics Fleet & Warehouse Automation,task_assignment,physics_robotics_autonomous,compute_pool,robot_fleet,capacity
+451,29,Robotics Fleet & Warehouse Automation,traffic_reservation,physics_robotics_autonomous,compute_pool,robot_fleet,capacity
+452,29,Robotics Fleet & Warehouse Automation,robot_route,physics_robotics_autonomous,compute_pool,robot_fleet,capacity
+453,29,Robotics Fleet & Warehouse Automation,charging_dispatch,physics_robotics_autonomous,compute_pool,robot_fleet,capacity
+454,29,Robotics Fleet & Warehouse Automation,battery_reserve,physics_robotics_autonomous,compute_pool,robot_fleet,capacity
+455,29,Robotics Fleet & Warehouse Automation,elevator_request,physics_robotics_autonomous,compute_pool,robot_fleet,capacity
+456,29,Robotics Fleet & Warehouse Automation,door_request,physics_robotics_autonomous,compute_pool,robot_fleet,capacity
+457,29,Robotics Fleet & Warehouse Automation,conveyor_speed,physics_robotics_autonomous,compute_pool,robot_fleet,capacity
+458,29,Robotics Fleet & Warehouse Automation,agv_speed,physics_robotics_autonomous,compute_pool,robot_fleet,capacity
+459,29,Robotics Fleet & Warehouse Automation,warehouse_zone_admission,physics_robotics_autonomous,compute_pool,robot_fleet,admission
+460,29,Robotics Fleet & Warehouse Automation,robot_quarantine,physics_robotics_autonomous,compute_pool,robot_fleet,admission
+461,29,Robotics Fleet & Warehouse Automation,fleet_failover,physics_robotics_autonomous,compute_pool,robot_fleet,capacity
+462,29,Robotics Fleet & Warehouse Automation,human_safe_stop,physics_robotics_autonomous,compute_pool,robot_fleet,capacity
+463,29,Robotics Fleet & Warehouse Automation,fleet_concurrency,physics_robotics_autonomous,compute_pool,robot_fleet,admission
+433,28,Robotics Motion Control,joint_position,physics_robotics_autonomous,motion_axis,robot_joint,capacity
+434,28,Robotics Motion Control,joint_velocity,physics_robotics_autonomous,motion_axis,robot_joint,capacity
+435,28,Robotics Motion Control,joint_acceleration,physics_robotics_autonomous,motion_axis,robot_joint,capacity
+436,28,Robotics Motion Control,joint_effort,physics_robotics_autonomous,motion_axis,robot_joint,power
+437,28,Robotics Motion Control,cartesian_velocity,physics_robotics_autonomous,motion_axis,robot_joint,capacity
+438,28,Robotics Motion Control,trajectory_speed,physics_robotics_autonomous,motion_axis,robot_joint,capacity
+439,28,Robotics Motion Control,trajectory_acceleration,physics_robotics_autonomous,motion_axis,robot_joint,capacity
+440,28,Robotics Motion Control,jerk_limit,physics_robotics_autonomous,motion_axis,robot_joint,capacity
+441,28,Robotics Motion Control,collision_margin,physics_robotics_autonomous,motion_axis,robot_joint,capacity
+442,28,Robotics Motion Control,force_limit,physics_robotics_autonomous,motion_axis,robot_joint,power
+443,28,Robotics Motion Control,gripper_force,physics_robotics_autonomous,motion_axis,robot_joint,power
+444,28,Robotics Motion Control,locomotion_speed,physics_robotics_autonomous,motion_axis,robot_joint,capacity
+445,28,Robotics Motion Control,steering_angle,physics_robotics_autonomous,motion_axis,robot_joint,capacity
+446,28,Robotics Motion Control,braking_force,physics_robotics_autonomous,motion_axis,robot_joint,power
+447,28,Robotics Motion Control,balance_correction,physics_robotics_autonomous,motion_axis,robot_joint,capacity
+497,32,Spacecraft & Flight Software,space_command_admission,physics_robotics_autonomous,motion_axis,reaction_wheel,admission
+499,32,Spacecraft & Flight Software,flight_task_schedule,physics_robotics_autonomous,motion_axis,reaction_wheel,admission
+500,32,Spacecraft & Flight Software,space_mode_transition,physics_robotics_autonomous,motion_axis,reaction_wheel,admission
+501,32,Spacecraft & Flight Software,payload_duty_cycle,physics_robotics_autonomous,motion_axis,reaction_wheel,power
+502,32,Spacecraft & Flight Software,communication_allocation,physics_robotics_autonomous,motion_axis,reaction_wheel,capacity
+503,32,Spacecraft & Flight Software,space_power_budget,physics_robotics_autonomous,motion_axis,reaction_wheel,power
+504,32,Spacecraft & Flight Software,space_thermal_command,physics_robotics_autonomous,motion_axis,reaction_wheel,power
+505,32,Spacecraft & Flight Software,attitude_command_envelope,physics_robotics_autonomous,motion_axis,reaction_wheel,capacity
+506,32,Spacecraft & Flight Software,reaction_wheel_allocation,physics_robotics_autonomous,motion_axis,reaction_wheel,capacity
+507,32,Spacecraft & Flight Software,rcs_authority,physics_robotics_autonomous,motion_axis,reaction_wheel,power
+508,32,Spacecraft & Flight Software,safe_mode_transition,physics_robotics_autonomous,motion_axis,reaction_wheel,admission
+509,32,Spacecraft & Flight Software,watchdog_recovery,physics_robotics_autonomous,motion_axis,reaction_wheel,admission
+510,32,Spacecraft & Flight Software,instrument_activation,physics_robotics_autonomous,motion_axis,reaction_wheel,capacity
+511,32,Spacecraft & Flight Software,fault_isolation,physics_robotics_autonomous,motion_axis,reaction_wheel,admission

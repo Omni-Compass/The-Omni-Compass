@@ -1,0 +1,6 @@
+{
+ "source": "organism/referee_canonical_v3/CANONICAL_656_TOWER.csv (XPASS27_FOUR_PLANTS package)",
+ "source_sha256": "b4d4c4fb64b7fa1c84eb54830cbe1b8d062cec7c33eb3b99448702c581b81e93",
+ "rows": 656,
+ "added_columns": "realm, template, preset, knob: tools/realms_catalog.py"
+}
