@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-bacd890cb624",
- "written_at_commit": "bacd890cb624cb2a29b4bb5d5fe4cde543dbd8b9",
- "written_at": "2026-10-01T21:05:33+00:00",
+ "release_id": "omni-compass-8538ce8d8bee",
+ "written_at_commit": "8538ce8d8beeaa2d817368a6203b7499289c79f8",
+ "written_at": "2026-10-01T21:22:20+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -27,8 +27,8 @@
   "authority_map_sha256": "7a39f51cc43a594da52ac7d549f0eb3554cbeff24ba10db642770cebc146f1c6",
   "actuator_map_sha256": "8b3ca00878c08850801ccfda3dce4e424d1baebcb486a95f2acdb13c8ced8934",
   "shield_sha256": "88de572557295e04eb1341e64de16b68d74e4f8fa7c2e8bbe9c1d9c0416ea6f5",
-  "gpu_protocol_sha256": "a284259facb41d82d5969b4565f714b972a9fef276d4f7030c8c3ddba8c76041",
-  "preregistration_sha256": "fb6650673e2ca3d56e8e36f9d6b4dd2a82d06f4420207d673f9a7480c28168af",
+  "gpu_protocol_sha256": "8262189766b7ab08af188053d547ac09ea07aed9ab864a9b7f1328722fd3e391",
+  "preregistration_sha256": "ab6726ae5577532c0aea5ecf9b1aabad4473a7cddc83dfdd02ca4f62ba5efb1d",
   "test_suite_sha256": "bbe9184e79f1adc3254699404a04bc751a310408d5ab555dca898fbc43cf1ecb"
  },
  "files": {
@@ -45,7 +45,7 @@
    "results/SEAL.json": "aac61979371a16d19ca5803b8c6fb3b33b2568fe5a71c9ca719809d880a6d410"
   },
   "gpu_protocol": {
-   "docs/GPU_PREREGISTRATION.md": "21df0cb1355a9fdfd45cba62038b8cc1855b00a2b82283f4d69be0134d3bf710",
+   "docs/GPU_PREREGISTRATION.md": "3f82a50f1412104cbfa2226b9354c2ed5a4a94c943484439de8d49436e598ddc",
    "scripts/gpu_paired.sh": "19ce3a4dc0b2e8be0ae2c6b6c0200899ab331856fb6540137549ee2a4e72ed24",
    "tools/gpu_workload.py": "f1f1d19a347db982e6c3381ffb4796ddb3694df049eaccbe253ce859d4cad7bf",
    "tools/gpu_reps.py": "d00b185618919164b72147155ecf9d8d9dd37d8101a69c32cfc226176b56340b",
@@ -132,7 +132,7 @@
  "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card",
  "verification_receipt": {
   "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "6beffb9a0b20273f5be8a666984aa58c387901bce77aeddc38b608775202bc7e",
+  "sha256": "9736adca2b5db381e0690c61180746fb56a6d821257de351fad6aea1d1a22604",
   "passed": true
  }
 }
