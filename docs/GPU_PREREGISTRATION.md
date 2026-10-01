@@ -169,3 +169,34 @@ Unchanged:
 - **Workload plug.** Any workload may be served through `WORKLOAD_CMD` if it writes the pinned workload's files. It
   needs its own response-time target (`SLO_MS`). The command is recorded in the receipt. A confirmation names its
   workload before the first trial.
+
+## Amendment 3 (2026-10-01, before any hardware trial; no smoke or confirmation data exist)
+
+No GPU job has ever been given a machine (every gpu-bench run so far waited in the queue and was cancelled), so no
+trial data exist. Unchanged:
+- the question;
+- the arms;
+- the primary outcome;
+- the repetitions;
+- the guardrails, labels and invalidity rules of amendments 1 and 2.
+
+- **Declared envelope, before any trial.** The buyer's service envelope is written to a file before the first trial
+  and recorded with the run (`envelope.json` in the run folder and in every repetition):
+  - `power_min_w`, the lowest watts Omni may set. Default (`tools/declare_envelope.py`): max(device minimum, 70% of the
+    power limit read at declaration), rounded up to whole watts;
+  - `power_max_w`, the power limit read at declaration;
+  - optionally `slo_ms`, the response-time target; without it the target comes from calibration (10 bare service
+    times), as before.
+  - The bench refuses an envelope whose floor lies outside [device minimum, starting limit].
+  - **The confirmation refuses to start without a declared envelope** (`scripts/gpu_paired.sh`, `ENVELOPE`).
+- **Envelope floor.** The governor never sets the limit under `power_min_w` (`--floor-w`). When the floor is what
+  lifted a write, the decision record names it (`decided_by`: envelope_floor), so no saving below the floor can be
+  credited to the engine.
+- **Outer controller holds.** When the card's own controller (board, BMC or system policy) already holds
+  enforced.power.limit under the current limit, a lower write that would still sit above that enforced limit changes
+  nothing on the card. It is not written; the decision record marks it (`outer_controller_holds`). Only a write that
+  would actually bind, or a return upward, goes out. This is not another writer (amendment 2): the set limit is
+  unchanged and the governor keeps running.
+- **Narrow cards are reported as they are.** The device's own limit range is in the snapshot. On a card whose range is
+  narrow (for example a 70 W card that accepts 60–70 W), the envelope is that narrow range; the result is reported for
+  that card and range and not extrapolated to wider cards.

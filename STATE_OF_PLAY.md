@@ -68,9 +68,12 @@ rate, so both arms were given **the same work**.
 
 ## Open
 
-1. **The first real-hardware run:** `sudo PHASE=smoke bash scripts/gpu_paired.sh` on a rented NVIDIA machine
-   (`docs/GPU_RUN_GUIDE.md`), then `PHASE=confirm` (10 preregistered repetitions). Then a second machine of the same
-   type, then another GPU type.
+1. **The first real-hardware run:** `sudo bash scripts/gpu_rented_run.sh` on a rented NVIDIA machine (smoke, then the
+   10 preregistered repetitions, `docs/GPU_RUN_GUIDE.md`), or the gpu-bench workflow on GitHub's GPU runner. Then a
+   second machine of the same type, then another GPU type. Status 2026-10-01: GitHub's GPU runner has never been
+   assigned to a job (every run waited in the queue; the repository is public, so the ordinary runners are free while a
+   GPU runner is always billed, and the account has an Actions billing notice). The envelope rule is preregistered
+   (amendment 3).
 2. **Work per energy on kind:** count requests served, or run an open-loop load at a fixed rate, so work per energy can
    be stated instead of estimated (set 22, `LOADGEN=open`).
 3. **CPU and GPU on one power budget on hardware:** the law is simulated; the live exchange is not wired.

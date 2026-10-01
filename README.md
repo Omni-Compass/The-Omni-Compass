@@ -30,6 +30,8 @@ Dollar figures computed by multiplying modelled per-stack coefficients are not r
 
 ## Start here (evaluators, pilots, licensees)
 
+0. **`docs/ENGINES.md`**: there is one engine (`omnicompass/core.py`), its C++ twin, and two frozen originals. Nothing
+   else runs.
 1. **`STATE_OF_PLAY.md`**: every claim, where its evidence is, and what still loses. Simulation results and live
    results are labelled separately.
 2. **Reproduce everything:** `pip install -r requirements.txt && python verify.py` must end `VERIFICATION: PASS`. It
