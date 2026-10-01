@@ -46,7 +46,7 @@ id `29d9808dfb8f…`; the printed configuration `printed_eight_line`, id `cd333d
 | S | Fleet harness, recorded PlanetLab shapes: −40.6% energy vs HPA+CA, −21.7% vs Karpenter-lite (omni_fleet). | C17 |
 | S | Single GPU physics model: the engine alone would save 10.6–13.6% work per kJ on card A but breaks the p95 guardrail by 15–28%; with the frozen guards, about +1 to +5% inside it. | `results/gpu/sim/FINDINGS.md` |
 | S | Node exchange (CPU and GPU on one budget): +1.4 to +5.7% work against the separate budgets, never over budget. | `results/hardware/NODE_EXCHANGE_*.json` |
-| S | Realm harness, preregistered, 10 paired seeds: the whole 656-muscle tower as one organism, native against one governor on top: work per energy −0.1% (−0.1 to −0.1), label WORSE; each of the four realm organisms WORSE (−1.2% to −5.4%). Single muscles: 101 of 656 superior within guardrails, 232 worse; every setpoint gain is smaller than simply fixing the setpoint at the band's calm end. | `results/realms/REALMS.md` |
+| S | Realm harness round 2 (Omni commanding every knob as the shipped controller does), preregistered, seeds 2000-2009: the whole 656-muscle tower as one organism, native against one governor on top: work per energy +0.1% (+0.1 to +0.1), work −0.1%, violations +0.7 pp, label SUPERIOR WITHIN GUARDRAILS. Realms: Energy/Facility +0.3% SUPERIOR; Compute +2.5% with +2.9 pp violations (ENERGY IMPROVEMENT WITH SERVICE TRADEOFF); Distribution exactly native (INCONCLUSIVE); Physics −1.9% WORSE. Single muscles: 59 superior, 60 tradeoff, 461 inconclusive, 8 not established, 68 worse. | `results/realms/REALMS.md` |
 
 ## Layer 3: live external software
 
@@ -74,7 +74,8 @@ Nothing here is deleted when a later result looks better.
 | Class | Statement | Where |
 |---|---|---|
 | L | Set 21: modelled energy 1.8% **worse** with every machine powered (the only honest energy row on kind). | `results/live/LIVE_REPS_21.md` |
-| S | Realm harness: all five organisms **worse** on work per energy (whole tower −0.1%; Distribution −5.4%, Compute −2.6%, Physics −2.6%, Energy −1.2%). The capacity law releases capacity one unit at a time after convergence and dwell, so it holds more than the native autoscalers: 228 of 344 capacity muscles worse (median −10.9%). The admission knob never acted (194 of 194 inconclusive). | `results/realms/REALMS.md` |
+| S | Realm harness round 1 (superseded, kept): all five organisms **worse** (whole tower −0.1%). Its Omni layer did not follow the shipped controller (no contraction authority or SLO reflex, the stack law in place of the HPA, request traffic paused, a site budget under native draw). | `results/realms/round1/` |
+| S | Realm harness round 2: the Physics / Robotics / Autonomous organism **worse** (−1.9%, violations +2.9 pp); the Compute organism's +2.5% costs +2.9 pp of service violations; 68 single muscles worse, mostly batch pacing and cooling setpoints under the live cooling law. | `results/realms/REALMS.md` |
 | L | Set 22, equal work: no CPU saving once Omni's own CPU is counted (service −7.6%, controller +0.070 cores, together −0.9%, not proven); modelled energy unchanged (−0.1%). | `results/live/LIVE_REPS_22.md` |
 | L | Set 20: the "same work" reading was wrong; requests were +35%. | `results/live/LIVE_REPS_20.md` addendum |
 | L | Sets 1–2: machine savings **withdrawn** — a broken probe had blinded the latency sense. | `results/live/LIVE_REPS_PROBE_DEFECT.md` |
