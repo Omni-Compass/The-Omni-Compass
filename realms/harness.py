@@ -27,8 +27,9 @@ from pathlib import Path
 from typing import Dict, List
 
 from omnicompass.adapter import Governor, OBSERVE
+from omnicompass.nervous_system import from_governor
 from .plants import TEMPLATES, ThermalZone, EnergyStorage
-from .presets import STEPS_SINGLE, ORGANISM_STEPS, params_for
+from .presets import STEPS_SINGLE, ORGANISM_STEPS, CAL_SEED, params_for
 
 ROOT = Path(__file__).resolve().parents[1]
 ARMS = ("native", "watch", "omni")
@@ -53,22 +54,77 @@ def seed_for(muscle_id: str, seed: int) -> int:
 
 def make_plant(row, seed, organism=False):
     steps = ORGANISM_STEPS if organism else STEPS_SINGLE[row["template"]]
-    return TEMPLATES[row["template"]](params_for(row, organism), seed_for(row["muscle_id"], seed), steps)
+    p = TEMPLATES[row["template"]](params_for(row, organism), seed_for(row["muscle_id"], seed), steps)
+    if row["template"] == "compute_pool" and not organism:
+        p.budget_w = 1.25 * native_mean_power(row)
+    return p
 
 
-def _apply(plant, knob, g, d, last):
-    """Set the plant's override from the directive; return the value written (None when nothing is held)."""
+_CAL = {}
+
+
+def native_mean_power(row):
+    """A compute pool's declared power budget basis: its mean native draw on the calibration seed."""
+    key = row["muscle_id"]
+    if key not in _CAL:
+        c = TEMPLATES[row["template"]](params_for(row), seed_for(key, CAL_SEED), STEPS_SINGLE[row["template"]])
+        tot = 0.0
+        for _ in range(c.steps):
+            c.step()
+            tot += c.power_w
+        _CAL[key] = tot / c.steps
+    return _CAL[key]
+
+
+def calibrate_organism(rows):
+    """Each plant's mean native power in the organism on the calibration seed: the organism's declared budget and
+    coupling basis (the same for every arm and every result seed)."""
+    key = tuple(r["muscle_id"] for r in rows)
+    if key not in _CAL:
+        nat = run_organism_arm(rows, CAL_SEED, "native", nominal=None)
+        _CAL[key] = nat["mean_power"]
+    return _CAL[key]
+
+
+def authority(g, obs, d, clean):
+    """The nervous system's authority after the governor's step, as the live controller computes it."""
+    return from_governor(g, dict(obs, slo_clean=clean), d, mode="autopilot")
+
+
+def _apply(plant, knob, g, d, auth):
+    """Set the plant's override from the directive and authority; return it ({} when the knob is native)."""
     if g is None or not g.has_authority:
         plant.override = {}
-        return None
-    v = plant.omni_value(knob, d, g)
-    plant.override = {knob: v}
-    return v
+        return {}
+    plant.override = plant.omni_override(knob, d, g, auth)
+    return plant.override
 
 
 def _restored(plant, knob):
-    nv = plant.native_value(knob)
-    return plant.override == {} and (nv is None or plant.knob_value(knob) == nv)
+    return plant.override == {}
+
+
+PACE_HIGH, PACE_LOW, PACE_HEAT = 0.95, 0.8, 0.96             # the live batch_pace defaults (omni_controller/muscles.py)
+
+
+def pace(paced_plants, obs, auth):
+    """The live batch_pace rule over the admission muscles: while hot, suspend the next running one; while calm, resume
+    the first suspended one; one per decision either way."""
+    if not paced_plants:
+        return
+    hot = (obs["power_stress"] >= PACE_HIGH or obs["thermal"] >= PACE_HEAT
+           or bool(auth and auth["organs"]["batch"].get("pause")))
+    calm = obs["power_stress"] <= PACE_LOW and obs["thermal"] < PACE_HEAT - 0.06
+    if hot:
+        for p in paced_plants:
+            if not p.paced:
+                p.paced = True
+                return
+    elif calm:
+        for p in paced_plants:
+            if p.paced:
+                p.paced = False
+                return
 
 
 def run_muscle_arm(row, seed, arm):
@@ -76,7 +132,7 @@ def run_muscle_arm(row, seed, arm):
     knob = row["knob"]
     if arm == FIXED:
         for k in range(plant.steps):
-            plant.override = {"setpoint": plant.P["calm"]}
+            plant.override = plant.fixed_calm()
             plant.step()
         plant.finalize()
         return dict(plant.m, writes=0, after_kill_writes=0, restore_ok=True)
@@ -92,16 +148,18 @@ def run_muscle_arm(row, seed, arm):
             obs = plant.observe()
             if arm == "omni" and k == kill_at:
                 g.kill()
-            if knob == "power" and g.has_authority:
-                g.current_cap = plant.knob_value("power")
+            g.current_cap = 1.0                                    # as the live controller sets it
             d = g.step(obs, 0)
-            v = _apply(plant, knob, g, d, last)
-            if v is not None:
-                if last is None or v != last:
+            auth = authority(g, obs, d, plant.slo_clean) if g.has_authority else None
+            if knob == "admission" and g.has_authority and (row["template"] != "compute_pool" or plant.P.get("pausable")):
+                pace([plant], obs, auth)
+            v = _apply(plant, knob, g, d, auth)
+            if v:
+                if v != last:
                     writes += 1
                 last = v
             if arm == "omni" and k >= kill_at:
-                after_kill_writes += int(v is not None)
+                after_kill_writes += int(bool(v))
                 restore_ok = restore_ok and _restored(plant, knob)
         plant.step()
     plant.finalize()
@@ -120,9 +178,14 @@ def run_muscle(row, seed) -> Dict:
 
 
 # ---------------------------------------------------------------------------------------------------------------
-def run_organism_arm(rows, seed, arm):
+def run_organism_arm(rows, seed, arm, nominal="calibrated"):
     plants = [make_plant(r, seed, organism=True) for r in rows]
+    if nominal == "calibrated":
+        for p, w in zip(plants, calibrate_organism(rows)):
+            p.nominal_w = max(w, 1.0)
     knobs = [r["knob"] for r in rows]
+    paced = [p for p, r in zip(plants, rows) if r["knob"] == "admission"
+             and (r["template"] != "compute_pool" or p.P.get("pausable"))]
     zones = [p for p in plants if isinstance(p, ThermalZone)]
     stores = [p for p in plants if isinstance(p, EnergyStorage)]
     sources = [p for p in plants if not isinstance(p, (ThermalZone, EnergyStorage))]
@@ -140,7 +203,7 @@ def run_organism_arm(rows, seed, arm):
     restore_ok = True
     last = [None] * len(plants)
     src_w, sz_w, all_w = nom_src, nom_sz, nom_all
-    cap_now = 1.0
+    psum = [0.0] * len(plants)
     for k in range(ORGANISM_STEPS):
         th = sum(z.zone_thermal() for z in zones) / len(zones) if zones else None
         for z, kh in zip(zones, k_heat):
@@ -155,38 +218,41 @@ def run_organism_arm(rows, seed, arm):
             obs = [p.observe() for p in plants]
             n = len(obs)
             agg = {key: sum(o[key] for o in obs) / n for key in ("queue_ratio", "load_ratio", "network_stress",
-                                                               "drift_ratio")}
-            agg.update(power_stress=all_w / budget, thermal=max(o["thermal"] for o in obs), stale=0.0,
-                       security_block=0.0)
+                                                               "drift_ratio", "thermal")}
+            agg.update(power_stress=all_w / budget, stale=0.0, security_block=0.0)
             if arm == "omni" and k == kill_at:
                 g.kill()
-            g.current_cap = cap_now if g.has_authority else 1.0
+            g.current_cap = 1.0
             d = g.step(agg, 0)
-            if g.has_authority and "power" in knobs:
-                cap_now = d["power_cap"]
+            auth = {c: authority(g, agg, d, c) for c in (True, False)} if g.has_authority else {True: None, False: None}
+            if g.has_authority:
+                pace(paced, agg, auth[True])
             for i, (p, knob) in enumerate(zip(plants, knobs)):
-                v = _apply(p, knob, g, d, last[i])
-                if v is not None:
-                    if last[i] is None or v != last[i]:
+                v = _apply(p, knob, g, d, auth[p.slo_clean])
+                if v:
+                    if v != last[i]:
                         writes += 1
                     last[i] = v
                 if arm == "omni" and k >= kill_at:
-                    after_kill_writes += int(v is not None)
+                    after_kill_writes += int(bool(v))
                     restore_ok = restore_ok and _restored(p, knob)
-        for p in plants:
+        for i, p in enumerate(plants):
             p.step()
+            psum[i] += p.power_w
         src_w = sum(p.power_w for p in sources)
         sz_w = src_w + sum(p.power_w for p in zones)
         all_w = sz_w + sum(p.power_w for p in stores)
     for p in plants:
         p.finalize()
     return {"plants": [dict(p.m) for p in plants], "writes": writes, "after_kill_writes": after_kill_writes,
-            "restore_ok": restore_ok and after_kill_writes == 0}
+            "restore_ok": restore_ok and after_kill_writes == 0, "mean_power": [x / ORGANISM_STEPS for x in psum]}
 
 
 def run_organism(rows, seed) -> Dict:
     out = {arm: run_organism_arm(rows, seed, arm) for arm in ARMS}
     out["watch_equal"] = out["watch"]["plants"] == out["native"]["plants"] and out["watch"]["writes"] == 0
+    for arm in ARMS:
+        out[arm].pop("mean_power", None)
     return out
 
 

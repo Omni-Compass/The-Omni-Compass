@@ -1,6 +1,6 @@
 """Run the realm harness and write its tables (docs/REALMS.md, preregistered in docs/REALMS_PREREGISTRATION.md).
 
-  python3 tools/run_realms.py                       # the preregistered run: seeds 1000-1009, results/realms/
+  python3 tools/run_realms.py                       # the preregistered run (round 2): seeds 2000-2009, results/realms/
   python3 tools/run_realms.py --seeds 0 1 --out /tmp/realms-dev   # a look on development seeds (never reported)
 
 Every muscle alone (native, watch, omni; plus the fixed calm setpoint for setpoint muscles), then five organisms: each
@@ -18,7 +18,7 @@ sys.path.insert(0, str(ROOT))
 from realms.harness import (catalog, run_muscle, run_organism, paired, paired_organism, label, summarize,  # noqa
                             FIXED)
 
-PREREG_SEEDS = list(range(1000, 1010))
+PREREG_SEEDS = list(range(2000, 2010))     # round 2 (round 1, seeds 1000-1009, is kept in results/realms/round1/)
 REALMS = ["compute_ai_cloud", "physics_robotics_autonomous", "energy_facility_industrial", "distribution_specialized"]
 NAMES = {"compute_ai_cloud": "Compute / AI / Cloud", "physics_robotics_autonomous": "Physics / Robotics / Autonomous",
          "energy_facility_industrial": "Energy / Facility / Industrial",
@@ -65,13 +65,14 @@ def fmt(m, scale=100.0, unit="%"):
 def write_md(out, res, orgs, run):
     L = []
     w = L.append
-    w("# The realms: 656 muscles on modelled plants, native against Omni on top")
+    w("# The realms, round 2: 656 muscles on modelled plants, native against Omni on top")
     w("")
     w(f"Evidence class **S** (simulation). Run {run['started']}, commit `{run['commit'][:12]}`, seeds "
       f"{run['seeds'][0]}-{run['seeds'][-1]} ({len(run['seeds'])} paired seeds per muscle and per organism). "
-      "Preregistered in `docs/REALMS_PREREGISTRATION.md`; harness `realms/`; every plant and its native controller in "
+      "Preregistered in `docs/REALMS_PREREGISTRATION.md` (round 2); round 1 is kept in `round1/`; harness `realms/`; every plant and its native controller in "
       "`realms/plants.py`, every number in `realms/presets.py`. The governor is the frozen "
-      "`omnicompass.adapter.Governor`, unchanged.")
+      "`omnicompass.adapter.Governor`, unchanged, and every knob obeys the shipped nervous system "
+      "(`omnicompass/nervous_system.py`) the way the live controller's organs do.")
     w("")
     w("Primary outcome: work per energy, Omni against native, with its 95% interval over seeds. Guardrails: work not "
       "lower by more than 1%, share of periods in violation not higher by more than 1 percentage point. Labels by rule.")

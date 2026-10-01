@@ -4,7 +4,8 @@ Catalog: 656 muscles, four realms, every row on a known plant with one of the fo
 Arms: on one muscle of every plant and every knob kind, the watch arm equals native exactly and writes nothing; the omni
 arm's kill switch hands the knob back (no write after the kill, the knob at its native value); every run is
 deterministic. Organism: watch equals native for a realm organism; omni hands back every knob.
-Rules: the capacity law adds at once and removes one unit only after convergence and dwell; the label rule."""
+Rules (the shipped nervous system): capacity goes up at once; it comes down only with contraction authority and a
+clean SLO, by the calm share of the surplus; no authority, no contraction; the label rule."""
 import sys
 from collections import Counter
 from pathlib import Path
@@ -14,9 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from realms.harness import catalog, run_muscle, run_organism, label, ARMS  # noqa: E402
-from realms.plants import KNOBS, TEMPLATES, governed_capacity  # noqa: E402
+from realms.plants import KNOBS, TEMPLATES, continuous_capacity  # noqa: E402
 from realms.presets import PRESETS  # noqa: E402
-from omnicompass.adapter import AllocationLaw  # noqa: E402
 
 
 def main():
@@ -48,14 +48,12 @@ def main():
     assert o["watch_equal"] and o["watch"]["writes"] == 0
     assert o["omni"]["restore_ok"] and o["omni"]["writes"] > 0
 
-    law = AllocationLaw()
-    st = {"surplus": 0, "since_add": 99}
-    assert governed_capacity(st, 10, 0.95, 0.0, 0.8, 0.0, law, 1, 1, 100) == 12          # up at once
-    st = {"surplus": 0, "since_add": 99}
-    seq = [governed_capacity(st, 10, 0.3, 0.0, 0.9, 0.0, law, 1, 1, 100) for _ in range(law.down_dwell)]
-    assert seq[:-1] == [10] * (law.down_dwell - 1) and seq[-1] == 9                       # down by one after the dwell
-    st = {"surplus": 0, "since_add": 99}
-    assert all(governed_capacity(st, 10, 0.3, 0.0, 0.9, 0.5, law, 1, 1, 100) == 10 for _ in range(20))  # not converged
+    calm = {"execute": True, "scalars": {"calm": 0.5}, "organs": {"pods": {"contract": True}}}
+    tense = {"execute": True, "scalars": {"calm": 0.1}, "organs": {"pods": {"contract": False}}}
+    assert continuous_capacity(0.5, 0.95, 0.8, tense, "pods", True, 0.3) > 0.5                 # up at once
+    assert continuous_capacity(0.8, 0.2, 0.8, tense, "pods", True, 0.3) == 0.8                 # no authority: held
+    assert continuous_capacity(0.8, 0.2, 0.8, calm, "pods", False, 0.3) == 0.8                 # SLO breached: held
+    assert abs(continuous_capacity(0.8, 0.2, 0.8, calm, "pods", True, 0.3) - 0.5) < 1e-12      # calm share of surplus
 
     c = lambda p, w, v: {"primary": p, "work": w, "energy": 0.0, "viol_pp": v}
     assert label([c(0.05, 0.0, 0.0), c(0.06, 0.0, 0.0), c(0.04, 0.0, 0.0)]) == "SUPERIOR WITHIN GUARDRAILS"
@@ -63,7 +61,7 @@ def main():
     assert label([c(-0.05, 0.0, 0.0), c(-0.06, 0.0, 0.0), c(-0.04, 0.0, 0.0)]) == "WORSE"
     assert label([c(0.01, 0.0, 0.0), c(-0.01, 0.0, 0.0), c(0.0, 0.0, 0.0)]) == "NONINFERIOR / INCONCLUSIVE"
     assert label([c(0.05, 0.0, 0.0)] * 3, valid=False) == "INVALID"
-    print("PASS test_realms: catalog 656, watch = native, kill hands back, deterministic, capacity law, labels")
+    print("PASS test_realms: catalog 656, watch = native, kill hands back, deterministic, nervous-system capacity rule, labels")
 
 
 if __name__ == "__main__":

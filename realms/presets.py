@@ -17,6 +17,7 @@ STEPS_SINGLE = {"compute_pool": 720, "thermal_zone": 720, "energy_storage": 720,
                 "process_loop": 720}
 ORGANISM_DT = 15.0
 ORGANISM_STEPS = 240
+CAL_SEED = 999          # the calibration seed: sets declared power budgets from native draw; never a result seed
 
 _CP = dict(dt=15.0, mu=50.0, slo_s=0.5, startup_steps=4, n0=6, n_min=2, n_max=80, p_idle=60.0, p_dyn=140.0,
            target=0.70, lam0=200.0, diurnal=0.35, period_steps=720, noise=0.08, burst_p=0.01, burst_max=1.0,
@@ -25,22 +26,22 @@ _CP = dict(dt=15.0, mu=50.0, slo_s=0.5, startup_steps=4, n0=6, n_min=2, n_max=80
 PRESETS = {
     # compute_pool -------------------------------------------------------------------------------------------
     "server": dict(_CP),
-    "node": dict(_CP, mu=80.0, slo_s=1.0, startup_steps=12, p_idle=120.0, p_dyn=230.0, lam0=320.0),
-    "cpu_host": dict(_CP, mu=60.0, p_idle=80.0, p_dyn=170.0, lam0=240.0),
-    "gpu": dict(_CP, mu=8.0, slo_s=2.0, startup_steps=8, p_idle=60.0, p_dyn=240.0, lam0=40.0, n0=6),
-    "gpu_batch": dict(_CP, mu=8.0, slo_s=600.0, startup_steps=8, p_idle=60.0, p_dyn=240.0, lam0=40.0, diurnal=0.1,
+    "node": dict(_CP, ca=1, ca_unneeded_steps=40, mu=80.0, slo_s=1.0, startup_steps=12, p_idle=120.0, p_dyn=230.0, lam0=320.0),
+    "cpu_host": dict(_CP, power_organ="cpufreq", mu=60.0, p_idle=80.0, p_dyn=170.0, lam0=240.0),
+    "gpu": dict(_CP, power_organ="gpu", mu=8.0, slo_s=2.0, startup_steps=8, p_idle=60.0, p_dyn=240.0, lam0=40.0, n0=6),
+    "gpu_batch": dict(_CP, power_organ="gpu", pausable=1, mu=8.0, slo_s=600.0, startup_steps=8, p_idle=60.0, p_dyn=240.0, lam0=40.0, diurnal=0.1,
                       burst_p=0.005, queue_limit_s=3600.0),
-    "batch": dict(_CP, mu=20.0, slo_s=300.0, startup_steps=8, lam0=80.0, diurnal=0.2, queue_limit_s=3600.0),
+    "batch": dict(_CP, pausable=1, mu=20.0, slo_s=300.0, startup_steps=8, lam0=80.0, diurnal=0.2, queue_limit_s=3600.0),
     "fabric": dict(_CP, mu=100.0, slo_s=0.2, startup_steps=1, p_idle=20.0, p_dyn=30.0, lam0=400.0, network=1),
     "robot_fleet": dict(_CP, mu=0.05, slo_s=120.0, startup_steps=2, n0=8, n_max=60, p_idle=50.0, p_dyn=300.0,
                         lam0=1.0, queue_limit_s=1800.0),
-    "qpu": dict(_CP, mu=2.0, slo_s=60.0, startup_steps=20, n0=3, n_min=1, n_max=12, p_idle=600.0, p_dyn=200.0,
+    "qpu": dict(_CP, pausable=1, mu=2.0, slo_s=60.0, startup_steps=20, n0=3, n_min=1, n_max=12, p_idle=600.0, p_dyn=200.0,
                 lam0=6.0, queue_limit_s=1800.0),
     "network": dict(_CP, mu=1000.0, slo_s=0.05, startup_steps=2, p_idle=15.0, p_dyn=10.0, lam0=4000.0, network=1),
     "storage": dict(_CP, mu=200.0, slo_s=0.05, startup_steps=2, p_idle=8.0, p_dyn=4.0, lam0=800.0),
     "database": dict(_CP, mu=30.0, slo_s=0.2, startup_steps=20, n0=4, p_idle=100.0, p_dyn=150.0, lam0=120.0),
     "commerce": dict(_CP, slo_s=1.0, startup_steps=6, burst_p=0.02, burst_max=1.5),
-    "workflow": dict(_CP, mu=0.5, slo_s=60.0, lam0=4.0, queue_limit_s=1800.0),
+    "workflow": dict(_CP, pausable=1, mu=0.5, slo_s=60.0, lam0=4.0, queue_limit_s=1800.0),
     "ran": dict(_CP, mu=100.0, slo_s=0.05, startup_steps=4, n0=6, n_min=2, n_max=12, p_idle=300.0, p_dyn=500.0,
                 lam0=350.0, diurnal=0.6, network=1),
     # thermal_zone --------------------------------------------------------------------------------------------
@@ -48,7 +49,7 @@ PRESETS = {
                       q_unit_w=40e3, p_unit_w=1.5e3, t_set=24.0, t_limit=27.0, calm=26.0, stress=22.0, t_out=25.0,
                       t_out_amp=7.0, start_frac=0.25, eta=0.45, approach=8.0, kp=40e3, ki=200.0),
     "building": dict(dt=60.0, sub=12, c_j_k=8.0e6, ua=2000.0, q_it_w=60e3, it_amp=0.4, noise=0.05, units=4,
-                     q_unit_w=25e3, p_unit_w=0.8e3, t_set=22.0, t_limit=25.0, calm=24.0, stress=21.0, t_out=30.0,
+                     q_unit_w=35e3, p_unit_w=0.8e3, t_set=22.0, t_limit=25.0, calm=24.0, stress=21.0, t_out=30.0,
                      t_out_amp=6.0, start_frac=0.25, eta=0.40, approach=10.0, kp=15e3, ki=60.0),
     # energy_storage ------------------------------------------------------------------------------------------
     "microgrid": dict(dt=120.0, e_wh=400e3, p_batt_w=100e3, eta_rt=0.90, load_w=120e3, load_amp=0.4, peak_h=19.0,
@@ -123,6 +124,8 @@ def params_for(row: dict, organism: bool = False) -> dict:
             if "startup_steps" in P:
                 P["startup_steps"] = max(1, int(round(P["startup_steps"] / ratio)))
                 P["stab_steps"] = max(1, int(round(P["stab_steps"] / ratio)))
+                if "ca_unneeded_steps" in P:
+                    P["ca_unneeded_steps"] = max(1, int(round(P["ca_unneeded_steps"] / ratio)))
                 P["period_steps"] = ORGANISM_STEPS * 4
             if row["template"] == "energy_storage":
                 P["start_h"] = P["peak_h"] - 0.5                   # the hour around the site's peak

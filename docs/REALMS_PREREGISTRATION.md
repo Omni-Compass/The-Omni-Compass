@@ -1,6 +1,7 @@
 # Realm harness preregistration
 
-Written and committed before the confirmation seeds were run. Evidence class **S**: every number the run produces
+Round 2 is the current one: its section at the end replaces round 1's Omni layer and seeds. Round 1 below is kept as it
+was frozen. Each round was written and committed before its confirmation seeds were run. Evidence class **S**: every number the run produces
 comes from a declared model. Nothing here is a meter, and nothing here is evidence about a real machine.
 
 ## Question
@@ -133,3 +134,33 @@ for Omni before and after them.
 - **A muscle's name chooses its knob and its plant's size; it does not get its own physics.** The 16 muscles of a
   family share the family's plant model at different sizes, through different knobs.
 - **The plant code is Python only.** The governor's C++ twin is unchanged; a C++ twin of the plants is open.
+
+## Round 2 (2026-10-01, after round 1's results; before any round-2 confirmation seed)
+
+Round 1 (seeds 1000-1009) labelled all five organisms WORSE. Reading the result against the shipped controller
+(`omni_controller/controller.py`, `omni_controller/muscles.py`, `omnicompass/nervous_system.py`) showed that round 1's
+Omni layer was not the Omni that runs on Kubernetes. Round 1 is kept unchanged in `results/realms/round1/`, with a note
+saying why it is superseded. Round 2 changes only how Omni commands a knob, the native machine-pool scaler and the
+declared budgets. These changes were made after seeing round 1, so they are listed with the source line each one follows:
+
+| Round 1 | Round 2, as the shipped controller does it |
+|---|---|
+| Capacity muscles replaced the HPA with the stack simulator's capacity law (release one unit after convergence, dwell and a 20% band) | Pods: the HPA target written as min(rho*, the operator's target), never tighter, held one autoscaler window; the HPA scales (`controller.py`, HPA target patch). Machine pools: the node release gate, one machine per decision (`nervous_system.node_release_gate`) |
+| HPA-type setpoints moved inside a band whose calm end was tighter than the operator's target | The same min(rho*, operator) rule: more headroom is always allowed, less never (`controller.py`) |
+| No contraction authority and no SLO reflex | Every contraction needs the organ's authority (calm >= threshold, senses live) and three clean decisions; while service is breached the knob returns to native (`nervous_system.authority`, `muscles.py` SLO reflex) |
+| Continuous knobs jumped to the governed value | Down by at most the calm share of the surplus per decision (`nervous_system`: step = calm) |
+| Request-served pools had their power capped | Never: throttling request work saves no energy and adds wait (`muscles.py`, `_power_cap`); GPU and CPU-frequency pools use their envelope, never under draw x 1.3 |
+| Thermal setpoint by headroom | The live cooling law: warm while cool, cold as heat rises, under the envelope 18 + 9 x calm mapped onto the band (`muscles.py`, `_cooling`) |
+| Admission paused every admission muscle, request traffic included, and resumed only when fully calm | Batch pacing of pausable work only: one muscle suspended per decision at power stress >= 0.95 or heat >= 0.96 (or a nervous pause), one resumed per decision at power stress <= 0.8 and heat < 0.90 (`muscles.py`, `_batch_pace` defaults); request traffic never paused |
+| queue_ratio was the backlog in service-target units | pending starts per serving unit, or latency pressure (p95 / target − 1, or the failed share), capped at 2 (`controller.py`) |
+| The governor's current cap followed the applied cap | 1.0, as the live controller sets it |
+| Site power budget 1.25 x a formula nominal that sat under the organism's real native draw (compute ran at 1.2 x it), so the governor read the site as always at its limit | 1.25 x each plant's mean native draw on the calibration seed 999 (never a result seed); compute pools alone likewise |
+| Organism heat = the hottest of up to 656 plants | The mean, as every other organism channel; local heat stays with each plant's own reflex |
+| Native machine pools used the HPA rule | The Cluster Autoscaler's defaults: add while work waits, remove one machine after the rest has been under 50% for 10 minutes |
+| Building cooling sized under its own peak (native overheated half the time) | Units of 35 kW: capacity 1.25 x the declared peak |
+
+Unchanged: the plants' physics, the catalog, every other parameter, the arms, the outcomes, the guardrails, the
+label rule and the invalidity rules.
+
+- **Round 2 seeds:** 2000 to 2009. Development of round 2 used seeds 0 and 1 only, never reported.
+- **Results:** `results/realms/` (round 1 in `results/realms/round1/`). Both rounds are cited together.
