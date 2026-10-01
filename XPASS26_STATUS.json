@@ -1,0 +1,16 @@
+{
+  "release": "XPASS26_GITHUB_PARITY_HARDENED",
+  "base": "XPASS25_GITHUB_REFEREE_MASTER",
+  "candidate_rows": 699,
+  "canonical_benchmark_target_N": 656,
+  "supporting_not_counted": 34,
+  "merged_alias_rows": 9,
+  "engine_modified": false,
+  "canonical_engine_sha256": "c527df2d3d217a62886fbc21968d241b9af28d09c381558a1df77a184c531d52",
+  "cpp_python_governor_parity": "PASS_5_MODES_21600_DIRECTIVES_0_DISCRETE_MISMATCHES_MAX_ABS_4.441E-16",
+  "focused_pytest": "PASS_17",
+  "full_verify": "NOT_COMPLETED_SESSION_EXECUTION_LIMIT",
+  "e3_status": "READY_TO_RUN_NOT_CLAIMED",
+  "e4_status": "READY_TO_RUN_NOT_CLAIMED",
+  "complete_organism_N": "OPEN_UNTIL_656_CONTRACTS_EVIDENCE_GATED"
+}
