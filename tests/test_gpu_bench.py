@@ -257,10 +257,24 @@ def enforced():
     act = [x["actuator"] for x in recs(d / "a1.jsonl") if "actuator" in x]
     assert act and act[0]["rc"] == 0 and act[0]["realized"] and act[0]["readback_w"] == act[0]["requested_w"] and "delay_s" in act[0], act
     assert g.restore()
-    # an enforced limit under the requested one is recorded as an override
+    # the card's own controller already holds it at 200 W: a write of 234 W (above 200) would change nothing; not written
     p = state(d, enforced_cap=200.0)
     g = GpuGovernor(args(d, "cap", audit=str(d / "a2.jsonl"))); g.step()
-    assert any(x["actuator"].get("override") for x in recs(d / "a2.jsonl") if "actuator" in x)
+    a2 = recs(d / "a2.jsonl")
+    assert not any("write" in x for x in a2) and json.load(open(p))["limit"]["0"] == 300.0, a2[-1]
+    assert [x for x in a2 if "decision" in x][0]["decision"]["0"]["outer_controller_holds"] is True
+    g.restore()
+    # a write that does bind under an outer hold (enforced 260, want 234) goes out, and the override is recorded
+    p = state(d, enforced_cap=260.0)
+    g = GpuGovernor(args(d, "cap", audit=str(d / "a2b.jsonl"))); g.step()
+    assert json.load(open(p))["limit"]["0"] == 234.0
+    g.restore()
+    # the declared envelope floor: never under it (draw would allow 234 W; the floor is 270 W)
+    p = state(d)
+    g = GpuGovernor(args(d, "cap", audit=str(d / "a2c.jsonl"), floor_w=270.0)); g.step()
+    assert json.load(open(p))["limit"]["0"] == 270.0
+    dc = [x for x in recs(d / "a2c.jsonl") if "decision" in x][0]["decision"]["0"]
+    assert dc["decided_by"] == "envelope_floor" and "envelope_floor" in dc["blocked_by"], dc
     g.restore()
     # power management off: cap refused before any write; watch still allowed
     state(d, management="Disabled")

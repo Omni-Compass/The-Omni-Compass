@@ -63,6 +63,20 @@ for f in clocks_event_reasons.active clocks_throttle_reasons.active; do
   v=$(q1 "$f" || true); if [ -n "$v" ] && [ "${v#[}" = "$v" ]; then SMI_FIELDS="$SMI_FIELDS,$f"; break; fi
 done
 echo "$SMI_FIELDS" > "$OUT/smi_fields.txt"
+# the declared envelope (the buyer's box): lowest watts and response-time target, declared before any trial. The
+# highest watts are the snapshot limit. A confirmation run refuses to start without it.
+ENV_FLOOR_W=0
+if [ -n "${ENVELOPE:-}" ]; then
+  [ -r "$ENVELOPE" ] || { echo "ENVELOPE file $ENVELOPE unreadable"; exit 1; }
+  read -r ENV_FLOOR_W ENV_SLO < <($PY -c "import json,sys; e=json.load(open(sys.argv[1])); print(float(e['power_min_w']), float(e.get('slo_ms', 0)))" "$ENVELOPE") \
+    || { echo "ENVELOPE must hold power_min_w (and optionally slo_ms)"; exit 1; }
+  DEVMIN=$(q1 power.min_limit); $PY -c "import sys; f,lo,hi=map(float,sys.argv[1:4]); sys.exit(0 if lo<=f<=hi else 1)" "$ENV_FLOOR_W" "$DEVMIN" "$START" \
+    || { echo "envelope floor $ENV_FLOOR_W W outside the device range [$DEVMIN, $START] W"; exit 1; }
+  cp "$ENVELOPE" "$OUT/envelope.json"
+  if [ "${ENV_SLO%.*}" != "0" ] && [ -z "${SLO_MS:-}" ]; then SLO_MS="$ENV_SLO"; fi
+elif [ "$PHASE" = "confirm" ]; then
+  echo "confirmation refuses to start without a declared envelope: ENVELOPE=file.json with power_min_w (and slo_ms)"; exit 1
+fi
 MGMT=$(q1 power.management || true)
 [ "$MGMT" = "Enabled" ] || { echo "power management is '${MGMT:-unsupported}', not Enabled: a written limit would not bind"; exit 1; }
 $SMI -i "$GPU" -pl "${START%.*}" >/dev/null || { echo "cannot set the power limit (run as root)"; exit 1; }
@@ -82,6 +96,7 @@ r = {"gpus": gpu, "gpu_name": q("name"), "driver": q("driver_version"), "persist
      "workload": "tools/gpu_workload.py (seeded fp16 matmul request stream)",
      "workload_sha256": __import__("hashlib").sha256(open("tools/gpu_workload.py", "rb").read()).hexdigest(),
      "workload_cmd": os.environ.get("WORKLOAD_CMD", ""),
+     "envelope": json.load(open(f"{out}/envelope.json")) if os.path.exists(f"{out}/envelope.json") else None,
      "mechanism_id": subprocess.run([sys.executable, "tools/mechanism_identity.py", "--id"], capture_output=True, text=True).stdout.strip(),
      "git": subprocess.run(["git", "-c", "safe.directory=*", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()}
 open(f"{out}/receipt.json", "w").write(json.dumps(r, indent=1)); print(json.dumps(r))
@@ -151,7 +166,7 @@ for rep in ${REP_ONLY:-$(seq 1 "$REPS")}; do
       mode=watch; [ "$arm" = "omni" ] && mode=cap
       rm -f "$D/kill"
       $PY -m omni_controller.gpu_governor --mode "$mode" --gpus "$GPU" --smi "$SMI" --interval "$INTERVAL" \
-        --audit "$D/audit.jsonl" --kill-file "$D/kill" --latency-file "$D/latency.csv" --slo-ms "$SLO_MS" \
+        --audit "$D/audit.jsonl" --kill-file "$D/kill" --latency-file "$D/latency.csv" --slo-ms "$SLO_MS" --floor-w "$ENV_FLOOR_W" \
         > "$D/governor.log" 2>&1 &
       gov_pid=$!
     fi
@@ -179,7 +194,7 @@ done
 freeze "$OUT/FREEZE_END.json"
 # each repetition carries its machine's own record, so repetitions from several machines can be pooled
 for r in "$OUT"/rep-*; do
-  for f in receipt.json snapshot.txt smi_fields.txt calib.json workload_cmd.txt slo.txt FREEZE.json FREEZE_END.json wall_meter.txt; do
+  for f in receipt.json snapshot.txt smi_fields.txt envelope.json calib.json workload_cmd.txt slo.txt FREEZE.json FREEZE_END.json wall_meter.txt; do
     [ -f "$OUT/$f" ] && cp "$OUT/$f" "$r/$f"
   done
 done

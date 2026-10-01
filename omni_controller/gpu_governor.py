@@ -36,6 +36,11 @@ Every decision (--interval seconds), for each GPU in --gpus:
   envelope  every decision records every rule that held the engine's request back ("blocked_by") and the one that
             decided ("decided_by": engine, a floor, the busy gate, a reflex, heat, or the speed lock), so a limit that
             did not move names its cause, and a result is credited to the rule that produced it.
+  envelope  --floor-w, the buyer's declared lowest watts (the confirmation run requires it, scripts/gpu_paired.sh
+  floor     ENVELOPE): the limit is never set under it. The highest watts are the limit read at start.
+  outer     when the card's own controller (board, BMC or system policy) already holds enforced.power.limit under the
+  holds     limit I set, a lower write that stays above that enforced value would change nothing the card does: it is
+            not written ("outer_controller_holds"). Only a write that would actually bind, or a return upward, goes out.
 Modes
   watch     everything above is computed and audited; nothing is written (the control arm)
   cap       the limit is written with nvidia-smi -i <gpu> -pl <W>. Refused at start unless every GPU reports
@@ -73,10 +78,12 @@ def slowed(reason):
         return False
 
 
-def blocked_by(requested, draw, start, min_w, headroom, min_share, slo_clean, gated, heat, lock):
+def blocked_by(requested, draw, start, min_w, headroom, min_share, slo_clean, gated, heat, lock, floor_w=0.0):
     """Every rule whose floor or override sits above the engine's own request (whole watts), in a fixed order."""
     engine_w = math.floor(requested * start)
     b = []
+    if floor_w and floor_w > engine_w:
+        b.append("envelope_floor")
     if not slo_clean:
         b.append("slo_or_blind_reflex")
     if gated:
@@ -118,7 +125,10 @@ def window_stats(path, window_s, now=None):
     if len(ms) < 20:
         return None
     span = min(window_s, max(1.0, t_end - float(rows[0][0])))
-    return {"mean": sum(ms) / len(ms), "p95": ms[min(len(ms) - 1, int(0.95 * len(ms)))],
+    tot = 0.0
+    for v in ms:              # plain left-to-right addition, as the C++ twin does (Python 3.12's sum() compensates)
+        tot += v
+    return {"mean": tot / len(ms), "p95": ms[min(len(ms) - 1, int(0.95 * len(ms)))],
             "p99": ms[min(len(ms) - 1, int(0.99 * len(ms)))], "rate": len(ms) / span, "n": len(ms)}
 
 
@@ -417,8 +427,14 @@ class GpuGovernor:
                 if heat and want < cur:
                     # the device is slowing itself for heat or a hardware limit: never tighten on top of it
                     want, bound, why = int(cur), "thermal_hold", "thermal or hardware slowdown reported: no tightening"
+                floor_w = float(getattr(a, "floor_w", 0.0) or 0.0)
+                if floor_w and want < floor_w:
+                    # the buyer's declared lowest watts: never under it
+                    want, bound, why = int(math.ceil(min(floor_w, self.start[g]))), "envelope_floor", f"declared envelope floor {floor_w:.0f} W"
                 blocks = blocked_by(requested, r["draw"], self.start[g], self.min[g], a.headroom, getattr(a, "min_share", 0.0),
-                                    slo_clean, self.gated.get(g, False) if gate else False, heat, self.baseline is not None)
+                                    slo_clean, self.gated.get(g, False) if gate else False, heat, self.baseline is not None, floor_w)
+                # the card's own controller already holds it lower: a lower write above the enforced value changes nothing
+                outer = r["enforced"] < cur - 1.0 and r["enforced"] - 1.0 <= want < cur
                 self.cap[g] = want / self.start[g]
                 rec["decision"][str(g)] = {
                     "telemetry": {"util": r["util"], "draw_w": r["draw"], "temp_c": r["temp"], "limit_w": cur,
@@ -434,9 +450,12 @@ class GpuGovernor:
                     "granted_cap": round(cap, 4), "shield_bound": bound, "want_w": want,
                     "engine_w": math.floor(requested * self.start[g]), "blocked_by": blocks,
                     "decided_by": "speed_lock" if bound.startswith("speed_lock") else bound,
+                    "outer_controller_holds": outer,
                     "engine_cap": round(requested, 3), "E": round(d["state"]["E"], 3), "U": round(d["state"]["U"], 3),
                     "speed_lock": lock}
             if cur is not None and abs(want - cur) < a.min_change_w and not (want == self.start[g] and cur != want):
+                continue
+            if s is not None and rec["decision"].get(str(g), {}).get("outer_controller_holds"):
                 continue
             if cur is not None and want == int(cur):
                 continue
@@ -455,6 +474,7 @@ def parser():
     ap.add_argument("--kill-file", default="/tmp/omni-gpu-kill")
     ap.add_argument("--headroom", type=float, default=0.3, help="limit never below draw x (1 + headroom)")
     ap.add_argument("--min-share", type=float, default=0.70, help="limit never below this share of the start limit (0: off)")
+    ap.add_argument("--floor-w", type=float, default=0.0, help="the declared envelope's lowest watts: never under it (0: off)")
     ap.add_argument("--util-gate", type=float, default=0.5, help="smoothed utilization at which the start limit returns (0: off)")
     ap.add_argument("--util-band", type=float, default=0.1, help="the cap resumes below --util-gate less this band")
     ap.add_argument("--baseline-file", default="", help="speed lock: baseline from tools/gpu_baseline.py (off when empty)")

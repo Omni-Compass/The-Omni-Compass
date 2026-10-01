@@ -44,8 +44,9 @@ jobs:
       - name: The test (one repetition on this machine)
         run: |
           DUR=300; [ "$PHASE" = confirm ] && DUR=600
+          python3 tools/declare_envelope.py envelope.json        # the declared envelope, before any trial (amendment 3)
           sudo env "PATH=$PATH" PYTHON=/tmp/v/bin/python PHASE="$PHASE" REP_ONLY=${{ matrix.rep }} REPS=${{ matrix.rep }} \
-            DURATION=$DUR OUT=gpu-out bash scripts/gpu_paired.sh
+            ENVELOPE=envelope.json DURATION=$DUR OUT=gpu-out bash scripts/gpu_paired.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with: {name: "gpu-rep-${{ matrix.rep }}", path: "gpu-out"}
@@ -60,6 +61,12 @@ jobs:
       - name: Pool the repetitions and write the table
         run: |
           D=results/gpu/github-${{ github.run_id }}
+          if ! ls parts/gpu-rep-*/rep-* >/dev/null 2>&1; then
+            # no repetition ran (no GPU machine was assigned, or every job stopped before measuring): nothing to pool,
+            # and nothing is committed, so an empty table can never pass for a result
+            echo "NO REPETITION RAN: no GPU results in this run (jobs: ${{ needs.run.result }})" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "NO_RESULT=1" >> "$GITHUB_ENV"; exit 0
+          fi
           mkdir -p "$D"
           for p in parts/gpu-rep-*; do
             cp -r "$p"/rep-* "$D"/ 2>/dev/null || true                 # the repetition, with its machine's own records
@@ -69,6 +76,7 @@ jobs:
           (cd "$D" && find . -type f ! -name SHA256SUMS_ALL.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS_ALL.txt)
           cat "$D/GPU_REPS.md" >> "$GITHUB_STEP_SUMMARY" || true
       - name: Commit every raw file back to this branch
+        if: env.NO_RESULT != '1'
         run: |
           git config user.name "gpu-bench"; git config user.email "gpu-bench@users.noreply.github.com"
           git add results/gpu
