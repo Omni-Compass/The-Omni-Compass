@@ -56,6 +56,7 @@ rate, so both arms were given **the same work**.
 | CPU and GPU on one conserved power budget: +1.4% to +5.7% work served against a fixed cap, never over the budget | `results/hardware/NODE_EXCHANGE_*.json`, `docs/CONVEYANCE_LAW.md` |
 | GPU groups sharing a site budget: 0 minutes over the budget | `results/hardware/SITE_EXCHANGE_HELDOUT_*.json` |
 | Platform leagues, faults, PlanetLab traces, stack benchmark | `tuning/`, `results/protocol/`, `results/` (see `docs/BENCHMARK_REPORT.md`) |
+| **The 656-muscle tower as organisms** (preregistered, 10 seeds): the whole tower native against one governor on top, work per energy **−0.1%, WORSE**; all four realm organisms **WORSE** (−1.2% to −5.4%). Single muscles: 101 superior within guardrails, 232 worse; the capacity law's slow release is the main loss | `results/realms/REALMS.md`, `docs/REALMS.md` |
 
 ## Verified in code
 
