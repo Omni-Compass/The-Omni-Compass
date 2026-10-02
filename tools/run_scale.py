@@ -67,10 +67,11 @@ def main(argv=None):
     ap.add_argument("--organisms", default="1,2,3,4,5,6")
     ap.add_argument("--workers", type=int, default=os.cpu_count() or 2)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--first", type=int, default=0, help="first run index (a shard of a larger run starts here)")
     a = ap.parse_args(argv)
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     keys = [ORGS[k][0] for k in a.organisms.split(",")]
-    jobs = [(k, a.scale, SEED0 + i) for i in range(a.runs) for k in keys]
+    jobs = [(k, a.scale, SEED0 + a.first + i) for i in range(a.runs) for k in keys]
     t0 = time.time()
     res = {k: {} for k in keys}
     with ProcessPoolExecutor(a.workers) as ex:
