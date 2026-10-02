@@ -3168,6 +3168,7 @@ receipt's energy line is modelled, the receipt says so.
 
 | Result | Class | Source |
 |---|---|---|
+| Real Kubernetes, set 26 (10 paired runs, three arms): the allocation law machines -35.8%, p95 -55.4%; the bowl law machines -17.2%, p95 -64.8%, failed requests 0, better on machines within the band by its preregistered rule; set 25: machines -32.3%, p95 -57.3% | L | `results/live/LIVE_REPS_25.md`, `results/live/LIVE_REPS_26.md` |
 | Real Kubernetes, set 24 (10 paired runs): machines in service -31.6%, p95 response -60.1%, p99 -64.1%, HPA replicas -38.6%, failed requests 0 on both, total CPU including Omni-Compass's own -1.8% (not significant) | L | `results/live/LIVE_REPS_24.md` (GitHub run 36983865216) |
 | Real Kubernetes, set 23 (10 paired runs): p95 -62.2%, replicas -36.6%, machines in service -28.7%, failed requests 0 | L | `results/live/LIVE_REPS_23.md` |
 | Modelled GPU card, corrected governor: service profile +6.9% / +3.8% work per energy with p95 5.9% / 2.3% faster than native (tuning / fresh seeds); batch profile +8.1% / +4.2% with p95 +7.0% / -2.3%; one-wire governor +0.1%; both wires restored every run | S | `results/sim/gpu_two_wire/` |
@@ -3933,6 +3934,20 @@ is marked invalid and left out, never silently counted.
 
 Evidence class **L**: real Kubernetes software on kind. Energy on kind is a declared model, not a meter.
 
+### Set 26 result
+
+Bowl arm against native: machines in service -17.2% (-26.4% to -7.9% of native), p95 -64.8%, failed requests 0 on
+both: **better on machines within the band** (`results/live/LIVE_REPS_26.md`). The allocation law in the same set:
+machines -35.8%, p95 -55.4%.
+
+### Set 27 (written before the run)
+
+The bowl in the live controller now reads the service as the GPU bowl does (`omni_controller/gpu_bowl.py`, GPU
+amendments 6 and 7): the mean response time of the latency window between the bare service time (a tenth of the SLO)
+and the SLO, held at the bowl's center 0.4 (the GPU service profile); p95 at or past the SLO, a blind probe or a pod
+waiting for a place is past the wall. Everything else, the arms (native, omni, bowl), the load, the duration, the
+outcomes and the labelling rule above, is unchanged. The run's commit is the one that carries this section.
+
 ## 45. The Evidence Ledger
 
 
@@ -3993,6 +4008,8 @@ id `29d9808dfb8f…`; the printed configuration `printed_eight_line`, id `cd333d
 | Class | Statement | Where |
 |---|---|---|
 | P | First real-GPU confirmation, NVIDIA A10 (Lambda), 10 paired repetitions, the card's own meter: work per energy +3.6% (+2.7 to +4.5, proven), GPU energy −3.5%, same requests, none lost; wire check 7 of 7, every write read back, every arm restored. | `results/gpu/run-20261002T082232Z/GPU_REPS.md` |
+| L | Set 25 (commit `6fa7a97`), real Kubernetes, 10 paired repetitions: machines in service −32.3%, p95 −57.3%, 0 failed requests, total CPU including Omni's own −0.6% (not proven). | `results/live/LIVE_REPS_25.md` |
+| L | Set 26 (commit `e7f920d`), real Kubernetes, 10 paired repetitions, three arms: the allocation law machines −35.8%, p95 −55.4%; **the bowl law in the live controller machines −17.2%, p95 −64.8%**, 0 failed requests, label by the preregistered rule *better on machines within the band*. | `results/live/LIVE_REPS_26.md` |
 | L | Set 24 (2026-10-02, commit `c908054`), real Kubernetes (kind), 10 paired repetitions: machines in service −31.6% (proven), p95 response time −60.1% (proven), p99 −64.1% (proven), HPA replicas −38.6% (proven), 0 failed requests on both; total CPU including Omni's own −1.8% (not proven); energy with every machine powered −0.3% (declared model). | `results/live/LIVE_REPS_24.md` |
 | L | Set 23 (set 22 repeated on the current code, 2026-10-02), real Kubernetes (kind), 10 paired repetitions, equal work: p95 response time −62% (proven), replicas −37% (proven), pods started −64% (proven), 0 failed requests; total CPU with Omni's own −1.0% and modelled energy −0.2% (no difference). | `results/live/LIVE_REPS_23.md` |
 | L | Set 22, real Kubernetes (kind), 10 paired repetitions, equal work (fixed-rate load): p95 response time −61% (proven), replicas −23% (proven), pending pod-minutes −91% (proven), 0 failed requests. | `results/live/LIVE_REPS_22.md` |
@@ -5161,12 +5178,16 @@ rate, so both arms were given **the same work**.
   of it. Cutting the controller's cost is the next improvement.
 - The kill switch restored every setting in every run.
 
-### Running now on real Kubernetes, no result in the repository yet
+### Kubernetes sets 25 and 26 (2026-10-02, 10 paired repetitions each, equal work)
 
-| Run | State |
-|---|---|
-| **Set 25**: native against Omni-Compass on top (the engine's allocation law), 10 paired repetitions, fixed-rate load, current `main` | running (GitHub Actions `benchmark-reps`) |
-| **Set 26**: native, the engine's allocation law, and **the bowl law in the live controller** (`--law bowl`), 10 paired repetitions, fixed-rate load, rule written first (`docs/K8S_BOWL_PREREGISTRATION.md`) | running (GitHub Actions run 37058424766, commit `e7f920d`) |
+| Run | Machines in service | p95 | Failed | Total CPU incl. Omni's own | Receipt |
+|---|---:|---:|---:|---:|---|
+| Set 25, the engine's allocation law | **−32.3%** | **−57.3%** | 0 / 0 | −0.6% (not significant) | `results/live/LIVE_REPS_25.md` |
+| Set 26, the engine's allocation law | **−35.8%** | **−55.4%** | 0 / 0 | −1.5% (not significant) | `results/live/LIVE_REPS_26.md` |
+| Set 26, **the bowl law in the live controller** | **−17.2%** | **−64.8%** | 0 / 0 | +1.0% (not significant) | same; label by the preregistered rule: **better on machines within the band** |
+
+Set 27 (running): the bowl in the live controller reads the service as the corrected GPU bowl does (mean response time,
+center 0.4), against native and the allocation law (`docs/K8S_BOWL_PREREGISTRATION.md`).
 
 ### Measured on a real GPU: the card's own meter (evidence class P)
 

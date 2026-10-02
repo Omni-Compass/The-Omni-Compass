@@ -9,9 +9,9 @@ Modes
             Cluster Autoscaler must not manage that pool
 Laws (--law)
   governor  (default) the engine's allocation law sets the HPA target (rho*) and the closure law or the governor sizes the pool
-  bowl      the bowl law (omnicompass/bowl.py) holds the service in the middle of its band: the service position is the
-            95th-percentile response time over --slo-ms (0 calm, 1 the line; a blind sense or pods waiting for a place read
-            as past the wall). Its push and pull move two levers: each HPA's CPU target inside its cover (from 60% of the
+  bowl      the bowl law (omnicompass/bowl.py) holds the service in its band, read as the GPU bowl reads it: the mean
+            response time of the latency window between the bare service time (a tenth of --slo-ms) and --slo-ms, held at
+            --bowl-center (0.4); p95 at or past the SLO, a blind sense or pods waiting for a place read as past the wall. Its push and pull move two levers: each HPA's CPU target inside its cover (from 60% of the
             operator's target up to the operator's own, never tighter than native, so it only ever adds pods and gives them
             back) and the node pool (one machine back only while the force is clearly down, the position below the center
             and the nervous system's release gate open; past the 0.95 wall, one machine up at once). The six-state engine
@@ -152,7 +152,8 @@ class Controller:
         if getattr(a, "law", "governor") == "bowl":
             from omnicompass.bowl import Band, Bowl
             # one decision every --interval s; the service follows a target in about one HPA sync plus a pod start (tau)
-            self.bowl = Bowl(Band(0.0, 1.0), dt=a.interval, tau=getattr(a, "bowl_tau", 60.0), kp=1.0, smooth=0.3)
+            self.bowl = Bowl(Band(0.0, 1.0, center=getattr(a, "bowl_center", 0.4)), dt=a.interval,
+                             tau=getattr(a, "bowl_tau", 60.0), kp=1.0, smooth=0.3)
             self.bowl.kd *= 3.0                    # the same push as on every realm muscle (realms/bowl_arm.py)
         self.bowl_x = {}               # (ns, name) -> the bowl's continuous HPA target, before rounding
 
@@ -418,10 +419,18 @@ class Controller:
             rec_n = max(self.a.min_nodes, min(self.a.max_nodes, max(cl_n, floor)))
         bowl_rec = None
         if self.bowl is not None:
-            # the service position in its bowl: p95 over the SLO; a blind sense or a pod waiting for a place is past the wall
+            # the service position in its bowl, read as the GPU bowl reads it (omni_controller/gpu_bowl.py): the mean
+            # response time of the window between the bare service time (a tenth of the SLO) and the SLO; p95 at or
+            # past the SLO, a blind sense, or a pod waiting for a place is past the wall
             slo = float(getattr(self.a, "slo_ms", 0) or 0)
-            pos = (p95 / slo) if (p95 is not None and slo > 0) else 0.0
-            if blind.get("latency", False) or s["pending"] > 0:
+            pos = 0.0
+            if slo > 0 and getattr(self.a, "latency_file", ""):
+                from omni_controller.muscles import latency_window
+                w = latency_window(self.a.latency_file, getattr(self.a, "latency_window_s", 60.0))["ms"]
+                bare = slo / 10.0
+                mean = sum(w) / len(w) if w else (p95 or 0.0)
+                pos = max(0.0, (mean - bare) / (slo - bare))
+            if blind.get("latency", False) or s["pending"] > 0 or (p95 is not None and slo > 0 and p95 >= slo):
                 pos = 1.0
             F = self.bowl.force(pos)
             if self.bowl.p >= self.bowl.band.wall_high:
@@ -552,6 +561,8 @@ def parser():
     ap.add_argument("--law", choices=["governor", "bowl"], default="governor",
                     help="governor (default): the engine's allocation law; bowl: the bowl law on the HPA target and the node pool")
     ap.add_argument("--bowl-tau", type=float, default=60.0, help="seconds the service takes to follow a lever (the bowl's damping)")
+    ap.add_argument("--bowl-center", type=float, default=0.4,
+                    help="where the bowl holds the service (0 the bare service time, 1 the SLO); 0.4, as the GPU service profile")
     ap.add_argument("--closure", default="", help="JSON with the closure-law setting (e.g. tuning/GLOBAL_LEAGUE_PREREGISTRATION.json): the benchmarked law decides the node count")
     ap.add_argument("--strict-replicas", action="store_true", help="strict C: Omni-Compass sets replica counts; the HPA is pinned")
     ap.add_argument("--pod-reflex-writes", action="store_true",

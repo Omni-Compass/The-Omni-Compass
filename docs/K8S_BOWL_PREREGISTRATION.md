@@ -49,3 +49,17 @@ bowl arm by the same rule. A run that fails its own checks (kill switch, control
 is marked invalid and left out, never silently counted.
 
 Evidence class **L**: real Kubernetes software on kind. Energy on kind is a declared model, not a meter.
+
+## Set 26 result
+
+Bowl arm against native: machines in service -17.2% (-26.4% to -7.9% of native), p95 -64.8%, failed requests 0 on
+both: **better on machines within the band** (`results/live/LIVE_REPS_26.md`). The allocation law in the same set:
+machines -35.8%, p95 -55.4%.
+
+## Set 27 (written before the run)
+
+The bowl in the live controller now reads the service as the GPU bowl does (`omni_controller/gpu_bowl.py`, GPU
+amendments 6 and 7): the mean response time of the latency window between the bare service time (a tenth of the SLO)
+and the SLO, held at the bowl's center 0.4 (the GPU service profile); p95 at or past the SLO, a blind probe or a pod
+waiting for a place is past the wall. Everything else, the arms (native, omni, bowl), the load, the duration, the
+outcomes and the labelling rule above, is unchanged. The run's commit is the one that carries this section.

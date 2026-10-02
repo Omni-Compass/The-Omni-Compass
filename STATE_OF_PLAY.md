@@ -50,12 +50,16 @@ rate, so both arms were given **the same work**.
   of it. Cutting the controller's cost is the next improvement.
 - The kill switch restored every setting in every run.
 
-## Running now on real Kubernetes, no result in the repository yet
+## Kubernetes sets 25 and 26 (2026-10-02, 10 paired repetitions each, equal work)
 
-| Run | State |
-|---|---|
-| **Set 25**: native against Omni-Compass on top (the engine's allocation law), 10 paired repetitions, fixed-rate load, current `main` | running (GitHub Actions `benchmark-reps`) |
-| **Set 26**: native, the engine's allocation law, and **the bowl law in the live controller** (`--law bowl`), 10 paired repetitions, fixed-rate load, rule written first (`docs/K8S_BOWL_PREREGISTRATION.md`) | running (GitHub Actions run 37058424766, commit `e7f920d`) |
+| Run | Machines in service | p95 | Failed | Total CPU incl. Omni's own | Receipt |
+|---|---:|---:|---:|---:|---|
+| Set 25, the engine's allocation law | **−32.3%** | **−57.3%** | 0 / 0 | −0.6% (not significant) | `results/live/LIVE_REPS_25.md` |
+| Set 26, the engine's allocation law | **−35.8%** | **−55.4%** | 0 / 0 | −1.5% (not significant) | `results/live/LIVE_REPS_26.md` |
+| Set 26, **the bowl law in the live controller** | **−17.2%** | **−64.8%** | 0 / 0 | +1.0% (not significant) | same; label by the preregistered rule: **better on machines within the band** |
+
+Set 27 (running): the bowl in the live controller reads the service as the corrected GPU bowl does (mean response time,
+center 0.4), against native and the allocation law (`docs/K8S_BOWL_PREREGISTRATION.md`).
 
 ## Measured on a real GPU: the card's own meter (evidence class P)
 
