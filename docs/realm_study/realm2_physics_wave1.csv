@@ -27,11 +27,11 @@ robot_fleet,conveyor speed,PLC (IEC 61131) / VFD,conveyor VFD speed setpoint,cap
 robot_fleet,AGV speed,VDA 5050,maxSpeed in order / action parameters,capacity,https://github.com/VDA5050/VDA5050,doc
 robot_fleet,robot quarantine,fleet manager,take robot out of service,protect,https://github.com/VDA5050/VDA5050,doc
 flight,throttle limits,PX4 / ArduPilot,MPC_THR_MAX MPC_THR_MIN / MOT_SPIN_MAX,power,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
-flight,attitude rate limits,PX4,MC_ROLLRATE_MAX MC_PITCHRATE_MAX MC_YAWRATE_MAX,capacity,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+flight,attitude rate limits,PX4,MC_ROLLRATE_MAX MC_PITCHRATE_MAX MC_YAWRATE_MAX,capacity,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,unverified (parameter names differ by PX4 version)
 flight,attitude / rate gains,PX4 / ArduPilot,MC_ROLL_P MC_ROLLRATE_P... / ATC_RAT_RLL_P...,setpoint,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
-flight,horizontal speed limit,PX4 / ArduPilot,MPC_XY_VEL_MAX / WPNAV_SPEED,capacity,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+flight,horizontal speed limit,PX4 / ArduPilot,MPC_XY_VEL_MAX / WPNAV_SPEED,capacity,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,web
 flight,vertical speed limits,PX4 / ArduPilot,MPC_Z_VEL_MAX_UP MPC_Z_VEL_MAX_DN / WPNAV_SPEED_UP,capacity,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
-flight,acceleration / jerk limits,PX4,MPC_ACC_HOR_MAX / MPC_JERK_MAX,capacity,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+flight,acceleration / jerk limits,PX4,MPC_ACC_HOR_MAX / MPC_JERK_MAX,capacity,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,web
 flight,altitude target,MAVLink,SET_POSITION_TARGET / mission altitude,setpoint,https://mavlink.io/en/messages/common.html,doc
 flight,waypoint / mission,MAVLink mission protocol,MISSION_ITEM_INT,setpoint,https://mavlink.io/en/services/mission.html,doc
 flight,flight mode transition,MAVLink / PX4,MAV_CMD_DO_SET_MODE (hold / RTL / land),protect,https://mavlink.io/en/messages/common.html,doc

@@ -9,9 +9,9 @@ k8s_workload,HPA scale-down stabilisation window,Kubernetes HPA v2,spec.behavior
 k8s_workload,HPA scale-up stabilisation window,Kubernetes HPA v2,spec.behavior.scaleUp.stabilizationWindowSeconds (default 0),setpoint,https://kubernetes.io/docs/reference/kubernetes-api/autoscaling/horizontal-pod-autoscaler-v2/,web
 k8s_workload,HPA scaling rate policies,Kubernetes HPA v2,spec.behavior.scaleUp|scaleDown.policies[] (Pods/Percent per periodSeconds),setpoint,https://kubernetes.io/docs/reference/kubernetes-api/autoscaling/horizontal-pod-autoscaler-v2/,doc
 k8s_workload,HPA policy selection,Kubernetes HPA v2,spec.behavior.*.selectPolicy (Max|Min|Disabled),admission,https://kubernetes.io/docs/reference/kubernetes-api/autoscaling/horizontal-pod-autoscaler-v2/,web
-k8s_workload,HPA tolerance,kube-controller-manager / HPA v2,--horizontal-pod-autoscaler-tolerance (default 0.1); spec.behavior.*.tolerance (1.33+),setpoint,https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/,doc
+k8s_workload,HPA tolerance,kube-controller-manager / HPA v2,--horizontal-pod-autoscaler-tolerance (default 0.1); spec.behavior.*.tolerance (1.33+),setpoint,https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/,web
 k8s_workload,HPA sync period,kube-controller-manager,--horizontal-pod-autoscaler-sync-period (default 15s),setpoint,https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/,doc
-k8s_workload,VPA update mode,Vertical Pod Autoscaler,spec.updatePolicy.updateMode (Off|Initial|Recreate|InPlaceOrRecreate),admission,https://github.com/kubernetes/autoscaler/tree/master/vertical-pod-autoscaler,doc
+k8s_workload,VPA update mode,Vertical Pod Autoscaler,spec.updatePolicy.updateMode (Off|Initial|Recreate|InPlaceOrRecreate),admission,https://github.com/kubernetes/autoscaler/tree/master/vertical-pod-autoscaler,web
 k8s_workload,VPA min/max allowed resources,Vertical Pod Autoscaler,spec.resourcePolicy.containerPolicies[].minAllowed|maxAllowed,capacity,https://github.com/kubernetes/autoscaler/tree/master/vertical-pod-autoscaler,doc
 k8s_workload,KEDA trigger threshold,KEDA ScaledObject,spec.triggers[].metadata (threshold / activationThreshold),setpoint,https://keda.sh/docs/latest/reference/scaledobject-spec/,doc
 k8s_workload,scale to zero / idle replicas,KEDA ScaledObject,spec.minReplicaCount=0; spec.idleReplicaCount; spec.cooldownPeriod,capacity,https://keda.sh/docs/latest/reference/scaledobject-spec/,doc
@@ -126,7 +126,7 @@ gpu,MPS,NVIDIA MPS,CUDA_MPS_ACTIVE_THREAD_PERCENTAGE / set_default_active_thread
 gpu,GPU reset,NVIDIA NVML / nvidia-smi,nvidia-smi -r,protect,https://docs.nvidia.com/deploy/nvidia-smi/,doc
 gpu,ECC mode,NVIDIA NVML / nvidia-smi,nvidia-smi -e,protect,https://docs.nvidia.com/deploy/nvidia-smi/,doc
 gpu,health / quarantine,NVIDIA DCGM,DCGM health checks; node taint on XID,protect,https://docs.nvidia.com/datacenter/dcgm/latest/,doc
-gpu,GPU temperature target,NVIDIA nvidia-smi,nvidia-smi -gtt (GPU target temperature where supported),protect,https://docs.nvidia.com/deploy/nvidia-smi/,doc
+gpu,GPU temperature target,NVIDIA nvidia-smi,nvidia-smi -gtt (only some GeForce / workstation GPUs; not supported on datacenter GPUs),protect,https://docs.nvidia.com/deploy/nvidia-smi/,web
 gpu,dynamic resource allocation,Kubernetes DRA,ResourceClaim / DeviceClass (resource.k8s.io),capacity,https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/,doc
 network,traffic shaping / rate,Linux tc,tc qdisc (tbf htb fq) rate ceil,capacity,https://man7.org/linux/man-pages/man8/tc.8.html,doc
 network,queue discipline,Linux tc,tc qdisc replace ... fq_codel|fq|cake,setpoint,https://man7.org/linux/man-pages/man8/tc.8.html,doc

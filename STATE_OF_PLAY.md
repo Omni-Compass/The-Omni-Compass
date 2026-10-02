@@ -59,7 +59,7 @@ rate, so both arms were given **the same work**.
 | CPU and GPU on one conserved power budget: +1.4% to +5.7% work served against a fixed cap, never over the budget | `results/hardware/NODE_EXCHANGE_*.json`, `docs/CONVEYANCE_LAW.md` |
 | GPU groups sharing a site budget: 0 minutes over the budget | `results/hardware/SITE_EXCHANGE_HELDOUT_*.json` |
 | Platform leagues, faults, PlanetLab traces, stack benchmark | `tuning/`, `results/protocol/`, `results/` (see `docs/BENCHMARK_REPORT.md`) |
-| **The 656-muscle tower as organisms**, round 2 (preregistered, 10 seeds; Omni commanding every knob as the shipped controller does): the whole tower native against one governor on top, work per energy **+0.1%, SUPERIOR WITHIN GUARDRAILS**; Energy/Facility +0.3% superior; Compute +2.5% at +2.9 pp violations (tradeoff); Distribution exactly native; Physics **−1.9%, WORSE**. Round 1 (all worse) is kept, superseded, with the reason | `results/realms/REALMS.md`, `results/realms/round1/`, `docs/REALMS.md` |
+| **The 656-muscle tower as organisms**, round 3 (preregistered, 10 seeds; every realm carries the shared spine; Omni as the shipped controller commands): the whole tower native against one governor on top, work per energy **+0.1%, SUPERIOR WITHIN GUARDRAILS**; inside the realms the spine costs service: Energy +0.2% with +1.9 pp violations (tradeoff), Compute 0.0% (+2.1 pp, not established), Distribution −0.1% and Physics −0.7% (**WORSE**). Rounds 1 and 2 kept, superseded | `results/realms/REALMS.md`, `docs/REALM_MUSCLES.md` |
 
 ## Verified in code
 

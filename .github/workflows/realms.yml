@@ -1,6 +1,6 @@
 name: realms
 # The 656-muscle tower on GitHub's own machine: every muscle alone and the five organisms (each realm and the whole tower),
-# native against Omni-Compass on top, on the preregistered seeds (docs/REALMS_PREREGISTRATION.md, round 2).
+# native against Omni-Compass on top, on the preregistered seeds (docs/REALMS_PREREGISTRATION.md, round 3).
 # The run is deterministic: every label in its MUSCLES.csv must match the one committed in results/realms/, and every
 # number to 1e-3 or 0.5% (Python versions differ in the last digits), so anyone can check the published table. Started by hand (Actions -> realms -> Run workflow) or by a commit message containing [realms].
 on:
@@ -18,7 +18,7 @@ jobs:
       - run: pip install -r requirements.txt
       - name: The harness's own checks
         run: python3 tests/test_realms.py
-      - name: Every muscle and the five organisms (seeds 2000-2009)
+      - name: Every muscle and the five organisms (seeds 3000-3009)
         run: python3 tools/run_realms.py --out realms-out
       - name: Same table as the one published
         run: |
