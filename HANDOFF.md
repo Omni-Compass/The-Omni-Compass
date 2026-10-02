@@ -1,43 +1,56 @@
-# Omni-Compass: hand-off for the next build
+# Handoff: where everything is and how to run it
 
-## Contents
+Everything below is on `main`. Anyone (a person or another AI) can pick it up from here.
 
-| File | What it is | SHA-256 (first 16) |
+## The engine
+
+| Piece | File | What it is |
 |---|---|---|
-| `OmniCompass.zip` | Latest verified package: 171 files, `python verify.py --full-replay` 74/74 PASS | 5a546370ca1ffac0 |
-| `external/OmniCompass_combined.zip` | Second harness author's tree: an older copy of the package plus `k8s_controlplane/`, `k8s_fleet/`, `omnicompass/pools.py`, LIMITS.md, NOTICE, GITHUB.md | as uploaded |
-| `mathematics/omni_compass_engine_source_c527df2d.py` | The authenticated engine source (the package's `reference/` holds the same program with comments stripped) | c527df2d3d217a62 |
-| `mathematics/OmniCompass_Mathematical_Closed_Structure.pdf` | 140-page prospectus: three-summand carrier, inheritance criterion, stability theorems | 2f5e9214a4625345 |
-| `mathematics/equation_form_and_symbol_chart.png` | The printed equation form (1)-(8) and symbol chart | |
-| `mathematics/unified_circle_principle.png` | Admissibility, invariance, Lyapunov decrease, convergence to M* | |
-| `OMNI_COMPASS_DOMAIN_MAP.md` | Every muscle Omni-Compass can sit on, fit and wiring status | |
+| Frozen engine | `omnicompass/core.py`, `omnicompass/adapter.py` | the 8-equation core and the governor; unchanged, with its proofs |
+| The bowl (new engine layer) | `omnicompass/bowl.py` | one smooth law for every muscle: pull to the middle of the band, push against drift, tanh-bounded, fail up past 95%; and the plug (cover, one restore point, foreign-writer rule) |
+| Two-wire GPU governor | `omni_controller/gpu_bowl.py` | the bowl on a real card: clock ceiling (`nvidia-smi -lgc`, up wire) and power limit (`-pl`, down wire) |
+| Wire check | `tools/gpu_wire_check.py` | proves both card wires follow, read back and go home before anything runs |
+| Realm muscles under the bowl | `realms/bowl_arm.py` | the bowl on every one of the 656 modelled muscles |
 
-## Where things stand (verified)
+## The six organisms
 
-- Engine: Python and C++ match the authenticated engine exactly; 200 million soak decisions, 0 failures.
-- Governor modes: power_protect, throughput, fleet, fleet_balanced, fleet_wear; C++ parity with negative controls.
-- Shield (I1-I5), HPA law and savings projector: C++ parity with negative controls. Three independent HPA implementations agree on every step once the upstream exclusive window is used.
-- Stack benchmark: pre-registered, 1,000 held-out scenarios, full byte-identical replay.
-- Fleet harness (15 s control plane, five vessels, 150 held-out scenarios): the governor as node-pool authority in place of the Cluster Autoscaler (HPA retained) uses significantly less energy than HPA+CA and HPA+Karpenter-lite in every vessel; more node reversals than CA, fewer than Karpenter.
-- Recorded PlanetLab shapes (declared scale mapping): energy -40.6% vs HPA+CA, -21.7% vs Karpenter-lite; time healthy -0.08 points.
-- Live controller (observe, target, nodepool; dry-run; kill switch restoring from annotations; audit log), capture script, capture replay, pilot scorer and end-to-end self-pilot. At the default headroom of 50%: energy -7.7% and node-hours -13.8% per core-hour, pending-pod time not significantly different from HPA+CA; HPA shortfall about +1.2 minutes per hour (cause open). Never run on a real cluster.
+1 Compute (345 muscles) · 2 Physics (262) · 3 Energy (282) · 4 Distribution (337) · 5 the four stacked with every
+duplicate kept (1,226) · 6 the whole tower, every muscle once (656). Each is run native, then with Omni on top.
 
-## Open findings to resolve first
+## How to run each benchmark
 
-1. **Two engine configurations.** The engine ships with `GRANDMASTER_SYMMETRIC_CORE = True` (double-well U: mu U(1-U^2) - (dE/dt)/E_max - lambda_U U), `SPINOR_CLOSURE_ENABLED = True`, U_t = 0.5, and I_U damping lambda_I. The printed chart is the other configuration: U logistic alpha(1-U) - (dE/dt)/E_max - kU(1-U), no spinor factor, general target U_t, no lambda_I term. Every package result uses the symmetric configuration; the printed form has not been wired or benchmarked. The package manual wrongly states that alpha_U and k do not enter equations (1)-(8); they do in the printed form.
-2. **Karpenter + VPA.** In the external `k8s_fleet` harness (8 fresh scenarios, same governor code), HPA+Karpenter-lite+VPA-lite used 0.874 kWh vs omni_full 0.922 (about 5% lower), with 110 vs 57 node starts and time healthy 99.5% vs 99.9%. Omni there right-sizes requests only for workloads at minimum replicas. Engine-evolution ablation in that harness: 0.922 to 2.623 kWh, strong causal evidence for the engine.
-3. **Inheritance criterion not yet applied.** Connectors use a hand-weighted assimilation blend, with no explicit embedding or left retraction, and the intertwining residual has never been measured (Closed Structure, Definition 11.1, Theorems 11.2 and 11.13).
-4. **Stability proof open.** An interval-arithmetic proof on the symmetric core did not close (cubic U term). Candidate routes: the Unified Circle Principle (inward condition on a region, a Lyapunov function, LaSalle) on the printed logistic form; Theorem 5.6 of the Closed Structure (global asymptotic stability iff lambda_M + a_S > 0 and lambda_M a_S + kappa^2 > 0), if its Piece I core in (M, S, b) maps onto the engine's states.
-5. The external `k8s_controlplane/hpa_independent.py` and `hpa.py` keep `t >= cutoff`; upstream is exclusive (`t > cutoff`).
+**Real card + the six organisms with the card inside + card confirmation (Lambda, about 12 hours, one command):**
+```
+sudo pkill -f gpu_
+cd ~/the-omni-compass
+git pull
+sudo nohup bash scripts/gpu_rented_run.sh > run.log 2>&1 &
+tail -f run.log
+```
+It runs: wire check -> card smoke -> six organisms with the card inside (`tools/run_hil.py`) -> card confirmation, and
+ends with `send this one file back: results/gpu/omni-gpu-<stamp>.tar.gz`. Finished when `pgrep -f gpu_rented_run`
+prints nothing. Upload that file to GitHub, then terminate the Lambda machine.
 
-## Next build, in order
+**The six organisms, simulated, the 1 / 10 / 100 / 1,000 grid (GitHub, free):** Actions -> `six` -> Run workflow.
+Inputs: `runs_per_shard`, `scale` (1, 10, 100, 1000), `shards` (JSON list), `orgs` (JSON list of 1-6), `workers`
+(use 1 at 1000x for memory). Total runs = shards x runs_per_shard. The receipt (`SIX.md`) shows the first 1, 10, 100
+and 1,000 runs. Examples used: 1,000 runs at 1x = runs_per_shard 100, 10 shards; at 100x = 25 x 40 shards; 100 runs at
+1000x = 5 x 20 shards, workers 1. The same grid on any machine: `bash scripts/scale_ladder.sh`.
 
-1. Merge: the latest package as base; add `k8s_controlplane/` and `k8s_fleet/` (with the exclusive-window fix), `pools.py`, LIMITS.md and NOTICE; all their tests inside `verify.py`.
-2. The printed field as a named engine configuration (symmetric core off, spinor off, U_t declared, lambda_I = 0), run through every harness beside the symmetric core; correct the manual.
-3. Connectors rebuilt to the inheritance criterion: explicit embedding and retraction per muscle; intertwining residual reported on every benchmark.
-4. Stability: map the Closed Structure's Piece I core to the engine; attempt the Unified Circle proof on the printed form.
-5. Full request right-sizing (all workloads, shield-bounded, restarts counted as wear) in the fleet harness and the live controller; engine-driven headroom in place of the fixed 50%; investigate the HPA shortfall.
-6. Rematch against HPA + Karpenter-lite + VPA-lite on fresh held-out scenarios with confidence intervals.
-7. Then connectors in the domain-map order: GPUs, cooling, energy supply, job queues.
+**Real Kubernetes (GitHub, free, about 1 hour):** Actions -> `benchmark-reps` -> Run workflow, inputs
+`duration_s 900`, `arms "native omni"`, `loadgen open`. Set 24 (run 36983865216): machines -32%, p95 -60%, 0 failures.
 
-Rules carried forward: development seeds only for tuning; freeze and fingerprint before held-out runs; amendments recorded; no claim beyond what the verifier reproduces.
+## Results so far
+
+- Real Kubernetes, sets 23 and 24: about a third fewer machines, responses about 60% faster, zero failed requests.
+- Modelled GPU card (`results/sim/gpu_two_wire/`): two-wire bowl +9.0% work per energy, old one-wire +0.1%.
+- Six organisms, 1,000 runs at 1x (GitHub): work per energy +0.21% to +0.30%, every knob handed back; time over the
+  service line about +0.2 points above native in every organism (not yet a win by the band-first rule).
+- The real card on Lambda: running (first valid run on the two-wire engine); results come back as the tar.gz.
+
+## Open work
+
+1. Bring the bowl's time over the service line down to native or below (about +0.2 points today, every organism).
+2. 1,000 runs at 1,000x and the two largest organisms at 1,000x need a bigger machine than GitHub's.
+3. Kubernetes and the GPU together on one Lambda box (k3s), one set of receipts.
+4. The C++ twin of the bowl (the frozen engine already has one, `cpp/`).
