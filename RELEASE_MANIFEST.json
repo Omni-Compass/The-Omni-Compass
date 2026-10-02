@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-e3bab37c4dba",
- "written_at_commit": "e3bab37c4dba143df0df4d3b44f13fe94ecb3cd3",
- "written_at": "2026-10-02T19:18:23+00:00",
+ "release_id": "omni-compass-aa7c056de130",
+ "written_at_commit": "aa7c056de1302f8a01fa32488209263ae37176ad",
+ "written_at": "2026-10-02T19:47:56+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -76,8 +76,34 @@
    "docs/TRACKING_THEOREM.md": "700f946672363ee8bb41bb7e51eb5fbc1b73fba22297208f2639f7825c76137c",
    "tools/tracking_bounds.py": "3dd90a883f6b80cd1eb17a9a4b78e22ef5ac6e6cdff2078ec2d6b254d6690b2b",
    "results/TRACKING_BOUNDS.json": "154ed508c98c4c64775738cfac9a18853b3db6f83d50db094da516c1adfffa0f",
-   "docs/EVIDENCE_LEDGER.md": "9a9bda197b744c8dc8aedb32ee5e45bd29c5c1f78ebdd4611aad8e581ac28071",
+   "docs/EVIDENCE_LEDGER.md": "2b96102751a861c802dd12e3a959d85ad5ce76b3c88f3bf5afc96746eef20e67",
    "RECEIPT.md": "d49f2e719a71d4bb72ff91d65be3432d2ffe132097e0e2e0d0b11d8dad9387fc"
+  },
+  "live_set_23": {
+   "results/live/LIVE_REPS_23.md": "f95c10aa340bd6080047a4673a0a13c5cd004c4847c678b4735eab78f2a3e9a9"
+  },
+  "live_set_24": {
+   "results/live/LIVE_REPS_24.md": "a12298ab0daf1e1f57af6aa1e61093d1a93a3729e3c44668d93649d6359bfd75"
+  },
+  "bowl_law": {
+   "omnicompass/bowl.py": "6ec6a5b88d95bce3301320bcac01ee01c3c37f9ea62c98bfc2413f61f500db0b",
+   "realms/bowl_arm.py": "eb52e1adbad777bc1968493b32a7617abbb03f95efac5e5c06c1af8d96286aea",
+   "omni_controller/gpu_bowl.py": "94f4f2bf8e78a7dcd5506512444ab02f801b45bfd61f9df50996f86e18ffd974",
+   "tools/gpu_wire_check.py": "18ebeb161f4a2d6cdec814962dedb847023f8687c23359dbbc3421cc9f1fe103",
+   "realms/gpu_card.py": "9f291ad736778248ac0f3904d810c30864791091fbe2f079ce3a9701f1331f04",
+   "results/sim/gpu_two_wire/RESULT.json": "a0fa1cb0e94d428669db9b43c10c13fad42d10cd545a51ae1bd7e5db2ab8633f"
+  },
+  "gpu_rented_run": {
+   "scripts/gpu_rented_run.sh": "7f5b59117389dc27014387c948e7992b3fa3620574f2e1ceaf7b889b2e989c9e",
+   "tools/run_hil.py": "ee9196f33495ae73c910505e90ff6252ae9f775101524a50f85dbec92ae94e89",
+   "tests/fake_gpu/nvidia-smi": "9f189163d604f041de82e5505238f94b28105aa5603dc88630787b0113375f47"
+  },
+  "six_organisms": {
+   "tools/run_scale.py": "013b684e2092f3445063c3fa2faad07bac12dd35682eddb8fe6d92f0188cf02b",
+   "tools/pool_scale.py": "d2a6c9e97af364d67e375d136a81ee441ce40d0f3ddc616f780b11d136a4b2b3",
+   "scripts/scale_ladder.sh": "8a5bf85660fcca478f3c7e81366861768f32c144c59f8639febc2b46d2a66baf",
+   ".github/workflows/six.yml": "0679958c974a474c2862bf814cc262faf4e1f453a8ddb7ed367b8092f776ad48",
+   "results/scale/GRID.md": "32c738a35a20c23d7227f3eb47369250f81196997c902f33f636589ae893991f"
   },
   "license": {
    "LICENSE": "ba489dcd932cb64357bfa5e098cfc550abbc43c81180a48d73ba359f4d425f58",
@@ -141,7 +167,7 @@
  "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card",
  "verification_receipt": {
   "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "5237062662f9bc7fd6e8d63497f78ecd30bda12fa2d3e1b73837cf08cd45719d",
+  "sha256": "4ed9a6afa522eb753f6676422973d9fe2b6d079c770d23f189ee87c2ed7b1b4e",
   "passed": true
  }
 }
