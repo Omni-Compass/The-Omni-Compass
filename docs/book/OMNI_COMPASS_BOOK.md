@@ -3159,7 +3159,7 @@ Add `--strict-replicas`:
 
 
 
-Every mechanism, harness, receipt and result, read from the files named beside it. Built by `tools/dossier.py` at commit `e4c6b11`. Evidence classes: **T** theorem, **V** verified in code, **S** a model, **L** live software (real Kubernetes), **P** a physical meter. A model is not a meter, and a model written by the people who wrote the law is not an independent test; where a result is a model it says so.
+Every mechanism, harness, receipt and result, read from the files named beside it. Built by `tools/dossier.py` at commit `badfba4`. Evidence classes: **T** theorem, **V** verified in code, **S** a model, **L** live software (real Kubernetes), **P** a physical meter. A model is not a meter, and a model written by the people who wrote the law is not an independent test; where a result is a model it says so.
 
 ### 1. The mechanism, and proof that it is the one that ran
 
@@ -3238,8 +3238,10 @@ Each set: 10 paired repetitions on one runner, native Kubernetes (HPA, scheduler
 | 25 | allocation | −32.3% | −57.3% | 0 / 0 | -0.6% (not significant) | `results/live/LIVE_REPS_25.md` |
 | 26 | allocation | −35.8% | −55.4% | 0 / 0 | -1.5% (not significant) | `results/live/LIVE_REPS_26.md` |
 | 26 | bowl | −17.2% | −64.8% | 0 / 0 | +1.0% (not significant) | `results/live/LIVE_REPS_26.md` |
+| 27 | allocation | −36.6% | −53.1% | 0 / 0 | -0.0% (not significant) | `results/live/LIVE_REPS_27.md` |
+| 27 | bowl | −15.9% | −65.5% | 0 / 0 | +0.2% (not significant) | `results/live/LIVE_REPS_27.md` |
 
-Machines and response time are proven better in every set. Total CPU including the controller's own cost is no different from native: the service uses 6-9% less CPU (proven) and the controller spends about 0.07 cores, on the same 4-core runner. Set 27 runs the bowl aligned with the GPU (`docs/K8S_BOWL_PREREGISTRATION.md`).
+Machines and response time are proven better in every set. Total CPU including the controller's own cost is no different from native: the service uses 6-9% less CPU (proven) and the controller spends about 0.07 cores, on the same 4-core runner. Set 27 runs the bowl aligned with the GPU governor (`docs/K8S_BOWL_PREREGISTRATION.md`, set 27): machines −15.9%, p95 −65.5%, labelled *better on machines within the band* by its preregistered rule.
 
 ### 5. The six organisms at 1, 10, 100 and 1,000 runs and sizes (evidence class S)
 
@@ -3317,7 +3319,7 @@ receipt's energy line is modelled, the receipt says so.
 
 | Result | Class | Source |
 |---|---|---|
-| Real Kubernetes, set 26 (10 paired runs, three arms): the allocation law machines -35.8%, p95 -55.4%; the bowl law machines -17.2%, p95 -64.8%, failed requests 0, better on machines within the band by its preregistered rule; set 25: machines -32.3%, p95 -57.3% | L | `results/live/LIVE_REPS_25.md`, `results/live/LIVE_REPS_26.md` |
+| Real Kubernetes, set 27 (10 paired runs, the bowl law aligned with the GPU governor): machines -15.9%, p95 -65.5%, failed requests 0, better on machines within the band; set 26 (10 paired runs, three arms): the allocation law machines -35.8%, p95 -55.4%; the bowl law machines -17.2%, p95 -64.8%, failed requests 0, better on machines within the band by its preregistered rule; set 25: machines -32.3%, p95 -57.3% | L | `results/live/LIVE_REPS_25.md`, `results/live/LIVE_REPS_26.md`, `results/live/LIVE_REPS_27.md` |
 | Real Kubernetes, set 24 (10 paired runs): machines in service -31.6%, p95 response -60.1%, p99 -64.1%, HPA replicas -38.6%, failed requests 0 on both, total CPU including Omni-Compass's own -1.8% (not significant) | L | `results/live/LIVE_REPS_24.md` (GitHub run 36983865216) |
 | Real Kubernetes, set 23 (10 paired runs): p95 -62.2%, replicas -36.6%, machines in service -28.7%, failed requests 0 | L | `results/live/LIVE_REPS_23.md` |
 | Modelled GPU card, corrected governor: service profile +6.9% / +3.8% work per energy with p95 5.9% / 2.3% faster than native (tuning / fresh seeds); batch profile +8.1% / +4.2% with p95 +7.0% / -2.3%; one-wire governor +0.1%; both wires restored every run | S | `results/sim/gpu_two_wire/` |
@@ -4101,6 +4103,13 @@ and the SLO, held at the bowl's center 0.4 (the GPU service profile); p95 at or 
 waiting for a place is past the wall. Everything else, the arms (native, omni, bowl), the load, the duration, the
 outcomes and the labelling rule above, is unchanged. The run's commit is the one that carries this section.
 
+### Set 27 result
+
+Bowl arm, aligned with the GPU governor, against native: machines in service -15.9% (-1.462 to -0.450 machines),
+p95 -65.5% (-311.8 to -156.1 ms), p99 -72.6%, failed requests 0 on both: **better on machines within the band**
+(`results/live/LIVE_REPS_27.md`, run 37071353971, commit `d46c959`). The allocation law in the same set: machines
+-36.6%, p95 -53.1%.
+
 ## 46. The Evidence Ledger
 
 
@@ -4163,6 +4172,7 @@ id `29d9808dfb8f…`; the printed configuration `printed_eight_line`, id `cd333d
 | P | First real-GPU confirmation, NVIDIA A10 (Lambda), 10 paired repetitions, the card's own meter: work per energy +3.6% (+2.7 to +4.5, proven), GPU energy −3.5%, same requests, none lost; wire check 7 of 7, every write read back, every arm restored. | `results/gpu/run-20261002T082232Z/GPU_REPS.md` |
 | L | Set 25 (commit `6fa7a97`), real Kubernetes, 10 paired repetitions: machines in service −32.3%, p95 −57.3%, 0 failed requests, total CPU including Omni's own −0.6% (not proven). | `results/live/LIVE_REPS_25.md` |
 | L | Set 26 (commit `e7f920d`), real Kubernetes, 10 paired repetitions, three arms: the allocation law machines −35.8%, p95 −55.4%; **the bowl law in the live controller machines −17.2%, p95 −64.8%**, 0 failed requests, label by the preregistered rule *better on machines within the band*. | `results/live/LIVE_REPS_26.md` |
+| L | Set 27 (commit `d46c959`), real Kubernetes, 10 paired repetitions, three arms: the allocation law machines −36.6%, p95 −53.1%; **the bowl law aligned with the GPU governor machines −15.9%, p95 −65.5%, p99 −72.6%**, 0 failed requests, label by the preregistered rule *better on machines within the band*. | `results/live/LIVE_REPS_27.md` |
 | L | Set 24 (2026-10-02, commit `c908054`), real Kubernetes (kind), 10 paired repetitions: machines in service −31.6% (proven), p95 response time −60.1% (proven), p99 −64.1% (proven), HPA replicas −38.6% (proven), 0 failed requests on both; total CPU including Omni's own −1.8% (not proven); energy with every machine powered −0.3% (declared model). | `results/live/LIVE_REPS_24.md` |
 | L | Set 23 (set 22 repeated on the current code, 2026-10-02), real Kubernetes (kind), 10 paired repetitions, equal work: p95 response time −62% (proven), replicas −37% (proven), pods started −64% (proven), 0 failed requests; total CPU with Omni's own −1.0% and modelled energy −0.2% (no difference). | `results/live/LIVE_REPS_23.md` |
 | L | Set 22, real Kubernetes (kind), 10 paired repetitions, equal work (fixed-rate load): p95 response time −61% (proven), replicas −23% (proven), pending pod-minutes −91% (proven), 0 failed requests. | `results/live/LIVE_REPS_22.md` |
@@ -5338,6 +5348,8 @@ rate, so both arms were given **the same work**.
 | Set 25, the engine's allocation law | **−32.3%** | **−57.3%** | 0 / 0 | −0.6% (not significant) | `results/live/LIVE_REPS_25.md` |
 | Set 26, the engine's allocation law | **−35.8%** | **−55.4%** | 0 / 0 | −1.5% (not significant) | `results/live/LIVE_REPS_26.md` |
 | Set 26, **the bowl law in the live controller** | **−17.2%** | **−64.8%** | 0 / 0 | +1.0% (not significant) | same; label by the preregistered rule: **better on machines within the band** |
+| Set 27, the engine's allocation law | **−36.6%** | **−53.1%** | 0 / 0 | −0.0% (not significant) | `results/live/LIVE_REPS_27.md` |
+| Set 27, **the bowl law aligned with the GPU governor** | **−15.9%** | **−65.5%** | 0 / 0 | +0.2% (not significant) | same; label by the preregistered rule: **better on machines within the band** |
 
 Set 27 (running): the bowl in the live controller reads the service as the corrected GPU bowl does (mean response time,
 center 0.4), against native and the allocation law (`docs/K8S_BOWL_PREREGISTRATION.md`).

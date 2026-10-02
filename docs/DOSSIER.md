@@ -2,7 +2,7 @@
 
 > **PROPRIETARY - EVALUATION AND SIMULATION USE ONLY.** Copyright (c) 2026 The Omni-Compass LLC. This is not open-source software (`SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0`). Any commercial use, commercialization, monetization, production use, redistribution, hosted service or incorporation into a product requires a signed, paid **Omni-Compass Enterprise License** from The Omni-Compass LLC. Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC. See [`LICENSE`](../LICENSE).
 
-Every mechanism, harness, receipt and result, read from the files named beside it. Built by `tools/dossier.py` at commit `e4c6b11`. Evidence classes: **T** theorem, **V** verified in code, **S** a model, **L** live software (real Kubernetes), **P** a physical meter. A model is not a meter, and a model written by the people who wrote the law is not an independent test; where a result is a model it says so.
+Every mechanism, harness, receipt and result, read from the files named beside it. Built by `tools/dossier.py` at commit `badfba4`. Evidence classes: **T** theorem, **V** verified in code, **S** a model, **L** live software (real Kubernetes), **P** a physical meter. A model is not a meter, and a model written by the people who wrote the law is not an independent test; where a result is a model it says so.
 
 ## 1. The mechanism, and proof that it is the one that ran
 
@@ -81,8 +81,10 @@ Each set: 10 paired repetitions on one runner, native Kubernetes (HPA, scheduler
 | 25 | allocation | −32.3% | −57.3% | 0 / 0 | -0.6% (not significant) | `results/live/LIVE_REPS_25.md` |
 | 26 | allocation | −35.8% | −55.4% | 0 / 0 | -1.5% (not significant) | `results/live/LIVE_REPS_26.md` |
 | 26 | bowl | −17.2% | −64.8% | 0 / 0 | +1.0% (not significant) | `results/live/LIVE_REPS_26.md` |
+| 27 | allocation | −36.6% | −53.1% | 0 / 0 | -0.0% (not significant) | `results/live/LIVE_REPS_27.md` |
+| 27 | bowl | −15.9% | −65.5% | 0 / 0 | +0.2% (not significant) | `results/live/LIVE_REPS_27.md` |
 
-Machines and response time are proven better in every set. Total CPU including the controller's own cost is no different from native: the service uses 6-9% less CPU (proven) and the controller spends about 0.07 cores, on the same 4-core runner. Set 27 runs the bowl aligned with the GPU (`docs/K8S_BOWL_PREREGISTRATION.md`).
+Machines and response time are proven better in every set. Total CPU including the controller's own cost is no different from native: the service uses 6-9% less CPU (proven) and the controller spends about 0.07 cores, on the same 4-core runner. Set 27 runs the bowl aligned with the GPU governor (`docs/K8S_BOWL_PREREGISTRATION.md`, set 27): machines −15.9%, p95 −65.5%, labelled *better on machines within the band* by its preregistered rule.
 
 ## 5. The six organisms at 1, 10, 100 and 1,000 runs and sizes (evidence class S)
 

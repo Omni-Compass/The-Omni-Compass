@@ -242,11 +242,12 @@ def main():
     # ------------------------------------------------------------------ 4. Kubernetes
     K = [("22", 31.0, 61.0, -0.9, "results/live/LIVE_REPS_22.md"), ("23", 28.7, 62.2, -1.0, "results/live/LIVE_REPS_23.md"),
          ("24", 31.6, 60.1, -1.8, "results/live/LIVE_REPS_24.md"), ("25", 32.3, 57.3, -0.6, "results/live/LIVE_REPS_25.md"),
-         ("26", 35.8, 55.4, -1.5, "results/live/LIVE_REPS_26.md"), ("26 bowl", 17.2, 64.8, 1.0, "results/live/LIVE_REPS_26.md")]
+         ("26", 35.8, 55.4, -1.5, "results/live/LIVE_REPS_26.md"), ("26 bowl", 17.2, 64.8, 1.0, "results/live/LIVE_REPS_26.md"),
+         ("27", 36.6, 53.1, -0.0, "results/live/LIVE_REPS_27.md"), ("27 bowl", 15.9, 65.5, 0.2, "results/live/LIVE_REPS_27.md")]
     fig, axes = plt.subplots(1, 2, figsize=(9, 3.6), dpi=160, sharey=True); fig.patch.set_facecolor(SURF)
     for ax, (idx, ttl) in zip(axes, ((1, "Machines in service"), (2, "Response time, p95"))):
         v = [-k[idx] for k in K]
-        ax.bar(range(len(K)), v, width=0.56, color=[SERIES[0]] * 5 + [SERIES[2]], edgecolor=SURF, linewidth=2)
+        ax.bar(range(len(K)), v, width=0.56, color=[SERIES[2] if "bowl" in k[0] else SERIES[0] for k in K], edgecolor=SURF, linewidth=2)
         for i, x in enumerate(v):
             ax.annotate(f"{x:+.1f}%", (i, x), xytext=(0, -12), textcoords="offset points", ha="center", fontsize=8)
         ax.set_xticks(range(len(K))); ax.set_xticklabels([f"set {k[0]}" for k in K], fontsize=7, color=INK2, rotation=20)
@@ -265,7 +266,7 @@ def main():
         L.append(f"| {k[0].split()[0]} | {law} | −{k[1]:.1f}% | −{k[2]:.1f}% | 0 / 0 | {k[3]:+.1f}% (not significant) | `{k[4]}` |")
     L += ["", "Machines and response time are proven better in every set. Total CPU including the controller's own cost "
           "is no different from native: the service uses 6-9% less CPU (proven) and the controller spends about 0.07 "
-          "cores, on the same 4-core runner. Set 27 runs the bowl aligned with the GPU (`docs/K8S_BOWL_PREREGISTRATION.md`).", ""]
+          "cores, on the same 4-core runner. Set 27 runs the bowl aligned with the GPU governor (`docs/K8S_BOWL_PREREGISTRATION.md`, set 27): machines −15.9%, p95 −65.5%, labelled *better on machines within the band* by its preregistered rule.", ""]
 
     # ------------------------------------------------------------------ 5. Six organisms grid
     gt = grid_tables()

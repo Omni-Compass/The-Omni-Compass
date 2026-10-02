@@ -63,3 +63,10 @@ amendments 6 and 7): the mean response time of the latency window between the ba
 and the SLO, held at the bowl's center 0.4 (the GPU service profile); p95 at or past the SLO, a blind probe or a pod
 waiting for a place is past the wall. Everything else, the arms (native, omni, bowl), the load, the duration, the
 outcomes and the labelling rule above, is unchanged. The run's commit is the one that carries this section.
+
+## Set 27 result
+
+Bowl arm, aligned with the GPU governor, against native: machines in service -15.9% (-1.462 to -0.450 machines),
+p95 -65.5% (-311.8 to -156.1 ms), p99 -72.6%, failed requests 0 on both: **better on machines within the band**
+(`results/live/LIVE_REPS_27.md`, run 37071353971, commit `d46c959`). The allocation law in the same set: machines
+-36.6%, p95 -53.1%.
