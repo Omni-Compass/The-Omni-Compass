@@ -26,8 +26,9 @@
 # account (deploy/kind/rbac-omni.yaml) with `kubectl auth can-i` receipts for what it can and cannot do; the run fails if
 # Omni made no write or if the kill switch leaves any record behind; SHA256SUMS.txt fingerprints every output file.
 set -euo pipefail
-ARM="${ARM:?set ARM=native, ARM=watch (Omni watches, writes nothing), ARM=omni (B: Omni on top) or ARM=strict (C: Omni decides replicas and nodes)}"
+ARM="${ARM:?set ARM=native, ARM=watch (Omni watches, writes nothing), ARM=omni (B: Omni on top), ARM=bowl (B with the bowl law) or ARM=strict (C: Omni decides replicas and nodes)}"
 STRICT=""; [ "$ARM" = "strict" ] && STRICT="--strict-replicas"
+LAW=""; [ "$ARM" = "bowl" ] && LAW="--law bowl"
 DRY=""; [ "$ARM" = "watch" ] && DRY="--dry-run"
 OUT_DIR="${OUT_DIR:-bench_$ARM}"; DURATION="${DURATION:-1200}"; WARMUP="${WARMUP:-120}"
 LOAD_STEPS="${LOAD_STEPS:-1 2 3 1 2 1}"
@@ -142,7 +143,7 @@ if [ "$ARM" != "native" ]; then
     --power-cmd "bash scripts/kind_power.sh" --site-limit-w "$SITE_LIMIT_W" \
     --cap-deployments default/php-apache --thermal-model --security-configmap default/omni-security \
     --rollout-guard default/php-apache --latency-file "$OUT_DIR/latency.csv" --slo-ms "${SLO_MS:-500}" \
-    --audit "$OUT_DIR/audit.jsonl" --kill-file "$OUT_DIR/kill" $STRICT ${CLOSURE:+--closure "$CLOSURE"} > "$OUT_DIR/controller.log" 2>&1 &
+    --audit "$OUT_DIR/audit.jsonl" --kill-file "$OUT_DIR/kill" $STRICT $LAW ${CLOSURE:+--closure "$CLOSURE"} > "$OUT_DIR/controller.log" 2>&1 &
   omni_pid=$!
 else
   echo "== ARM native: Omni-Compass not running; Kubernetes alone"

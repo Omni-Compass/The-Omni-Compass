@@ -58,18 +58,18 @@ def main(root):
     for a, r in runs.items():
         out["means"][a] = {k: float(np.nanmean([g.get(k, np.nan) for g in r.values()])) for k in KEYS}
     L = ["# Repeated live runs on kind (native vs Omni watching only vs Omni on top vs Omni alone)", ""]
-    cols = [a for a in ("native", "watch", "omni", "strict") if a in runs]
-    names = {"native": "Native", "watch": "Omni watches only", "omni": "Omni on top", "strict": "Omni alone"}
+    cols = [a for a in ("native", "watch", "omni", "bowl", "strict") if a in runs]
+    names = {"native": "Native", "watch": "Omni watches only", "omni": "Omni on top", "bowl": "Omni on top, bowl law", "strict": "Omni alone"}
     L += ["## All columns, mean over repetitions", "", "| Gauge | " + " | ".join(names[a] for a in cols) + " |",
           "|---|" + "---:|" * len(cols)]
     L += [f"| {LABEL.get(k, k)} | " + " | ".join(f"{out['means'][a][k]:.4g}" for a in cols) + " |" for k in KEYS]
     L += [""] + NOTE
-    for a in ("watch", "omni", "strict"):
+    for a in ("watch", "omni", "bowl", "strict"):
         if a not in runs or "native" not in runs:
             continue
         reps = sorted(set(runs[a]) & set(runs["native"]))
         out["paired"][a] = {}
-        title = {"watch": "W: Omni-Compass watches only (dry run: the cost of being there)", "omni": "B: Omni-Compass on top",
+        title = {"watch": "W: Omni-Compass watches only (dry run: the cost of being there)", "omni": "B: Omni-Compass on top", "bowl": "B with the bowl law: Omni-Compass on top, push and pull on the HPA target and the node pool",
                  "strict": "C: Omni-Compass decides (strict)"}[a]
         L += [f"## {title} vs native, {len(reps)} paired repetitions", "",
               "| Gauge | Native | Omni | Change | 95% interval of the difference | Significant |", "|---|---:|---:|---:|---:|---|"]

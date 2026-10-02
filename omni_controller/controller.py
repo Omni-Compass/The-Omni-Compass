@@ -7,6 +7,15 @@ Modes
   nodepool  additionally size one node pool to the governor's recommendation through --node-scale-cmd, a command template
             such as "aws autoscaling set-desired-capacity --auto-scaling-group-name POOL --desired-capacity {n}"; the
             Cluster Autoscaler must not manage that pool
+Laws (--law)
+  governor  (default) the engine's allocation law sets the HPA target (rho*) and the closure law or the governor sizes the pool
+  bowl      the bowl law (omnicompass/bowl.py) holds the service in the middle of its band: the service position is the
+            95th-percentile response time over --slo-ms (0 calm, 1 the line; a blind sense or pods waiting for a place read
+            as past the wall). Its push and pull move two levers: each HPA's CPU target inside its cover (from 60% of the
+            operator's target up to the operator's own, never tighter than native, so it only ever adds pods and gives them
+            back) and the node pool (one machine back only while the force is clearly down, the position below the center
+            and the nervous system's release gate open; past the 0.95 wall, one machine up at once). The six-state engine
+            still runs every decision: it grants the authority, feeds the release gate and the compass, and is audited
 Safety
   every node action passes through the shield (bounds, step limit); the recommendation never falls below what the CPU
   requests of running and pending pods, or current usage, need, and capacity required by that floor is added in one step
@@ -29,6 +38,7 @@ from omnicompass.shield import enforce, ShieldLimits
 from omni_controller.muscles import Muscles, add_args as add_muscle_args
 
 ANNOTATION = "omnicompass.io/original-target-utilization"
+BOWL_UP, BOWL_DOWN, BOWL_RELEASE = 0.10, 0.02, -0.2   # the bowl's gains, the same on every muscle (realms/bowl_arm.py)
 RANGE_ANN = "omnicompass.io/original-replica-range"
 
 
@@ -138,6 +148,13 @@ class Controller:
         self.s_floor = None            # bare service time (ms): the fastest a request is served with no queue ahead of it
         self.reflex = {}               # (ns, name) -> replica floor the pod reflex holds while the queue says it is needed
         self.pod_cap = {}              # (ns, name) -> request / limit share: what the HPA's target means in queue terms
+        self.bowl = None
+        if getattr(a, "law", "governor") == "bowl":
+            from omnicompass.bowl import Band, Bowl
+            # one decision every --interval s; the service follows a target in about one HPA sync plus a pod start (tau)
+            self.bowl = Bowl(Band(0.0, 1.0), dt=a.interval, tau=getattr(a, "bowl_tau", 60.0), kp=1.0, smooth=0.3)
+            self.bowl.kd *= 3.0                    # the same push as on every realm muscle (realms/bowl_arm.py)
+        self.bowl_x = {}               # (ns, name) -> the bowl's continuous HPA target, before rounding
 
     def audit(self, rec):
         rec = {"time": time.time(), **rec}
@@ -399,6 +416,22 @@ class Controller:
             # or the whole body's latency push, which a machine release does not cause
             cl_n = self.cl.decide(n, per_node / 1000.0, self.gn.last_push, self.a.min_nodes, self.a.max_nodes)
             rec_n = max(self.a.min_nodes, min(self.a.max_nodes, max(cl_n, floor)))
+        bowl_rec = None
+        if self.bowl is not None:
+            # the service position in its bowl: p95 over the SLO; a blind sense or a pod waiting for a place is past the wall
+            slo = float(getattr(self.a, "slo_ms", 0) or 0)
+            pos = (p95 / slo) if (p95 is not None and slo > 0) else 0.0
+            if blind.get("latency", False) or s["pending"] > 0:
+                pos = 1.0
+            F = self.bowl.force(pos)
+            if self.bowl.p >= self.bowl.band.wall_high:
+                rec_n = max(floor, n + 1)                                  # fail up: one machine more at once
+            elif F < BOWL_RELEASE and self.bowl.p < self.bowl.band.center:
+                rec_n = max(floor, n - 1)                                  # one back, if the release gate below agrees
+            else:
+                rec_n = max(floor, n)
+            rec_n = max(self.a.min_nodes, min(self.a.max_nodes, rec_n))
+            bowl_rec = {"position": round(self.bowl.p, 4), "velocity": round(self.bowl.v, 4), "force": round(F, 4)}
         scaling_up = any(int(h.get("status", {}).get("desiredReplicas", 0) or 0) > int(h.get("status", {}).get("currentReplicas", 0) or 0)
                          for h in s["hpas"])
         gate = node_release_gate(n, per_node, s["used_m"], s["pending"], scaling_up, breach_now, rho, auth_n,
@@ -426,7 +459,9 @@ class Controller:
                 levels[f"{o}_ceiling"] = env[1]
         forced = obs["queue_ratio"] > 0.0 or s["pending"] > 0
         self.audit({"compass": self.compass.read(d["state"]["E"], d["state"]["S"], levels, moves, forced, x=self.g.x, p=self.g.p)})
-        out = self.audit({"decision": {"nodes_observed": n, "nodes_recommended": rec_n, "law": "closure" if self.cl is not None else "governor", "hpa_target_recommended": round(rho, 3),
+        out = self.audit({"decision": {"nodes_observed": n, "nodes_recommended": rec_n,
+                                       "law": "bowl" if self.bowl is not None else "closure" if self.cl is not None else "governor",
+                                       "bowl": bowl_rec, "hpa_target_recommended": round(rho, 3),
                                        "E": d["state"]["E"], "U": d["state"]["U"], "pending": s["pending"],
                                        "power_cap": round(float(d["power_cap"]), 3), "change_permitted": bool(d["change_permitted"]),
                                        "rollback_authorized": bool(d["rollback_authorized"]),
@@ -449,6 +484,18 @@ class Controller:
                 # the same promise in queue terms: busy = target x request / limit. While convey() gives the pods a
                 # limit g times the operator's, the target that keeps each pod exactly as busy is g times higher
                 want = int(round(100 * min(rho, orig / 100.0) * self._gain(h)))
+                if self.bowl is not None:
+                    # the bowl's push and pull on the target, inside its cover [60% of the operator's, the operator's]
+                    # (in queue terms, times the conveyed gain): a lower target is more pods, so the up force lowers it
+                    g_ = self._gain(h); hi_t = orig * g_; lo_t = max(10.0, 0.6 * orig) * g_
+                    x = self.bowl_x.get((ns, name), hi_t)
+                    if self.bowl.p >= self.bowl.band.wall_high:
+                        x = lo_t                                         # fail up: the most pods the cover allows, at once
+                    else:
+                        F_ = bowl_rec["force"]
+                        x = x - (BOWL_UP if F_ > 0 else BOWL_DOWN) * F_ * (hi_t - lo_t)
+                    x = max(lo_t, min(hi_t, x)); self.bowl_x[(ns, name)] = x
+                    want = int(round(x))
                 want_h = want if obs["slo_clean"] else min(want, orig)
                 if abs(cur - want_h) < self.a.min_target_change and not (not obs["slo_clean"] and cur > orig):
                     continue
@@ -502,6 +549,9 @@ def parser():
     ap.add_argument("--max-nodes", type=int, default=1000)
     ap.add_argument("--max-node-step", type=int, default=2)
     ap.add_argument("--min-target-change", type=int, default=3)
+    ap.add_argument("--law", choices=["governor", "bowl"], default="governor",
+                    help="governor (default): the engine's allocation law; bowl: the bowl law on the HPA target and the node pool")
+    ap.add_argument("--bowl-tau", type=float, default=60.0, help="seconds the service takes to follow a lever (the bowl's damping)")
     ap.add_argument("--closure", default="", help="JSON with the closure-law setting (e.g. tuning/GLOBAL_LEAGUE_PREREGISTRATION.json): the benchmarked law decides the node count")
     ap.add_argument("--strict-replicas", action="store_true", help="strict C: Omni-Compass sets replica counts; the HPA is pinned")
     ap.add_argument("--pod-reflex-writes", action="store_true",
