@@ -15,6 +15,9 @@ measures real joules is built and tested but has not been run on a card. That ru
 
 ## Measured on real systems: the newest set, Omni-Compass against Kubernetes as it runs today
 
+**Set 23 (2026-10-02) repeats set 22 on the current code: p95 −62%, replicas −37%, pod starts −64%, 0 failed requests,
+no energy or total-CPU difference** (`results/live/LIVE_REPS_23.md`). The set-22 table below stands as first measured.
+
 Set 22 (`results/live/LIVE_REPS_22.md`): 10 paired repetitions on real Kubernetes (kind), each pair on one machine,
 Kubernetes with its autoscaler alone against the same Kubernetes with Omni-Compass on top. The load is sent at a fixed
 rate, so both arms were given **the same work**.
