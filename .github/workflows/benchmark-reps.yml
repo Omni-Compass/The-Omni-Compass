@@ -45,7 +45,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
       - run: pip install -r requirements.txt
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with: {pattern: "paired-*", path: reps, merge-multiple: true}
       - run: ls reps && python tools/live_reps.py reps
       - run: cat reps/LIVE_REPS.md >> "$GITHUB_STEP_SUMMARY"

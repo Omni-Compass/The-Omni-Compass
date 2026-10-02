@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: req
         run: echo "run=$(tr -d '[:space:]' < .github/archive_request.txt)" >> "$GITHUB_OUTPUT"
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           run-id: ${{ steps.req.outputs.run }}
           github-token: ${{ secrets.GITHUB_TOKEN }}

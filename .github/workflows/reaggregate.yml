@@ -25,7 +25,7 @@ jobs:
           ID="${{ github.event.inputs.run_id }}"
           [ -z "$ID" ] && ID=$(head -1 results/live/reaggregate_run.txt | tr -dc 0-9)
           echo "id=$ID" >> "$GITHUB_OUTPUT"
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: "paired-*"
           path: reps
