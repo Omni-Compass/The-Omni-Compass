@@ -6,9 +6,10 @@ version = "1.0.0"
 description = "Omni-Compass: a unified governing control plane (proprietary; evaluation and simulation use only)"
 readme = "README.md"
 license = "LicenseRef-OmniCompass-Evaluation-1.0"
-license-files = ["LICENSE", "NOTICE", "PATENTS.md", "TRADEMARKS.md", "LICENSES/*"]
+license-files = ["LICENSE", "NOTICE", "DISCLOSURES.md", "THIRD_PARTY_NOTICES.md", "LICENSING_FAQ.md", "PATENTS.md", "TRADEMARKS.md", "LICENSES/*"]
 authors = [{ name = "The Omni-Compass LLC" }]
 requires-python = ">=3.10"
+keywords = ["omni-compass", "governor", "control-plane", "kubernetes", "autoscaling", "gpu", "energy-efficiency", "work-per-energy", "data-center", "power-management", "control-theory", "proprietary", "source-available"]
 classifiers = [
   "License :: Other/Proprietary License",
   "Private :: Do Not Upload",
@@ -17,5 +18,9 @@ classifiers = [
 ]
 
 [project.urls]
+Homepage = "https://www.omni-compass.com"
+Documentation = "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass/blob/main/docs/OMNI_COMPASS_MANUAL.md"
+Disclosures = "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass/blob/main/DISCLOSURES.md"
+Changelog = "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass/blob/main/CHANGELOG.md"
 Repository = "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass"
 License = "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass/blob/main/LICENSE"

@@ -71,12 +71,29 @@ Therefore:
 4. The software is provided "as is", without warranty of any kind, as stated in `LICENSE`. The operator is responsible
    for its use on their systems.
 
-## 5. Where everything is
+## 5. Nothing is set in stone
+
+1. The software, the law's settings, the benchmarks, the results, the documents, the licensing terms and this page may
+   change at any time, without notice. The version in the repository's `main` branch at a given commit is the version
+   that commit describes; `RELEASE_MANIFEST.json` and `python3 verify.py` identify it.
+2. Statements about work in progress, planned features, expected results and future runs are expectations, not
+   promises. Where a result has not yet been measured, the documents say so (`STATE_OF_PLAY.md`,
+   `docs/DOSSIER.md`, section 8).
+3. A signed Omni-Compass Enterprise License governs its own terms for its own term.
+
+## 6. Privacy and data
+
+Omni-Compass contains no telemetry. It sends nothing to The Omni-Compass LLC or anyone else, and makes no network
+connection of its own except to the systems an operator points it at. Its logs and receipts stay on the operator's
+machines.
+
+## 7. Where everything is
 
 | Question | Page |
 |---|---|
 | What has been measured, and how strongly | `STATE_OF_PLAY.md`, `docs/DOSSIER.md`, `docs/EVIDENCE_LEDGER.md` |
 | The rules written before each run | `docs/GPU_PREREGISTRATION.md`, `docs/REALMS_PREREGISTRATION.md`, `docs/K8S_BOWL_PREREGISTRATION.md` |
 | How to wire it, level by level, and how to confirm it is wired right | `docs/OMNI_COMPASS_MANUAL.md` (chapters 8 and 9), the book `docs/OMNI_COMPASS_MANUAL.pdf` |
-| The license | `LICENSE`, `NOTICE`, `PATENTS.md`, `TRADEMARKS.md` |
+| The license, in plain answers, and third-party components | `LICENSE`, `LICENSING_FAQ.md`, `NOTICE`, `THIRD_PARTY_NOTICES.md`, `PATENTS.md`, `TRADEMARKS.md` |
+| The 656 muscles, what each is for and how it is wired | `docs/MUSCLE_CATALOG.md` |
 | Proof the code is the code that ran | `python3 verify.py`, `RELEASE_MANIFEST.json`, `results/SEAL.json` |

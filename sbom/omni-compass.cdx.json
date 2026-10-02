@@ -1,0 +1,98 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-10-02T22:52:16Z",
+    "component": {
+      "type": "application",
+      "bom-ref": "omni-compass",
+      "name": "omni-compass",
+      "publisher": "The Omni-Compass LLC",
+      "licenses": [
+        {
+          "license": {
+            "name": "LicenseRef-OmniCompass-Evaluation-1.0",
+            "url": "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass/blob/main/LICENSE"
+          }
+        }
+      ],
+      "copyright": "Copyright (c) 2026 The Omni-Compass LLC",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.omni-compass.com"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass"
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/numpy",
+      "name": "numpy",
+      "purl": "pkg:pypi/numpy",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/matplotlib",
+      "name": "matplotlib",
+      "purl": "pkg:pypi/matplotlib",
+      "licenses": [
+        {
+          "license": {
+            "id": "PSF-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/reportlab",
+      "name": "reportlab",
+      "purl": "pkg:pypi/reportlab",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/numba",
+      "name": "numba",
+      "purl": "pkg:pypi/numba",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "omni-compass",
+      "dependsOn": [
+        "pkg:pypi/numpy",
+        "pkg:pypi/matplotlib",
+        "pkg:pypi/reportlab",
+        "pkg:pypi/numba"
+      ]
+    }
+  ]
+}

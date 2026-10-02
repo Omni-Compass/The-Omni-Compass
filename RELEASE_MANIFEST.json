@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-d46c959b3ad0",
- "written_at_commit": "d46c959b3ad003e15ff170b7783c22460ebe614e",
- "written_at": "2026-10-02T22:14:00+00:00",
+ "release_id": "omni-compass-b14f012e6b4e",
+ "written_at_commit": "b14f012e6b4e392c739bdf7822c2ea7ce576f9c2",
+ "written_at": "2026-10-02T22:49:14+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -107,7 +107,8 @@
   },
   "license": {
    "LICENSE": "ba489dcd932cb64357bfa5e098cfc550abbc43c81180a48d73ba359f4d425f58",
-   "NOTICE": "02f6715fd4c64e74924a6a1b17beff5b4e6ca7eb67192d236d0ed86db3bf9a0f"
+   "NOTICE": "8ff81994b95a957b04a556aa6bdfc2edc71a786d34ef4ced31c26796aca88938",
+   "DISCLOSURES.md": "9d7a0dd39f2aaee0cbe9cc4425d1dd89a4cbe49757583022dade2718e19879b0"
   },
   "realms": {
    "realms/catalog.csv": "9b085801dfb4b99dd4af001683900e0b9428af460a8d3119d9f23d386c45f2d7",
@@ -164,10 +165,5 @@
    "raw": "GitHub artifacts, digests in results/live/SET22_ARTIFACTS.json; recomputed by the reaggregate workflow"
   }
  },
- "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card",
- "verification_receipt": {
-  "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "d0405c577ba5f08a53d021e4dc015c0e996aeea571c7f399c832163ab258023d",
-  "passed": true
- }
+ "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card"
 }

@@ -5,6 +5,8 @@
 A six-state control engine that supervises Kubernetes and hardware from above: Kubernetes and its autoscalers stay the
 execution layer.
 
+The Omni-Compass LLC · [www.omni-compass.com](https://www.omni-compass.com) · Topics: `omni-compass` `governor` `control-plane` `kubernetes` `autoscaling` `gpu` `energy-efficiency` `work-per-energy` `data-center` `power-management` `control-theory` `source-available`
+
 **Read first: [`DISCLOSURES.md`](DISCLOSURES.md).** Every declaration, disclosure and disclaimer is made there once,
 including the wiring declaration: Omni-Compass acts only through the wires it is given, it cannot be slapped on, and if
 your paired receipts differ from the published benchmarks in direction, the first presumption is wiring (manual,
@@ -21,7 +23,7 @@ does not replace your autoscaler or your firmware; it sits on top, in watch mode
 | The corrected GPU governor, modelled card | service profile work per energy +6.9% / +3.8%, p95 5.9% / 2.3% faster (tuning / fresh seeds) | S |
 | Six organisms (656 muscles), 1-1,000 runs, 1× and 10× size | work per energy +0.20% to +0.31% in every cell; time over the service line +0.2 points (band first not yet held) | S |
 
-Everything, with charts: [`docs/DOSSIER.md`](docs/DOSSIER.md). Where everything stands: [`STATE_OF_PLAY.md`](STATE_OF_PLAY.md).
+Everything, with charts: [`docs/DOSSIER.md`](docs/DOSSIER.md). All 656 muscles, what each is for and how it is wired: [`docs/MUSCLE_CATALOG.md`](docs/MUSCLE_CATALOG.md). Licensing in plain answers: [`LICENSING_FAQ.md`](LICENSING_FAQ.md). Where everything stands: [`STATE_OF_PLAY.md`](STATE_OF_PLAY.md).
 On kind, energy is a declared model, not a meter. The corrected GPU governor's real-card run is next: one command on a
 rented NVIDIA machine, `sudo bash scripts/gpu_rented_run.sh` (`docs/GPU_RUN_GUIDE.md`).
 

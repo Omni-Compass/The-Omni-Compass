@@ -1,0 +1,43 @@
+{
+  "@context": "https://w3id.org/codemeta/3.0",
+  "@type": "SoftwareSourceCode",
+  "name": "Omni-Compass",
+  "description": "A supervisory governor for Kubernetes, GPUs and machines: one bounded mathematical law holds each muscle's own setting in the middle of its band and hands every setting back when it stops. Evaluation and simulation use only; commercial use requires the Omni-Compass Enterprise License.",
+  "codeRepository": "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass",
+  "url": "https://www.omni-compass.com",
+  "license": "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass/blob/main/LICENSE",
+  "author": [
+    {
+      "@type": "Organization",
+      "name": "The Omni-Compass LLC",
+      "url": "https://www.omni-compass.com"
+    }
+  ],
+  "copyrightHolder": {
+    "@type": "Organization",
+    "name": "The Omni-Compass LLC"
+  },
+  "copyrightYear": 2026,
+  "programmingLanguage": [
+    "Python",
+    "C++"
+  ],
+  "developmentStatus": "active",
+  "keywords": [
+    "Omni-Compass",
+    "governor",
+    "control plane",
+    "Kubernetes",
+    "autoscaling",
+    "GPU",
+    "energy efficiency",
+    "work per energy",
+    "data center",
+    "power management",
+    "control theory",
+    "Lyapunov",
+    "RK4",
+    "proprietary",
+    "source-available"
+  ]
+}

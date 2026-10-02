@@ -1,0 +1,4 @@
+# Snyk (https://snyk.io) policy file. Omni-Compass is proprietary: LicenseRef-OmniCompass-Evaluation-1.0 (see LICENSE).
+version: v1.25.1
+ignore: {}
+patch: {}
