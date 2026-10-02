@@ -265,7 +265,7 @@ class ComputePool(Plant):
             A = 0.0
         elif self.H > 0.0:                                         # running: held work comes back into the pool's spare
             back = min(self.H, max(0.0, 0.85 * P["target"] * self.n * mu * dt - A))   # room, under the autoscaler band
-            A += back                                              # parallelism; it does not arrive as one burst)
+            A += back                                              # (a resumed job continues at its parallelism)
             self.H -= back
         limit = P["queue_limit_s"] * self.n * mu
         C = self.n * mu * dt
