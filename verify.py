@@ -287,6 +287,8 @@ def main():
     test_cpufreq_ceiling.main(); check("cpufreq ceiling writer: scaling_max_freq on every policy, clamped; restore puts cpuinfo_max_freq back", True)
     from tests import test_realms
     test_realms.main(); check("realm harness: catalog of 656, watch equals native, kill hands back every knob, deterministic, capacity law, labels", True)
+    from tests import test_bowl
+    test_bowl.main(); check("bowl law and plug: smooth bounded push and pull to the center, fail up, cover, one restore point, foreign writer, two-wire card", True)
     from tests import test_failsafe
     test_failsafe.main(); check("no automated fallback: failed decisions are skipped; only the human switch turns the whole harness off and on", True)
     from tests import test_fleet_realdata_paths
