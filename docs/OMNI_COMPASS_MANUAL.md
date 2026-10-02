@@ -2,7 +2,7 @@
 
 ## The Governor, Its Mechanism, and How to Wire It onto Your Stack
 
-**Edition 1.0, October 2026**
+**October 2026**
 **The Omni-Compass LLC**
 
 Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC.
