@@ -33,7 +33,7 @@ jobs:
     env:
       PHASE: ${{ (inputs.phase == 'confirm' || contains(github.event.head_commit.message, '[gpu-confirm]')) && 'confirm' || 'smoke' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: The GPU
         run: nvidia-smi && nvidia-smi --query-gpu=name,driver_version,power.limit,power.min_limit,power.max_limit --format=csv
       - name: Python with PyTorch
@@ -55,7 +55,7 @@ jobs:
     if: always() && needs.run.result != 'skipped'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v4
         with: {pattern: "gpu-rep-*", path: parts}
       - name: Pool the repetitions and write the table
