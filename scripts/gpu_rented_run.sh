@@ -22,8 +22,11 @@ command -v "$SMI" >/dev/null || { echo "nvidia-smi not found: this machine has n
 $SMI -i "$GPU" --query-gpu=name,driver_version,power.limit,power.min_limit,power.management --format=csv,noheader
 $PY -c "import torch, sys; sys.exit(0 if torch.cuda.is_available() else 1)" 2>/dev/null || [ -n "${SIM:-}" ] \
   || { echo "PyTorch with CUDA not found: pip install torch, or rent an image that has it"; exit 1; }
-[ -z "$(git status --porcelain -- omni_controller omnicompass tools scripts docs/GPU_PREREGISTRATION.md 2>/dev/null)" ] \
-  || { echo "the code has local changes: the confirmation runs only on committed code (git stash, or a fresh clone)"; exit 1; }
+# run as root on a clone the login user owns, so git is told the directory is safe; unreadable git refuses the run
+GITST=$(git -c safe.directory='*' status --porcelain -- omni_controller omnicompass tools scripts docs/GPU_PREREGISTRATION.md) \
+  || { echo "git cannot read this clone: run from a fresh git clone of the repository"; exit 1; }
+[ -z "$GITST" ] || { echo "the code has local changes: the confirmation runs only on committed code (git stash, or a fresh clone)"; exit 1; }
+echo "code: commit $(git -c safe.directory='*' rev-parse --short HEAD), unchanged"
 
 if [ -z "${ENVELOPE:-}" ]; then
   ENVELOPE="results/gpu/envelope-$STAMP.json"
