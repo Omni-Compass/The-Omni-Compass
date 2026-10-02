@@ -56,6 +56,7 @@ import random
 from typing import Dict, Optional
 
 KNOBS = ("capacity", "setpoint", "power", "admission")
+RELEASE_WINDOW, RELEASE_FRAC = 2, 0.7
 
 
 def clamp(v, lo, hi):
@@ -131,6 +132,10 @@ class Plant:
         """The plant's override for this period from the directive d and the nervous system's authority; {} is native."""
         raise NotImplementedError
 
+    def can_hold(self):
+        """Whether batch pacing may suspend this plant's work now without taking its service out of the line."""
+        return True
+
     def fixed_calm(self):
         """The descriptive comparator for setpoint muscles: the setpoint fixed at its band's calm end, no governor."""
         return {"target" if self.template == "compute_pool" else "setpoint": self.P["calm"]}
@@ -169,6 +174,7 @@ class ComputePool(Plant):
         self.drop_share = 0.0
         self.unneeded = 0
         self.omni_t, self.omni_t_k = None, 0
+        self.ahist = []
         self.nominal_w = P["lam0"] / (P["mu"] * P["target"]) * (P["p_idle"] + P["target"] * P["p_dyn"])
         self.budget_w = 1.5 * self.nominal_w
 
@@ -177,11 +183,17 @@ class ComputePool(Plant):
 
     def omni_override(self, knob, d, g, auth):
         P, clean, rho = self.P, self.slo_clean, rho_of(d)
+        if not clean:                                              # band first: outside the band, every knob is native
+            self.omni_t = None
+            return {}
         if knob == "power":
             org = P.get("power_organ")
-            if not org or not may_contract(auth, org, clean):
-                return {}                                          # full power: native (and never on a request pool)
-            return {"power": envelope_cap(auth, org, d, min(1.0, self.cap * self.util * 1.3))}
+            if not org or not P.get("pausable") or not may_contract(auth, org, clean):
+                return {}                                          # a request-served pool never gives watts back
+            proposed = envelope_cap(auth, org, d, min(1.0, self.cap * self.util * 1.3))
+            if self.W > 0 and self.mu(proposed) < self.mu(1.0) * (self.W / max(P["slo_s"], 1e-9)):
+                return {}                                          # the cut would push the wait past the line
+            return {"power": proposed}
         if knob == "admission":
             if not P.get("pausable"):
                 return {}                                          # request traffic is never paused (live: pausable jobs only)
@@ -189,13 +201,22 @@ class ComputePool(Plant):
         if P.get("ca"):                                            # a machine pool: the node release gate
             n = self.n
             ok = (may_contract(auth, "nodes", clean) and n > P["n_min"] and not self.pending and self.Q <= 0.0
-                  and self.util * n / (n - 1) <= rho)
+                  and len(self.ahist) == RELEASE_WINDOW * P["startup_steps"]
+                  and max(self.ahist) / ((n - 1) * self.mu(self.cap)) <= RELEASE_FRAC * rho)   # the rest covers the recent peak
             return {"release": 1.0} if ok else {}
         # pods: the HPA target, never tighter than the operator's, held for one autoscaler window
-        want = min(rho, P["target"]) if clean else P["target"]
-        if self.omni_t is None or not clean or self.k - self.omni_t_k >= P["stab_steps"]:
+        want = min(rho, P["target"])
+        if self.omni_t is None or self.k - self.omni_t_k >= P["stab_steps"]:
             self.omni_t, self.omni_t_k = want, self.k
         return {"target": self.omni_t}
+
+    def can_hold(self):
+        """Pacing may suspend this job only if one more period of held work stays inside half the line even after the
+        autoscaler has shrunk the idle pool to its floor (a suspended job's pods are scaled in; on resume the held work
+        lands on what is left)."""
+        mu = self.mu(self.cap)
+        held = self.Q + self.H + self.lam[self.k] * self.P["dt"]
+        return held / (self.P["n_min"] * mu) + 1.0 / mu <= 0.5 * self.P["slo_s"]
 
     def observe(self):
         P = self.P
@@ -242,9 +263,10 @@ class ComputePool(Plant):
         if self.override.get("admission", None) == 0.0:            # paced: the job is suspended, its work held
             self.H += A
             A = 0.0
-        else:                                                      # running: held work comes back
-            A += self.H
-            self.H = 0.0
+        elif self.H > 0.0:                                         # running: held work comes back into the pool's spare
+            back = min(self.H, max(0.0, 0.85 * P["target"] * self.n * mu * dt - A))   # room, under the autoscaler band
+            A += back                                              # parallelism; it does not arrive as one burst)
+            self.H -= back
         limit = P["queue_limit_s"] * self.n * mu
         C = self.n * mu * dt
         adm = min(A, max(0.0, C + limit - self.Q))                 # what this period serves, plus the queue limit
@@ -260,6 +282,7 @@ class ComputePool(Plant):
         self.record(W > P["slo_s"] or drop > 1e-9)
         self.drop_share = drop / max(A, 1e-9) if A > 0 else 0.0
         self.power_w, self.util, self.W = p, util, W
+        self.ahist = (self.ahist + [self.lam[k]])[-RELEASE_WINDOW * P["startup_steps"]:]
         self.th = min(1.35, max(0.0, 0.86 * self.th + 0.14 * (0.34 + 0.62 * min(1.35, p / self.budget_w))))
         self.drift = abs(self.lam[k] - self.lam[k - 1]) / P["lam0"] if k else 0.0
         total = self.n + len(self.pending)
@@ -507,6 +530,10 @@ class MotionAxis(Plant):
         self.tau_peak = 0.0
         self.rated_w = P["p_idle"] + P["R"] * (P["tau_max"] / P["kt"]) ** 2 * 0.3
         self.nominal_w = self.rated_w
+
+    def can_hold(self):
+        """Pacing may hold new moves only while the oldest waiting task stays two decisions inside its deadline."""
+        return not self.waits or self.waits[0] + 2.0 * self.P["dt_dec"] <= self.P["deadline_s"]
 
     def move_time(self, s):
         v, a, D = self.P["v_max"] * s, self.P["a_max"] * s, self.P["D"]

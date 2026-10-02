@@ -109,15 +109,19 @@ PACE_HIGH, PACE_LOW, PACE_HEAT = 0.95, 0.8, 0.96             # the live batch_pa
 
 def pace(paced_plants, obs, auth):
     """The live batch_pace rule over the admission muscles: while hot, suspend the next running one; while calm, resume
-    the first suspended one; one per decision either way."""
+    the first suspended one; one per decision either way. Band first: a job whose service is out of its line, or would
+    leave it if held one more period, is never suspended, and if suspended it is resumed at once (fail up)."""
     if not paced_plants:
         return
+    for p in paced_plants:
+        if p.paced and not (p.slo_clean and p.can_hold()):
+            p.paced = False
     hot = (obs["power_stress"] >= PACE_HIGH or obs["thermal"] >= PACE_HEAT
            or bool(auth and auth["organs"]["batch"].get("pause")))
     calm = obs["power_stress"] <= PACE_LOW and obs["thermal"] < PACE_HEAT - 0.06
     if hot:
         for p in paced_plants:
-            if not p.paced:
+            if not p.paced and p.slo_clean and p.can_hold():
                 p.paced = True
                 return
     elif calm:
