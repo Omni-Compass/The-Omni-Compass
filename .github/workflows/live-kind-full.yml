@@ -34,6 +34,6 @@ jobs:
               echo "### $f"; echo '```'; cat "kind_full_out/$f" 2>/dev/null || echo "(missing)"; echo '```'
             done
           } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with: {name: kind-full-results, path: kind_full_out}

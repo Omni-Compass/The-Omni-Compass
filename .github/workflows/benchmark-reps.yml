@@ -33,7 +33,7 @@ jobs:
           DURATION: ${{ github.event.inputs.duration_s || '900' }}
           CLOSURE: tuning/GLOBAL_LEAGUE_PREREGISTRATION.json
           LOADGEN: ${{ github.event.inputs.loadgen || (contains(github.event.head_commit.message, '[open-load]') && 'open' || 'closed') }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with: {name: "paired-${{ matrix.rep }}", path: "bench-*-${{ matrix.rep }}"}
   aggregate:
@@ -49,5 +49,5 @@ jobs:
         with: {pattern: "paired-*", path: reps, merge-multiple: true}
       - run: ls reps && python tools/live_reps.py reps
       - run: cat reps/LIVE_REPS.md >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: {name: live-reps, path: "reps/LIVE_REPS.*"}

@@ -24,6 +24,6 @@ jobs:
           { echo "## Omni-Compass live levers"; echo '```'; cat levers_out/levers.txt 2>/dev/null || echo "(missing)"; echo '```'
             echo '```'; cat levers_out/rbac_levers.txt 2>/dev/null; echo '```'
             echo '```'; tail -n 60 levers_out/controller.log 2>/dev/null; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with: {name: live-levers, path: levers_out}

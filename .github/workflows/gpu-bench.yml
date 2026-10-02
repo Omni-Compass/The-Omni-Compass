@@ -47,7 +47,7 @@ jobs:
           python3 tools/declare_envelope.py envelope.json        # the declared envelope, before any trial (amendment 3)
           sudo env "PATH=$PATH" PYTHON=/tmp/v/bin/python PHASE="$PHASE" REP_ONLY=${{ matrix.rep }} REPS=${{ matrix.rep }} \
             ENVELOPE=envelope.json DURATION=$DUR OUT=gpu-out bash scripts/gpu_paired.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with: {name: "gpu-rep-${{ matrix.rep }}", path: "gpu-out"}
   pool:

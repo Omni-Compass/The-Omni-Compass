@@ -33,7 +33,7 @@ jobs:
           python3 tools/run_scale.py --runs "$N" --first $(( ${{ matrix.shard }} * N )) --scale "${{ github.event.inputs.scale || '1' }}" \
             --organisms "${{ matrix.org }}" --out "part-${{ matrix.org }}-${{ matrix.shard }}" \
             --workers "${{ github.event.inputs.workers || '4' }}"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with: {name: "part-${{ matrix.org }}-${{ matrix.shard }}", path: "part-${{ matrix.org }}-${{ matrix.shard }}"}
   receipts:
@@ -48,5 +48,5 @@ jobs:
       - uses: actions/download-artifact@v4
         with: {path: parts}
       - run: python3 tools/pool_scale.py SIX.md "parts/*/SCALE.json" | tee -a "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: {name: six-receipts, path: "SIX.*"}
