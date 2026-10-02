@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-590b229bc67e",
- "written_at_commit": "590b229bc67e4b170ae1e6f823651c626f1bbfa9",
- "written_at": "2026-10-02T22:55:38+00:00",
+ "release_id": "omni-compass-600528afca6f",
+ "written_at_commit": "600528afca6ffde563016c23c179c1dbe8b61a12",
+ "written_at": "2026-10-02T23:41:46+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -76,7 +76,7 @@
    "docs/TRACKING_THEOREM.md": "700f946672363ee8bb41bb7e51eb5fbc1b73fba22297208f2639f7825c76137c",
    "tools/tracking_bounds.py": "3dd90a883f6b80cd1eb17a9a4b78e22ef5ac6e6cdff2078ec2d6b254d6690b2b",
    "results/TRACKING_BOUNDS.json": "154ed508c98c4c64775738cfac9a18853b3db6f83d50db094da516c1adfffa0f",
-   "docs/EVIDENCE_LEDGER.md": "69be72e0366cf8441ff63c1f353f070d115e355d98d4ab0a81af35edea760b4d",
+   "docs/EVIDENCE_LEDGER.md": "5d964023818aa8d6572eccbe4903a4feb24bc2e616d9b5b87e1b4ee67447173e",
    "RECEIPT.md": "d49f2e719a71d4bb72ff91d65be3432d2ffe132097e0e2e0d0b11d8dad9387fc"
   },
   "live_set_23": {
@@ -90,7 +90,10 @@
   },
   "live_set_26": {
    "results/live/LIVE_REPS_26.md": "643291e75fdf88bf79e9b46e2e4194aaab7c96b0acd7ad37440f40f7d9b3c9d7",
-   "docs/K8S_BOWL_PREREGISTRATION.md": "44b1e440e446db22d442d9b798a9356f3ae67f9cfc0035f01b69e050608245b6"
+   "docs/K8S_BOWL_PREREGISTRATION.md": "4fdb0ea6a2565f9dfd4ad95b8c6c33e33bfd65d8873d6fda667b44b103da2946"
+  },
+  "live_set_27": {
+   "results/live/LIVE_REPS_27.md": "c356cbfb8546b1599ddc9d15f490895a2e1cddebd9c84c2c6f105ceacb54471a"
   },
   "bowl_law": {
    "omnicompass/bowl.py": "6ec6a5b88d95bce3301320bcac01ee01c3c37f9ea62c98bfc2413f61f500db0b",
@@ -191,7 +194,7 @@
  "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card",
  "verification_receipt": {
   "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "0c93fe46b07d3c232c914a1a264a07155c3625f77fae45fa5555193ce4cc46c1",
+  "sha256": "52b5863cbe6eee673de93b983c2e1c166ad7d6fe20f5a92c90b888fa2b57b0de",
   "passed": true
  }
 }
