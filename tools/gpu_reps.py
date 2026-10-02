@@ -129,6 +129,8 @@ def arm(d, gpus):
         for line in open(d / "audit.jsonl"):
             rec = json.loads(line)
             writes += "write" in rec; would += "would_write" in rec
+            # the two-wire engine's clock wire counts too (its reset at the end is the restore, not a write)
+            writes += "clock_write" in rec and rec.get("why") != "restore"; would += "would_clock_write" in rec
     restored = (d / "limit_end.txt").read_text().split() == (d / "limit_start.txt").read_text().split() \
         if (d / "limit_end.txt").exists() else False
     gx = (d / "governor_exit.txt").read_text().strip() if (d / "governor_exit.txt").exists() else None
@@ -488,7 +490,7 @@ def main(root):
               "| Decided by | Writes | Seconds owned | GPU joules vs native | Requests finished vs native |", "|---|---:|---:|---:|---:|"]
         L += [f"| {k} | {v['writes']} | {v['seconds']:.0f} | {v['dJ_vs_native']:+.4g} | {v['dserved_vs_native']:+d} |" for k, v in sorted(cby.items())]
         L.append("")
-    L += ["## The control", "", f"- Power-limit writes executed: " + ", ".join(f"{names[a]} {wr[a]}" for a in cols) + ".",
+    L += ["## The control", "", f"- Writes executed (power limit and clock ceiling): " + ", ".join(f"{names[a]} {wr[a]}" for a in cols) + ".",
           "- Every arm ended at the start limit." if not any("restore" in p for p in problems) else "- An arm did NOT end at the start limit.",
           "- Energy is the device's own power.draw integrated over time; no number here is modelled.", ""]
     (root / "GPU_REPS.json").write_text(json.dumps(out, indent=1)); (root / "GPU_REPS.md").write_text("\n".join(L))
