@@ -8,8 +8,10 @@
 # 2. declares the envelope before any trial (docs/GPU_PREREGISTRATION.md, amendment 3): lowest watts =
 #    max(device minimum, 70% of the limit read now), unless ENVELOPE=file.json is given;
 # 3. smoke: 3 repetitions x 3 arms x 180 s (about 40 minutes). It checks the wiring on real hardware. It never counts;
-# 4. if smoke is valid: the preregistered confirmation, 10 repetitions x 3 arms x 600 s (about 6 hours), on the same
-#    committed code (STOP_AFTER_SMOKE=1 stops after step 3);
+# 4. if smoke is valid: the whole stacks with this card inside (tools/run_hil.py: the four realms and the whole tower
+#    of 656, native and Omni, 3 repetitions, about 4.5 hours; SKIP_HIL=1 skips it), then the preregistered
+#    confirmation, 10 repetitions x 3 arms x 600 s (about 6 hours), on the same committed code (STOP_AFTER_SMOKE=1
+#    stops after step 3);
 # 5. packs both result folders into one file to send back, and prints the label the table chose by rule.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -62,6 +64,16 @@ if [ "$smoke_rc" != 0 ]; then
 elif [ -n "${STOP_AFTER_SMOKE:-}" ]; then
   echo "smoke valid; stopping as asked (STOP_AFTER_SMOKE)."
 else
+  if [ -z "${SKIP_HIL:-}" ]; then
+    echo "== the whole stacks with this card inside: four realms and the whole tower, native and Omni (tools/run_hil.py)"
+    set +e
+    ENV_FLOOR_W=$($PY -c "import json,sys; print(json.load(open(sys.argv[1]))['power_min_w'])" "$ENVELOPE") \
+      NVIDIA_SMI="$SMI" GPU="$GPU" $PY tools/run_hil.py --out "results/hil/run-$STAMP" | tee "results/gpu/hil-$STAMP.log" | grep -E "^== |^\| |^- "
+    hil_rc=${PIPESTATUS[0]}
+    set -e
+    PACK+=("results/hil/run-$STAMP")
+    echo "whole stacks: exit $hil_rc (0 valid, 2 a validity problem, see results/hil/run-$STAMP/HIL.md)"
+  fi
   echo "== confirmation (preregistered: 10 repetitions, 600 s per arm, frozen code)"
   set +e
   PHASE=confirm OUT="results/gpu/run-$STAMP" bash scripts/gpu_paired.sh
