@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-aa7c056de130",
- "written_at_commit": "aa7c056de1302f8a01fa32488209263ae37176ad",
- "written_at": "2026-10-02T19:47:56+00:00",
+ "release_id": "omni-compass-e7f920dc3fda",
+ "written_at_commit": "e7f920dc3fda78f46ccda378a5468f27ce48ae56",
+ "written_at": "2026-10-02T20:06:56+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -22,14 +22,14 @@
  "fingerprints": {
   "engine_sha256": "bd615f156169f6794b41439c4ce0726deb6a0b620fac76e072d24b357ab8b0a4",
   "cpp_sha256": "d7deead6f47d54d5b68e08b98db5e15ab54c7fbac8e7b9c24ee64cb1538a8c5c",
-  "controller_sha256": "a97741c040f96d674316f7bfe936bffbbb51a4bf0116e02677fb6cf6b3fd0648",
+  "controller_sha256": "7d0de794e5c3e9ab735594639215f5052de41b88edd20dc261f78acca7a4b933",
   "observation_map_sha256": "f3904a61c94d47f8fd783ca5d85792ce0f6e8ae7ccf827456fd9526d6c24ba8b",
   "authority_map_sha256": "7a39f51cc43a594da52ac7d549f0eb3554cbeff24ba10db642770cebc146f1c6",
   "actuator_map_sha256": "8b3ca00878c08850801ccfda3dce4e424d1baebcb486a95f2acdb13c8ced8934",
   "shield_sha256": "88de572557295e04eb1341e64de16b68d74e4f8fa7c2e8bbe9c1d9c0416ea6f5",
   "gpu_protocol_sha256": "6e83f41ff3dfdd07cde0f933d8730ea1e16025a8c455fe49569dfaa2890fd755",
   "preregistration_sha256": "f63b20091fabd8425be7815904b8fbe254dd904359594df420c67f1eb56f6570",
-  "test_suite_sha256": "cad5c6ef571623e263b33c0f0ca34898b2d1d1daa837bd77bb59e96434fa6a92"
+  "test_suite_sha256": "88ee4f8b462cf000fc1369d505da31cde512e56ed2d10fd160878ec4af2a0158"
  },
  "files": {
   "canonical_engine": {
@@ -167,7 +167,7 @@
  "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card",
  "verification_receipt": {
   "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "4ed9a6afa522eb753f6676422973d9fe2b6d079c770d23f189ee87c2ed7b1b4e",
+  "sha256": "5c73a1d42613cd83779f476a8fa16b57606fe4b863f97bd6a3ec6f1510fbcf96",
   "passed": true
  }
 }
