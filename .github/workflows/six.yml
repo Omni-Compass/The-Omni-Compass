@@ -9,6 +9,7 @@ on:
       runs_per_shard: {description: "Paired runs per shard (10 shards per organism)", default: "100"}
       scale: {description: "Copies of each organism on one clock (1, 10, 100, ...)", default: "1"}
       shards: {description: "Shard numbers, as a JSON list", default: "[0,1,2,3,4,5,6,7,8,9]"}
+      orgs: {description: "Organisms, as a JSON list of numbers 1-6", default: '["1","2","3","4","5","6"]'}
   push:
 jobs:
   shard:
@@ -17,7 +18,7 @@ jobs:
       fail-fast: false
       max-parallel: 20
       matrix:
-        org: ["1", "2", "3", "4", "5", "6"]
+        org: ${{ fromJSON(github.event.inputs.orgs || '["1","2","3","4","5","6"]') }}
         shard: ${{ fromJSON(github.event.inputs.shards || '[0,1,2,3,4,5,6,7,8,9]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 355
