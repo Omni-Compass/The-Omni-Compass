@@ -1,0 +1,44 @@
+name: six
+# The six organisms, native and Omni (tools/run_scale.py): the four realms, the four stacked with every duplicate kept
+# (1,226), and the whole tower (656). Each organism on its own runner, all at once; the receipts are joined at the end.
+# Started by hand (Actions -> six -> Run workflow) or by a commit message containing [six].
+on:
+  workflow_dispatch:
+    inputs:
+      runs: {description: "Paired runs per organism", default: "100"}
+      scale: {description: "Copies of each organism on one clock (1, 10, ...)", default: "1"}
+  push:
+jobs:
+  organism:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[six]')
+    strategy:
+      fail-fast: false
+      matrix: {org: ["1", "2", "3", "4", "5", "6"]}
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - run: python3 tools/run_scale.py --runs "${{ github.event.inputs.runs || '100' }}" --scale "${{ github.event.inputs.scale || '1' }}" --organisms "${{ matrix.org }}" --out "six-${{ matrix.org }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: "six-${{ matrix.org }}", path: "six-${{ matrix.org }}"}
+  receipts:
+    needs: organism
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: {path: parts}
+      - name: The six receipts in one table
+        run: |
+          {
+            echo "# Six organisms, native and Omni"; echo
+            head -n 7 parts/six-1/SCALE.md | tail -n +3; echo
+            sed -n '/^| # /,/^|---/p' parts/six-1/SCALE.md
+            for k in 1 2 3 4 5 6; do grep -h "^| $k |" parts/six-$k/SCALE.md || echo "| $k | (no result) |"; done
+          } | tee SIX.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with: {name: six-receipts, path: "SIX.md"}
