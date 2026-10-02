@@ -1,0 +1,80 @@
+area,control,system,setting,kind,source,checked
+storage_grid,battery charge / discharge power,SunSpec Modbus (storage models) / IEEE 1547,WChaMax / WDisChaMax / charge-discharge setpoint,power,https://sunspec.org/,doc
+storage_grid,state-of-charge reserve,SunSpec storage / EMS,MinRsvPct (minimum reserve),setpoint,https://sunspec.org/,doc
+storage_grid,grid import / export limit,IEEE 2030.5 / SunSpec,opModExpLimW / opModImpLimW; export limit,power,https://standards.ieee.org/ieee/2030.5/5897/,doc
+storage_grid,PV curtailment,SunSpec / IEEE 1547,WMaxLimPct (active power limit),power,https://sunspec.org/,doc
+storage_grid,volt-var,IEEE 1547-2018 / SunSpec,volt-var curve (Q vs V),setpoint,https://standards.ieee.org/ieee/1547/5915/,doc
+storage_grid,volt-watt,IEEE 1547-2018 / SunSpec,volt-watt curve,setpoint,https://standards.ieee.org/ieee/1547/5915/,doc
+storage_grid,frequency-watt (droop),IEEE 1547-2018 / SunSpec,frequency droop (dbOF dbUF kOF kUF),setpoint,https://standards.ieee.org/ieee/1547/5915/,doc
+storage_grid,constant power factor / reactive power,IEEE 1547-2018 / SunSpec,PF setpoint / VAr setpoint,setpoint,https://standards.ieee.org/ieee/1547/5915/,doc
+storage_grid,EV charging power,OCPP 2.0.1,SetChargingProfile limit (W or A),power,https://openchargealliance.org/protocols/open-charge-point-protocol/,doc
+storage_grid,heat pump / flexible load power,SG Ready / OpenADR / EEBus,load shift / power limit,power,https://www.openadr.org/,doc
+storage_grid,electrolyser power,plant EMS / Modbus,stack power setpoint,power,https://sunspec.org/,doc
+storage_grid,demand response event,OpenADR 2.0b / 3.0,EiEvent signals (SIMPLE level / LOAD_DISPATCH),admission,https://www.openadr.org/,doc
+storage_grid,peak shaving threshold,EMS,site demand limit (kW) for battery dispatch,power,https://www.openadr.org/,doc
+storage_grid,time-of-use schedule,EMS / IEEE 2030.5,tariff-driven charge/discharge schedule (TariffProfile),setpoint,https://standards.ieee.org/ieee/2030.5/5897/,doc
+storage_grid,flexible load admission / shed,OpenADR / BMS,load shed levels,admission,https://www.openadr.org/,doc
+storage_grid,islanding,IEEE 1547 / microgrid controller,intentional island / reconnect,protect,https://standards.ieee.org/ieee/1547/5915/,doc
+storage_grid,generator dispatch,microgrid controller / Modbus,genset start/stop and kW setpoint,capacity,https://sunspec.org/,doc
+storage_grid,emergency reserve,microgrid controller,backup reserve SoC,protect,https://sunspec.org/,doc
+facility,facility power budget,DCIM / EMS,site / IT power allocation,power,https://www.dmtf.org/standards/redfish,doc
+facility,utility demand limit,EMS / utility contract,demand ratchet limit,power,https://www.openadr.org/,doc
+facility,carbon / price gate,EMS / schedulers,carbon-intensity or price threshold,admission,https://github.com/Green-Software-Foundation/carbon-aware-sdk,doc
+facility,PUE target,DCIM,PUE setpoint (operational target),setpoint,https://www.thegreengrid.org/,doc
+facility,cooling power budget,DCIM / BMS,cooling plant kW limit,power,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+facility,grid frequency response,grid code / EMS,FFR / primary frequency response enable,protect,https://standards.ieee.org/ieee/1547/5915/,doc
+grid,capacitor bank switching,IEC 61850 / DNP3,capacitor bank on/off (CSWI XCBR),setpoint,https://webstore.iec.ch/en/publication/6028,doc
+grid,voltage regulator tap,IEC 61850 / DNP3,ATCC / YLTC tap position,setpoint,https://webstore.iec.ch/en/publication/6028,doc
+grid,transformer on-load tap changer,IEC 61850,YLTC TapPos / voltage band (ATCC BndCtr),setpoint,https://webstore.iec.ch/en/publication/6028,doc
+grid,feeder voltage target (CVR),DMS / VVO,conservation voltage reduction setpoint,setpoint,https://www.energy.gov/oe/grid-modernization,doc
+grid,feeder reconfiguration / load transfer,DMS / FLISR,switch open/close (XSWI),placement,https://webstore.iec.ch/en/publication/6028,doc
+grid,distributed storage dispatch,DERMS / IEEE 2030.5,DERControl (opModTargetW),power,https://standards.ieee.org/ieee/2030.5/5897/,doc
+grid,demand response dispatch,DERMS / OpenADR,DR event dispatch,admission,https://www.openadr.org/,doc
+grid,inverter active power,IEEE 2030.5 / SunSpec,opModTargetW / WMaxLimPct,power,https://standards.ieee.org/ieee/2030.5/5897/,doc
+grid,inverter reactive power,IEEE 2030.5 / SunSpec,opModTargetVar / fixed var,setpoint,https://standards.ieee.org/ieee/2030.5/5897/,doc
+grid,protection settings group,IEC 61850,setting group change (SGCB),protect,https://webstore.iec.ch/en/publication/6028,doc
+grid,restoration sequence,DMS / FLISR,restoration switching sequence,protect,https://www.energy.gov/oe/grid-modernization,doc
+process,PID setpoint,IEC 61131-3 PLC / DCS,SP of PID function block,setpoint,https://plcopen.org/,doc
+process,PID tuning,IEC 61131-3 PLC / DCS,Kp Ti Td of PID block,setpoint,https://plcopen.org/,doc
+process,controller mode,ISA-88 / DCS,AUTO / MANUAL / CASCADE,admission,https://www.isa.org/standards-and-publications/isa-standards/isa-88-standards,doc
+process,valve position,PLC / HART / Fieldbus,AO output % (final control element),setpoint,https://www.fieldcommgroup.org/,doc
+process,pump / compressor speed,PLC / VFD (Modbus / PROFINET),VFD speed reference,capacity,https://plcopen.org/,doc
+process,heater power,PLC / SCR controller,heater output %,power,https://plcopen.org/,doc
+process,batch recipe / phase,ISA-88,recipe parameters / phase commands (START HOLD ABORT),admission,https://www.isa.org/standards-and-publications/isa-standards/isa-88-standards,doc
+process,production rate / feed rate,MES / ISA-95,production order rate / feed setpoint,capacity,https://www.isa.org/standards-and-publications/isa-standards/isa-95-standard,doc
+process,alarm limits,ISA-18.2 / DCS,HH H L LL alarm setpoints,protect,https://www.isa.org/standards-and-publications/isa-standards/isa-18-standards,doc
+process,safety interlock / trip,IEC 61511 SIS,SIF trip setpoints (not writable by optimisers),protect,https://webstore.iec.ch/en/publication/24241,doc
+process,OPC UA writes,OPC UA,Write service on variable nodes,setpoint,https://opcfoundation.org/developer-tools/documents/,doc
+fab,tool job dispatch,SEMI E30 GEM / E40 / E94,process job / control job create and start,admission,https://www.semi.org/en/standards,doc
+fab,lot priority,MES,lot priority / hot lot,admission,https://www.semi.org/en/standards,doc
+fab,recipe selection,SEMI E30 / E40,process program (PPID) selection,setpoint,https://www.semi.org/en/standards,doc
+fab,chamber temperature / pressure / gas flow / RF power,tool recipe (SEMI E30 ECIDs),equipment constants / recipe steps,setpoint,https://www.semi.org/en/standards,doc
+fab,run-to-run control,APC (SEMI E133),R2R recipe adjustment,setpoint,https://www.semi.org/en/standards,doc
+fab,tool state / quarantine,SEMI E10 / E58,equipment state (UP DOWN ENGINEERING),protect,https://www.semi.org/en/standards,doc
+fab,idle / sleep mode,SEMI S23 / E175,equipment energy-saving (sleep) mode,power,https://www.semi.org/en/standards,doc
+fab,wafer routing / transfer,SEMI E87 / E90 / AMHS,carrier transfer and substrate routing,placement,https://www.semi.org/en/standards,doc
+fab,vacuum pump speed,sub-fab / SEMI S23,pump idle mode / speed,power,https://www.semi.org/en/standards,doc
+water,pump speed,SCADA / VFD,pump VFD speed setpoint,capacity,https://www.epa.gov/sustainable-water-infrastructure,doc
+water,pump scheduling / dispatch,SCADA / optimisation,pump on/off schedule (tariff-aware),capacity,https://www.epa.gov/sustainable-water-infrastructure,doc
+water,valve position,SCADA / PLC,control valve position / PRV setpoint,setpoint,https://www.epa.gov/sustainable-water-infrastructure,doc
+water,reservoir / tank level target,SCADA,tank level band,setpoint,https://www.epa.gov/sustainable-water-infrastructure,doc
+water,line pressure target,SCADA / pressure management,pressure setpoint (PRV / pump pressure),setpoint,https://www.epa.gov/sustainable-water-infrastructure,doc
+water,aeration rate / DO setpoint,wastewater SCADA,dissolved oxygen setpoint / blower speed,power,https://www.epa.gov/sustainable-water-infrastructure,doc
+water,chemical dose rate,SCADA,dosing pump rate (flow-paced),setpoint,https://www.epa.gov/sustainable-water-infrastructure,doc
+water,filter backwash,SCADA,backwash initiation (headloss / time),admission,https://www.epa.gov/sustainable-water-infrastructure,doc
+water,leak isolation,SCADA,valve closure for isolation,protect,https://www.epa.gov/sustainable-water-infrastructure,doc
+water,demand restriction,utility operations,demand management stage,admission,https://www.epa.gov/sustainable-water-infrastructure,doc
+building,zone temperature setpoint,BACnet (ASHRAE 135) / Guideline 36,zone heating / cooling setpoints (occupied / unoccupied),setpoint,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+building,setpoint reset (trim and respond),ASHRAE Guideline 36,supply air temperature / static pressure reset,setpoint,https://www.ashrae.org/technical-resources/standards-and-guidelines,doc
+building,duct static pressure setpoint,ASHRAE Guideline 36,static pressure setpoint,setpoint,https://www.ashrae.org/technical-resources/standards-and-guidelines,doc
+building,zone airflow,BACnet VAV box,VAV airflow setpoint (min / max),capacity,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+building,AHU fan speed,BACnet / VFD,supply fan speed,capacity,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+building,damper / economiser position,BACnet,outdoor air damper position / economiser enable,setpoint,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+building,boiler / hot water setpoint,BACnet,hot water supply temperature setpoint,setpoint,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+building,heat pump mode,BACnet,heat / cool / auto mode,setpoint,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+building,humidity setpoint,BACnet,humidity setpoint,setpoint,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+building,occupancy-based ventilation,ASHRAE 62.1 / Guideline 36,demand-controlled ventilation (CO2),setpoint,https://www.ashrae.org/technical-resources/standards-and-guidelines,doc
+building,building demand limit,BACnet / OpenADR,demand limiting level (global setpoint adjustment),power,https://www.openadr.org/,doc
+building,thermal storage dispatch,BMS,ice / chilled-water storage charge-discharge,capacity,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+building,optimal start / stop,BMS,optimal start time,setpoint,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+building,emergency mode,BMS / fire system,smoke control / emergency shutdown,protect,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc

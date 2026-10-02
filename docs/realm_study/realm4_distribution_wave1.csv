@@ -1,0 +1,108 @@
+area,control,system,setting,kind,source,checked
+mesh,circuit breaker thresholds,Envoy / Istio,cluster circuit_breakers (max_connections max_pending_requests max_requests max_retries),admission,https://www.envoyproxy.io/docs/envoy/latest/,doc
+mesh,outlier ejection,Envoy / Istio,outlier_detection (consecutive_5xx base_ejection_time max_ejection_percent),protect,https://istio.io/latest/docs/reference/config/networking/destination-rule/,doc
+mesh,retry policy / budget,Envoy / Istio,retries attempts perTryTimeout / retry_budget,admission,https://istio.io/latest/docs/reference/config/networking/virtual-service/,doc
+mesh,request timeout,Envoy / Istio,route timeout,protect,https://istio.io/latest/docs/reference/config/networking/virtual-service/,doc
+mesh,connection pool,Istio DestinationRule,connectionPool.tcp.maxConnections / http.http2MaxRequests,capacity,https://istio.io/latest/docs/reference/config/networking/destination-rule/,doc
+mesh,traffic split / canary,Istio VirtualService / Argo Rollouts,route weight / setWeight steps,placement,https://argoproj.github.io/argo-rollouts/,doc
+mesh,traffic mirroring,Istio VirtualService,mirror / mirrorPercentage,placement,https://istio.io/latest/docs/reference/config/networking/virtual-service/,doc
+mesh,load-balancing policy,Istio DestinationRule,loadBalancer (ROUND_ROBIN LEAST_REQUEST consistentHash),placement,https://istio.io/latest/docs/reference/config/networking/destination-rule/,doc
+mesh,locality failover,Istio DestinationRule,localityLbSetting failover / distribute,protect,https://istio.io/latest/docs/reference/config/networking/destination-rule/,doc
+mesh,request hedging,Envoy,hedge_policy,admission,https://www.envoyproxy.io/docs/envoy/latest/,doc
+mesh,fault injection gate,Istio VirtualService,fault (delay abort) enable,protect,https://istio.io/latest/docs/reference/config/networking/virtual-service/,doc
+mesh,session affinity,Kubernetes Service / Istio,sessionAffinity ClientIP / consistentHash httpCookie,placement,https://kubernetes.io/docs/reference/networking/virtual-ips/,doc
+database,connection limit,PostgreSQL,max_connections,admission,https://www.postgresql.org/docs/current/runtime-config-connection.html,doc
+database,shared buffer cache,PostgreSQL,shared_buffers,capacity,https://www.postgresql.org/docs/current/runtime-config-resource.html,doc
+database,working memory,PostgreSQL,work_mem / maintenance_work_mem,capacity,https://www.postgresql.org/docs/current/runtime-config-resource.html,doc
+database,parallel workers,PostgreSQL,max_parallel_workers_per_gather / max_worker_processes,capacity,https://www.postgresql.org/docs/current/runtime-config-resource.html,doc
+database,checkpoint pacing,PostgreSQL,checkpoint_timeout / max_wal_size / checkpoint_completion_target,setpoint,https://www.postgresql.org/docs/current/runtime-config-wal.html,doc
+database,vacuum / compaction rate,PostgreSQL,autovacuum_vacuum_cost_limit / autovacuum_max_workers,setpoint,https://www.postgresql.org/docs/current/runtime-config-autovacuum.html,doc
+database,background writer,PostgreSQL,bgwriter_lru_maxpages / bgwriter_delay,setpoint,https://www.postgresql.org/docs/current/runtime-config-resource.html,doc
+database,statement / lock timeout,PostgreSQL,statement_timeout / lock_timeout,protect,https://www.postgresql.org/docs/current/runtime-config-client.html,doc
+database,synchronous replication,PostgreSQL,synchronous_commit / synchronous_standby_names,protect,https://www.postgresql.org/docs/current/runtime-config-replication.html,doc
+database,read replicas / routing,PostgreSQL operators (CloudNativePG) / proxies,instances / read-only service routing,capacity,https://cloudnative-pg.io/documentation/,doc
+database,connection pooler,PgBouncer,pool_mode / default_pool_size / max_client_conn,capacity,https://www.pgbouncer.org/config.html,doc
+database,buffer pool,MySQL InnoDB,innodb_buffer_pool_size,capacity,https://dev.mysql.com/doc/refman/8.0/en/innodb-parameters.html,doc
+database,IO capacity,MySQL InnoDB,innodb_io_capacity / innodb_io_capacity_max,setpoint,https://dev.mysql.com/doc/refman/8.0/en/innodb-parameters.html,doc
+database,thread concurrency,MySQL InnoDB,innodb_thread_concurrency,admission,https://dev.mysql.com/doc/refman/8.0/en/innodb-parameters.html,doc
+database,replication lag gate,MySQL / PostgreSQL proxies,max replica lag before routing away,protect,https://proxysql.com/documentation/,doc
+database,failover,Patroni / Orchestrator / CloudNativePG,switchover / failover,protect,https://patroni.readthedocs.io/,doc
+database,shard placement,Vitess / Citus,reshard / move shard,placement,https://vitess.io/docs/,doc
+database,write throttling,Vitess tablet throttler / app,throttler threshold (replication lag),admission,https://vitess.io/docs/,doc
+messaging,partition count,Apache Kafka,num.partitions / topic partitions,capacity,https://kafka.apache.org/documentation/#configuration,doc
+messaging,replication factor,Apache Kafka,replication.factor / min.insync.replicas,protect,https://kafka.apache.org/documentation/#configuration,doc
+messaging,retention,Apache Kafka,retention.ms / retention.bytes,capacity,https://kafka.apache.org/documentation/#configuration,doc
+messaging,producer batching,Apache Kafka,batch.size / linger.ms / compression.type,setpoint,https://kafka.apache.org/documentation/#producerconfigs,doc
+messaging,consumer fetch,Apache Kafka,fetch.min.bytes / fetch.max.wait.ms / max.poll.records,setpoint,https://kafka.apache.org/documentation/#consumerconfigs,doc
+messaging,client quotas,Apache Kafka,producer_byte_rate / consumer_byte_rate / request_percentage,admission,https://kafka.apache.org/documentation/#design_quotas,doc
+messaging,broker IO / network threads,Apache Kafka,num.io.threads / num.network.threads,capacity,https://kafka.apache.org/documentation/#brokerconfigs,doc
+messaging,replica throttling / rebalance rate,Apache Kafka / Cruise Control,leader.replication.throttled.rate / reassignment throttle,setpoint,https://github.com/linkedin/cruise-control,doc
+messaging,partition placement,Cruise Control,goals-based rebalance,placement,https://github.com/linkedin/cruise-control,doc
+messaging,consumer concurrency,KEDA Kafka scaler / app,consumer replicas (lagThreshold),capacity,https://keda.sh/docs/latest/scalers/apache-kafka/,doc
+messaging,queue length limit,RabbitMQ,x-max-length / overflow (reject-publish drop-head),admission,https://www.rabbitmq.com/docs/maxlength,doc
+messaging,prefetch,RabbitMQ,basic.qos prefetch_count,setpoint,https://www.rabbitmq.com/docs/consumer-prefetch,doc
+messaging,memory / disk alarm,RabbitMQ,vm_memory_high_watermark / disk_free_limit,protect,https://www.rabbitmq.com/docs/alarms,doc
+messaging,dead-letter divert,RabbitMQ / Kafka,dead-letter-exchange / DLQ topic,protect,https://www.rabbitmq.com/docs/dlx,doc
+messaging,retry backoff,Kafka clients / RabbitMQ,retry.backoff.ms / delayed retry,setpoint,https://kafka.apache.org/documentation/#producerconfigs,doc
+cache,memory limit,Redis,maxmemory,capacity,https://redis.io/docs/latest/operate/oss_and_stack/management/config/,doc
+cache,eviction policy,Redis,maxmemory-policy (allkeys-lru volatile-lfu ...),setpoint,https://redis.io/docs/latest/develop/reference/eviction/,doc
+cache,TTL,Redis / CDN,EXPIRE / Cache-Control max-age,setpoint,https://redis.io/docs/latest/commands/expire/,doc
+cache,replicas / shards,Redis Cluster / operators,replicas per primary / shard count,capacity,https://redis.io/docs/latest/operate/oss_and_stack/management/scaling/,doc
+cache,persistence / writeback,Redis,appendfsync / save,setpoint,https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/,doc
+cache,client connection limit,Redis,maxclients,admission,https://redis.io/docs/latest/operate/oss_and_stack/management/config/,doc
+cache,memory size / threads,Memcached,-m (memory) / -t (threads) / -c (connections),capacity,https://github.com/memcached/memcached/wiki,doc
+cache,hot key handling,Redis / proxies,client-side caching / key splitting,placement,https://redis.io/docs/latest/develop/reference/client-side-caching/,doc
+search,index refresh interval,Elasticsearch / OpenSearch,index.refresh_interval,setpoint,https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html,doc
+search,shards / replicas,Elasticsearch / OpenSearch,index.number_of_shards / number_of_replicas,capacity,https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html,doc
+search,merge rate,Elasticsearch,index.merge.scheduler.max_thread_count,setpoint,https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules-merge.html,doc
+search,shard allocation / rebalance,Elasticsearch,cluster.routing.allocation.* (awareness balance),placement,https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-cluster.html,doc
+search,thread pools / queues,Elasticsearch,thread_pool.search.size / queue_size,admission,https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-threadpool.html,doc
+search,circuit breakers,Elasticsearch,indices.breaker.total.limit,protect,https://www.elastic.co/guide/en/elasticsearch/reference/current/circuit-breaker.html,doc
+search,search timeout,Elasticsearch,search timeout / search.default_search_timeout,protect,https://www.elastic.co/guide/en/elasticsearch/reference/current/search-your-data.html,doc
+search,vector search k / candidates,Elasticsearch / OpenSearch / Milvus,knn k / num_candidates / ef_search / nprobe,setpoint,https://www.elastic.co/guide/en/elasticsearch/reference/current/knn-search.html,doc
+search,index build parameters,HNSW (Milvus / FAISS / OpenSearch),M / ef_construction,capacity,https://milvus.io/docs,doc
+analytics,executor size,Apache Spark,spark.executor.memory / spark.executor.cores,capacity,https://spark.apache.org/docs/latest/configuration.html,doc
+analytics,dynamic allocation,Apache Spark,spark.dynamicAllocation.minExecutors / maxExecutors / executorIdleTimeout,capacity,https://spark.apache.org/docs/latest/configuration.html#dynamic-allocation,doc
+analytics,shuffle partitions,Apache Spark,spark.sql.shuffle.partitions / AQE (spark.sql.adaptive.enabled),setpoint,https://spark.apache.org/docs/latest/sql-performance-tuning.html,doc
+analytics,memory fraction,Apache Spark,spark.memory.fraction / storageFraction,setpoint,https://spark.apache.org/docs/latest/configuration.html,doc
+analytics,locality wait,Apache Spark,spark.locality.wait,setpoint,https://spark.apache.org/docs/latest/configuration.html,doc
+analytics,speculation,Apache Spark,spark.speculation,admission,https://spark.apache.org/docs/latest/configuration.html,doc
+analytics,stream backpressure,Spark Streaming / Flink,spark.streaming.backpressure.enabled / Flink buffer timeout,admission,https://nightlies.apache.org/flink/flink-docs-stable/,doc
+analytics,parallelism,Apache Flink,parallelism.default / operator parallelism / reactive mode,capacity,https://nightlies.apache.org/flink/flink-docs-stable/,doc
+analytics,checkpoint interval,Apache Flink,execution.checkpointing.interval,protect,https://nightlies.apache.org/flink/flink-docs-stable/,doc
+analytics,query slots / concurrency,Trino / warehouses,query.max-concurrent / resource groups,admission,https://trino.io/docs/current/admin/resource-groups.html,doc
+runtime,worker / process count,Gunicorn / uWSGI / Node cluster / PHP-FPM,workers / pm.max_children,capacity,https://docs.gunicorn.org/en/stable/settings.html,doc
+runtime,thread pool size,Tomcat / Jetty / .NET,maxThreads / ThreadPool min/max,capacity,https://tomcat.apache.org/tomcat-10.1-doc/config/executor.html,doc
+runtime,JVM heap,OpenJDK,-Xmx / -XX:MaxRAMPercentage,capacity,https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html,doc
+runtime,GC pause target,OpenJDK G1 / ZGC,-XX:MaxGCPauseMillis / GC choice,setpoint,https://docs.oracle.com/en/java/javase/21/gctuning/,doc
+runtime,Go runtime,Go,GOMAXPROCS / GOGC / GOMEMLIMIT,capacity,https://pkg.go.dev/runtime,doc
+runtime,app connection pool,HikariCP / database drivers,maximumPoolSize / connectionTimeout,capacity,https://github.com/brettwooldridge/HikariCP,doc
+runtime,request timeout,app servers / NGINX,proxy_read_timeout / server timeouts,protect,https://nginx.org/en/docs/,doc
+runtime,keepalive / connection reuse,NGINX / Envoy,keepalive_timeout / idle_timeout,setpoint,https://nginx.org/en/docs/,doc
+runtime,application cache size,app frameworks (Caffeine etc.),maximumSize / expireAfterWrite,capacity,https://github.com/ben-manes/caffeine,doc
+runtime,async concurrency,event loops / executors,semaphore / max in-flight,admission,https://docs.python.org/3/library/asyncio-sync.html,doc
+commerce,payment retry with backoff,payment APIs (Stripe / Adyen),retry with idempotency keys,admission,https://docs.stripe.com/api/idempotent_requests,doc
+commerce,idempotency window,payment APIs,idempotency key retention,protect,https://docs.stripe.com/api/idempotent_requests,doc
+commerce,processor routing weights,payment orchestration,acquirer / processor routing rules,placement,https://docs.adyen.com/,doc
+commerce,fraud review gate,risk engines (Stripe Radar),risk score thresholds / manual review,admission,https://docs.stripe.com/radar,doc
+commerce,checkout load shedding / queueing,waiting rooms (Cloudflare / AWS),virtual waiting room thresholds,admission,https://developers.cloudflare.com/waiting-room/,doc
+commerce,inventory hold / reservation timeout,commerce platforms,cart reservation TTL,setpoint,https://docs.stripe.com/api/idempotent_requests,doc
+commerce,settlement batching,payment operations,payout / settlement schedule,setpoint,https://docs.stripe.com/payouts,doc
+commerce,payment failover,payment orchestration,fallback processor on errors,protect,https://docs.adyen.com/,doc
+workflow,worker concurrency,Temporal / Celery / Sidekiq,maxConcurrentActivityExecutionSize / worker_concurrency,capacity,https://docs.temporal.io/,doc
+workflow,task queue rate limit,Temporal / Celery,taskQueueActivitiesPerSecond / rate_limit,admission,https://docs.temporal.io/,doc
+workflow,retry policy,Temporal,RetryPolicy (initialInterval backoffCoefficient maximumAttempts),admission,https://docs.temporal.io/,doc
+workflow,timeouts,Temporal,ScheduleToClose / StartToClose / heartbeat timeout,protect,https://docs.temporal.io/,doc
+workflow,compensation (saga),Temporal / Step Functions,compensating activities,protect,https://docs.temporal.io/,doc
+workflow,dispatch priority,WMS / TMS / queues,order priority / wave planning,admission,https://docs.temporal.io/,doc
+workflow,carrier selection / route replan,TMS / routing solvers (OR-Tools),carrier rules / vehicle routing re-solve,placement,https://developers.google.com/optimization,doc
+workflow,shipment batching,WMS,wave / batch size,setpoint,https://developers.google.com/optimization,doc
+telecom,cell sleep / carrier shutdown,O-RAN (energy saving rApps) / 3GPP,cell / carrier on-off (ES),capacity,https://www.o-ran.org/specifications,doc
+telecom,transmit power,3GPP / O-RAN,maximum transmit power / power reduction,power,https://www.3gpp.org/specifications-technologies,doc
+telecom,antenna tilt,3GPP SON / O-RAN,remote electrical tilt (RET),setpoint,https://www.3gpp.org/specifications-technologies,doc
+telecom,traffic steering / handover parameters,3GPP / O-RAN TS rApp,handover offsets (CIO) / A3 thresholds,placement,https://www.o-ran.org/specifications,doc
+telecom,slice resource budget,3GPP / O-RAN,slice PRB quota (RRM policy ratio),capacity,https://www.o-ran.org/specifications,doc
+telecom,scheduler weight,RAN MAC scheduler,proportional-fair weights / QoS priorities,admission,https://www.3gpp.org/specifications-technologies,doc
+telecom,connection admission,3GPP RRC,admission control thresholds,admission,https://www.3gpp.org/specifications-technologies,doc
+telecom,DU / CU placement,O-RAN / cloud RAN,DU and CU function placement,placement,https://www.o-ran.org/specifications,doc
+telecom,fronthaul budget,O-RAN fronthaul,compression / bandwidth configuration,capacity,https://www.o-ran.org/specifications,doc

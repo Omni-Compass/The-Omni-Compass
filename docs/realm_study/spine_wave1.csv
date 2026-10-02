@@ -1,0 +1,196 @@
+area,control,system,setting,kind,source,checked
+k8s_workload,replica count,Kubernetes Deployment/StatefulSet,spec.replicas,capacity,https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/deployment-v1/,doc
+k8s_workload,HPA min replicas,Kubernetes HPA v2,spec.minReplicas,capacity,https://kubernetes.io/docs/reference/kubernetes-api/autoscaling/horizontal-pod-autoscaler-v2/,doc
+k8s_workload,HPA max replicas,Kubernetes HPA v2,spec.maxReplicas,capacity,https://kubernetes.io/docs/reference/kubernetes-api/autoscaling/horizontal-pod-autoscaler-v2/,doc
+k8s_workload,HPA CPU utilisation target,Kubernetes HPA v2,spec.metrics[].resource.target.averageUtilization (cpu),setpoint,https://kubernetes.io/docs/reference/kubernetes-api/autoscaling/horizontal-pod-autoscaler-v2/,doc
+k8s_workload,HPA memory target,Kubernetes HPA v2,spec.metrics[].resource.target (memory),setpoint,https://kubernetes.io/docs/reference/kubernetes-api/autoscaling/horizontal-pod-autoscaler-v2/,doc
+k8s_workload,HPA custom / external metric target,Kubernetes HPA v2,spec.metrics[].pods|object|external.target,setpoint,https://kubernetes.io/docs/reference/kubernetes-api/autoscaling/horizontal-pod-autoscaler-v2/,doc
+k8s_workload,HPA scale-down stabilisation window,Kubernetes HPA v2,spec.behavior.scaleDown.stabilizationWindowSeconds (default 300),setpoint,https://kubernetes.io/docs/reference/kubernetes-api/autoscaling/horizontal-pod-autoscaler-v2/,web
+k8s_workload,HPA scale-up stabilisation window,Kubernetes HPA v2,spec.behavior.scaleUp.stabilizationWindowSeconds (default 0),setpoint,https://kubernetes.io/docs/reference/kubernetes-api/autoscaling/horizontal-pod-autoscaler-v2/,web
+k8s_workload,HPA scaling rate policies,Kubernetes HPA v2,spec.behavior.scaleUp|scaleDown.policies[] (Pods/Percent per periodSeconds),setpoint,https://kubernetes.io/docs/reference/kubernetes-api/autoscaling/horizontal-pod-autoscaler-v2/,doc
+k8s_workload,HPA policy selection,Kubernetes HPA v2,spec.behavior.*.selectPolicy (Max|Min|Disabled),admission,https://kubernetes.io/docs/reference/kubernetes-api/autoscaling/horizontal-pod-autoscaler-v2/,web
+k8s_workload,HPA tolerance,kube-controller-manager / HPA v2,--horizontal-pod-autoscaler-tolerance (default 0.1); spec.behavior.*.tolerance (1.33+),setpoint,https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/,doc
+k8s_workload,HPA sync period,kube-controller-manager,--horizontal-pod-autoscaler-sync-period (default 15s),setpoint,https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/,doc
+k8s_workload,VPA update mode,Vertical Pod Autoscaler,spec.updatePolicy.updateMode (Off|Initial|Recreate|InPlaceOrRecreate),admission,https://github.com/kubernetes/autoscaler/tree/master/vertical-pod-autoscaler,doc
+k8s_workload,VPA min/max allowed resources,Vertical Pod Autoscaler,spec.resourcePolicy.containerPolicies[].minAllowed|maxAllowed,capacity,https://github.com/kubernetes/autoscaler/tree/master/vertical-pod-autoscaler,doc
+k8s_workload,KEDA trigger threshold,KEDA ScaledObject,spec.triggers[].metadata (threshold / activationThreshold),setpoint,https://keda.sh/docs/latest/reference/scaledobject-spec/,doc
+k8s_workload,scale to zero / idle replicas,KEDA ScaledObject,spec.minReplicaCount=0; spec.idleReplicaCount; spec.cooldownPeriod,capacity,https://keda.sh/docs/latest/reference/scaledobject-spec/,doc
+k8s_workload,KEDA polling interval,KEDA ScaledObject,spec.pollingInterval,setpoint,https://keda.sh/docs/latest/reference/scaledobject-spec/,doc
+k8s_workload,rollout surge,Kubernetes Deployment,spec.strategy.rollingUpdate.maxSurge,capacity,https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/deployment-v1/,doc
+k8s_workload,rollout unavailability,Kubernetes Deployment,spec.strategy.rollingUpdate.maxUnavailable,admission,https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/deployment-v1/,doc
+k8s_workload,rollout pause / resume,Kubernetes Deployment,spec.paused,admission,https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/deployment-v1/,doc
+k8s_workload,rollout progress deadline,Kubernetes Deployment,spec.progressDeadlineSeconds,protect,https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/deployment-v1/,doc
+k8s_workload,rollout readiness delay,Kubernetes Deployment,spec.minReadySeconds,protect,https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/deployment-v1/,doc
+k8s_workload,rollback,Kubernetes Deployment,kubectl rollout undo (revisionHistoryLimit),protect,https://kubernetes.io/docs/concepts/workloads/controllers/deployment/,doc
+k8s_workload,disruption budget,Kubernetes PodDisruptionBudget,spec.minAvailable | spec.maxUnavailable,protect,https://kubernetes.io/docs/reference/kubernetes-api/policy-resources/pod-disruption-budget-v1/,doc
+k8s_workload,unhealthy pod eviction policy,Kubernetes PodDisruptionBudget,spec.unhealthyPodEvictionPolicy,protect,https://kubernetes.io/docs/reference/kubernetes-api/policy-resources/pod-disruption-budget-v1/,doc
+k8s_workload,pod eviction,Kubernetes Eviction API,POST pods/{name}/eviction,capacity,https://kubernetes.io/docs/concepts/scheduling-eviction/api-eviction/,doc
+k8s_workload,API priority and fairness,Kubernetes API server,FlowSchema / PriorityLevelConfiguration (nominalConcurrencyShares),admission,https://kubernetes.io/docs/concepts/cluster-administration/flow-control/,doc
+k8s_workload,graceful termination,Kubernetes Pod,spec.terminationGracePeriodSeconds; preStop hook,protect,https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/,doc
+k8s_workload,probes,Kubernetes Pod,containers[].readinessProbe|livenessProbe|startupProbe (periodSeconds failureThreshold),protect,https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/,doc
+k8s_container,CPU request,Kubernetes Pod,containers[].resources.requests.cpu,capacity,https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/,doc
+k8s_container,CPU limit,Kubernetes Pod,containers[].resources.limits.cpu (CFS quota),power,https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/,doc
+k8s_container,memory request,Kubernetes Pod,containers[].resources.requests.memory,capacity,https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/,doc
+k8s_container,memory limit,Kubernetes Pod,containers[].resources.limits.memory,capacity,https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/,doc
+k8s_container,in-place resize,Kubernetes Pod,pods/{name}/resize subresource; containers[].resizePolicy,capacity,https://kubernetes.io/docs/tasks/configure-pod-container/resize-container-resources/,doc
+k8s_container,ephemeral storage,Kubernetes Pod,resources.requests|limits.ephemeral-storage,capacity,https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/,doc
+k8s_container,hugepages,Kubernetes Pod,resources.limits.hugepages-<size>,capacity,https://kubernetes.io/docs/tasks/manage-hugepages/scheduling-hugepages/,doc
+k8s_container,extended / device resources,Kubernetes Pod,resources.limits.nvidia.com/gpu (device plugin),capacity,https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/,doc
+k8s_container,QoS class,Kubernetes Pod,derived from requests=limits (Guaranteed|Burstable|BestEffort),admission,https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/,doc
+k8s_container,runtime class,Kubernetes Pod,spec.runtimeClassName,placement,https://kubernetes.io/docs/concepts/containers/runtime-class/,doc
+k8s_container,namespace quota,Kubernetes ResourceQuota,spec.hard (requests.cpu limits.cpu pods ...),admission,https://kubernetes.io/docs/concepts/policy/resource-quotas/,doc
+k8s_container,default limits,Kubernetes LimitRange,spec.limits[] (default defaultRequest max min),capacity,https://kubernetes.io/docs/concepts/policy/limit-range/,doc
+cgroup,CPU quota,Linux cgroup v2,cpu.max,power,https://docs.kernel.org/admin-guide/cgroup-v2.html,doc
+cgroup,CPU weight,Linux cgroup v2,cpu.weight,setpoint,https://docs.kernel.org/admin-guide/cgroup-v2.html,doc
+cgroup,CPU set,Linux cgroup v2,cpuset.cpus / cpuset.mems,placement,https://docs.kernel.org/admin-guide/cgroup-v2.html,doc
+cgroup,memory hard limit,Linux cgroup v2,memory.max,capacity,https://docs.kernel.org/admin-guide/cgroup-v2.html,doc
+cgroup,memory throttle point,Linux cgroup v2,memory.high,capacity,https://docs.kernel.org/admin-guide/cgroup-v2.html,doc
+cgroup,memory protection,Linux cgroup v2,memory.min / memory.low,protect,https://docs.kernel.org/admin-guide/cgroup-v2.html,doc
+cgroup,proactive reclaim,Linux cgroup v2,memory.reclaim,capacity,https://docs.kernel.org/admin-guide/cgroup-v2.html,doc
+cgroup,swap limit,Linux cgroup v2,memory.swap.max,capacity,https://docs.kernel.org/admin-guide/cgroup-v2.html,doc
+cgroup,IO limit,Linux cgroup v2,io.max (rbps wbps riops wiops),capacity,https://docs.kernel.org/admin-guide/cgroup-v2.html,doc
+cgroup,IO weight,Linux cgroup v2,io.weight,setpoint,https://docs.kernel.org/admin-guide/cgroup-v2.html,doc
+cgroup,IO latency target,Linux cgroup v2,io.latency,setpoint,https://docs.kernel.org/admin-guide/cgroup-v2.html,doc
+cgroup,process limit,Linux cgroup v2,pids.max,admission,https://docs.kernel.org/admin-guide/cgroup-v2.html,doc
+cgroup,freeze,Linux cgroup v2,cgroup.freeze,admission,https://docs.kernel.org/admin-guide/cgroup-v2.html,doc
+k8s_sched,node selector,Kubernetes Pod,spec.nodeSelector,placement,https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/,doc
+k8s_sched,node affinity,Kubernetes Pod,spec.affinity.nodeAffinity,placement,https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/,doc
+k8s_sched,pod (anti-)affinity,Kubernetes Pod,spec.affinity.podAffinity|podAntiAffinity,placement,https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/,doc
+k8s_sched,topology spread,Kubernetes Pod,spec.topologySpreadConstraints (maxSkew whenUnsatisfiable),placement,https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/,doc
+k8s_sched,taints and tolerations,Kubernetes Node/Pod,node.spec.taints; pod.spec.tolerations,placement,https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/,doc
+k8s_sched,priority class,Kubernetes PriorityClass,value; preemptionPolicy,admission,https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/,doc
+k8s_sched,scheduler scoring strategy,kube-scheduler config,NodeResourcesFit scoringStrategy (LeastAllocated|MostAllocated|RequestedToCapacityRatio),placement,https://kubernetes.io/docs/reference/scheduling/config/,doc
+k8s_sched,scheduler plugin weights,kube-scheduler config,profiles[].plugins.score weights,placement,https://kubernetes.io/docs/reference/scheduling/config/,doc
+k8s_sched,scheduler backoff,kube-scheduler config,podInitialBackoffSeconds / podMaxBackoffSeconds,setpoint,https://kubernetes.io/docs/reference/scheduling/config/,doc
+k8s_sched,scheduling gates,Kubernetes Pod,spec.schedulingGates,admission,https://kubernetes.io/docs/concepts/scheduling-eviction/pod-scheduling-readiness/,doc
+k8s_sched,descheduler,kubernetes-sigs/descheduler,LowNodeUtilization / HighNodeUtilization thresholds,placement,https://github.com/kubernetes-sigs/descheduler,doc
+k8s_sched,topology manager (NUMA),kubelet,topologyManagerPolicy (none|best-effort|restricted|single-numa-node),placement,https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/,doc
+k8s_sched,CPU manager,kubelet,cpuManagerPolicy (none|static),placement,https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/,doc
+k8s_sched,gang scheduling,Kueue / Volcano,Workload admission (Kueue ClusterQueue) / PodGroup minMember (Volcano),admission,https://kueue.sigs.k8s.io/docs/,doc
+nodes,node pool size,Cluster Autoscaler,node group min/max size,capacity,https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md,doc
+nodes,scale-down utilisation threshold,Cluster Autoscaler,--scale-down-utilization-threshold (default 0.5),setpoint,https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md,doc
+nodes,scale-down unneeded time,Cluster Autoscaler,--scale-down-unneeded-time (default 10m),setpoint,https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md,doc
+nodes,scale-down delay after add,Cluster Autoscaler,--scale-down-delay-after-add (default 10m),setpoint,https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md,doc
+nodes,expander,Cluster Autoscaler,--expander (random|most-pods|least-waste|price|priority),placement,https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md,doc
+nodes,node pool limits,Karpenter NodePool,spec.limits (cpu memory),capacity,https://karpenter.sh/docs/concepts/nodepools/,doc
+nodes,consolidation policy,Karpenter NodePool,spec.disruption.consolidationPolicy (WhenEmpty|WhenEmptyOrUnderutilized),capacity,https://karpenter.sh/docs/concepts/disruption/,doc
+nodes,consolidate after,Karpenter NodePool,spec.disruption.consolidateAfter,setpoint,https://karpenter.sh/docs/concepts/disruption/,doc
+nodes,disruption budgets,Karpenter NodePool,spec.disruption.budgets[] (nodes schedule duration),protect,https://karpenter.sh/docs/concepts/disruption/,doc
+nodes,node expiry,Karpenter NodePool,spec.template.spec.expireAfter,protect,https://karpenter.sh/docs/concepts/disruption/,doc
+nodes,node pool weight,Karpenter NodePool,spec.weight,placement,https://karpenter.sh/docs/concepts/nodepools/,doc
+nodes,instance requirements,Karpenter NodePool,spec.template.spec.requirements (instance-type capacity-type arch zone),placement,https://karpenter.sh/docs/concepts/nodepools/,doc
+nodes,cordon / uncordon,Kubernetes Node,spec.unschedulable,admission,https://kubernetes.io/docs/concepts/architecture/nodes/,doc
+nodes,drain,kubectl,kubectl drain (respects PDBs),capacity,https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/,doc
+nodes,node power off / on,Redfish / IPMI / cloud API,ComputerSystem.Reset (On|ForceOff|GracefulShutdown) / StopInstances|StartInstances,capacity,https://www.dmtf.org/standards/redfish,doc
+nodes,kubelet eviction thresholds,kubelet config,evictionHard / evictionSoft (memory.available nodefs.available),protect,https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/,doc
+nodes,kubelet reserved resources,kubelet config,kubeReserved / systemReserved,capacity,https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/,doc
+nodes,max pods per node,kubelet config,maxPods,capacity,https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/,doc
+vm,group size,AWS Auto Scaling / Azure VMSS / GCP MIG,DesiredCapacity MinSize MaxSize / capacity / targetSize,capacity,https://docs.aws.amazon.com/autoscaling/ec2/userguide/,doc
+vm,instance type / size,AWS EC2 / Azure / GCP,InstanceType / vmSize / machineType,capacity,https://docs.aws.amazon.com/ec2/latest/instancetypes/,doc
+vm,spot / on-demand mix,AWS Auto Scaling,MixedInstancesPolicy.InstancesDistribution (OnDemandPercentageAboveBaseCapacity),capacity,https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-mixed-instances-groups.html,doc
+vm,target tracking policy,AWS Auto Scaling,TargetTrackingConfiguration.TargetValue,setpoint,https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html,doc
+vm,scaling cooldown / warmup,AWS Auto Scaling,DefaultCooldown / DefaultInstanceWarmup,setpoint,https://docs.aws.amazon.com/autoscaling/ec2/userguide/,doc
+vm,start / stop / hibernate,AWS EC2 / Azure / GCP,StartInstances StopInstances (Hibernate),capacity,https://docs.aws.amazon.com/AWSEC2/latest/APIReference/,doc
+vm,placement group,AWS EC2,PlacementGroup Strategy (cluster|spread|partition),placement,https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html,doc
+vm,zone / region choice,all clouds,AvailabilityZones / zones / region,placement,https://docs.aws.amazon.com/autoscaling/ec2/userguide/,doc
+vm,live migration,VMware vMotion / KVM virsh migrate / GCP live migration,MigrateVM / onHostMaintenance,placement,https://libvirt.org/migration.html,doc
+vm,spot interruption response,AWS EC2 / Karpenter,interruption notice handling (2-minute warning),protect,https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-instance-termination-notices.html,doc
+cpu,frequency ceiling,Linux cpufreq,scaling_max_freq,power,https://docs.kernel.org/admin-guide/pm/cpufreq.html,doc
+cpu,frequency floor,Linux cpufreq,scaling_min_freq,power,https://docs.kernel.org/admin-guide/pm/cpufreq.html,doc
+cpu,frequency governor,Linux cpufreq,scaling_governor (schedutil|performance|powersave|ondemand),power,https://docs.kernel.org/admin-guide/pm/cpufreq.html,doc
+cpu,energy-performance preference,intel_pstate / amd-pstate,energy_performance_preference (EPP),power,https://docs.kernel.org/admin-guide/pm/intel_pstate.html,doc
+cpu,turbo / boost,intel_pstate / cpufreq,no_turbo / boost,power,https://docs.kernel.org/admin-guide/pm/intel_pstate.html,doc
+cpu,package power limit,Linux powercap (RAPL),intel-rapl:N/constraint_0_power_limit_uw (long term) constraint_1 (short term),power,https://docs.kernel.org/power/powercap/powercap.html,doc
+cpu,DRAM power limit,Linux powercap (RAPL),intel-rapl:N:dram constraint,power,https://docs.kernel.org/power/powercap/powercap.html,doc
+cpu,idle states,Linux cpuidle,cpuN/cpuidle/stateK/disable; PM QoS cpu_dma_latency,power,https://docs.kernel.org/admin-guide/pm/cpuidle.html,doc
+cpu,core online / offline,Linux CPU hotplug,/sys/devices/system/cpu/cpuN/online,capacity,https://docs.kernel.org/core-api/cpu_hotplug.html,doc
+cpu,uncore frequency,intel_uncore_frequency,max_freq_khz / min_freq_khz,power,https://docs.kernel.org/admin-guide/pm/intel_uncore_frequency_scaling.html,doc
+cpu,cache allocation,Linux resctrl (Intel RDT / AMD PQoS),schemata L3 CBM,placement,https://docs.kernel.org/arch/x86/resctrl.html,doc
+cpu,memory bandwidth allocation,Linux resctrl,schemata MB,power,https://docs.kernel.org/arch/x86/resctrl.html,doc
+cpu,automatic NUMA balancing,Linux sysctl,kernel.numa_balancing,placement,https://docs.kernel.org/admin-guide/sysctl/kernel.html,doc
+cpu,IRQ affinity,Linux,/proc/irq/N/smp_affinity; irqbalance,placement,https://docs.kernel.org/core-api/irq/irq-affinity.html,doc
+cpu,transparent huge pages,Linux,/sys/kernel/mm/transparent_hugepage/enabled,setpoint,https://docs.kernel.org/admin-guide/mm/transhuge.html,doc
+cpu,swappiness / reclaim,Linux sysctl,vm.swappiness; vm.watermark_scale_factor,setpoint,https://docs.kernel.org/admin-guide/sysctl/vm.html,doc
+cpu,thermal trip / cooling device,Linux thermal,thermal_zoneN/trip_point_*; cooling_deviceN/cur_state,protect,https://docs.kernel.org/driver-api/thermal/sysfs-api.html,doc
+cpu,platform power profile,Linux platform_profile / tuned,platform_profile (low-power|balanced|performance); tuned profile,power,https://docs.kernel.org/userspace-api/sysfs-platform_profile.html,doc
+gpu,power limit,NVIDIA NVML / nvidia-smi,nvmlDeviceSetPowerManagementLimit / nvidia-smi -pl,power,https://docs.nvidia.com/deploy/nvml-api/,doc
+gpu,locked SM clocks,NVIDIA NVML / nvidia-smi,nvmlDeviceSetGpuLockedClocks / nvidia-smi -lgc,power,https://docs.nvidia.com/deploy/nvml-api/,doc
+gpu,locked memory clocks,NVIDIA NVML / nvidia-smi,nvmlDeviceSetMemoryLockedClocks / nvidia-smi -lmc,power,https://docs.nvidia.com/deploy/nvml-api/,doc
+gpu,application clocks,NVIDIA NVML / nvidia-smi,nvmlDeviceSetApplicationsClocks / nvidia-smi -ac,power,https://docs.nvidia.com/deploy/nvml-api/,doc
+gpu,persistence mode,NVIDIA NVML / nvidia-smi,nvmlDeviceSetPersistenceMode / nvidia-smi -pm,setpoint,https://docs.nvidia.com/deploy/nvidia-smi/,doc
+gpu,compute mode,NVIDIA NVML / nvidia-smi,nvmlDeviceSetComputeMode (Default|Exclusive_Process|Prohibited),admission,https://docs.nvidia.com/deploy/nvidia-smi/,doc
+gpu,MIG mode,NVIDIA MIG,nvidia-smi -mig 1,capacity,https://docs.nvidia.com/datacenter/tesla/mig-user-guide/,doc
+gpu,MIG geometry,NVIDIA MIG,nvidia-smi mig -cgi/-cci (GPU and compute instance profiles),capacity,https://docs.nvidia.com/datacenter/tesla/mig-user-guide/,doc
+gpu,time-slicing,NVIDIA k8s-device-plugin,sharing.timeSlicing.resources[].replicas,capacity,https://github.com/NVIDIA/k8s-device-plugin,doc
+gpu,MPS,NVIDIA MPS,CUDA_MPS_ACTIVE_THREAD_PERCENTAGE / set_default_active_thread_percentage,capacity,https://docs.nvidia.com/deploy/mps/,doc
+gpu,GPU reset,NVIDIA NVML / nvidia-smi,nvidia-smi -r,protect,https://docs.nvidia.com/deploy/nvidia-smi/,doc
+gpu,ECC mode,NVIDIA NVML / nvidia-smi,nvidia-smi -e,protect,https://docs.nvidia.com/deploy/nvidia-smi/,doc
+gpu,health / quarantine,NVIDIA DCGM,DCGM health checks; node taint on XID,protect,https://docs.nvidia.com/datacenter/dcgm/latest/,doc
+gpu,GPU temperature target,NVIDIA nvidia-smi,nvidia-smi -gtt (GPU target temperature where supported),protect,https://docs.nvidia.com/deploy/nvidia-smi/,doc
+gpu,dynamic resource allocation,Kubernetes DRA,ResourceClaim / DeviceClass (resource.k8s.io),capacity,https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/,doc
+network,traffic shaping / rate,Linux tc,tc qdisc (tbf htb fq) rate ceil,capacity,https://man7.org/linux/man-pages/man8/tc.8.html,doc
+network,queue discipline,Linux tc,tc qdisc replace ... fq_codel|fq|cake,setpoint,https://man7.org/linux/man-pages/man8/tc.8.html,doc
+network,TCP congestion control,Linux sysctl,net.ipv4.tcp_congestion_control (cubic|bbr),setpoint,https://docs.kernel.org/networking/ip-sysctl.html,doc
+network,NIC queues / channels,ethtool,ethtool -L combined N,capacity,https://man7.org/linux/man-pages/man8/ethtool.8.html,doc
+network,NIC interrupt coalescing,ethtool,ethtool -C rx-usecs,setpoint,https://man7.org/linux/man-pages/man8/ethtool.8.html,doc
+network,NIC ring size,ethtool,ethtool -G rx tx,capacity,https://man7.org/linux/man-pages/man8/ethtool.8.html,doc
+network,load balancer weights,Kubernetes Gateway API / cloud LB,HTTPRoute backendRefs[].weight / target group weights,placement,https://gateway-api.sigs.k8s.io/,doc
+network,ECMP weights,FRR / BGP,weighted ECMP (link-bandwidth community),placement,https://docs.frrouting.org/,doc
+network,network policy,Kubernetes NetworkPolicy,spec.ingress / spec.egress,protect,https://kubernetes.io/docs/concepts/services-networking/network-policies/,doc
+network,traffic locality,Kubernetes Service,spec.internalTrafficPolicy / trafficDistribution / topology-aware routing,placement,https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/,doc
+network,QoS / DSCP marking,Linux tc / switch,DSCP class and queue mapping,admission,https://man7.org/linux/man-pages/man8/tc.8.html,doc
+network,connection limits,Linux conntrack / proxies,net.netfilter.nf_conntrack_max; proxy max connections,admission,https://docs.kernel.org/networking/nf_conntrack-sysctl.html,doc
+network,port / link power,ethtool / switch,ethtool -s (speed) ; Energy Efficient Ethernet ethtool --set-eee,power,https://man7.org/linux/man-pages/man8/ethtool.8.html,doc
+storage,storage class / tier,Kubernetes StorageClass,provisioner parameters (type iops throughput),placement,https://kubernetes.io/docs/concepts/storage/storage-classes/,doc
+storage,volume performance class,Kubernetes VolumeAttributesClass,parameters (iops throughput),capacity,https://kubernetes.io/docs/concepts/storage/volume-attributes-classes/,doc
+storage,volume size / expansion,Kubernetes PVC,spec.resources.requests.storage (allowVolumeExpansion),capacity,https://kubernetes.io/docs/concepts/storage/persistent-volumes/,doc
+storage,volume snapshot,Kubernetes VolumeSnapshot,VolumeSnapshot create,protect,https://kubernetes.io/docs/concepts/storage/volume-snapshots/,doc
+storage,replica count,Ceph pool,size / min_size,protect,https://docs.ceph.com/en/latest/rados/operations/pools/,doc
+storage,erasure coding profile,Ceph,erasure-code-profile k m,capacity,https://docs.ceph.com/en/latest/rados/operations/erasure-code/,doc
+storage,recovery / backfill rate,Ceph OSD,osd_recovery_max_active / osd_max_backfills / osd_mclock_profile,setpoint,https://docs.ceph.com/en/latest/rados/configuration/osd-config-ref/,doc
+storage,rebalance,Ceph,ceph osd reweight / balancer mode,placement,https://docs.ceph.com/en/latest/rados/operations/balancer/,doc
+storage,scrub schedule,Ceph,osd_scrub_begin_hour / osd_scrub_load_threshold,setpoint,https://docs.ceph.com/en/latest/rados/configuration/osd-config-ref/,doc
+storage,IO scheduler,Linux block,/sys/block/X/queue/scheduler (mq-deadline|bfq|kyber|none),setpoint,https://docs.kernel.org/block/index.html,doc
+storage,disk power / spin-down,hdparm / SATA,hdparm -S / -B (APM),power,https://man7.org/linux/man-pages/man8/hdparm.8.html,doc
+storage,object replication,S3-compatible stores,bucket replication rules,protect,https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html,doc
+storage,lifecycle / tiering,S3-compatible stores,lifecycle transitions (storage class after N days),placement,https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html,doc
+observe,metric scrape interval,Prometheus,scrape_interval,setpoint,https://prometheus.io/docs/prometheus/latest/configuration/configuration/,doc
+observe,retention,Prometheus,--storage.tsdb.retention.time|size,capacity,https://prometheus.io/docs/prometheus/latest/storage/,doc
+observe,remote write queue,Prometheus,remote_write.queue_config (capacity max_shards max_samples_per_send),capacity,https://prometheus.io/docs/prometheus/latest/configuration/configuration/,doc
+observe,cardinality limits,Prometheus,sample_limit / label_limit per scrape,admission,https://prometheus.io/docs/prometheus/latest/configuration/configuration/,doc
+observe,collector memory limit,OpenTelemetry Collector,memory_limiter processor (limit_mib spike_limit_mib),protect,https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/memorylimiterprocessor,doc
+observe,batching,OpenTelemetry Collector,batch processor (send_batch_size timeout),setpoint,https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor,doc
+observe,trace sampling,OpenTelemetry,sampler ratio / tail_sampling policies,admission,https://opentelemetry.io/docs/concepts/sampling/,doc
+observe,export concurrency,OpenTelemetry Collector,exporter sending_queue num_consumers,capacity,https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/exporterhelper,doc
+protect,restart,Kubernetes,kubectl rollout restart / restartPolicy,protect,https://kubernetes.io/docs/reference/kubectl/generated/kubectl_rollout/,doc
+protect,backup trigger,Velero,Backup / Schedule,protect,https://velero.io/docs/,doc
+protect,workload isolation,Kubernetes,NetworkPolicy deny / namespace quarantine taint,protect,https://kubernetes.io/docs/concepts/services-networking/network-policies/,doc
+protect,admission policy,Kubernetes,ValidatingAdmissionPolicy / OPA Gatekeeper / Kyverno,protect,https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/,doc
+protect,rate abuse gate,API gateways / Envoy,local_ratelimit / global rate limit,admission,https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/local_rate_limit_filter,doc
+protect,certificate / credential rotation,cert-manager,Certificate spec.renewBefore,protect,https://cert-manager.io/docs/,doc
+protect,kill switch and restore,Omni-Compass,kill file / restore snapshot and read back,protect,omni_controller/controller.py,doc
+protect,actuator freeze,Omni-Compass / controllers,observe mode (no writes),protect,omnicompass/nervous_system.py,doc
+protect,degraded mode / feature flags,app config / flag services,feature flag off / brownout,admission,https://openfeature.dev/,doc
+cooling,supply air temperature setpoint,BACnet (ASHRAE 135) BMS,AnalogValue Present_Value (supply-air setpoint),setpoint,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+cooling,return air temperature target,BACnet BMS / CRAH,AnalogValue (return-air setpoint),setpoint,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+cooling,chilled water supply setpoint,BACnet BMS / chiller plant,chiller leaving water temperature setpoint,setpoint,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+cooling,chiller staging,BACnet BMS / chiller plant manager,chiller enable/disable sequence,capacity,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+cooling,pump speed,BACnet BMS / VFD,AnalogOutput (VFD speed %),capacity,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+cooling,fan speed (room),BACnet BMS / CRAH VFD,AnalogOutput (fan speed %),capacity,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+cooling,server fan speed,Redfish / IPMI,Thermal.Fans / ThermalSubsystem (fan PWM policy),capacity,https://www.dmtf.org/standards/redfish,doc
+cooling,cooling tower fan / approach,BACnet BMS,tower fan VFD speed / approach setpoint,capacity,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+cooling,economiser,BACnet BMS,economiser enable / mixed-air damper position,setpoint,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+cooling,coolant flow (liquid cooling),CDU / OCP,CDU flow / pressure setpoint,capacity,https://www.opencompute.org/projects/cooling-environments,doc
+cooling,coolant supply temperature,CDU / OCP,CDU supply temperature setpoint,setpoint,https://www.opencompute.org/projects/cooling-environments,doc
+cooling,thermal envelope,ASHRAE TC9.9,allowable/recommended inlet range (A1..A4),protect,https://www.ashrae.org/technical-resources/bookstore/datacom-series,doc
+cooling,thermal workload migration,schedulers,move work away from hot zones (taint / reschedule),placement,https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/,doc
+power,server power cap,Redfish / DCMI,Power.PowerControl[].PowerLimit.LimitInWatts / DCMI power limit,power,https://www.dmtf.org/standards/redfish,doc
+power,rack power cap,DCIM / Redfish aggregation,group power limit (e.g. Intel DCM / Redfish PowerDistribution),power,https://www.dmtf.org/standards/redfish,doc
+power,PDU outlet on/off,PDU SNMP / Redfish PowerDistribution,Outlet.PowerState (On|Off) / outlet MIB,capacity,https://www.dmtf.org/standards/redfish,doc
+power,PDU branch limit / alarms,PDU SNMP / Redfish,Circuit overcurrent thresholds,protect,https://www.dmtf.org/standards/redfish,doc
+power,UPS mode,NUT (Network UPS Tools),upscmd / upsrw (eco / online mode where supported),power,https://networkupstools.org/docs/user-manual.chunked/,doc
+power,UPS shutdown / battery test,NUT,upscmd shutdown.return / test.battery.start,protect,https://networkupstools.org/docs/user-manual.chunked/,doc
+power,UPS charge behaviour,NUT,battery.charge.low / battery.runtime.low thresholds,setpoint,https://networkupstools.org/docs/user-manual.chunked/,doc
+power,automatic transfer,ATS / switchgear,transfer to alternate source,protect,https://networkupstools.org/,doc
+power,generator start,switchgear / BMS,generator start / load bank,capacity,https://www.ashrae.org/technical-resources/bookstore/bacnet,doc
+power,phase balance,PDU / DCIM,placement of load across phases,placement,https://www.dmtf.org/standards/redfish,doc

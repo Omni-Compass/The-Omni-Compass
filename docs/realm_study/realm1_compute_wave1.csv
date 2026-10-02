@@ -1,0 +1,102 @@
+area,control,system,setting,kind,source,checked
+inference,model replicas,KServe / Ray Serve / Triton on K8s,InferenceService minReplicas maxReplicas / num_replicas / autoscaling_config,capacity,https://kserve.github.io/website/,doc
+inference,autoscaling target (concurrency / QPS),KServe / Knative,autoscaling.knative.dev/target / scaleMetric (concurrency|rps),setpoint,https://knative.dev/docs/serving/autoscaling/,doc
+inference,scale to zero / panic window,Knative,scale-to-zero-grace-period / panic-window-percentage,capacity,https://knative.dev/docs/serving/autoscaling/,doc
+inference,dynamic batching,NVIDIA Triton,dynamic_batching { preferred_batch_size max_queue_delay_microseconds },setpoint,https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/,doc
+inference,max batch size,NVIDIA Triton,max_batch_size,capacity,https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/,doc
+inference,model instance count,NVIDIA Triton,instance_group { count kind },capacity,https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/,doc
+inference,model load / unload,NVIDIA Triton,model repository API load/unload (explicit mode),capacity,https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/,doc
+inference,request queue policy,NVIDIA Triton,dynamic_batching.default_queue_policy (max_queue_size timeout_action),admission,https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/,doc
+inference,request priority levels,NVIDIA Triton,dynamic_batching.priority_levels,admission,https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/,doc
+inference,continuous batching token budget,vLLM,--max-num-batched-tokens,capacity,https://docs.vllm.ai/en/latest/,doc
+inference,max concurrent sequences,vLLM,--max-num-seqs,admission,https://docs.vllm.ai/en/latest/,doc
+inference,KV-cache memory share,vLLM,--gpu-memory-utilization,capacity,https://docs.vllm.ai/en/latest/,doc
+inference,KV-cache swap space,vLLM,--swap-space,capacity,https://docs.vllm.ai/en/latest/,doc
+inference,prefix caching,vLLM / SGLang,--enable-prefix-caching / radix cache,setpoint,https://docs.vllm.ai/en/latest/,doc
+inference,chunked prefill,vLLM,--enable-chunked-prefill,setpoint,https://docs.vllm.ai/en/latest/,doc
+inference,speculative decoding,vLLM / TensorRT-LLM,speculative config (num_speculative_tokens draft model),setpoint,https://docs.vllm.ai/en/latest/,doc
+inference,precision / quantisation,vLLM / TensorRT-LLM,--dtype / --quantization (fp8 awq gptq int8),power,https://docs.vllm.ai/en/latest/,doc
+inference,tensor parallel degree,vLLM / TensorRT-LLM,--tensor-parallel-size,capacity,https://docs.vllm.ai/en/latest/,doc
+inference,max output tokens,vLLM / OpenAI-compatible API,max_tokens (per request) / --max-model-len,admission,https://docs.vllm.ai/en/latest/,doc
+inference,scheduling policy,vLLM,--scheduling-policy (fcfs|priority),admission,https://docs.vllm.ai/en/latest/,doc
+inference,disaggregated prefill / decode,vLLM / NVIDIA Dynamo / llm-d,prefill and decode worker counts,capacity,https://github.com/ai-dynamo/dynamo,doc
+inference,model routing weights,Gateway API Inference Extension / KServe,InferencePool / canary traffic percent,placement,https://gateway-api-inference-extension.sigs.k8s.io/,doc
+inference,LoRA adapter load,vLLM,--max-loras / dynamic LoRA load,capacity,https://docs.vllm.ai/en/latest/,doc
+training,worker count,PyTorch Elastic / Kubeflow Training Operator,torchrun --nnodes MIN:MAX / PyTorchJob replicas,capacity,https://pytorch.org/docs/stable/elastic/run.html,doc
+training,global batch size,training frameworks (Megatron / DeepSpeed),global_batch_size / train_batch_size,setpoint,https://www.deepspeed.ai/docs/config-json/,doc
+training,micro-batch size,DeepSpeed / Megatron,train_micro_batch_size_per_gpu / micro_batch_size,setpoint,https://www.deepspeed.ai/docs/config-json/,doc
+training,gradient accumulation,DeepSpeed / PyTorch,gradient_accumulation_steps,setpoint,https://www.deepspeed.ai/docs/config-json/,doc
+training,data parallel / ZeRO stage,DeepSpeed / FSDP,zero_optimization.stage / FSDP sharding_strategy,placement,https://www.deepspeed.ai/docs/config-json/,doc
+training,tensor parallel,Megatron-LM,--tensor-model-parallel-size,placement,https://github.com/NVIDIA/Megatron-LM,doc
+training,pipeline parallel,Megatron-LM,--pipeline-model-parallel-size,placement,https://github.com/NVIDIA/Megatron-LM,doc
+training,expert parallel,Megatron-LM / DeepSpeed-MoE,--expert-model-parallel-size,placement,https://github.com/NVIDIA/Megatron-LM,doc
+training,mixed precision,PyTorch AMP / DeepSpeed,bf16 / fp16 / fp8 (Transformer Engine),power,https://pytorch.org/docs/stable/amp.html,doc
+training,checkpoint interval,training frameworks,save_interval / checkpoint every N steps,protect,https://github.com/NVIDIA/Megatron-LM,doc
+training,activation checkpointing,PyTorch / DeepSpeed,activation_checkpointing,setpoint,https://www.deepspeed.ai/docs/config-json/,doc
+training,compute / communication overlap,Megatron / FSDP,--overlap-grad-reduce / forward_prefetch,setpoint,https://github.com/NVIDIA/Megatron-LM,doc
+training,preemption / suspend,Kueue / Kubeflow,Workload preemption / spec.runPolicy.suspend,admission,https://kueue.sigs.k8s.io/docs/,doc
+training,gang size,Kueue / Volcano,PodGroup minMember / Workload podSets,admission,https://volcano.sh/en/docs/,doc
+training,straggler mitigation,PyTorch Elastic / NCCL,elastic restart / NCCL_TIMEOUT,protect,https://pytorch.org/docs/stable/elastic/run.html,doc
+training,dataloader workers,PyTorch,DataLoader num_workers / prefetch_factor,capacity,https://pytorch.org/docs/stable/data.html,doc
+fabric,collective algorithm,NCCL,NCCL_ALGO (Ring|Tree|NVLS|CollNet),setpoint,https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html,doc
+fabric,collective protocol,NCCL,NCCL_PROTO (Simple|LL|LL128),setpoint,https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html,doc
+fabric,channels / buffer,NCCL,NCCL_MIN_NCHANNELS / NCCL_MAX_NCHANNELS / NCCL_BUFFSIZE,capacity,https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html,doc
+fabric,NIC / HCA selection,NCCL,NCCL_IB_HCA / NCCL_SOCKET_IFNAME,placement,https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html,doc
+fabric,GPUDirect RDMA policy,NCCL,NCCL_NET_GDR_LEVEL / NCCL_P2P_LEVEL,placement,https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html,doc
+fabric,InfiniBand traffic class / SL,NCCL / IB,NCCL_IB_TC / NCCL_IB_SL,admission,https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html,doc
+fabric,RoCE congestion control,NVIDIA ConnectX / mlnx,DCQCN parameters / ECN marking thresholds,setpoint,https://docs.nvidia.com/networking/,doc
+fabric,NVLink / NVSwitch partition,NVIDIA Fabric Manager,fabric partition (shared NVSwitch) activate/deactivate,placement,https://docs.nvidia.com/datacenter/tesla/fabric-manager-user-guide/,doc
+fabric,rank placement,Slurm / MPI,--distribution / rankfile / topology-aware placement,placement,https://slurm.schedmd.com/sbatch.html,doc
+fabric,rail selection,multi-rail clusters,rail-optimised NIC-to-GPU mapping (NCCL topology file),placement,https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html,doc
+fabric,fabric failover,IB Subnet Manager (OpenSM) / adaptive routing,routing engine / adaptive routing enable,protect,https://docs.nvidia.com/networking/,doc
+hpc,job slots / nodes,Slurm,sbatch --nodes --ntasks --cpus-per-task,capacity,https://slurm.schedmd.com/sbatch.html,doc
+hpc,walltime,Slurm,--time,admission,https://slurm.schedmd.com/sbatch.html,doc
+hpc,job priority,Slurm,PriorityWeight* (multifactor) / scontrol update priority,admission,https://slurm.schedmd.com/priority_multifactor.html,doc
+hpc,fair share,Slurm,PriorityWeightFairshare / sshare,admission,https://slurm.schedmd.com/fair_tree.html,doc
+hpc,preemption,Slurm,PreemptType / PreemptMode (REQUEUE|SUSPEND|CANCEL),admission,https://slurm.schedmd.com/preempt.html,doc
+hpc,backfill,Slurm,SchedulerType=sched/backfill (bf_window bf_interval),admission,https://slurm.schedmd.com/sched_config.html,doc
+hpc,checkpoint / requeue,Slurm,--requeue / --signal,protect,https://slurm.schedmd.com/sbatch.html,doc
+hpc,GPU and memory per task,Slurm,--gpus-per-task / --mem-per-cpu,capacity,https://slurm.schedmd.com/sbatch.html,doc
+hpc,node power saving,Slurm,SuspendTime / SuspendProgram / ResumeProgram,capacity,https://slurm.schedmd.com/power_save.html,doc
+hpc,CPU frequency per job,Slurm,--cpu-freq,power,https://slurm.schedmd.com/sbatch.html,doc
+hpc,partition limits,Slurm,partition MaxNodes / MaxTime / QOS limits,admission,https://slurm.schedmd.com/slurm.conf.html,doc
+hpc,parallel IO budget,Lustre,lfs setstripe -c / -S; QoS (TBF NRS),capacity,https://doc.lustre.org/lustre_manual.xhtml,doc
+clustermgr,task admission / queueing,Kueue,ClusterQueue resourceGroups nominalQuota / borrowingLimit,admission,https://kueue.sigs.k8s.io/docs/,doc
+clustermgr,cohort borrowing,Kueue,cohort / lendingLimit,capacity,https://kueue.sigs.k8s.io/docs/,doc
+clustermgr,preemption policy,Kueue,ClusterQueue preemption (withinClusterQueue reclaimWithinCohort),admission,https://kueue.sigs.k8s.io/docs/,doc
+clustermgr,bin-packing vs spread,Volcano / Nomad / YARN,binpack plugin weights / scheduler_algorithm (binpack|spread),placement,https://developer.hashicorp.com/nomad/docs,doc
+clustermgr,queue capacity,YARN Capacity Scheduler,yarn.scheduler.capacity.<queue>.capacity / maximum-capacity,capacity,https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/CapacityScheduler.html,doc
+clustermgr,oversubscription,Nomad / Mesos / Borg-style,memory oversubscription (memory_max) / revocable resources,capacity,https://developer.hashicorp.com/nomad/docs,doc
+clustermgr,maintenance evacuation,Nomad / Kubernetes,node drain with deadline,capacity,https://developer.hashicorp.com/nomad/docs,doc
+dra,device class selection,Kubernetes DRA,DeviceClass selectors (CEL),placement,https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/,doc
+dra,claim capacity / count,Kubernetes DRA,ResourceClaim requests[].count / allocationMode,capacity,https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/,doc
+dra,claim sharing,Kubernetes DRA,shared ResourceClaim / ResourceClaimTemplate,capacity,https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/,doc
+dra,device taints,Kubernetes DRA,DeviceTaintRule (NoSchedule|NoExecute),protect,https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/,doc
+dra,device configuration,Kubernetes DRA,ResourceClaim config (opaque driver parameters),setpoint,https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/,doc
+dpu,VF count,SR-IOV,/sys/class/net/<if>/device/sriov_numvfs,capacity,https://docs.kernel.org/PCI/pci-iov-howto.html,doc
+dpu,VF rate limit,iproute2,ip link set <pf> vf N max_tx_rate / min_tx_rate,capacity,https://man7.org/linux/man-pages/man8/ip-link.8.html,doc
+dpu,flow steering / offload,NVIDIA BlueField / OVS-DOCA,ovs hw-offload=true / tc flower offload,placement,https://docs.nvidia.com/doca/,doc
+dpu,DPU services placement,NVIDIA DOCA / DPF,DPU service deployment,placement,https://docs.nvidia.com/doca/,doc
+dpu,QoS groups,devlink rate,devlink port function rate (tx_share tx_max),capacity,https://docs.kernel.org/networking/devlink/devlink-port.html,doc
+multiregion,cluster dispatch,Karmada / OCM,PropagationPolicy placement (clusterAffinity replicaScheduling),placement,https://karmada.io/docs/,doc
+multiregion,weighted region split,Karmada / Global LB,replicaDivisionPreference Weighted / DNS weights,placement,https://karmada.io/docs/,doc
+multiregion,failover,Karmada / Global LB,failover policy / health-checked DNS,protect,https://karmada.io/docs/,doc
+multiregion,data residency gate,policy engines,placement constraints by region label,protect,https://karmada.io/docs/,doc
+multiregion,carbon-aware placement,Carbon Aware SDK / KEDA carbon scaler,schedule by grid carbon intensity,placement,https://github.com/Green-Software-Foundation/carbon-aware-sdk,doc
+multiregion,cost-aware placement,cloud schedulers,price-based expander / spot placement score,placement,https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md,doc
+multiregion,edge offload,KubeEdge / OpenYurt,edge node unit placement,placement,https://kubeedge.io/docs/,doc
+admission,request concurrency limit,Envoy / NGINX / app servers,max_requests (circuit breaker) / limit_conn,admission,https://www.envoyproxy.io/docs/envoy/latest/,doc
+admission,rate limit,Envoy / NGINX,local_ratelimit token bucket / limit_req,admission,https://www.envoyproxy.io/docs/envoy/latest/,doc
+admission,adaptive concurrency,Envoy,adaptive_concurrency filter (gradient controller),admission,https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/adaptive_concurrency_filter,doc
+admission,load shedding,Envoy / service frameworks,overload manager actions / priority shedding,admission,https://www.envoyproxy.io/docs/envoy/latest/configuration/operations/overload_manager/overload_manager,doc
+admission,queue length limit,queues / brokers,max queue length / backpressure,admission,https://www.rabbitmq.com/docs/maxlength,doc
+admission,deadline admission,gRPC,grpc-timeout deadlines,admission,https://grpc.io/docs/guides/deadlines/,doc
+admission,tenant admission,Kubernetes / gateways,per-tenant quota (ResourceQuota / rate limit descriptors),admission,https://kubernetes.io/docs/concepts/policy/resource-quotas/,doc
+admission,retry budget,Envoy / Finagle,retry_budget (budget_percent),admission,https://www.envoyproxy.io/docs/envoy/latest/,doc
+quantum,shot allocation,Qiskit / Braket,shots per job,capacity,https://docs.quantum.ibm.com/,doc
+quantum,circuit transpile / qubit mapping,Qiskit,transpile(initial_layout optimization_level),placement,https://docs.quantum.ibm.com/,doc
+quantum,error mitigation level,Qiskit Runtime,resilience_level / resilience options,setpoint,https://docs.quantum.ibm.com/,doc
+quantum,dynamical decoupling,Qiskit Runtime,dynamical_decoupling.enable / sequence_type,setpoint,https://docs.quantum.ibm.com/,doc
+quantum,pulse parameters,Qiskit Pulse / OpenPulse,amplitude duration phase frequency,setpoint,https://docs.quantum.ibm.com/,doc
+quantum,session / batch mode,Qiskit Runtime,Session / Batch execution mode,admission,https://docs.quantum.ibm.com/,doc
+quantum,job priority / queue,cloud QPU services,job priority / reservation,admission,https://docs.aws.amazon.com/braket/,doc

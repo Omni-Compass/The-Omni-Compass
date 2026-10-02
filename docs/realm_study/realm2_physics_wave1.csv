@@ -1,0 +1,68 @@
+area,control,system,setting,kind,source,checked
+robot_motion,joint position command,ROS 2 ros2_control,position command interface,setpoint,https://control.ros.org/,doc
+robot_motion,joint velocity command,ROS 2 ros2_control,velocity command interface,setpoint,https://control.ros.org/,doc
+robot_motion,joint effort command,ROS 2 ros2_control,effort command interface,power,https://control.ros.org/,doc
+robot_motion,joint limits,ROS 2 joint_limits,max_velocity max_acceleration max_jerk max_effort,capacity,https://control.ros.org/,doc
+robot_motion,PID gains,ros2_control controllers,gains (p i d i_clamp),setpoint,https://control.ros.org/,doc
+robot_motion,trajectory speed scaling,ros2_controllers JointTrajectoryController / UR speed slider,speed scaling factor,capacity,https://control.ros.org/,doc
+robot_motion,trajectory tolerances,JointTrajectoryController,constraints (goal_time trajectory / goal tolerances),protect,https://control.ros.org/,doc
+robot_motion,velocity / acceleration scaling,MoveIt 2,max_velocity_scaling_factor / max_acceleration_scaling_factor,capacity,https://moveit.picknik.ai/,doc
+robot_motion,Cartesian velocity limit,MoveIt Servo,linear / rotational scale,capacity,https://moveit.picknik.ai/,doc
+robot_motion,collision margin,MoveIt 2,collision padding / minimum distance,protect,https://moveit.picknik.ai/,doc
+robot_motion,force / torque limit,force-controlled robots (ISO 10218 / ISO TS 15066),power and force limiting thresholds,protect,https://www.iso.org/standard/62996.html,doc
+robot_motion,gripper force,ros2_control GripperActionController,max_effort,power,https://control.ros.org/,doc
+robot_motion,mobile base speed,Nav2 controller,max_vel_x / max_vel_theta / acc limits,capacity,https://docs.nav2.org/,doc
+robot_motion,steering / braking,ros2_control (Ackermann) / CAN,steering angle / brake command,setpoint,https://control.ros.org/,doc
+robot_motion,safety stop,ROS 2 / safety PLC,protective stop / emergency stop (ISO 13850),protect,https://www.iso.org/standard/59970.html,doc
+robot_motion,controller update rate,ros2_control,controller_manager update_rate,setpoint,https://control.ros.org/,doc
+robot_fleet,task assignment,Open-RMF,task dispatcher bidding (fleet adapter),placement,https://osrf.github.io/ros2multirobotbook/,doc
+robot_fleet,traffic reservation,Open-RMF,traffic schedule / negotiation,admission,https://osrf.github.io/ros2multirobotbook/,doc
+robot_fleet,route planning,Open-RMF / Nav2,navigation graph lanes / speed limits,placement,https://osrf.github.io/ros2multirobotbook/,doc
+robot_fleet,charging dispatch,Open-RMF,charger assignment / recharge_threshold,capacity,https://osrf.github.io/ros2multirobotbook/,doc
+robot_fleet,battery reserve,Open-RMF fleet adapter,recharge_threshold / recharge_soc,protect,https://osrf.github.io/ros2multirobotbook/,doc
+robot_fleet,door / lift requests,Open-RMF,door and lift adapters,admission,https://osrf.github.io/ros2multirobotbook/,doc
+robot_fleet,fleet concurrency,warehouse WMS / RMF,active robot count,capacity,https://osrf.github.io/ros2multirobotbook/,doc
+robot_fleet,zone admission,Open-RMF / WMS,lane closures / zone locks,admission,https://osrf.github.io/ros2multirobotbook/,doc
+robot_fleet,conveyor speed,PLC (IEC 61131) / VFD,conveyor VFD speed setpoint,capacity,https://plcopen.org/,doc
+robot_fleet,AGV speed,VDA 5050,maxSpeed in order / action parameters,capacity,https://github.com/VDA5050/VDA5050,doc
+robot_fleet,robot quarantine,fleet manager,take robot out of service,protect,https://github.com/VDA5050/VDA5050,doc
+flight,throttle limits,PX4 / ArduPilot,MPC_THR_MAX MPC_THR_MIN / MOT_SPIN_MAX,power,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+flight,attitude rate limits,PX4,MC_ROLLRATE_MAX MC_PITCHRATE_MAX MC_YAWRATE_MAX,capacity,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+flight,attitude / rate gains,PX4 / ArduPilot,MC_ROLL_P MC_ROLLRATE_P... / ATC_RAT_RLL_P...,setpoint,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+flight,horizontal speed limit,PX4 / ArduPilot,MPC_XY_VEL_MAX / WPNAV_SPEED,capacity,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+flight,vertical speed limits,PX4 / ArduPilot,MPC_Z_VEL_MAX_UP MPC_Z_VEL_MAX_DN / WPNAV_SPEED_UP,capacity,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+flight,acceleration / jerk limits,PX4,MPC_ACC_HOR_MAX / MPC_JERK_MAX,capacity,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+flight,altitude target,MAVLink,SET_POSITION_TARGET / mission altitude,setpoint,https://mavlink.io/en/messages/common.html,doc
+flight,waypoint / mission,MAVLink mission protocol,MISSION_ITEM_INT,setpoint,https://mavlink.io/en/services/mission.html,doc
+flight,flight mode transition,MAVLink / PX4,MAV_CMD_DO_SET_MODE (hold / RTL / land),protect,https://mavlink.io/en/messages/common.html,doc
+flight,return-to-launch,PX4 / ArduPilot,RTL_RETURN_ALT / RTL_ALT,protect,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+flight,geofence,PX4 / ArduPilot,GF_ACTION GF_MAX_HOR_DIST GF_MAX_VER_DIST / FENCE_*,protect,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+flight,battery failsafe,PX4 / ArduPilot,BAT_LOW_THR BAT_CRIT_THR COM_LOW_BAT_ACT / BATT_LOW_VOLT,protect,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+flight,link-loss failsafe,PX4,NAV_DLL_ACT / NAV_RCL_ACT,protect,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+flight,mission admission / arming checks,PX4,COM_ARM_* preflight checks,admission,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+flight,flight termination,PX4,MAV_CMD_DO_FLIGHTTERMINATION / CBRK_FLIGHTTERM,protect,https://mavlink.io/en/messages/common.html,doc
+flight,actuator saturation handling,PX4 control allocation,CA_* / airmode MC_AIRMODE,protect,https://docs.px4.io/main/en/advanced_config/parameter_reference.html,doc
+space,command admission,NASA cFS / F Prime,command dispatcher (CmdDisp) / command validation,admission,https://nasa.github.io/fprime/,doc
+space,task scheduling,NASA cFS Scheduler (SCH) / F Prime rate groups,schedule table / rate group slots,admission,https://github.com/nasa/cFS,doc
+space,mode transitions,flight software mode manager,safe / nominal / science modes,protect,https://nasa.github.io/fprime/,doc
+space,safe mode,flight software,safe-mode entry criteria,protect,https://nasa.github.io/fprime/,doc
+space,power budget / load shed,EPS (electrical power system),load switch on/off; battery DoD limits,power,https://www.nasa.gov/smallsat-institute/sst-soa/,doc
+space,thermal control,spacecraft thermal control,heater setpoints / louvers,setpoint,https://www.nasa.gov/smallsat-institute/sst-soa/,doc
+space,attitude command envelope,ADCS,slew rate / pointing mode limits,capacity,https://www.nasa.gov/smallsat-institute/sst-soa/,doc
+space,reaction wheel allocation,ADCS,wheel torque / speed limits; momentum management,power,https://www.nasa.gov/smallsat-institute/sst-soa/,doc
+space,momentum dumping / RCS authority,ADCS,magnetorquer / thruster desaturation thresholds,power,https://www.nasa.gov/smallsat-institute/sst-soa/,doc
+space,payload duty cycle,mission ops,instrument on-time scheduling,power,https://www.nasa.gov/smallsat-institute/sst-soa/,doc
+space,communication allocation,ground segment / radios,downlink pass scheduling / data rate,capacity,https://www.nasa.gov/smallsat-institute/sst-soa/,doc
+space,watchdog recovery,flight software,health and safety app (cFS HS) watchdog,protect,https://github.com/nasa/cFS,doc
+space,fault isolation,FDIR,fault detection isolation recovery tables,protect,https://nasa.github.io/fprime/,doc
+ev,traction torque limit,motor inverter (CAN / AUTOSAR),torque request / limit,power,https://www.autosar.org/,doc
+ev,regenerative braking level,vehicle control unit,regen level / one-pedal setting,power,https://www.autosar.org/,doc
+ev,battery charge current / voltage limit,BMS / ISO 15118 / CHAdeMO / CCS,max charge current / voltage (EVMaximumCurrentLimit),power,https://www.iso.org/standard/77845.html,doc
+ev,battery discharge limit,BMS,discharge current limit (SOP),power,https://www.autosar.org/,doc
+ev,state-of-charge limits,BMS / charging app,charge target SoC / reserve,setpoint,https://www.iso.org/standard/77845.html,doc
+ev,battery thermal target,battery thermal management,coolant / heater setpoint,setpoint,https://www.autosar.org/,doc
+ev,motor thermal derating,inverter,derate thresholds,protect,https://www.autosar.org/,doc
+ev,speed envelope,vehicle control / ADAS,speed limiter / ACC set speed,capacity,https://www.autosar.org/,doc
+ev,auxiliary power budget,VCU / HVAC,cabin HVAC / DC-DC load limits,power,https://www.autosar.org/,doc
+ev,smart charging schedule,OCPP 2.0.1,SetChargingProfile (ChargingSchedule limit),power,https://openchargealliance.org/protocols/open-charge-point-protocol/,doc
+ev,vehicle safe state,ISO 26262 safety concept,safe-state transition,protect,https://www.iso.org/standard/68383.html,doc
