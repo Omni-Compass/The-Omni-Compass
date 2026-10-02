@@ -3824,7 +3824,59 @@ pinned request stream; its own power.draw is heat in the organism's thermal zone
   simulated stacks (evidence S), the card (its own meter, evidence P), and both added (the card as one more plant,
   its joules added to the stacks'). Labels by the round 3 rule.
 
-## 44. The Evidence Ledger
+## 44. The Bowl Law on Real Kubernetes: Preregistration
+
+
+
+Written and committed before the run. The run's commit is the one that carries this file; nothing in the law, the
+harness or this rule changes after it starts.
+
+### What is run
+
+Workflow `benchmark-reps` on `main`, 10 repetitions. Each repetition runs three arms back to back on the same runner,
+each on a fresh six-worker kind cluster, in an order rotated by repetition (`scripts/kind_paired.sh`):
+
+| Arm | What governs |
+|---|---|
+| native | Kubernetes alone (HPA at target 50, scheduler); Omni-Compass not started |
+| omni | Omni-Compass on top with the engine's allocation law (`--law governor`, the law of sets 22 to 25) |
+| bowl | Omni-Compass on top with the bowl law (`--law bowl`, `omni_controller/controller.py`) |
+
+Load: fixed rate (`loadgen=open`), the same work in every arm. 900 measured seconds per arm. SLO 500 ms at the 95th
+percentile. Every Omni arm runs the six-state engine on every decision, the nervous system's authority and release
+gate, the shield, the compass, and ends with the kill switch, which must return the HPA target, its replica range,
+the pods' CPU limits and every worker to native, with no record left (`scripts/kind_bench.sh`).
+
+### The bowl law in the live controller
+
+The service position is the 95th-percentile response time over the SLO (0 calm, 1 the line); a blind probe or a pod
+waiting for a place reads as past the wall. The force is `A tanh((K_P (p - 0.5) + K_D v) / A)` with K_D for critical
+damping times the realm push factor 3, the same law and gains as on every realm muscle (`realms/bowl_arm.py`):
+up gain 0.10, down gain 0.02, release threshold -0.2. Two levers:
+
+1. **HPA target**, cover from 60% of the operator's target to the operator's own: the up force lowers it (more pods),
+   the down force returns it toward the operator's. It is never tighter than native.
+2. **Node pool**: past the 0.95 wall one machine more at once; one machine back only while the force is below -0.2,
+   the position is below the center, and the nervous system's release gate is open.
+
+### Outcomes and the rule
+
+Primary: **worker nodes in service** (mean) and **95th-percentile response time**, each arm against native, paired
+over the 10 repetitions with a t-based 95% interval (`tools/live_reps.py`).
+
+Band first: the bowl arm is a win only if its p95 is not worse than native's (the upper end of the 95% interval of the
+paired difference at or under 0) **and** failed requests are not higher. If that holds and machines in service fall
+with an interval wholly below 0, the label is **better on machines within the band**. If machines fall but the band
+condition fails, the label is **tradeoff**. Otherwise **not established**.
+
+Secondary, reported, not used for the label: p99, mean response time, HPA replicas, pods started, pod start wait, CPU
+including Omni-Compass's own, the declared energy models. The omni arm is reported against native and against the
+bowl arm by the same rule. A run that fails its own checks (kill switch, controller stopped early, missing permission)
+is marked invalid and left out, never silently counted.
+
+Evidence class **L**: real Kubernetes software on kind. Energy on kind is a declared model, not a meter.
+
+## 45. The Evidence Ledger
 
 
 
@@ -3926,7 +3978,7 @@ Nothing here is deleted when a later result looks better.
 | S | Right-sizing against VPA: p95 +15%, memory (OOM) kills +531%. | `docs/BENCHMARK_REPORT.md` |
 | — | Reported in the external master-build report (not reproducible from this repository): on fresh scenarios Karpenter+VPA sometimes used less modelled energy than Omni, while Omni had lower churn and fewer request-induced evictions. Kept here so it is not lost; to be re-run here before it is cited. | external |
 
-## 45. The Claims Register
+## 46. The Claims Register
 
 
 
@@ -3965,7 +4017,7 @@ Every claim, its evidence status and the command that reproduces it. Simulation 
 | C13 | Decision components (autoscalers, power agents, paging, Terraform as controller) consume about 0.02% of fleet CPU; idle capacity is 92% of fleet CPU at 8% utilization. | Modeled from published figures and stated assumptions | `python benchmarks/fleet_overhead.py` |
 | C14 | Behaviour on production systems. | Not established; requires the pilot protocol | `docs/PILOT_PROTOCOL.md` |
 
-## 46. The Benchmark Report
+## 47. The Benchmark Report
 
 
 
@@ -4476,7 +4528,7 @@ python tools/full_report.py ... && python pilot/bench_pdf.py docs/BENCHMARK_REPO
 - **Paired bootstrap CI**: resampling the per-scenario differences to get a 95% interval for the mean difference.
 - **Pre-registration**: freezing code and parameters, with hashes, before running the test data.
 
-## 47. The Referee Report
+## 48. The Referee Report
 
 
 
@@ -4915,7 +4967,7 @@ GitHub Actions workflow 'benchmark' (commit message tag [bench]): live A vs B on
 python tools/abc_report.py && python pilot/bench_pdf.py docs/OMNICOMPASS_ABC_REPORT.md docs/OMNICOMPASS_ABC_REPORT.pdf
 ```
 
-## 48. Comparison with Existing Controllers
+## 49. Comparison with Existing Controllers
 
 
 
@@ -4998,7 +5050,7 @@ the customer's own system, with the same paired method.
 
 Where a row above is wrong or out of date, correct it from the maker's own publication.
 
-## 49. The State of Play
+## 50. The State of Play
 
 
 
@@ -5049,6 +5101,13 @@ rate, so both arms were given **the same work**.
 - **No CPU saving once Omni's own cost is counted.** The service used 7.6% less CPU; the controller spent almost all
   of it. Cutting the controller's cost is the next improvement.
 - The kill switch restored every setting in every run.
+
+### Running now on real Kubernetes, no result in the repository yet
+
+| Run | State |
+|---|---|
+| **Set 25**: native against Omni-Compass on top (the engine's allocation law), 10 paired repetitions, fixed-rate load, current `main` | running (GitHub Actions `benchmark-reps`) |
+| **Set 26**: native, the engine's allocation law, and **the bowl law in the live controller** (`--law bowl`), 10 paired repetitions, fixed-rate load, rule written first (`docs/K8S_BOWL_PREREGISTRATION.md`) | running (GitHub Actions run 37058424766, commit `e7f920d`) |
 
 ### On real hardware now, no result in the repository yet
 
@@ -5113,7 +5172,7 @@ rate, so both arms were given **the same work**.
 *What a receipt is worth, how the license is priced against it, how the code is sealed, and how Omni-Compass came to be.*
 
 
-## 50. Where the Value Comes From
+## 51. Where the Value Comes From
 
 
 Every system runs with room it does not use: GPUs boost to the top of their clock range and are knocked back by their
@@ -5133,7 +5192,7 @@ machines, the response times and the failures, so nothing is hidden.
 ---
 
 
-## 51. The Economics of a Receipt
+## 52. The Economics of a Receipt
 
 
 Run the stack native and print the receipt. Run the same stack with Omni-Compass and print the receipt. The difference
@@ -5153,7 +5212,7 @@ The value a customer sees comes in three forms, each on its own line of the rece
 The babysitting tax - the people and tools kept on the clock to set caps, answer pages and turn knobs back after a run
 or a crash - is the cost Omni-Compass removes by holding the knobs and returning them itself.
 
-## 52. The Buyer Edition
+## 53. The Buyer Edition
 
 
 
@@ -5399,7 +5458,7 @@ python tools/protocol_bench.py 100
 live: push a commit whose message contains [reps], [levers] or [shadow]
 ```
 
-## 53. Due Diligence
+## 54. Due Diligence
 
 
 
@@ -5432,7 +5491,7 @@ Answers reference the Claims Register (C-numbers) and the Technical Manual.
 **Was it tuned on the test data?** No. Law, shield and baselines were frozen and fingerprinted before the held-out seeds 346410161 and 360555127 (results/PREREGISTRATION.json).
 **Where does it fail?** Backlog violations against current autoscaling (C11); the engine-dynamics ablation (Manual Chapter 8); open obligations (Manual Chapter 10).
 
-## 54. License and Commercial Terms
+## 55. License and Commercial Terms
 
 
 The software and this manual are licensed under the Omni-Compass Evaluation License (`LICENSE`): evaluation and
@@ -5443,7 +5502,7 @@ LLC and paid for. Patent applications, copyright registrations and trademark app
 terms in `CONTRIBUTING.md`, which assign their rights to The Omni-Compass LLC.
 
 
-## 55. Python, C++ and the Seal
+## 56. Python, C++ and the Seal
 
 
 The laws are twinned: each has a Python version and a C++20 version that give the same answers, proven by a parity
@@ -5468,7 +5527,7 @@ test passes. `verify.py` fails, naming the file, if any sealed file changes afte
 ---
 
 
-## 56. The Founder's Working Notes
+## 57. The Founder's Working Notes
 
 
 
@@ -5661,7 +5720,7 @@ are sourced.
 4. **Aim the chip at about 5% more finished work on the same bill**, cap unchanged and temperature no worse, or at
    fewer joules for the same work. The buyer chooses, and the receipt prints which.
 
-## 57. History
+## 58. History
 
 
 

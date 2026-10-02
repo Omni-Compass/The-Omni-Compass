@@ -424,6 +424,7 @@ OUTLINE = [
     ("The GPU Bench", ("F", "docs/GPU_BENCH.md")),
     ("The GPU Preregistration", ("F", "docs/GPU_PREREGISTRATION.md")),
     ("The Realms Preregistration", ("F", "docs/REALMS_PREREGISTRATION.md")),
+    ("The Bowl Law on Real Kubernetes: Preregistration", ("F", "docs/K8S_BOWL_PREREGISTRATION.md")),
     ("The Evidence Ledger", ("F", "docs/EVIDENCE_LEDGER.md")),
     ("The Claims Register", ("F", "docs/CLAIMS_REGISTER.md")),
     ("The Benchmark Report", ("F", "docs/BENCHMARK_REPORT.md")),

@@ -50,6 +50,13 @@ rate, so both arms were given **the same work**.
   of it. Cutting the controller's cost is the next improvement.
 - The kill switch restored every setting in every run.
 
+## Running now on real Kubernetes, no result in the repository yet
+
+| Run | State |
+|---|---|
+| **Set 25**: native against Omni-Compass on top (the engine's allocation law), 10 paired repetitions, fixed-rate load, current `main` | running (GitHub Actions `benchmark-reps`) |
+| **Set 26**: native, the engine's allocation law, and **the bowl law in the live controller** (`--law bowl`), 10 paired repetitions, fixed-rate load, rule written first (`docs/K8S_BOWL_PREREGISTRATION.md`) | running (GitHub Actions run 37058424766, commit `e7f920d`) |
+
 ## On real hardware now, no result in the repository yet
 
 | Instrument | State |
