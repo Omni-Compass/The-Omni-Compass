@@ -1,0 +1,209 @@
+muscle,family,verdict,note
+model_unload,AI Inference Serving,duplicate,same real control as another catalog muscle: model load / unload
+inference_slo_gate,AI Inference Serving,duplicate,same lever as the inference queue policy / priority admission
+checkpoint_trigger,AI Training,duplicate,same real control as another catalog muscle: checkpoint interval
+elastic_worker_count,AI Training,duplicate,same knob as training_workers (torchrun --nnodes MIN:MAX)
+instance_family,Cloud VM & Capacity,duplicate,same real control as another catalog muscle: instance type / size
+asg_min,Cloud VM & Capacity,duplicate,same real control as another catalog muscle: group size
+asg_max,Cloud VM & Capacity,duplicate,same real control as another catalog muscle: group size
+reservation_mix,Cloud VM & Capacity,duplicate,same real control as another catalog muscle: spot / on-demand mix
+region_selection,Cloud VM & Capacity,duplicate,same real control as another catalog muscle: zone / region choice
+architecture_selection,Cloud VM & Capacity,duplicate,a choice inside instance type (arm64 / x86_64)
+accelerator_selection,Cloud VM & Capacity,duplicate,a choice inside instance type (GPU family)
+cpu_quota,Container Resources,duplicate,same real control as another catalog muscle: CPU limit
+region_dispatch,"Cross-Cluster, Multi-Region & Edge",duplicate,same real control as another catalog muscle: cluster dispatch
+zone_dispatch,"Cross-Cluster, Multi-Region & Edge",duplicate,same real control as another catalog muscle: cluster dispatch
+cloud_capacity_class,"Cross-Cluster, Multi-Region & Edge",duplicate,same as capacity_class / spot-on-demand-reserved mix
+latency_region_gate,"Cross-Cluster, Multi-Region & Edge",duplicate,same real control as another catalog muscle: cluster dispatch
+global_failover,"Cross-Cluster, Multi-Region & Edge",duplicate,same real control as another catalog muscle: failover
+cross_cluster_replication,"Cross-Cluster, Multi-Region & Edge",duplicate,same real control as another catalog muscle: cluster dispatch
+edge_offload,"Cross-Cluster, Multi-Region & Edge",duplicate,same real control as another catalog muscle: edge offload
+global_admission,"Cross-Cluster, Multi-Region & Edge",duplicate,same lever as global rate limiting / tenant admission
+dpu_vf_tx_rate,DPU SmartNIC & Programmable IO,duplicate,same real control as another catalog muscle: VF rate limit
+dpu_bandwidth_share,DPU SmartNIC & Programmable IO,duplicate,same real control as another catalog muscle: QoS groups
+dpu_qos_group,DPU SmartNIC & Programmable IO,duplicate,same real control as another catalog muscle: QoS groups
+smartnic_offload_enable,DPU SmartNIC & Programmable IO,duplicate,same real control as another catalog muscle: flow steering / offload
+dpu_memory_budget,DPU SmartNIC & Programmable IO,duplicate,same real control as another catalog muscle: DPU services placement
+dpu_service_placement,DPU SmartNIC & Programmable IO,duplicate,same real control as another catalog muscle: DPU services placement
+resource_reservation,Distributed Cluster Managers,duplicate,same real control as another catalog muscle: task admission / queueing
+spread_pressure,Distributed Cluster Managers,duplicate,same real control as another catalog muscle: bin-packing vs spread
+worker_allocation,Distributed Cluster Managers,duplicate,same real control as another catalog muscle: queue capacity
+deadline_pressure,Distributed Cluster Managers,not-a-control,a scheduling objective; it is not a setting
+collective_chunk_size,GPU Fabric & RDMA,duplicate,same real control as another catalog muscle: channels / buffer
+rank_placement,GPU Fabric & RDMA,duplicate,same real control as another catalog muscle: rank placement
+rail_selection,GPU Fabric & RDMA,duplicate,same real control as another catalog muscle: rail selection
+fabric_failover,GPU Fabric & RDMA,duplicate,same real control as another catalog muscle: fabric failover
+communication_priority,GPU Fabric & RDMA,duplicate,same knob as rdma traffic class
+fabric_isolation,GPU Fabric & RDMA,duplicate,same real control as another catalog muscle: NVLink / NVSwitch partition
+mpi_ranks,HPC & Distributed Compute,duplicate,same real control as another catalog muscle: job slots / nodes
+rank_mapping,HPC & Distributed Compute,duplicate,same real control as another catalog muscle: rank placement
+node_allocation,HPC & Distributed Compute,duplicate,same knob as job_slots (--nodes)
+job_priority,HPC & Distributed Compute,duplicate,same real control as another catalog muscle: job priority
+job_preemption,HPC & Distributed Compute,duplicate,same real control as another catalog muscle: preemption
+collective_budget,HPC & Distributed Compute,duplicate,same knob as the NCCL channels / buffer
+cpu_gpu_ratio,HPC & Distributed Compute,duplicate,same real control as another catalog muscle: GPU and memory per task
+memory_per_rank,HPC & Distributed Compute,duplicate,same real control as another catalog muscle: GPU and memory per task
+scratch_budget,HPC & Distributed Compute,duplicate,same real control as another catalog muscle: parallel IO budget
+scheduler_fair_share,HPC & Distributed Compute,duplicate,same real control as another catalog muscle: fair share
+memory_pressure_gate,Host CPU & Memory,duplicate,same real control as another catalog muscle: swap limit
+page_reclaim_rate,Host CPU & Memory,duplicate,same real control as another catalog muscle: proactive reclaim
+dra_device_eviction,Kubernetes Dynamic Device Allocation,duplicate,same real control as another catalog muscle: device taints
+dra_binding_failure_response,Kubernetes Dynamic Device Allocation,duplicate,same real control as another catalog muscle: dynamic resource allocation
+gpu_topology,Kubernetes Placement & Scheduling,duplicate,same real control as another catalog muscle: topology manager (NUMA)
+storage_locality,Kubernetes Placement & Scheduling,duplicate,same real control as another catalog muscle: node affinity
+preemption_policy,Kubernetes Placement & Scheduling,duplicate,same real control as another catalog muscle: priority class
+device_claim,Kubernetes Placement & Scheduling,duplicate,same real control as another catalog muscle: dynamic resource allocation
+failure_domain_spread,Kubernetes Placement & Scheduling,duplicate,same as topology spread over topology.kubernetes.io/zone
+scheduler_backoff,Kubernetes Placement & Scheduling,duplicate,same real control as another catalog muscle: scheduler backoff
+gang_admission,Kubernetes Placement & Scheduling,duplicate,same real control as another catalog muscle: gang scheduling
+rollout_rate,Kubernetes Workload Scaling,duplicate,same knobs as maxSurge / maxUnavailable
+pdb_policy,Kubernetes Workload Scaling,duplicate,same as the PodDisruptionBudget (disruption budget)
+scheduler_queue_priority,Kubernetes Workload Scaling,duplicate,same knob as priority_class
+gpu_quarantine,NVIDIA GPU Hardware,duplicate,same real control as another catalog muscle: health / quarantine
+gpu_thermal_limit,NVIDIA GPU Hardware,not-a-control,not settable on datacenter GPUs (only some GeForce / workstation cards)
+node_pool_min,Node Fleet & Karpenter-Class Control,duplicate,same real control as another catalog muscle: node pool size
+node_pool_max,Node Fleet & Karpenter-Class Control,duplicate,same real control as another catalog muscle: node pool size
+node_provision,Node Fleet & Karpenter-Class Control,duplicate,same knob as node_desired (scale-up)
+node_shutdown,Node Fleet & Karpenter-Class Control,duplicate,same knob as node_power_on
+consolidation_policy,Node Fleet & Karpenter-Class Control,duplicate,same real control as another catalog muscle: consolidation policy
+expire_after,Node Fleet & Karpenter-Class Control,duplicate,same real control as another catalog muscle: node expiry
+machine_health_gate,OpenShift & Machine API,duplicate,same as machine_remediation (MachineHealthCheck maxUnhealthy)
+node_config_rollout,OpenShift & Machine API,duplicate,same as mcp_pause (MachineConfigPool paused)
+infra_machine_admission,OpenShift & Machine API,duplicate,same as MachineSet replicas / node pool size
+machine_failure_domain,OpenShift & Machine API,duplicate,same as failure-domain spread of MachineSets per zone
+pulse_duration,Quantum Computing Control Simulation,duplicate,same real control as another catalog muscle: pulse parameters
+pulse_phase,Quantum Computing Control Simulation,duplicate,same real control as another catalog muscle: pulse parameters
+pulse_frequency,Quantum Computing Control Simulation,duplicate,same real control as another catalog muscle: pulse parameters
+coupling_control,Quantum Computing Control Simulation,duplicate,a pulse parameter (tunable coupler pulses)
+reset_scheduling,Quantum Computing Control Simulation,duplicate,part of the circuit scheduling method
+measurement_scheduling,Quantum Computing Control Simulation,duplicate,part of the circuit scheduling method
+noise_aware_routing,Quantum Computing Control Simulation,duplicate,same real control as another catalog muscle: circuit transpile / qubit mapping
+quantum_queue_priority,Quantum Computing Control Simulation,duplicate,same real control as another catalog muscle: job priority / queue
+queue_backpressure,Work Admission & Demand Shaping,duplicate,same real control as another catalog muscle: queue length limit
+job_admission,Work Admission & Demand Shaping,duplicate,same real control as another catalog muscle: task admission / queueing
+batch_admission,Work Admission & Demand Shaping,duplicate,same real control as another catalog muscle: task admission / queueing
+priority_gate,Work Admission & Demand Shaping,duplicate,same real control as another catalog muscle: load shedding
+burst_limit,Work Admission & Demand Shaping,duplicate,the burst of the same token bucket
+work_budget,Work Admission & Demand Shaping,not-a-control,too vague to name a setting
+request_queue_limit,Work Admission & Demand Shaping,duplicate,same real control as another catalog muscle: queue length limit
+background_work_gate,Work Admission & Demand Shaping,duplicate,same lever as priority admission / load shedding
+maintenance_work_gate,Work Admission & Demand Shaping,duplicate,same lever as background_work_gate
+cache_size,Cache & Memory Services,duplicate,same knob as cache_memory_limit (Redis maxmemory)
+cache_sharding,Cache & Memory Services,duplicate,same real control as another catalog muscle: replicas / shards
+cache_admission,Cache & Memory Services,duplicate,same real control as another catalog muscle: eviction policy
+hot_key_isolation,Cache & Memory Services,duplicate,same real control as another catalog muscle: hot key handling
+cache_memory_limit,Cache & Memory Services,duplicate,same real control as another catalog muscle: memory limit
+cache_compression,Cache & Memory Services,duplicate,same real control as another catalog muscle: persistence / writeback
+cache_warmup,Cache & Memory Services,duplicate,same real control as another catalog muscle: hot key handling
+cache_failover,Cache & Memory Services,duplicate,same real control as another catalog muscle: replicas / shards
+cache_flush_rate,Cache & Memory Services,duplicate,same as cache persistence / writeback (appendfsync)
+payment_timeout,Commerce & Payment Systems,duplicate,same real control as another catalog muscle: payment retry with backoff
+processor_route_weight,Commerce & Payment Systems,duplicate,same knob as authorization_route
+transaction_queue_limit,Commerce & Payment Systems,duplicate,same real control as another catalog muscle: checkout load shedding / queueing
+inventory_hold,Commerce & Payment Systems,duplicate,same real control as another catalog muscle: inventory hold / reservation timeout
+checkout_load_shed,Commerce & Payment Systems,duplicate,same real control as another catalog muscle: checkout load shedding / queueing
+settlement_batch,Commerce & Payment Systems,duplicate,same real control as another catalog muscle: settlement batching
+dynamic_allocation_max,Data Analytics & ETL,duplicate,same real control as another catalog muscle: dynamic allocation
+query_slots,Data Analytics & ETL,duplicate,same real control as another catalog muscle: query slots / concurrency
+cache_fraction,Data Analytics & ETL,duplicate,same real control as another catalog muscle: memory fraction
+analytics_admission,Data Analytics & ETL,duplicate,same real control as another catalog muscle: query slots / concurrency
+read_route,Database & Transactions,duplicate,same real control as another catalog muscle: read replicas / routing
+db_failover,Database & Transactions,duplicate,same real control as another catalog muscle: failover
+transaction_concurrency,Database & Transactions,duplicate,same knob as query_concurrency (innodb_thread_concurrency)
+consumer_quota,Messaging & Streaming,duplicate,same real control as another catalog muscle: client quotas
+queue_depth_limit,Messaging & Streaming,duplicate,same real control as another catalog muscle: queue length limit
+stream_priority,Messaging & Streaming,not-a-control,Kafka has no per-stream priority (separate topics and quotas do this)
+broker_failover,Messaging & Streaming,duplicate,same real control as another catalog muscle: replication factor
+route_weight,Network Routing & Switching,duplicate,same real control as another catalog muscle: load balancer weights
+bandwidth_limit,Network Routing & Switching,duplicate,same knob as rate_limit (tc rate)
+nic_rate_limit,Network Routing & Switching,duplicate,same real control as another catalog muscle: VF rate limit
+egress_budget,Network Routing & Switching,duplicate,same real control as another catalog muscle: traffic shaping / rate
+ingress_budget,Network Routing & Switching,duplicate,same real control as another catalog muscle: traffic shaping / rate
+ecmp_weight,Network Routing & Switching,duplicate,same real control as another catalog muscle: ECMP weights
+path_selection,Network Routing & Switching,duplicate,same real control as another catalog muscle: ECMP weights
+retention_window,Observability & Telemetry,duplicate,same real control as another catalog muscle: retention
+rollback,"Reliability, Security & Recovery",duplicate,same real control as another catalog muscle: rollback
+traffic_divert_recovery,"Reliability, Security & Recovery",duplicate,same as traffic divert / locality failover
+fault_domain_isolate,"Reliability, Security & Recovery",duplicate,same as workload isolation (cordon a zone / deny NetworkPolicy)
+runtime_memory,Runtime & Application,duplicate,same knob as jvm_heap (or GOMEMLIMIT)
+async_concurrency,Runtime & Application,duplicate,same real control as another catalog muscle: async concurrency
+event_loop_workers,Runtime & Application,duplicate,same as worker / process count
+process_count,Runtime & Application,duplicate,same real control as another catalog muscle: worker / process count
+background_workers,Runtime & Application,duplicate,same real control as another catalog muscle: worker / process count
+runtime_cpu_budget,Runtime & Application,duplicate,same as the CPU limit (cgroup cpu.max)
+runtime_io_budget,Runtime & Application,duplicate,same real control as another catalog muscle: IO limit
+runtime_restart,Runtime & Application,duplicate,same real control as another catalog muscle: restart
+search_concurrency,"Search, Indexing & Vector DB",duplicate,same real control as another catalog muscle: thread pools / queues
+shard_rebalance,"Search, Indexing & Vector DB",duplicate,same real control as another catalog muscle: shard allocation / rebalance
+embedding_workers,"Search, Indexing & Vector DB",duplicate,same knob as model replicas of the embedding model
+query_route,"Search, Indexing & Vector DB",duplicate,same real control as another catalog muscle: shard allocation / rebalance
+hot_shard_isolation,"Search, Indexing & Vector DB",duplicate,same real control as another catalog muscle: shard allocation / rebalance
+search_admission,"Search, Indexing & Vector DB",duplicate,same real control as another catalog muscle: thread pools / queues
+service_timeout,Service Mesh & API Reliability,duplicate,same real control as another catalog muscle: request timeout
+service_concurrency,Service Mesh & API Reliability,duplicate,same real control as another catalog muscle: circuit breaker thresholds
+canary_weight,Service Mesh & API Reliability,duplicate,same real control as another catalog muscle: traffic split / canary
+health_threshold,Service Mesh & API Reliability,duplicate,same real control as another catalog muscle: outlier ejection
+throughput_limit,Storage Block/File/Object,duplicate,same real control as another catalog muscle: volume performance class
+replica_count,Storage Block/File/Object,duplicate,same real control as another catalog muscle: replica count
+volume_placement,Storage Block/File/Object,duplicate,same real control as another catalog muscle: storage class / tier
+backfill_rate,Storage Block/File/Object,duplicate,same real control as another catalog muscle: recovery / backfill rate
+compaction_pressure,Storage Block/File/Object,duplicate,same real control as another catalog muscle: recovery / backfill rate
+cache_allocation,Storage Block/File/Object,duplicate,same real control as another catalog muscle: recovery / backfill rate
+storage_admission,Storage Block/File/Object,duplicate,same knob as the IO limit
+ran_prb_allocation,Telecom RAN & Edge Radio,duplicate,same real control as another catalog muscle: slice resource budget
+ran_cell_sleep,Telecom RAN & Edge Radio,duplicate,same real control as another catalog muscle: cell sleep / carrier shutdown
+task_queue_rate,"Workflow, Logistics & Fulfillment",duplicate,same real control as another catalog muscle: task queue rate limit
+workflow_backoff,"Workflow, Logistics & Fulfillment",duplicate,part of the retry policy (backoffCoefficient)
+inventory_allocation,"Workflow, Logistics & Fulfillment",duplicate,same real control as another catalog muscle: inventory hold / reservation timeout
+warehouse_queue,"Workflow, Logistics & Fulfillment",duplicate,same real control as another catalog muscle: task queue rate limit
+carrier_selection,"Workflow, Logistics & Fulfillment",duplicate,same real control as another catalog muscle: carrier selection / route replan
+route_replan,"Workflow, Logistics & Fulfillment",duplicate,same real control as another catalog muscle: carrier selection / route replan
+sla_escalation,"Workflow, Logistics & Fulfillment",not-a-control,a business rule or alert; it moves no lever
+economizer_position,Building & Critical Environment HVAC,duplicate,same real control as another catalog muscle: damper / economiser position
+cooling_capacity,"Cooling, Chillers & Thermodynamics",duplicate,same knob as compressor_authority (staged cooling capacity)
+rack_thermal_budget,"Cooling, Chillers & Thermodynamics",duplicate,same as the rack power cap
+cpu_thermal_envelope,"Cooling, Chillers & Thermodynamics",duplicate,same real control as another catalog muscle: thermal envelope
+thermal_load_shed,"Cooling, Chillers & Thermodynamics",duplicate,same real control as another catalog muscle: thermal workload migration
+battery_discharge_power,Energy Storage & Microgrid,duplicate,same real control as another catalog muscle: battery charge / discharge power
+grid_export_limit,Energy Storage & Microgrid,duplicate,same real control as another catalog muscle: grid import / export limit
+peak_shaving,Energy Storage & Microgrid,duplicate,same real control as another catalog muscle: peak shaving threshold
+flex_load_admission,Energy Storage & Microgrid,duplicate,same real control as another catalog muscle: flexible load admission / shed
+storage_dispatch,Energy Storage & Microgrid,duplicate,same real control as another catalog muscle: battery charge / discharge power
+carbon_intensity_gate,Facility & Grid Optimization,duplicate,same real control as another catalog muscle: carbon / price gate
+renewable_dispatch,Facility & Grid Optimization,duplicate,same real control as another catalog muscle: PV curtailment
+site_battery_dispatch,Facility & Grid Optimization,duplicate,same knob as storage_dispatch at site level
+it_power_budget,Facility & Grid Optimization,duplicate,same real control as another catalog muscle: facility power budget
+rack_power_allocation,Facility & Grid Optimization,duplicate,same real control as another catalog muscle: facility power budget
+facility_peak_guard,Facility & Grid Optimization,duplicate,same as the utility demand limit / peak shaving
+compressor_speed,Industrial PLC & Process Automation,duplicate,same real control as another catalog muscle: pump / compressor speed
+pressure_setpoint,Industrial PLC & Process Automation,duplicate,same real control as another catalog muscle: PID setpoint
+temperature_setpoint,Industrial PLC & Process Automation,duplicate,same real control as another catalog muscle: PID setpoint
+mass_flow_setpoint,Industrial PLC & Process Automation,duplicate,same real control as another catalog muscle: PID setpoint
+tank_level_target,Industrial PLC & Process Automation,duplicate,same real control as another catalog muscle: PID setpoint
+feed_rate,Industrial PLC & Process Automation,duplicate,same real control as another catalog muscle: production rate / feed rate
+purge_vent_action,Industrial PLC & Process Automation,protective,a safety-system action (IEC 61511); not for an optimiser to write
+ups_discharge_rate,"PDU, UPS & Electrical Distribution",not-a-control,a UPS discharges at the load; not settable on most units
+reactive_power_target,"PDU, UPS & Electrical Distribution",duplicate,an inverter control (grid family); not a PDU / UPS setting
+voltage_target,"PDU, UPS & Electrical Distribution",duplicate,a feeder control (grid family); not a PDU / UPS setting
+electrical_isolation,"PDU, UPS & Electrical Distribution",protective,switchgear isolation; not for an optimiser to write
+breaker_trip_gate,"PDU, UPS & Electrical Distribution",protective,breaker protection settings; not writable by an optimiser
+chamber_pressure,Semiconductor Fab & Precision Manufacturing,duplicate,same real control as another catalog muscle: chamber temperature / pressure / gas flow / RF power
+gas_flow,Semiconductor Fab & Precision Manufacturing,duplicate,same real control as another catalog muscle: chamber temperature / pressure / gas flow / RF power
+rf_power,Semiconductor Fab & Precision Manufacturing,duplicate,same real control as another catalog muscle: chamber temperature / pressure / gas flow / RF power
+robot_transfer_rate,Semiconductor Fab & Precision Manufacturing,duplicate,same real control as another catalog muscle: wafer routing / transfer
+pump_speed_water,Water Wastewater & Pumping,duplicate,same real control as another catalog muscle: pump speed
+valve_position_water,Water Wastewater & Pumping,duplicate,same real control as another catalog muscle: valve position
+flow_target_water,Water Wastewater & Pumping,duplicate,same real control as another catalog muscle: pump speed
+water_emergency_shutdown,Water Wastewater & Pumping,protective,an emergency action; not for an optimiser to write
+energy_recovery_target,Automotive EV & Mobile Powertrain,duplicate,same as the regenerative braking level
+fast_charge_current,Automotive EV & Mobile Powertrain,duplicate,same real control as another catalog muscle: battery charge current / voltage limit
+fast_charge_voltage,Automotive EV & Mobile Powertrain,duplicate,same real control as another catalog muscle: battery charge current / voltage limit
+land_action,Aviation & Autonomous Flight,duplicate,same real control as another catalog muscle: flight mode transition
+flight_mode_transition,Aviation & Autonomous Flight,duplicate,same real control as another catalog muscle: flight mode transition
+task_assignment,Robotics Fleet & Warehouse Automation,duplicate,same real control as another catalog muscle: task assignment
+door_request,Robotics Fleet & Warehouse Automation,duplicate,same real control as another catalog muscle: door / lift requests
+fleet_failover,Robotics Fleet & Warehouse Automation,duplicate,same real control as another catalog muscle: task assignment
+trajectory_acceleration,Robotics Motion Control,duplicate,same real control as another catalog muscle: joint limits
+jerk_limit,Robotics Motion Control,duplicate,same real control as another catalog muscle: joint limits
+braking_force,Robotics Motion Control,duplicate,same real control as another catalog muscle: steering / braking
+instrument_activation,Spacecraft & Flight Software,duplicate,same real control as another catalog muscle: payload duty cycle

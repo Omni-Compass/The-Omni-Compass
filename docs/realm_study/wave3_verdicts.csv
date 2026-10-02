@@ -1,0 +1,56 @@
+muscle,verdict,note
+speculative_decode_budget,real,vLLM speculative decoding (num_speculative_tokens)
+inference_slo_gate,duplicate,same lever as the inference queue policy / priority admission
+boot_disk_class,missing-added,cloud boot volume type (e.g. EBS gp3/io2 VolumeType); not in wave 1
+cloud_capacity_class,duplicate,same as capacity_class / spot-on-demand-reserved mix
+workload_migrate_region,real,Karmada rescheduling / failover across clusters
+cross_cluster_replication,real,Karmada PropagationPolicy replicas across member clusters
+smartnic_offload_enable,real,OVS hardware offload (other_config:hw-offload) / tc flower offload
+dpu_cpu_budget,real,resources of DPU-hosted services (BlueField Arm cores via DPU services)
+dpu_memory_budget,real,resources of DPU-hosted services (BlueField memory via DPU services)
+collective_chunk_size,real,NCCL buffer and chunk sizes (NCCL_BUFFSIZE / NCCL_P2P_NET_CHUNKSIZE)
+mpi_ranks,real,Slurm --ntasks / mpirun -np
+memory_pressure_gate,real,kubelet eviction thresholds (memory.available) / PSI-based admission
+page_reclaim_rate,real,cgroup memory.reclaim / vm.watermark_scale_factor
+dra_binding_readiness,real,DRA device binding conditions (alpha in recent Kubernetes)
+dra_binding_failure_response,real,DRA binding conditions failure handling (alpha)
+failure_domain_spread,duplicate,same as topology spread over topology.kubernetes.io/zone
+deschedule,real,kubernetes-sigs/descheduler
+pdb_policy,duplicate,same as the PodDisruptionBudget (disruption budget)
+machine_remediation,missing-added,OpenShift / Cluster API MachineHealthCheck remediation (maxUnhealthy)
+machine_health_gate,duplicate,same as machine_remediation (MachineHealthCheck maxUnhealthy)
+mcp_max_unavailable,missing-added,OpenShift MachineConfigPool spec.maxUnavailable
+node_config_rollout,duplicate,same as mcp_pause (MachineConfigPool paused)
+operator_reconcile_budget,missing-added,controller-runtime MaxConcurrentReconciles per controller
+cluster_version_pacing,missing-added,OpenShift ClusterVersion update / MCP pause pacing of upgrades
+infra_machine_admission,duplicate,same as MachineSet replicas / node pool size
+machine_failure_domain,duplicate,same as failure-domain spread of MachineSets per zone
+coupling_control,duplicate,a pulse parameter (tunable coupler pulses)
+background_work_gate,duplicate,same lever as priority admission / load shedding
+cache_flush_rate,duplicate,same as cache persistence / writeback (appendfsync)
+db_write_throttle,real,Vitess tablet throttler / application write throttle
+db_pool_resize,real,PgBouncer default_pool_size
+nic_queue_count,real,ethtool -L combined
+traffic_divert_recovery,duplicate,same as traffic divert / locality failover
+policy_enforcement,real,ValidatingAdmissionPolicy / Gatekeeper / Kyverno
+fault_domain_isolate,duplicate,same as workload isolation (cordon a zone / deny NetworkPolicy)
+event_loop_workers,duplicate,same as worker / process count
+runtime_cpu_budget,duplicate,same as the CPU limit (cgroup cpu.max)
+index_memory_budget,missing-added,Elasticsearch indices.memory.index_buffer_size
+hot_shard_isolation,real,Elasticsearch shard allocation filtering (index.routing.allocation.*)
+degraded_storage_gate,missing-added,Ceph cluster flags (noout / norebalance / norecover)
+ran_ue_handover,real,handover offsets (CIO) and thresholds
+ran_prb_allocation,real,slice PRB quota / RRM policy ratio
+ran_tx_power,real,maximum transmit power
+ran_carrier_enable,real,cell / carrier on-off (energy saving)
+sla_escalation,not-a-control,a business rule or alert; it moves no lever
+rack_thermal_budget,duplicate,same as the rack power cap
+facility_peak_guard,duplicate,same as the utility demand limit / peak shaving
+plc_cycle_authority,real-config,PLC task cycle time (IEC 61131 task interval): configuration; not a runtime lever
+machine_cell_admission,real,production order release (ISA-95) / batch phase start
+purge_vent_action,protective,a safety-system action (IEC 61511); not for an optimiser to write
+ups_discharge_rate,not-a-control,a UPS discharges at the load; not settable on most units
+breaker_trip_gate,protective,breaker protection settings; not writable by an optimiser
+lift_station_dispatch,real,pump scheduling at lift stations
+energy_recovery_target,duplicate,same as the regenerative braking level
+human_safe_stop,real,protective stop (ISO 13850) / fleet safe stop

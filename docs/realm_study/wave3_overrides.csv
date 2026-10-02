@@ -1,0 +1,181 @@
+muscle,control,verdict,note
+model_route_weight,model routing weights,real,
+kv_cache_budget,KV-cache memory share,real,
+model_precision,precision / quantisation,real,
+inference_concurrency,max concurrent sequences,real,
+training_workers,worker count,real,
+elastic_worker_count,worker count,duplicate,same knob as training_workers (torchrun --nnodes MIN:MAX)
+microbatch_size,micro-batch size,real,
+training_preempt,preemption / suspend,real,
+attitude_target,,missing-added,MAVLink SET_ATTITUDE_TARGET (attitude setpoint)
+velocity_target,,missing-added,MAVLink SET_POSITION_TARGET_LOCAL_NED velocity fields
+land_action,flight mode transition,real,MAV_CMD_NAV_LAND
+failsafe_selection,link-loss failsafe,real,
+battery_reserve_threshold,battery failsafe,real,
+cache_size,memory limit,duplicate,same knob as cache_memory_limit (Redis maxmemory)
+cache_sharding,replicas / shards,real,
+cache_prefetch,hot key handling,real-app,application refresh-ahead / prefetch; not a Redis setting
+cache_admission,eviction policy,real-app,admission policy of in-process caches (e.g. Caffeine TinyLFU)
+cache_compression,persistence / writeback,real-app,client-side value compression; not a Redis setting
+cache_warmup,hot key handling,real-app,pre-loading keys at start; an application action
+cache_failover,replicas / shards,real,Redis Sentinel / Cluster failover
+vm_count,group size,real,
+vm_size,instance type / size,real,
+vm_migrate,live migration,real,
+instance_family,instance type / size,real,
+asg_min,group size,real,MinSize
+asg_max,group size,real,MaxSize
+architecture_selection,instance type / size,duplicate,a choice inside instance type (arm64 / x86_64)
+accelerator_selection,instance type / size,duplicate,a choice inside instance type (GPU family)
+payment_admission,checkout load shedding / queueing,real,
+payment_concurrency,async concurrency,real-app,in-flight limit of the payment service
+payment_timeout,payment retry with backoff,real,client timeout with retry
+authorization_route,processor routing weights,real,
+processor_route_weight,processor routing weights,duplicate,same knob as authorization_route
+transaction_queue_limit,checkout load shedding / queueing,real,
+refund_queue_rate,settlement batching,real-app,refund queue processing rate
+memory_limit,memory limit,real,
+compressor_authority,chiller staging,real,
+cooling_capacity,chiller staging,duplicate,same knob as compressor_authority (staged cooling capacity)
+thermal_load_shed,thermal workload migration,real,
+zone_dispatch,cluster dispatch,real,
+workload_migrate_region,failover,real,Karmada rescheduling across clusters
+latency_region_gate,cluster dispatch,real,placement constraint by latency
+cost_region_gate,cost-aware placement,real,
+carbon_region_gate,carbon-aware placement,real,
+federation_quota,,missing-added,Karmada FederatedResourceQuota
+global_admission,rate limit,duplicate,same lever as global rate limiting / tenant admission
+dpu_cpu_budget,DPU services placement,real,resources of DPU-hosted services
+dpu_memory_budget,DPU services placement,real,resources of DPU-hosted services
+dpu_failover,,missing-added,uplink bonding / LAG failover on the DPU
+shuffle_bandwidth,,missing-added,spark.reducer.maxSizeInFlight / shuffle network settings
+spill_threshold,memory fraction,real,
+batch_interval,,missing-added,Spark Structured Streaming trigger interval
+analytics_admission,query slots / concurrency,real,
+db_pool_resize,connection pooler,real,
+transaction_concurrency,thread concurrency,duplicate,same knob as query_concurrency (innodb_thread_concurrency)
+resource_reservation,task admission / queueing,real,Kueue nominal quota
+cluster_quota,queue capacity,real,
+gang_schedule,gang scheduling,real,
+worker_allocation,queue capacity,real,
+resource_reclaim,cohort borrowing,real,Kueue reclaim / lending
+queue_fairness,fair share,real,
+deadline_pressure,,not-a-control,a scheduling objective; it is not a setting
+scheduler_retry,scheduler backoff,real,
+electrolyzer_power,electrolyser power,real,
+storage_dispatch,battery charge / discharge power,real,
+battery_soc_reserve,state-of-charge reserve,real,
+facility_power_budget,facility power budget,real,
+renewable_dispatch,PV curtailment,real,
+site_battery_dispatch,battery charge / discharge power,duplicate,same knob as storage_dispatch at site level
+gpu_fabric_quarantine,health / quarantine,real,
+rdma_bandwidth,InfiniBand traffic class / SL,real,
+rdma_route,fabric failover,real,adaptive routing
+collective_concurrency,channels / buffer,real,
+collective_chunk_size,channels / buffer,real,
+communication_priority,InfiniBand traffic class / SL,duplicate,same knob as rdma traffic class
+fabric_isolation,NVLink / NVSwitch partition,real,
+frequency_droop_setpoint,frequency-watt (droop),real,
+mpi_ranks,job slots / nodes,real,
+rank_mapping,rank placement,real,
+node_allocation,job slots / nodes,duplicate,same knob as job_slots (--nodes)
+collective_budget,channels / buffer,duplicate,same knob as the NCCL channels / buffer
+accelerator_share,GPU and memory per task,real,
+cpufreq_max,frequency ceiling,real,
+thermal_throttle_policy,thermal trip / cooling device,real,
+machine_cell_admission,batch recipe / phase,real,
+tank_level_target,PID setpoint,real,
+mass_flow_setpoint,PID setpoint,real,
+dra_binding_readiness,dynamic resource allocation,real,DRA device binding conditions (alpha)
+dra_binding_failure_response,dynamic resource allocation,real,DRA binding conditions failure handling (alpha)
+gpu_topology,topology manager (NUMA),real,
+storage_locality,node affinity,real,volume topology / node affinity
+network_locality,traffic locality,real,
+taint_toleration,taints and tolerations,real,
+preemption_policy,priority class,real,preemptionPolicy
+device_claim,dynamic resource allocation,real,
+rollout_rate,rollout surge,duplicate,same knobs as maxSurge / maxUnavailable
+max_unavailable,rollout unavailability,real,
+rollout_abort,rollback,real,
+scheduler_queue_priority,priority class,duplicate,same knob as priority_class
+fetch_batch_size,consumer fetch,real,
+stream_priority,,not-a-control,Kafka has no per-stream priority (separate topics and quotas do this)
+broker_failover,replication factor,real,min.insync.replicas / leader election
+gpu_allocate,extended / device resources,real,
+gpu_timeslice,time-slicing,real,
+gpu_thermal_limit,GPU temperature target,not-a-control,not settable on datacenter GPUs (only some GeForce / workstation cards)
+gpu_job_power_budget,group power limit,real,DCGM group power limit
+bandwidth_limit,traffic shaping / rate,duplicate,same knob as rate_limit (tc rate)
+failover_route,ECMP weights,real,BGP / ECMP path withdrawal
+nic_rate_limit,VF rate limit,real,
+nic_queue_count,NIC queues / channels,real,
+egress_budget,traffic shaping / rate,real,egress shaping
+ingress_budget,traffic shaping / rate,real,ingress policing
+path_selection,ECMP weights,real,
+network_isolation,network policy,real,
+node_desired,node pool size,real,
+node_provision,node pool size,duplicate,same knob as node_desired (scale-up)
+node_cordon,cordon / uncordon,real,
+node_consolidate,consolidation policy,real,
+node_shutdown,node power off / on,duplicate,same knob as node_power_on
+disruption_budget,disruption budgets,real,
+expire_after,node expiry,real,
+telemetry_shed,trace sampling,real,
+mcp_pause,,missing-added,OpenShift MachineConfigPool spec.paused
+load_transfer,automatic transfer,real,
+reactive_power_target,inverter reactive power,duplicate,an inverter control (grid family); not a PDU / UPS setting
+voltage_target,feeder voltage target (CVR),duplicate,a feeder control (grid family); not a PDU / UPS setting
+electrical_isolation,,protective,switchgear isolation; not for an optimiser to write
+circuit_admission,job priority / queue,real,
+circuit_scheduling,session / batch mode,real,
+gate_scheduling,,missing-added,Qiskit scheduling method (ALAP / ASAP)
+reset_scheduling,,duplicate,part of the circuit scheduling method
+measurement_scheduling,,duplicate,part of the circuit scheduling method
+noise_aware_routing,circuit transpile / qubit mapping,real,
+rollback,rollback,real,
+policy_enforcement,admission policy,real,
+robot_dispatch,task assignment,real,
+elevator_request,door / lift requests,real,
+fleet_failover,task assignment,real,reassignment of a failed robot's tasks
+human_safe_stop,safety stop,real,
+joint_velocity,joint velocity command,real,
+joint_effort,joint effort command,real,
+braking_force,steering / braking,real,
+runtime_memory,JVM heap,duplicate,same knob as jvm_heap (or GOMEMLIMIT)
+background_workers,worker / process count,real,
+runtime_io_budget,IO limit,real,cgroup io.max
+runtime_restart,restart,real,
+index_workers,thread pools / queues,real,write thread pool
+index_refresh_rate,index refresh interval,real,
+search_concurrency,thread pools / queues,real,
+shard_count,shards / replicas,real,
+vector_batch_size,index build parameters,real-app,bulk / batch size of the indexing client
+embedding_workers,model replicas,duplicate,same knob as model replicas of the embedding model
+query_route,shard allocation / rebalance,real,search preference / routing
+search_admission,thread pools / queues,real,
+service_concurrency,circuit breaker thresholds,real,max_requests
+traffic_divert,traffic split / canary,real,
+health_threshold,outlier ejection,real,
+dns_traffic_weight,weighted region split,real,
+space_mode_transition,mode transitions,real,
+iops_limit,volume performance class,real,
+throughput_limit,volume performance class,real,
+volume_placement,storage class / tier,real,
+compaction_pressure,recovery / backfill rate,real,BlueStore / RocksDB compaction settings
+cache_allocation,recovery / backfill rate,real,BlueStore cache sizing
+storage_admission,IO limit,duplicate,same knob as the IO limit
+flow_target_water,pump speed,real,flow setpoint through pump speed
+water_emergency_shutdown,,protective,an emergency action; not for an optimiser to write
+job_admission,task admission / queueing,real,
+batch_admission,task admission / queueing,real,
+inference_admission,request queue policy,real,
+burst_limit,rate limit,duplicate,the burst of the same token bucket
+work_budget,,not-a-control,too vague to name a setting
+request_queue_limit,queue length limit,real,
+maintenance_work_gate,rate limit,duplicate,same lever as background_work_gate
+workflow_admission,task queue rate limit,real,
+workflow_backoff,retry policy,duplicate,part of the retry policy (backoffCoefficient)
+inventory_allocation,inventory hold / reservation timeout,real,
+robot_transfer_rate,wafer routing / transfer,real,transfer robot speed / AMHS dispatch rate
+balance_correction,PID gains,real,balance controller gains (legged / humanoid robots)
+pdb_policy,disruption budget,duplicate,same as the PodDisruptionBudget (disruption budget)
