@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-bfcc3868d061",
- "written_at_commit": "bfcc3868d061879d8022f719498e082ab578d425",
- "written_at": "2026-10-02T00:08:06+00:00",
+ "release_id": "omni-compass-ca6d74e911c0",
+ "written_at_commit": "ca6d74e911c00abcaaa0197710efc9285015c4f6",
+ "written_at": "2026-10-02T00:15:48+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -76,7 +76,7 @@
    "docs/TRACKING_THEOREM.md": "73d3224963f31e0fbacda3e4755a8f3832c937e53553202f46e23ae28d86fb1f",
    "tools/tracking_bounds.py": "c5fc54965f14a4757f1c6c47d53f2a1011f8b1660d66e21b7b6c2e81aac6e9e1",
    "results/TRACKING_BOUNDS.json": "154ed508c98c4c64775738cfac9a18853b3db6f83d50db094da516c1adfffa0f",
-   "docs/EVIDENCE_LEDGER.md": "fd67c3d6ec48ee3cc8327b5a0ca17f0aca2d561416f07aa3ed23687d917874c2",
+   "docs/EVIDENCE_LEDGER.md": "5f1708a032ab195ef26141319a0499061e916c8a128f6feeed0f07d28e8bee62",
    "RECEIPT.md": "01837f7fcc04f86de28b772f14fb9fe0d84e1ac0ddca3e359974a112a19cac05"
   },
   "license": {
@@ -141,7 +141,7 @@
  "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card",
  "verification_receipt": {
   "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "721f62de128764cc14dfaaf06a77f1737bea37e71d8469691582137f8a879071",
+  "sha256": "7f75dac8416b4094e86c1fb94cee20f7c0f3db53a29c97126fc64bff7f637ee4",
   "passed": true
  }
 }
