@@ -3128,7 +3128,129 @@ Add `--strict-replicas`:
 *Paired runs, receipts, rules written before the runs, and every result to date with its evidence class.*
 
 
-## 37. Paired Runs and Receipts on Your Own System
+## 37. The Dossier: Every Result in One Place
+
+
+
+Every mechanism, harness, receipt and result, read from the files named beside it. Built by `tools/dossier.py` at commit `3f3a8b6`. Evidence classes: **T** theorem, **V** verified in code, **S** a model, **L** live software (real Kubernetes), **P** a physical meter. A model is not a meter, and a model written by the people who wrote the law is not an independent test; where a result is a model it says so.
+
+### 1. The mechanism, and proof that it is the one that ran
+
+| Check | Result | Where |
+|---|---|---|
+| The whole repository re-runs and checks itself (`python3 verify.py`) | **PASS** | `results/VERIFY_RECEIPT.txt` |
+| The eight-line engine and its six states, fingerprinted (`omnicompass/core.py`) | sha256 `bd615f156169f679…` | `RELEASE_MANIFEST.json` |
+| Python and C++20 twins of every law, proven equal and sealed | seal intact: 9 Python/C++ twins | `results/SEAL.json` |
+| The mechanism's identity against the code | mechanism identity matches the code | `results/MECHANISM_IDENTITY.json` |
+| The engine's convergence to its pole under the bounded command | proved | `docs/TRACKING_THEOREM.md` |
+| Safety shield: 2,000,000 adversarial cases | 0 violations | `tests/test_shield_properties.py` |
+| The bowl law (push and pull, 5% cushions, fail up, plug contract) on every muscle, the card and Kubernetes | one law, one file | `omnicompass/bowl.py` |
+| Every file the results depend on, by fingerprint | written after the check passes | `RELEASE_MANIFEST.json` |
+
+The engine is the founder's eight-line equation, integrated by RK4 with the bounded command held across all four stages; it is frozen and fingerprinted, and the C++ twin matches it. The bowl law is the outer loop that moves each muscle's own setting: it reads one service position (0 calm, 1 the line), pulls it to the bowl's center, pushes against whatever is rising, bounds its force by tanh, fails up past the wall, and writes through a plug that reads every lever once before the first write, reads back every write, yields to any other writer and restores the snapshot at the end.
+
+### 2. The real GPU (evidence class P)
+
+NVIDIA A10 on Lambda, 2026-10-02, frozen at commit `c908054`, 10 paired repetitions of native, Omni watching only and Omni governing, 600 s each, energy from the card's own power meter. Wire check 7 of 7; every write read back; every arm ended at the start limit.
+
+![The real card](dossier/gpu_real.png)
+
+| Gauge | Native | Omni | Change | 95% interval | Verdict |
+|---|---:|---:|---:|---:|---|
+| Work per energy | 50.79 | 52.62 | +3.6% | +2.7% to +4.5% | better, proven |
+| GPU energy | 6.918e+04 | 6.679e+04 | -3.5% | -4.4% to -2.6% | better, proven |
+| GPU power | 109.5 | 105.7 | -3.5% | -4.4% to -2.6% | better, proven |
+| Response, mean | 159.6 | 236.5 | +48.2% | +40.9% to +55.6% | worse, proven |
+| Response, p95 | 510.1 | 808.7 | +58.5% | +47.4% to +69.6% | worse, proven |
+| Response, p99 | 766.6 | 1232 | +60.8% | +40.5% to +81.0% | worse, proven |
+
+**Result, by rule: ENERGY IMPROVEMENT WITH SERVICE TRADEOFF.** The energy result is proven; the 95th-percentile response time breached the +10% guardrail. The cause, read from the card's own samples, was wiring in the governor (bursts served at 736-768 MHz against 861-889 MHz on the card's own); corrected in amendments 6 and 7 of `docs/GPU_PREREGISTRATION.md`. The corrected governor is the next card run.
+
+#### The real card inside the six organisms
+
+The card is one more muscle of each organism, governed by the same bowl law as the 656 modelled muscles; its energy and requests are its own meter (`results/hil/run-20261002T082232Z/HIL.md`).
+
+![The card in the organisms](dossier/hil_card.png)
+
+| Organism | The card, work per energy (meter) | The modelled stacks, work per energy |
+|---|---:|---:|
+| Compute / AI / Cloud (345) | +2.00% | +0.32% |
+| Physics / Robotics / Autonomous (262) | +2.68% | +0.24% |
+| Energy / Facility / Industrial (282) | +2.75% | +0.21% |
+| Distribution / Specialized (337) | +2.37% | +0.25% |
+| The four stacked (1,226) | +1.63% | +0.21% |
+| The whole tower (656) | +2.62% | +0.23% |
+
+In every organism the card served the same requests with none lost; its p95 rose from about 500 ms to 600-935 ms under the governor of that run (the same wiring fault).
+
+### 3. The corrected GPU governor on the modelled card (evidence class S)
+
+Two profiles of one governor (`omni_controller/gpu_bowl.py`, the same law in `realms/gpu_card.py`): **service**, the default and the benchmark's arm (down gain 0.0125, the bowl's center 0.4, the speed floor 3% above the card's own busy clock), and **batch** (down gain 0.015, center 0.5, the floor at the card's own busy clock). It races at full speed while work waits, never runs slower than the card does on its own while busy, never sets the lid under the card's own busy draw, and reads response time only.
+
+![The modelled card](dossier/gpu_model.png)
+
+| Profile | Work per energy (tuning / fresh) | Energy | p95 (lower is faster) |
+|---|---:|---:|---:|
+| Service | +6.9% / +3.8% | -6.4% / -3.7% | -5.9% / -2.3% |
+| Batch | +8.1% / +4.2% | -7.5% / -4.1% | +7.0% / -2.3% |
+| The earlier one-wire governor | +0.1% / +0.1% | -0.1% / -0.1% | +0.8% / +1.8% |
+
+Source: `results/sim/gpu_two_wire/RESULT.md` and `fresh/RESULT.md`. How the service settings were chosen, with every setting tried and the rule, is amendment 7 of `docs/GPU_PREREGISTRATION.md`.
+
+### 4. Real Kubernetes (evidence class L)
+
+Each set: 10 paired repetitions on one runner, native Kubernetes (HPA, scheduler) against the same Kubernetes with Omni-Compass on top, fresh cluster per arm, order rotated, fixed-rate load so both arms do the same work. Every Omni arm ends with the kill switch, which must return every setting and every machine to native.
+
+![Kubernetes](dossier/k8s.png)
+
+| Set | Law | Machines in service | p95 response | Failed requests | Total CPU incl. Omni's own | Receipt |
+|---|---|---:|---:|---:|---:|---|
+| 22 | allocation | −31.0% | −61.0% | 0 / 0 | -0.9% (not significant) | `results/live/LIVE_REPS_22.md` |
+| 23 | allocation | −28.7% | −62.2% | 0 / 0 | -1.0% (not significant) | `results/live/LIVE_REPS_23.md` |
+| 24 | allocation | −31.6% | −60.1% | 0 / 0 | -1.8% (not significant) | `results/live/LIVE_REPS_24.md` |
+| 25 | allocation | −32.3% | −57.3% | 0 / 0 | -0.6% (not significant) | `results/live/LIVE_REPS_25.md` |
+| 26 | allocation | −35.8% | −55.4% | 0 / 0 | -1.5% (not significant) | `results/live/LIVE_REPS_26.md` |
+| 26 | bowl | −17.2% | −64.8% | 0 / 0 | +1.0% (not significant) | `results/live/LIVE_REPS_26.md` |
+
+Machines and response time are proven better in every set. Total CPU including the controller's own cost is no different from native: the service uses 6-9% less CPU (proven) and the controller spends about 0.07 cores, on the same 4-core runner. Set 27 runs the bowl aligned with the GPU (`docs/K8S_BOWL_PREREGISTRATION.md`).
+
+### 5. The six organisms at 1, 10, 100 and 1,000 runs and sizes (evidence class S)
+
+Each organism runs native (its own controllers) and with the bowl law on every muscle, same seed, same load, same clock. Size is the number of copies of the organism governed together on one clock; runs are the first N of the same paired set, so 1, 10, 100 and 1,000 nest. 100× and 1,000× are being computed on GitHub; their cells read 'running' until they land. 1,000 runs at 1,000× is beyond the free machines.
+
+![Work per energy](dossier/grid_wpe.png)
+
+![Time over the line](dossier/grid_viol.png)
+
+The full grid with every cell: `results/scale/GRID.md`. Work per energy is better in every completed cell; the time over the service line is about 0.2 points higher in every completed cell, so the band-first rule is not yet held on the modelled organisms. That is the open work on the realm muscles; the card and Kubernetes were brought into the band first.
+
+### 6. The 656 muscles and the four realms (evidence class S)
+
+The catalog (`realms/catalog.csv`): 656 muscles, 345 in Compute / AI / Cloud, 262 in Physics / Robotics / Autonomous, 282 in Energy / Facility / Industrial and 337 in Distribution / Specialized (1,226 counting a muscle once per realm). Every muscle alone and every organism are in `results/realms/REALMS.md` (round 3, the earlier governor) and in the six-organism grid above (the bowl law). Every knob was handed back in every run.
+
+### 7. Harnesses and receipts
+
+| Harness | What it proves | Receipt |
+|---|---|---|
+| `scripts/gpu_rented_run.sh` | one command on a rented card: wire check, smoke, the six organisms with the card inside, the preregistered confirmation; one packed file back | `results/gpu/run-*`, `results/hil/run-*` |
+| `tools/gpu_wire_check.py` | both of the card's wires follow, read back and go home; another writer is left alone | `results/gpu/wirecheck-*.txt` |
+| `scripts/kind_paired.sh`, `tools/live_reps.py` | native against Omni on real Kubernetes, paired on one runner, with the kill switch checked | `results/live/LIVE_REPS_*.md` |
+| `tools/run_scale.py`, `.github/workflows/six.yml` | the six organisms at every run count and size | `results/scale/GRID.md` |
+| `tools/run_gpu_card.py` | the modelled card, both profiles, tuning and fresh seeds | `results/sim/gpu_two_wire/` |
+| `verify.py` | everything above re-runs and checks itself; the manifest fingerprints the result | `results/VERIFY_RECEIPT.txt`, `RELEASE_MANIFEST.json` |
+
+Every raw result folder carries its `SHA256SUMS.txt`; the rules for each run were written and committed before it ran (`docs/GPU_PREREGISTRATION.md`, `docs/REALMS_PREREGISTRATION.md`, `docs/K8S_BOWL_PREREGISTRATION.md`).
+
+### 8. What is not yet shown
+
+- The corrected GPU governor on a real card (the run after amendments 6 and 7).
+- Band first on the modelled organisms (time over the line about +0.2 points).
+- Energy saved on real hardware for Kubernetes: kind keeps every machine powered, so energy there is a declared model.
+- A net CPU saving on Kubernetes once the controller's own cost is counted on a small runner.
+- 1,000 runs at 1,000× (needs a larger machine).
+
+
+## 38. Paired Runs and Receipts on Your Own System
 
 
 1. **Paired runs.** Run your service the same way twice, once native and once with Omni-Compass on top, back to back
@@ -3149,7 +3271,7 @@ Add `--strict-replicas`:
 organism on one clock. Real Kubernetes runs on GitHub's machines (workflow `benchmark-reps`).
 
 
-## 38. Evidence Classes and How to Read a Result
+## 39. Evidence Classes and How to Read a Result
 
 
 | Class | Rung | What it is | What it can show |
@@ -3163,7 +3285,7 @@ Read every number with its class beside it. A simulation number is never quoted 
 receipt's energy line is modelled, the receipt says so.
 
 
-## 39. Results to Date
+## 40. Results to Date
 
 
 | Result | Class | Source |
@@ -3178,7 +3300,7 @@ receipt's energy line is modelled, the receipt says so.
 ---
 
 
-## 40. The Pilot Protocol and Kit
+## 41. The Pilot Protocol and Kit
 
 ### Pilot Protocol
 
@@ -3236,7 +3358,7 @@ Guarded control follows `docs/PILOT_PROTOCOL.md`: one loop at a time, the kill s
 
 The kit is exercised end to end on kind by the `live-shadow` workflow.
 
-## 41. The GPU Bench
+## 42. The GPU Bench
 
 
 
@@ -3354,7 +3476,7 @@ undone. The card's own energy counter (NVML) and its ECC and retired-page counte
 workload's `--sim` mode. The stand-in has no real power physics, so its numbers mean nothing; it proves the script,
 the controls and the validity checks work.
 
-## 42. The GPU Preregistration
+## 43. The GPU Preregistration
 
 
 
@@ -3660,7 +3782,7 @@ The outcomes, arms, guardrails, analysis and validity rules are unchanged. The O
 - **The model's report summarises ratios on the log scale** (`tools/run_gpu_card.py`): the arithmetic mean of per-seed
   percentages let one seed (+240%) stand for twenty.
 
-## 43. The Realms Preregistration
+## 44. The Realms Preregistration
 
 
 
@@ -3882,7 +4004,7 @@ pinned request stream; its own power.draw is heat in the organism's thermal zone
   simulated stacks (evidence S), the card (its own meter, evidence P), and both added (the card as one more plant,
   its joules added to the stacks'). Labels by the round 3 rule.
 
-## 44. The Bowl Law on Real Kubernetes: Preregistration
+## 45. The Bowl Law on Real Kubernetes: Preregistration
 
 
 
@@ -3948,7 +4070,7 @@ and the SLO, held at the bowl's center 0.4 (the GPU service profile); p95 at or 
 waiting for a place is past the wall. Everything else, the arms (native, omni, bowl), the load, the duration, the
 outcomes and the labelling rule above, is unchanged. The run's commit is the one that carries this section.
 
-## 45. The Evidence Ledger
+## 46. The Evidence Ledger
 
 
 
@@ -4054,7 +4176,7 @@ Nothing here is deleted when a later result looks better.
 | S | Right-sizing against VPA: p95 +15%, memory (OOM) kills +531%. | `docs/BENCHMARK_REPORT.md` |
 | — | Reported in the external master-build report (not reproducible from this repository): on fresh scenarios Karpenter+VPA sometimes used less modelled energy than Omni, while Omni had lower churn and fewer request-induced evictions. Kept here so it is not lost; to be re-run here before it is cited. | external |
 
-## 46. The Claims Register
+## 47. The Claims Register
 
 
 
@@ -4093,7 +4215,7 @@ Every claim, its evidence status and the command that reproduces it. Simulation 
 | C13 | Decision components (autoscalers, power agents, paging, Terraform as controller) consume about 0.02% of fleet CPU; idle capacity is 92% of fleet CPU at 8% utilization. | Modeled from published figures and stated assumptions | `python benchmarks/fleet_overhead.py` |
 | C14 | Behaviour on production systems. | Not established; requires the pilot protocol | `docs/PILOT_PROTOCOL.md` |
 
-## 47. The Benchmark Report
+## 48. The Benchmark Report
 
 
 
@@ -4604,7 +4726,7 @@ python tools/full_report.py ... && python pilot/bench_pdf.py docs/BENCHMARK_REPO
 - **Paired bootstrap CI**: resampling the per-scenario differences to get a 95% interval for the mean difference.
 - **Pre-registration**: freezing code and parameters, with hashes, before running the test data.
 
-## 48. The Referee Report
+## 49. The Referee Report
 
 
 
@@ -5043,7 +5165,7 @@ GitHub Actions workflow 'benchmark' (commit message tag [bench]): live A vs B on
 python tools/abc_report.py && python pilot/bench_pdf.py docs/OMNICOMPASS_ABC_REPORT.md docs/OMNICOMPASS_ABC_REPORT.pdf
 ```
 
-## 49. Comparison with Existing Controllers
+## 50. Comparison with Existing Controllers
 
 
 
@@ -5126,7 +5248,7 @@ the customer's own system, with the same paired method.
 
 Where a row above is wrong or out of date, correct it from the maker's own publication.
 
-## 50. The State of Play
+## 51. The State of Play
 
 
 
@@ -5264,7 +5386,7 @@ against 861-889 MHz on its own. Corrected (amendments 6 and 7); the corrected go
 *What a receipt is worth, how the license is priced against it, how the code is sealed, and how Omni-Compass came to be.*
 
 
-## 51. Where the Value Comes From
+## 52. Where the Value Comes From
 
 
 Every system runs with room it does not use: GPUs boost to the top of their clock range and are knocked back by their
@@ -5284,7 +5406,7 @@ machines, the response times and the failures, so nothing is hidden.
 ---
 
 
-## 52. The Economics of a Receipt
+## 53. The Economics of a Receipt
 
 
 Run the stack native and print the receipt. Run the same stack with Omni-Compass and print the receipt. The difference
@@ -5304,7 +5426,7 @@ The value a customer sees comes in three forms, each on its own line of the rece
 The babysitting tax - the people and tools kept on the clock to set caps, answer pages and turn knobs back after a run
 or a crash - is the cost Omni-Compass removes by holding the knobs and returning them itself.
 
-## 53. The Buyer Edition
+## 54. The Buyer Edition
 
 
 
@@ -5550,7 +5672,7 @@ python tools/protocol_bench.py 100
 live: push a commit whose message contains [reps], [levers] or [shadow]
 ```
 
-## 54. Due Diligence
+## 55. Due Diligence
 
 
 
@@ -5583,7 +5705,7 @@ Answers reference the Claims Register (C-numbers) and the Technical Manual.
 **Was it tuned on the test data?** No. Law, shield and baselines were frozen and fingerprinted before the held-out seeds 346410161 and 360555127 (results/PREREGISTRATION.json).
 **Where does it fail?** Backlog violations against current autoscaling (C11); the engine-dynamics ablation (Manual Chapter 8); open obligations (Manual Chapter 10).
 
-## 55. License and Commercial Terms
+## 56. License and Commercial Terms
 
 
 The software and this manual are licensed under the Omni-Compass Evaluation License (`LICENSE`): evaluation and
@@ -5594,7 +5716,7 @@ LLC and paid for. Patent applications, copyright registrations and trademark app
 terms in `CONTRIBUTING.md`, which assign their rights to The Omni-Compass LLC.
 
 
-## 56. Python, C++ and the Seal
+## 57. Python, C++ and the Seal
 
 
 The laws are twinned: each has a Python version and a C++20 version that give the same answers, proven by a parity
@@ -5619,7 +5741,7 @@ test passes. `verify.py` fails, naming the file, if any sealed file changes afte
 ---
 
 
-## 57. The Founder's Working Notes
+## 58. The Founder's Working Notes
 
 
 
@@ -5812,7 +5934,7 @@ are sourced.
 4. **Aim the chip at about 5% more finished work on the same bill**, cap unchanged and temperature no worse, or at
    fewer joules for the same work. The buyer chooses, and the receipt prints which.
 
-## 58. History
+## 59. History
 
 
 

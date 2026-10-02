@@ -185,6 +185,14 @@ def plate(path: Path, caption: str):
     return [CondPageBreak(FH), img, Spacer(1, 6), Paragraph(inline(caption), CAP), PageBreak()]
 
 
+def figure(path: Path, caption: str):
+    """A chart inside the text: the frame's width, kept with its caption."""
+    from PIL import Image as PIL
+    w, h = PIL.open(path).size
+    s = FW / w
+    return [KeepTogether([Image(str(path), w * s, h * s), Spacer(1, 3), Paragraph(inline(caption), CAP)]), Spacer(1, 8)]
+
+
 def table(rows_txt, small=False):
     n = max(len(r) for r in rows_txt)
     rows_txt = [r + [""] * (n - len(r)) for r in rows_txt]
@@ -261,7 +269,8 @@ def md_flow(lines, shift=0, story=None, strip=False):
             story += code_block(buf); story.append(Spacer(1, 6)); continue
         m = re.match(r"^!\[([^\]]*)\]\(([^)]+)\)\s*$", ln)
         if m:
-            story += plate(BOOK / m.group(2), m.group(1)); i += 1; continue
+            src = BOOK / m.group(2) if (BOOK / m.group(2)).exists() else ROOT / "docs" / m.group(2)
+            story += figure(src, m.group(1)) if src.suffix == ".png" else plate(src, m.group(1)); i += 1; continue
         if ln.startswith("|"):
             rows = []
             while i < len(lines) and lines[i].startswith("|"):
@@ -417,6 +426,7 @@ OUTLINE = [
     ("PART", "Proving It",
      "Paired runs, receipts, rules written before the runs, and every result to date with its evidence class.",
      "empirical_validation"),
+    ("The Dossier: Every Result in One Place", ("F", "docs/DOSSIER.md")),
     ("Paired Runs and Receipts on Your Own System", ("M", "Paired Runs and Receipts on Your Own System")),
     ("Evidence Classes and How to Read a Result", ("M", "Evidence Classes and How to Read a Result")),
     ("Results to Date", ("M", "Results to Date")),
