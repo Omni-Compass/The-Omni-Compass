@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-f09fbc5b32f5",
- "written_at_commit": "f09fbc5b32f52d1d40a0e24608b8a4b4cec023b8",
- "written_at": "2026-10-02T02:37:19+00:00",
+ "release_id": "omni-compass-8f7a1c99a508",
+ "written_at_commit": "8f7a1c99a5087d755ca57833601f9d27ade24126",
+ "written_at": "2026-10-02T07:05:50+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -27,9 +27,9 @@
   "authority_map_sha256": "7a39f51cc43a594da52ac7d549f0eb3554cbeff24ba10db642770cebc146f1c6",
   "actuator_map_sha256": "8b3ca00878c08850801ccfda3dce4e424d1baebcb486a95f2acdb13c8ced8934",
   "shield_sha256": "88de572557295e04eb1341e64de16b68d74e4f8fa7c2e8bbe9c1d9c0416ea6f5",
-  "gpu_protocol_sha256": "fccaaf58b74227b4fac31a3c4f75e9a66ba7e6418aba327a6f7812ac68c55148",
-  "preregistration_sha256": "ab6726ae5577532c0aea5ecf9b1aabad4473a7cddc83dfdd02ca4f62ba5efb1d",
-  "test_suite_sha256": "8b39171ff6a2bc43338750fdc3c74fc4b1e8729da30f3d72ec79c3b1e2fb08e2"
+  "gpu_protocol_sha256": "a8fb0c0c2197f396dbfc0f99c4ceac2ca18e50542169882470e52ce68bc0aa90",
+  "preregistration_sha256": "c73fb23737f1206f2883d5884711152ec74963382466e1f3b5633168ee97d5b5",
+  "test_suite_sha256": "bb30e0cb3a5bca9fa91789987e90f9e29ee7368109bf7cc3b1524f1a11fc2c95"
  },
  "files": {
   "canonical_engine": {
@@ -45,8 +45,8 @@
    "results/SEAL.json": "aac61979371a16d19ca5803b8c6fb3b33b2568fe5a71c9ca719809d880a6d410"
   },
   "gpu_protocol": {
-   "docs/GPU_PREREGISTRATION.md": "3f82a50f1412104cbfa2226b9354c2ed5a4a94c943484439de8d49436e598ddc",
-   "scripts/gpu_paired.sh": "4f2afceb32601f38deed74b552570697371ef4750fb5099c83283e5dd69bca97",
+   "docs/GPU_PREREGISTRATION.md": "f2fc5d926e08856207ec82e3d6d0f3c1bdb6842cee4b67c5c499798ebd934d63",
+   "scripts/gpu_paired.sh": "f093ad007e28bb927487cfada443d0a9a63a22c868e67798bd01236269240ceb",
    "tools/gpu_workload.py": "f1f1d19a347db982e6c3381ffb4796ddb3694df049eaccbe253ce859d4cad7bf",
    "tools/gpu_reps.py": "d00b185618919164b72147155ecf9d8d9dd37d8101a69c32cfc226176b56340b",
    "omni_controller/gpu_governor.py": "ec04a9e51364eade6c74611c59cc2a17b0bea61c8574cb421d5019fd44aa4ef3",
@@ -85,9 +85,9 @@
   },
   "realms": {
    "realms/catalog.csv": "9b085801dfb4b99dd4af001683900e0b9428af460a8d3119d9f23d386c45f2d7",
-   "realms/plants.py": "70eab608dc2b65f8d44d86ccc4aa0361817736f2d053ab6669c334ddd73cf6d4",
+   "realms/plants.py": "a30142e78e00c102c5abcfffcdfce0286b8beb497cb1c5f539c0946819a34091",
    "realms/presets.py": "4aff93275846a55bab4da1b7922adcb51eaea8c321cc5d8f498453c1a9889970",
-   "realms/harness.py": "0fa30d6f7218e634a421efccfdb6e16ee0ab099820b176116c71bc0a0ae70352",
+   "realms/harness.py": "866572311a9a4acac776dbee22f0038a406c4e2f7de9721152c63b18f876a204",
    "tools/realms_catalog.py": "ac3fd702f3e3159b4d546755eae6e7da73ecd27b5641725eeba8dbe840c72bf8",
    "tools/run_realms.py": "f5fb7ac89910ceb24d6497451461ecefbd90f044873c9324bea687a3a5da4eed",
    "docs/REALMS_PREREGISTRATION.md": "0693045d2ea941b6cda3a3563916ad378967af4ed556df0372f476d660479c81"
@@ -141,7 +141,7 @@
  "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card",
  "verification_receipt": {
   "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "6aed6d63c9cf68c0376ab1f674a65139ed2ea444d923f5c2871e1b8884072a38",
+  "sha256": "62cc854e3be9f5caaea5cac9e0f0918b0f2102ff51526de22475b256b3e08d92",
   "passed": true
  }
 }

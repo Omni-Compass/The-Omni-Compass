@@ -11,7 +11,8 @@
 # counters read at both ends where the machine has them.
 #   native  no Omni process
 #   watch   Omni runs and decides, and is forbidden to write (the control: any write fails the run)
-#   omni    Omni writes the GPU power limit (omni_controller/gpu_governor.py --mode cap)
+#   omni    Omni holds the card's two wires, clock ceiling and power limit (omni_controller/gpu_bowl.py --mode cap;
+#           OMNI_ENGINE=one_wire runs the earlier power-limit-only governor, omni_controller/gpu_governor.py)
 # Three receipts, kept apart: A the governor's audit.jsonl (telemetry, six-state reading, command, shield), B its
 # actuator records (requested, return code, read-back, enforced limit, delay), C the bench's own nvidia-smi sampling
 # and the workload's requests.csv (Omni never supplies its own outcome). Refused unless power management is Enabled.
@@ -151,6 +152,7 @@ for rep in ${REP_ONLY:-$(seq 1 "$REPS")}; do
     D="$OUT/rep-$rep/$arm"; mkdir -p "$D"
     echo "== rep $rep, arm $arm"
     if [ "$(lim)" != "$START" ]; then echo "limit $(lim) != start $START before the arm"; $SMI -i "$GPU" -pl "${START%.*}"; fail=1; fi
+    $SMI -i "$GPU" -rgc >/dev/null 2>&1 || true            # every arm starts with the card's own clock range
     sleep "$COOLDOWN"
     lim > "$D/limit_start.txt"
     cp "$OUT/smi_fields.txt" "$D/smi_fields.txt"
@@ -165,7 +167,8 @@ for rep in ${REP_ONLY:-$(seq 1 "$REPS")}; do
     if [ "$arm" != "native" ]; then
       mode=watch; [ "$arm" = "omni" ] && mode=cap
       rm -f "$D/kill"
-      $PY -m omni_controller.gpu_governor --mode "$mode" --gpus "$GPU" --smi "$SMI" --interval "$INTERVAL" \
+      ENGINE_MOD=omni_controller.gpu_governor; [ "${OMNI_ENGINE:-bowl}" = bowl ] && ENGINE_MOD=omni_controller.gpu_bowl
+      $PY -m "$ENGINE_MOD" --mode "$mode" --gpus "$GPU" --smi "$SMI" --interval "$INTERVAL" \
         --audit "$D/audit.jsonl" --kill-file "$D/kill" --latency-file "$D/latency.csv" --slo-ms "$SLO_MS" --floor-w "$ENV_FLOOR_W" \
         > "$D/governor.log" 2>&1 &
       gov_pid=$!
@@ -184,6 +187,7 @@ for rep in ${REP_ONLY:-$(seq 1 "$REPS")}; do
       touch "$D/kill"; wait "$gov_pid" && echo 0 > "$D/governor_exit.txt" || echo $? > "$D/governor_exit.txt"
     fi
     kill "$smi_pid" 2>/dev/null || true; wait "$smi_pid" 2>/dev/null || true
+    $SMI -i "$GPU" -rgc >/dev/null 2>&1 || true            # and leaves it to the next arm the same way
     lim > "$D/limit_end.txt"
     if [ "$(cat "$D/limit_end.txt")" != "$START" ]; then
       echo "limit not restored after $arm: $(cat "$D/limit_end.txt") != $START"; $SMI -i "$GPU" -pl "${START%.*}"; fail=1

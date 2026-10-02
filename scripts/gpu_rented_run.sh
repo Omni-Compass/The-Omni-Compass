@@ -3,7 +3,8 @@
 #
 #   sudo bash scripts/gpu_rented_run.sh
 #
-# 1. checks the machine (NVIDIA GPU, root, PyTorch with CUDA, power management Enabled);
+# 1. checks the machine (NVIDIA GPU, root, PyTorch with CUDA, power management Enabled), then the wire check
+#    (tools/gpu_wire_check.py: both of the card's wires follow, read back and go home);
 # 2. declares the envelope before any trial (docs/GPU_PREREGISTRATION.md, amendment 3): lowest watts =
 #    max(device minimum, 70% of the limit read now), unless ENVELOPE=file.json is given;
 # 3. smoke: 3 repetitions x 3 arms x 180 s (about 40 minutes). It checks the wiring on real hardware. It never counts;
@@ -28,6 +29,8 @@ BUSY=$($SMI -i "$GPU" --query-compute-apps=pid,process_name --format=csv,noheade
 DEF=$($SMI -i "$GPU" --query-gpu=power.default_limit --format=csv,noheader,nounits | tr -d ' ')
 [ -n "${SIM:-}" ] || $SMI -i "$GPU" -pl "${DEF%.*}" >/dev/null || { echo "cannot set the default power limit $DEF W"; exit 1; }
 echo "power limit reset to the card's default: $DEF W"
+[ -n "${SIM:-}" ] || $SMI -i "$GPU" -rgc >/dev/null 2>&1 || true
+echo "clock range reset to the card's own"
 $SMI -i "$GPU" --query-gpu=name,driver_version,power.limit,power.min_limit,power.management --format=csv,noheader
 $PY -c "import torch, sys; sys.exit(0 if torch.cuda.is_available() else 1)" 2>/dev/null || [ -n "${SIM:-}" ] \
   || { echo "PyTorch with CUDA not found: pip install torch, or rent an image that has it"; exit 1; }
@@ -36,6 +39,10 @@ GITST=$(git -c safe.directory='*' status --porcelain -- omni_controller omnicomp
   || { echo "git cannot read this clone: run from a fresh git clone of the repository"; exit 1; }
 [ -z "$GITST" ] || { echo "the code has local changes: the confirmation runs only on committed code (git stash, or a fresh clone)"; exit 1; }
 echo "code: commit $(git -c safe.directory='*' rev-parse --short HEAD), unchanged"
+
+echo "== wire check (both wires follow, read back and go home; nothing runs if this fails)"
+$PY tools/gpu_wire_check.py --gpu "$GPU" --smi "$SMI" | tee "results/gpu/wirecheck-$STAMP.txt"
+[ "${PIPESTATUS[0]}" = 0 ] || { echo "WIRE CHECK FAILED: send results/gpu/wirecheck-$STAMP.txt back; nothing else was run."; exit 1; }
 
 if [ -z "${ENVELOPE:-}" ]; then
   ENVELOPE="results/gpu/envelope-$STAMP.json"
@@ -49,7 +56,7 @@ PHASE=smoke REPS="${SMOKE_REPS:-3}" DURATION="${SMOKE_DURATION:-180}" COOLDOWN="
   OUT="results/gpu/smoke-$STAMP" bash scripts/gpu_paired.sh
 smoke_rc=$?
 set -e
-PACK=("results/gpu/smoke-$STAMP" "$ENVELOPE")
+PACK=("results/gpu/smoke-$STAMP" "$ENVELOPE" "results/gpu/wirecheck-$STAMP.txt")
 if [ "$smoke_rc" != 0 ]; then
   echo "SMOKE INVALID (exit $smoke_rc): the wiring needs a fix before any confirmation. Send the packed file back."
 elif [ -n "${STOP_AFTER_SMOKE:-}" ]; then

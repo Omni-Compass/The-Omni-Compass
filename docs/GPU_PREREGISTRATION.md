@@ -214,3 +214,27 @@ numbers measures Omni. The engine, the governor, the outcomes and the analysis a
 - **runs alone on the card:** it refuses to start while any other process is using the GPU;
 - **starts from the card's default limit:** it sets power.default_limit before the envelope is declared, so the
   envelope, the snapshot and every arm start from the card's own default, not from a limit an earlier run left behind.
+
+## Amendment 5 (2026-10-02, before any valid hardware trial; the only smoke so far was invalid, amendment 4)
+
+The Omni arm changes engine. The outcomes, the arms' order, the guardrails, the analysis and the validity rules are
+unchanged.
+
+- **The Omni arm holds two wires** (`omni_controller/gpu_bowl.py`, the bowl law of `omnicompass/bowl.py`): the clock
+  ceiling (`nvidia-smi -lgc`, reset with `-rgc`), which sets how high the card's own boost may climb, and the power
+  limit (`-pl`), the lid at what a fully busy card draws at that ceiling plus 10%, never under the declared envelope
+  floor and never over the start limit. The service is read as one position between calm and the response-time line
+  (the worse of p95 and utilization above half) and pulled to the middle; past 95% both wires go to full at once
+  (fail up). The card's firmware keeps its own control; Omni sets only those two values. The earlier power-limit-only
+  governor stays available (`OMNI_ENGINE=one_wire`) and is not the confirmation's arm.
+- **Why, before the run:** on a modelled card (`results/sim/gpu_two_wire/`, evidence class S, seeds never used while
+  tuning) the one-wire governor gave +0.1% work per energy and the two-wire engine +9.0%. That is a model; this run
+  is the card's own meter.
+- **The watch arm** runs the same two-wire engine in watch mode: it computes and records both wires and writes
+  neither.
+- **The clock range is reset before and after every arm** (`-rgc`), as the power limit already was; the run script
+  resets it once at the start.
+- **The wire check runs first** (`tools/gpu_wire_check.py`): the card's clock must follow a lowered ceiling down and
+  come back up when reset, the power limit must read back what was set, the governor must hand both wires back when
+  stopped and must leave a limit set by another writer alone (exit 5). If any step fails, nothing else runs and the
+  check's report names the wire, the step and what the card said.

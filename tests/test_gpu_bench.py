@@ -88,7 +88,8 @@ def bench():
     d = Path(tempfile.mkdtemp())
     state(d)
     env = dict(os.environ, NVIDIA_SMI=SMI, SIM="1", REPS="2", DURATION="5", DRAIN="1", COOLDOWN="0", INTERVAL="1",
-               SAMPLE_MS="200", OUT=str(d / "run"), WORKLOAD_ARGS="--calib 5 --target-ms 20", WALL_METER="cmd:echo 250")
+               SAMPLE_MS="200", OUT=str(d / "run"), WORKLOAD_ARGS="--calib 5 --target-ms 20", WALL_METER="cmd:echo 250",
+               OMNI_ENGINE="one_wire")
     r = subprocess.run(["bash", str(ROOT / "scripts" / "gpu_paired.sh")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=600)
     assert r.returncode == 0, r.stdout[-3000:] + r.stderr[-2000:]
     out = json.loads((d / "run" / "GPU_REPS.json").read_text())
@@ -137,6 +138,41 @@ def bench():
     assert reps(str(d / "run")) == 2
 
 
+def bench_bowl():
+    """The paired run with the two-wire engine (the default Omni arm): valid, watch writes nothing, Omni moves both wires,
+    and the card's clock range and power limit are back at the start after every arm."""
+    d = Path(tempfile.mkdtemp())
+    state(d)
+    env = dict(os.environ, NVIDIA_SMI=SMI, SIM="1", REPS="2", DURATION="20", DRAIN="1", COOLDOWN="0", INTERVAL="1",
+               SAMPLE_MS="200", OUT=str(d / "run"), WORKLOAD_ARGS="--calib 5 --target-ms 20")
+    r = subprocess.run(["bash", str(ROOT / "scripts" / "gpu_paired.sh")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=600)
+    assert r.returncode == 0, r.stdout[-3000:] + r.stderr[-2000:]
+    out = json.loads((d / "run" / "GPU_REPS.json").read_text())
+    assert not out["problems"], out["problems"]
+    assert {c["writes"] for c in out["checks"]["watch"].values()} == {0}
+    recs = [json.loads(x) for x in open(d / "run" / "rep-1" / "omni" / "audit.jsonl") if x.strip()]
+    assert any("clock_write" in x and "-lgc" in x["clock_write"] for x in recs), "the up wire never moved"
+    assert any("would_clock_write" in json.loads(x) or "decision" in json.loads(x)
+               for x in open(d / "run" / "rep-1" / "watch" / "audit.jsonl") if x.strip())
+    rest = [x for x in recs if "restored" in x][-1]
+    assert rest["ok"] and any(x.get("clock_write") == ["-i", "0", "-rgc"] and x.get("why") == "restore" for x in recs)
+    st = json.loads(Path(os.environ["FAKE_SMI_STATE"]).read_text())
+    assert not st.get("clock_lock", {}).get("0"), "clocks left locked after the run"
+    assert out["headline"]["valid"]
+
+
+def wire_check():
+    """The wire check passes on a card wired right and stops, naming the step, on a dead or refused clock wire."""
+    for extra, want, step in (({}, 0, "WIRED RIGHT"), ({"ignore_lgc": True}, 1, "3 up wire (follows down)"),
+                              ({"refuse_lgc": True}, 1, "3 up wire (lock)")):
+        d = Path(tempfile.mkdtemp()); p = state(d, limit={"0": 150.0}, default=150, max=150, draw_w=140.0, **extra)
+        r = subprocess.run([sys.executable, str(ROOT / "tools" / "gpu_wire_check.py"), "--smi", SMI], cwd=ROOT,
+                           env=dict(os.environ, SIM="1", WIRE_SETTLE="0.2"), capture_output=True, text=True, timeout=120)
+        assert r.returncode == want and step in r.stdout, r.stdout[-1500:] + r.stderr[-800:]
+        st = json.loads(p.read_text())
+        assert st["limit"]["0"] == 150.0 and not st.get("clock_lock", {}).get("0"), "the check left the card off its start"
+
+
 def pooled():
     """Repetitions spread over machines (REP_ONLY): each machine's run carries its own records; pooled, they make one
     valid table."""
@@ -144,7 +180,7 @@ def pooled():
     d = Path(tempfile.mkdtemp()); state(d)
     for k in (1, 2):
         env = dict(os.environ, NVIDIA_SMI=SMI, SIM="1", REP_ONLY=str(k), DURATION="4", DRAIN="1", COOLDOWN="0", INTERVAL="1",
-                   SAMPLE_MS="200", OUT=str(d / f"m{k}"), WORKLOAD_ARGS="--calib 5 --target-ms 20")
+                   SAMPLE_MS="200", OUT=str(d / f"m{k}"), WORKLOAD_ARGS="--calib 5 --target-ms 20", OMNI_ENGINE="one_wire")
         if k == 2:   # the second machine serves an outside workload through the plug (here the pinned one, invoked as a command)
             env.update(SLO_MS="200", WORKLOAD_CMD="python3 tools/gpu_workload.py calibrate --out \"$OUT_DIR\" --sim --calib 5 --target-ms 20 "
                        "&& python3 tools/gpu_workload.py run --calib-file \"$OUT_DIR/calib.json\" --out \"$OUT_DIR\" --duration \"$DURATION\" --drain \"$DRAIN\"")
@@ -354,7 +390,7 @@ def one_writer():
 
 
 def main():
-    plugs(); governor(); guards(); lock(); enforced(); one_writer(); bench(); pooled()
+    plugs(); governor(); guards(); lock(); enforced(); one_writer(); bench(); bench_bowl(); wire_check(); pooled()
     print("PASS  GPU bench: governor contract (watch writes nothing, shield floor, share floor, busy gate, read-back, blind, SLO reflex, kill), "
           "enforced limit (snapshot, override, power management, refused write ends the arm, fallback), one writer, heat fails up, blocked_by and decided_by, RAPL by domain, credit per write, workload plug, result labels, "
           "and the one-command paired run with its validity checks")
