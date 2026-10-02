@@ -23,6 +23,7 @@ def main():
     rows = catalog()
     assert len(rows) == 656, len(rows)
     assert len({r["muscle_id"] for r in rows}) == 656
+    assert all(r["realm"] in r["realms"].split(";") for r in rows)
     assert set(Counter(r["realm"] for r in rows)) == {"compute_ai_cloud", "physics_robotics_autonomous",
                                                       "energy_facility_industrial", "distribution_specialized"}
     for r in rows:

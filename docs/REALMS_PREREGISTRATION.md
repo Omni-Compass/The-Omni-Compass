@@ -1,6 +1,7 @@
 # Realm harness preregistration
 
-Round 2 is the current one: its section at the end replaces round 1's Omni layer and seeds. Round 1 below is kept as it
+Round 3 is the current one: its section at the end changes only how the realms are made up. Round 2's section
+replaced round 1's Omni layer. Round 1 below is kept as it
 was frozen. Each round was written and committed before its confirmation seeds were run. Evidence class **S**: every number the run produces
 comes from a declared model. Nothing here is a meter, and nothing here is evidence about a real machine.
 
@@ -164,3 +165,21 @@ label rule and the invalidity rules.
 
 - **Round 2 seeds:** 2000 to 2009. Development of round 2 used seeds 0 and 1 only, never reported.
 - **Results:** `results/realms/` (round 1 in `results/realms/round1/`). Both rounds are cited together.
+
+## Round 3 (2026-10-02, after round 2's results; before any round-3 confirmation seed)
+
+Only the make-up of the realm organisms changes. The plants, the Omni layer, the outcomes, the guardrails, the label
+rule and the invalidity rules are round 2's, unchanged.
+
+- **Round 2 cut the 656 into four realms with no overlap.** No realm organism carried the infrastructure every real
+  stack runs on unless that infrastructure was the realm's own. The data-centre realm had no cooling or power, and
+  the robotics and plant realms had no Kubernetes, machines or GPUs.
+- **Round 3 gives every realm the shared spine** (`tools/realms_catalog.py`, SPINE): Kubernetes Workload Scaling,
+  Placement & Scheduling, Container Resources, Node Fleet, Cloud VM & Capacity, NVIDIA GPU Hardware, Host CPU &
+  Memory, Network Routing, Storage, Observability, Reliability & Security, Cooling & Chillers, PDU / UPS &
+  Electrical Distribution.
+  - Each realm's organism is its own families plus the spine: Compute 345 muscles, Physics 262, Energy 282,
+    Distribution 337.
+  - The whole-tower organism still holds each of the 656 once.
+- **Quantum Computing Control moves to the compute realm** (it behaves as a compute job queue).
+- **Round 3 seeds:** 3000 to 3009. Round 2 is kept in `results/realms/round2/` with a note on why it is superseded.

@@ -5,7 +5,10 @@
 The tower itself (muscle id, family, name) comes unchanged from the XPASS package's canonical 656 list. This tool adds
 four columns by the fixed rules below; the result is committed as data, so every row can be read and contested:
 
-  realm     one of the four realms, by family
+  realm     the muscle's home realm, by family
+  realms    every realm whose organism includes it: its home realm, and all four for the shared spine (SPINE below):
+            the infrastructure every real stack runs on (Kubernetes, machines, GPUs and CPUs, network, storage,
+            observability, security, cooling, electrical distribution)
   template  the plant model the family runs on (realms/plants.py)
   preset    the family's parameter set for that plant (realms/presets.py)
   knob      the one knob Omni may hold for this muscle: capacity, setpoint, power or admission, from the muscle's name
@@ -41,7 +44,7 @@ FAMILY = {
     "Aviation & Autonomous Flight": (R2, "motion_axis", "flight_axis"),
     "Spacecraft & Flight Software": (R2, "motion_axis", "reaction_wheel"),
     "Automotive EV & Mobile Powertrain": (R2, "motion_axis", "ev_traction"),
-    "Quantum Computing Control Simulation": (R2, "compute_pool", "qpu"),
+    "Quantum Computing Control Simulation": (R1, "compute_pool", "qpu"),
     "Industrial PLC & Process Automation": (R3, "process_loop", "process"),
     "Energy Storage & Microgrid": (R3, "energy_storage", "microgrid"),
     "PDU, UPS & Electrical Distribution": (R3, "energy_storage", "ups"),
@@ -66,6 +69,13 @@ FAMILY = {
     "Workflow, Logistics & Fulfillment": (R4, "compute_pool", "workflow"),
     "Telecom RAN & Edge Radio": (R4, "compute_pool", "ran"),
 }
+
+# the shared spine: in every realm's organism, as every real stack runs on it
+SPINE = {"Kubernetes Workload Scaling", "Kubernetes Placement & Scheduling", "Container Resources",
+         "Node Fleet & Karpenter-Class Control", "Cloud VM & Capacity", "NVIDIA GPU Hardware", "Host CPU & Memory",
+         "Network Routing & Switching", "Storage Block/File/Object", "Observability & Telemetry",
+         "Reliability, Security & Recovery", "Cooling, Chillers & Thermodynamics", "PDU, UPS & Electrical Distribution"}
+ALL_REALMS = (R1, R2, R3, R4)
 
 # knob rules per template, in order; the first match on the muscle's name wins, else "capacity"
 KNOB = {
@@ -122,8 +132,10 @@ def main(argv):
     out = []
     for r in rows:
         realm, template, preset = FAMILY[r["family"]]
+        member = ALL_REALMS if r["family"] in SPINE else (realm,)
         out.append(dict(muscle_id=r["muscle_id"], family_id=r["family_id"], family=r["family"], muscle=r["canonical_name"],
-                        realm=realm, template=template, preset=preset, knob=knob_for(template, r["canonical_name"])))
+                        realm=realm, realms=";".join(member), template=template, preset=preset,
+                        knob=knob_for(template, r["canonical_name"])))
     out.sort(key=lambda x: (x["realm"], x["family"], x["muscle_id"].zfill(12)))
     with (ROOT / "realms" / "catalog.csv").open("w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(out[0])); w.writeheader(); w.writerows(out)
@@ -131,7 +143,8 @@ def main(argv):
             "source_sha256": hashlib.sha256(src.read_bytes()).hexdigest(), "rows": len(out),
             "added_columns": "realm, template, preset, knob: tools/realms_catalog.py"}
     (ROOT / "realms" / "catalog_provenance.json").write_text(json.dumps(prov, indent=1) + "\n")
-    print(Counter(x["realm"] for x in out))
+    print("home:", Counter(x["realm"] for x in out))
+    print("organism sizes:", {rl: sum(1 for x in out if rl in x["realms"].split(";")) for rl in ALL_REALMS})
     print(Counter((x["template"], x["knob"]) for x in out))
     return 0
 
