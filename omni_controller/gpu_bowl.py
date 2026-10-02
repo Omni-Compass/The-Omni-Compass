@@ -10,15 +10,18 @@ card already accepts, and nothing else:
 
 Every decision (--interval seconds):
   read      nvidia-smi: power.draw, temperature, utilization, power.limit, clocks.sm; the workload's response times
-  position  the service as one place in its bowl, 0 calm to 1 the line: response time only (p95 over the last
-            --latency-window-s, between a tenth of the line, the bare service time, and the line). A card that is busy
-            is doing its work; being busy is not a breach and is not read as one
+  position  the service as one place in its bowl, 0 calm to 1 the line: response time only (the mean over the last
+            --latency-window-s, between a tenth of the line, the bare service time, and the line; the 95th percentile at
+            or past the line, or a failed request, is past the wall). A card that is busy is doing its work; being busy
+            is not a breach and is not read as one
   native    what the card does on its own, learned from its own meter before the bowl may lower anything: while the
             ceiling is at the top and the card is busy, its clock and its draw (the clock its own power limit holds it
             at, and what that costs). Until --learn-samples busy readings are in, the ceiling stays at the top
   race      while the card is saturated (utilization at or over --race-util: work is waiting), the ceiling goes to the
             top and the lid to the start limit, so a burst is served at full speed; the bowl paces only the slack
   force     the bowl: pull to the center, push against what is rising, tanh-bounded; past the 0.95 wall: fail up
+  profile   service (default): down gain 0.01, the slow answers kept at native; batch: down gain 0.02, more saved,
+            for work nobody waits on answer by answer
   write     up wire: the ceiling moves by the force (fast up, gently down), inside its cover: from the card's own busy
             clock (never slower than native while there is work) to the top; down wire: the lid at the card's own busy
             draw plus --lid-headroom, never under it and never over the start limit, inside the declared envelope;
@@ -46,7 +49,10 @@ import time
 
 from omnicompass.bowl import Band, Bowl, clamp
 from omni_controller.gpu_governor import query, snapshot, throttle, slowed, WriteFailed, SNAPSHOT
-from omni_controller.muscles import latency_sense
+from omni_controller.muscles import latency_sense, latency_window
+
+
+PROFILES = {"service": 0.01, "batch": 0.02}   # down gain per profile (docs/GPU_PREREGISTRATION.md, amendment 7)
 
 
 def smi_run(smi, args):
@@ -104,7 +110,8 @@ class GpuBowl:
                                                "enforced_w": s[self.g]["enforced"] if self.enforced_ok else None,
                                                "clock_top_mhz": self.top,
                                                **{f: snap[f][str(self.g)] for f in SNAPSHOT}}},
-                    "engine": "bowl, two wires", "mode": a.mode,
+                    "engine": "bowl, two wires", "mode": a.mode, "profile": a.profile,
+                    "down_gain": a.down_gain if a.down_gain is not None else PROFILES[a.profile],
                     "covers": {"clock_mhz": [round(self.c_lo), round(self.top)], "power_w": [self.floor_w, self.start]}})
         if a.mode == "cap" and snap["power.management"][str(self.g)].lower() != "enabled":
             self.audit({"refused": "power management not Enabled: a written limit would not bind"})
@@ -120,9 +127,13 @@ class GpuBowl:
             return None, ls
         resp = 0.0
         if ls is not None:
+            # the position is the mean response time of the window between the bare service time and the line (what
+            # the model reads); the 95th percentile at or past the line, or any failed request, is past the wall
             bare = a.slo_ms / 10.0
-            resp = (ls["p95"] - bare) / (a.slo_ms - bare)
-            if ls["fail"]:
+            w = latency_window(a.latency_file, a.latency_window_s)["ms"]
+            mean = sum(w) / len(w) if w else ls["p95"]
+            resp = (mean - bare) / (a.slo_ms - bare)
+            if ls["fail"] or ls["p95"] >= a.slo_ms:
                 resp = max(resp, 1.0)
         return resp, ls
 
@@ -203,8 +214,13 @@ class GpuBowl:
             # the speed floor: never under the clock the card reaches on its own while busy (until that is learned,
             # the top), so work waiting on the card is never served slower than native
             c_floor = self.top if n_clk is None else max(self.c_lo, min(self.top, n_clk))
-            gain = (a.up_gain if F > 0 else a.down_gain) * (self.top - c_floor)
-            ceiling = clamp(self.ceiling + gain * F, c_floor, self.top)
+            # the ceiling moves in whole clock steps, as the card's own clock does: the force times the gain (a share
+            # of the top clock per unit of force) rounded to whole --min-change-mhz steps; a pull under half a step
+            # moves nothing and is not stored up, so a calm card is paced only when the pull is clearly down
+            down = a.down_gain if a.down_gain is not None else PROFILES[a.profile]
+            step = (a.up_gain if F > 0 else down) * F * self.top
+            step = round(step / a.min_change_mhz) * a.min_change_mhz
+            ceiling = clamp(self.ceiling + step, c_floor, self.top)
             if heat and ceiling < self.ceiling:
                 ceiling, who = self.ceiling, "thermal_hold"
             else:
@@ -275,8 +291,11 @@ def parser():
     ap.add_argument("--learn-samples", type=int, default=15, help="busy readings of the card on its own before the bowl may lower anything")
     ap.add_argument("--floor-w", type=float, default=0.0, help="the declared envelope's lowest watts")
     ap.add_argument("--clock-min-share", type=float, default=0.35, help="the clock ceiling's cover: lowest share of the top")
-    ap.add_argument("--up-gain", type=float, default=0.10, help="share of the clock cover moved per unit of force, up")
-    ap.add_argument("--down-gain", type=float, default=0.02, help="share of the clock cover moved per unit of force, down")
+    ap.add_argument("--profile", choices=sorted(PROFILES), default="service",
+                    help="service (default): paces down gently enough that the slow answers are never slower than native; "
+                         "batch: paces harder, for work nobody waits on answer by answer (higher saving, p95 cost disclosed)")
+    ap.add_argument("--up-gain", type=float, default=0.10, help="share of the top clock moved per unit of force, up")
+    ap.add_argument("--down-gain", type=float, default=None, help="share of the top clock moved per unit of force, down (default: the profile's)")
     ap.add_argument("--lid-headroom", type=float, default=0.10, help="the lid above the draw the ceiling takes")
     ap.add_argument("--min-change-mhz", type=float, default=15.0)
     ap.add_argument("--min-change-w", type=float, default=3.0)

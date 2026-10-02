@@ -50,6 +50,7 @@ T_SLOW = 87.0
 MU = 100.0                  # requests per second at the top clock
 LIMIT_DEFAULT, LIMIT_MIN = 150.0, 105.0
 SLO_S = 10.0 / MU           # the service line: ten bare service times (as the GPU bench sets it)
+DOWN = {"bowl": 0.01, "bowl_batch": 0.02}   # the down gain of each profile: service (the default) and batch
 SATURATED = 0.95            # busy share over a decision at which work is waiting: race, never pace
 
 
@@ -169,7 +170,7 @@ def run(seed: int, arm: str, duration: float = 600.0, center: float = 0.5) -> Di
     up = down = brain = None
     if arm == "preset":
         card.limit = LIMIT_MIN
-    if arm == "bowl":
+    if arm in DOWN:
         up, down = CeilingPlug(card), LimitPlug(card)
         up.attach(); down.attach()
         brain = Bowl(Band(lo=0.0, hi=1.0, center=center), dt=DECIDE, tau=2.0, kp=1.0, authority=1.0, smooth=0.3)
@@ -225,7 +226,7 @@ def run(seed: int, arm: str, duration: float = 600.0, center: float = 0.5) -> Di
                     # burst is always served at full speed; the bowl paces only the slack between bursts
                     c = up.write(1.0)
                 else:
-                    g = 0.10 if F > 0 else 0.02                  # up fast (service first), down gently
+                    g = 0.10 if F > 0 else DOWN[arm]             # up fast (service first), down by the profile
                     c = up.write(max(f_nat, card.ceiling + g * F))
                 # the lid just above what the ceiling draws fully busy, never under the card's own busy draw
                 lid = max(power(c, 1.0, card.T), p_nat) * 1.06

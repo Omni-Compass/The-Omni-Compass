@@ -3172,7 +3172,7 @@ receipt's energy line is modelled, the receipt says so.
 | Real Kubernetes, set 23 (10 paired runs): p95 -62.2%, replicas -36.6%, machines in service -28.7%, failed requests 0 | L | `results/live/LIVE_REPS_23.md` |
 | Modelled GPU card: two-wire bowl +8.6% work per energy (seeds 5000-5009) and +9.0% (fresh seeds 5100-5109), time over the service line unchanged, but p95 response +33% and +37% against native; one-wire governor +0.1%; both wires restored every run | S | `results/sim/gpu_two_wire/` |
 | Six organisms, 1,000 paired runs each at 1x and at 10x size: work per energy +0.30% / +0.29% (compute), +0.23% / +0.22% (physics), +0.21% / +0.20% (energy), +0.25% / +0.24% (distribution), +0.21% / +0.21% (four stacked), +0.22% / +0.22% (whole tower); every knob handed back; time over the service line +0.19 to +0.27 points above native in every cell, so the band-first rule is not yet met. 100x and 1,000x running | S | `results/scale/GRID.md` |
-| Real GPU (NVIDIA A10) on the two-wire engine | P | in progress; results arrive as `results/gpu/omni-gpu-<stamp>.tar.gz` |
+| Real GPU (NVIDIA A10), first confirmation, 10 paired runs, the card's own meter: work per energy +3.6% (proven), energy -3.5%, same requests, none lost, every write read back and restored; p95 response +58.5% worse, so the label by rule is energy improvement with service tradeoff. The cause was governor wiring, corrected (service profile, amendments 6-7); the corrected governor is next on a card | P | `results/gpu/run-20261002T082232Z/GPU_REPS.md` |
 
 ---
 
@@ -3602,6 +3602,56 @@ unchanged.
   ceiling at the clock the busy card actually runs (a ceiling above it holds nothing), and its clock cover is 35% of
   the top clock to the top. No trial had run.
 
+### Amendment 6 (2026-10-02, after the first confirmation and before any further trial)
+
+**What the first confirmation showed** (A10, commit `c908054`, `results/gpu/run-20261002T082232Z/`): work per energy
++3.6% (+2.7% to +4.5%, proven), the same requests served, no request lost, but the 95th-percentile response time
++58.5% (510 to 809 ms), so the response-time guardrail failed and the label by rule was ENERGY IMPROVEMENT WITH
+SERVICE TRADEOFF. It stands as the result of that run.
+
+**Why, from the card's own samples:** while busy the card ran at 736 to 768 MHz under Omni against 861 to 889 MHz on
+its own, and spent about 30% more time busy for the same work; requests queued behind each slower one. Three faults
+in the governor, not in the engine: (1) the position counted utilization above half as service trouble, so every
+burst read as past the wall (fail up in 46% of decisions) and every quiet gap pulled the ceiling down, so each burst
+began on a lowered clock; (2) the lid followed a curve from the top clock and sat at the 105 W envelope floor in 49 of
+165 bowl decisions, under the 135 W the card itself draws while busy; (3) the ceiling's cover reached 35% of the top
+clock, far under the clock the card's own power limit holds it at while busy.
+
+**The Omni arm from now on** (`omni_controller/gpu_bowl.py`; the outcomes, arms, guardrails, analysis and validity
+rules are unchanged):
+
+- the position is response time only (p95 over 5 s, not 30 s); being busy is not a breach;
+- **race while work waits:** at 95% utilization or more the ceiling goes to the top and the lid to the start limit;
+  the bowl paces only the slack between bursts;
+- **the card's own level, learned from its own meter** while the ceiling is at the top and the card is busy: its
+  busy clock (median) and busy draw (90th percentile); until 15 such readings are in, neither wire moves;
+- **speed floor:** the ceiling never goes under the card's own busy clock; **lid floor:** the lid never goes under the
+  card's own busy draw plus 10%;
+- fail up (past 95% of the line, or blind) is unchanged.
+
+**On the modelled card, before any trial** (`results/sim/gpu_two_wire/`, seeds 5000 to 5009): p95 122.1 ms native,
+123.7 ms with the corrected bowl; work per energy +8.2% (+6.3% to +10.1%); energy -7.5%; the median response 10.1 to
+12.1 ms, slower in the quiet stretches the bowl paces. That is a model; the next trial is the card's own meter.
+
+### Amendment 7 (2026-10-02, before any further trial)
+
+The outcomes, arms, guardrails, analysis and validity rules are unchanged. The Omni arm of the confirmation runs the
+**service** profile.
+
+- **Two profiles, one switch** (`--profile`): **service** (the default and the confirmation's arm), down gain 0.01;
+  **batch**, down gain 0.02, for work nobody waits on answer by answer. The batch profile may be run as a separate,
+  declared confirmation (`OMNI_ARGS="--profile batch"`); it is reported as its own result, never pooled with service.
+- **Why 0.01, chosen on the model before the trial** (`results/sim/gpu_two_wire/`, 20 paired seeds, 5000-5009 and
+  5100-5109): of the down gains 0.005, 0.0075, 0.01, 0.0125 and 0.02, 0.01 is the largest at which no seed's p95 was
+  more than 10% slower than native (0 of 20; 7 of 20 faster): work per energy +3.9% (+3.0 to +4.7), energy -3.7%,
+  p95 -1.6% (-4.8 to +1.6), p99 -0.8%, time over the line -0.02 pp, median +10.5%. At 0.0125 and 0.02 the saving is
+  +6.2% but 3 of 20 seeds' p95 was more than 10% slower (a burst arriving while the clock rests on its floor).
+- **The ceiling moves in whole clock steps** (--min-change-mhz, 15 MHz), as the card's own clock does and as the model
+  moves it: the force times the gain, as a share of the top clock, is rounded to whole steps, and a pull under half a
+  step moves nothing and is not stored up.
+- **The position reads the mean response time of the window** (as the model does), between the bare service time and
+  the line; the 95th percentile at or past the line, or any failed request, is past the wall (fail up).
+
 ## 43. The Realms Preregistration
 
 
@@ -3935,6 +3985,7 @@ id `29d9808dfb8f…`; the printed configuration `printed_eight_line`, id `cd333d
 
 | Class | Statement | Where |
 |---|---|---|
+| P | First real-GPU confirmation, NVIDIA A10 (Lambda), 10 paired repetitions, the card's own meter: work per energy +3.6% (+2.7 to +4.5, proven), GPU energy −3.5%, same requests, none lost; wire check 7 of 7, every write read back, every arm restored. | `results/gpu/run-20261002T082232Z/GPU_REPS.md` |
 | L | Set 24 (2026-10-02, commit `c908054`), real Kubernetes (kind), 10 paired repetitions: machines in service −31.6% (proven), p95 response time −60.1% (proven), p99 −64.1% (proven), HPA replicas −38.6% (proven), 0 failed requests on both; total CPU including Omni's own −1.8% (not proven); energy with every machine powered −0.3% (declared model). | `results/live/LIVE_REPS_24.md` |
 | L | Set 23 (set 22 repeated on the current code, 2026-10-02), real Kubernetes (kind), 10 paired repetitions, equal work: p95 response time −62% (proven), replicas −37% (proven), pods started −64% (proven), 0 failed requests; total CPU with Omni's own −1.0% and modelled energy −0.2% (no difference). | `results/live/LIVE_REPS_23.md` |
 | L | Set 22, real Kubernetes (kind), 10 paired repetitions, equal work (fixed-rate load): p95 response time −61% (proven), replicas −23% (proven), pending pod-minutes −91% (proven), 0 failed requests. | `results/live/LIVE_REPS_22.md` |
@@ -3958,6 +4009,7 @@ Nothing here is deleted when a later result looks better.
 
 | Class | Statement | Where |
 |---|---|---|
+| P | Same run: p95 response time **+58.5% worse** (510 to 809 ms), mean +48%; label by rule ENERGY IMPROVEMENT WITH SERVICE TRADEOFF. Cause: governor wiring (busy bursts served below the card's own clock); corrected in amendments 6-7, not yet re-run on a card. | `results/gpu/run-20261002T082232Z/GPU_REPS.md`, `docs/GPU_PREREGISTRATION.md` |
 | S | Two-wire GPU card, same seeds: p95 response **+32.9%** (+6.3 to +59.4) against native. | `results/sim/gpu_two_wire/RESULT.md` |
 | S | Six organisms, same runs: time over the service line **+0.19 to +0.27 pp worse in every cell**; band first is not held anywhere. | `results/scale/GRID.md` |
 | L | Set 21: modelled energy 1.8% **worse** with every machine powered (the only honest energy row on kind). | `results/live/LIVE_REPS_21.md` |
@@ -5109,12 +5161,24 @@ rate, so both arms were given **the same work**.
 | **Set 25**: native against Omni-Compass on top (the engine's allocation law), 10 paired repetitions, fixed-rate load, current `main` | running (GitHub Actions `benchmark-reps`) |
 | **Set 26**: native, the engine's allocation law, and **the bowl law in the live controller** (`--law bowl`), 10 paired repetitions, fixed-rate load, rule written first (`docs/K8S_BOWL_PREREGISTRATION.md`) | running (GitHub Actions run 37058424766, commit `e7f920d`) |
 
-### On real hardware now, no result in the repository yet
+### Measured on a real GPU: the card's own meter (evidence class P)
 
-| Instrument | State |
-|---|---|
-| **GPU bench, two wires** (`scripts/gpu_rented_run.sh`: lock, busy check, the seven-step wire check, smoke, the six organisms with the card inside, then the preregistered confirmation of 10 repetitions × native / watch / Omni at 600 s per arm, the card's own meter) | running on a rented NVIDIA A10 (Lambda). The first attempt's smoke was invalid (two copies running, the card already busy) and the wire check failed on a card held below its top clock by its power limit; both were fixed in the script before this run. The packed result will be entered here when it arrives. |
-| CPU clock connector in the controller | built; not run on owned hardware |
+**First confirmation, NVIDIA A10 on Lambda, 2026-10-02** (`results/gpu/run-20261002T082232Z/GPU_REPS.md`, 10 paired
+repetitions × native / watch / Omni, 600 s each, frozen at commit `c908054`, checksums verified). Wire check 7 of 7;
+2,144 writes, none refused, every one read back, every arm ended at the start limit; watch equal to native.
+
+| Gauge | Native | Omni | Change (95% interval) |
+|---|---:|---:|---|
+| **Work per energy** (requests per kJ) | 50.79 | 52.62 | **+3.6% (+2.7% to +4.5%), proven** |
+| GPU energy | 69,180 J | 66,790 J | −3.5%, proven |
+| Requests served / not served | 3,514 / 0 | 3,514 / 0 | equal |
+| **Response time, 95th percentile** | 510 ms | 809 ms | **+58.5%, worse, proven** |
+
+**Result, by rule: ENERGY IMPROVEMENT WITH SERVICE TRADEOFF** (the p95 guardrail of +10% failed). The six organisms
+with the same card inside (`results/hil/run-20261002T082232Z/HIL.md`, 3 repetitions each): the card's work per energy
++1.6% to +2.8% in every organism, the same requests, its p95 500 to about 600-935 ms. The cause, from the card's own
+samples, was wiring in the governor (amendment 6 of `docs/GPU_PREREGISTRATION.md`): busy bursts served at 736-768 MHz
+against 861-889 MHz on its own. Corrected (amendments 6 and 7); the corrected governor has not yet run on a card.
 
 ### Simulated (models: they show the mechanism, not a measurement)
 

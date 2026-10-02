@@ -277,3 +277,22 @@ rules are unchanged):
 **On the modelled card, before any trial** (`results/sim/gpu_two_wire/`, seeds 5000 to 5009): p95 122.1 ms native,
 123.7 ms with the corrected bowl; work per energy +8.2% (+6.3% to +10.1%); energy -7.5%; the median response 10.1 to
 12.1 ms, slower in the quiet stretches the bowl paces. That is a model; the next trial is the card's own meter.
+
+## Amendment 7 (2026-10-02, before any further trial)
+
+The outcomes, arms, guardrails, analysis and validity rules are unchanged. The Omni arm of the confirmation runs the
+**service** profile.
+
+- **Two profiles, one switch** (`--profile`): **service** (the default and the confirmation's arm), down gain 0.01;
+  **batch**, down gain 0.02, for work nobody waits on answer by answer. The batch profile may be run as a separate,
+  declared confirmation (`OMNI_ARGS="--profile batch"`); it is reported as its own result, never pooled with service.
+- **Why 0.01, chosen on the model before the trial** (`results/sim/gpu_two_wire/`, 20 paired seeds, 5000-5009 and
+  5100-5109): of the down gains 0.005, 0.0075, 0.01, 0.0125 and 0.02, 0.01 is the largest at which no seed's p95 was
+  more than 10% slower than native (0 of 20; 7 of 20 faster): work per energy +3.9% (+3.0 to +4.7), energy -3.7%,
+  p95 -1.6% (-4.8 to +1.6), p99 -0.8%, time over the line -0.02 pp, median +10.5%. At 0.0125 and 0.02 the saving is
+  +6.2% but 3 of 20 seeds' p95 was more than 10% slower (a burst arriving while the clock rests on its floor).
+- **The ceiling moves in whole clock steps** (--min-change-mhz, 15 MHz), as the card's own clock does and as the model
+  moves it: the force times the gain, as a share of the top clock, is rounded to whole steps, and a pull under half a
+  step moves nothing and is not stored up.
+- **The position reads the mean response time of the window** (as the model does), between the bare service time and
+  the line; the 95th percentile at or past the line, or any failed request, is past the wall (fail up).

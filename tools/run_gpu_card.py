@@ -14,7 +14,7 @@ from realms.harness import T95  # noqa: E402
 
 SEEDS = list(range(5000, 5010))       # tuning seeds (the gains were chosen on these)
 FRESH = list(range(5100, 5110))       # fresh seeds, never used while tuning
-ARMS = ("native", "preset", "old", "bowl")
+ARMS = ("native", "preset", "old", "bowl", "bowl_batch")
 ROWS = [("work_per_kj", "work per energy (requests per kJ)", "{:.1f}"), ("energy_j", "energy (J)", "{:.0f}"),
         ("served", "requests served", "{:.0f}"), ("p50_ms", "response, median (ms)", "{:.1f}"),
         ("p95_ms", "response, 95th percentile (ms)", "{:.1f}"), ("p99_ms", "response, 99th percentile (ms)", "{:.1f}"),
@@ -49,16 +49,17 @@ def main(out=ROOT / "results" / "sim" / "gpu_two_wire", fresh=""):
          "service position (response time) to the middle of its bowl, racing at full speed while the card is "
          "saturated and never pacing under the clock or the draw the card reaches on its own while busy (amendment 6); "
          "both wires restored "
-         "to their snapshot at 90% of the run.", "",
-         "## Mean over seeds", "", "| Gauge | Native | Preset | Old governor | Bowl |", "|---|---:|---:|---:|---:|"]
+         "to their snapshot at 90% of the run. **Service** profile (the default and the benchmark's arm): down gain 0.01; "
+         "**batch** profile: down gain 0.02, for work nobody waits on answer by answer.", "",
+         "## Mean over seeds", "", "| Gauge | Native | Preset | Old governor | Bowl, service | Bowl, batch |", "|---|---:|---:|---:|---:|---:|"]
     for k, name, f in ROWS:
         L.append(f"| {name} | " + " | ".join(f.format(sum(r[k] for r in res[a]) / len(SEEDS)) for a in ARMS) + " |")
-    L += ["", "## Paired against native (95% interval over seeds)", "", "| Gauge | Preset | Old governor | Bowl |", "|---|---:|---:|---:|"]
+    L += ["", "## Paired against native (95% interval over seeds)", "", "| Gauge | Preset | Old governor | Bowl, service | Bowl, batch |", "|---|---:|---:|---:|---:|"]
     for k, name, f in [("work_per_kj", "work per energy", None), ("energy_j", "energy", None),
                        ("viol_share", "time over the line (pp)", "pp"), ("p95_ms", "response p95", None),
                        ("hammer_per_s", "hammer blows", None)]:
         cells = []
-        for a in ("preset", "old", "bowl"):
+        for a in ("preset", "old", "bowl", "bowl_batch"):
             if f == "pp":
                 d = [100 * (x[k] - n[k]) for x, n in zip(res[a], res["native"])]
                 m, lo, hi = ci(d); cells.append(f"{m:+.2f} ({lo:+.2f} to {hi:+.2f})")
@@ -67,7 +68,7 @@ def main(out=ROOT / "results" / "sim" / "gpu_two_wire", fresh=""):
                 m, lo, hi = ci(d); cells.append(f"{m:+.1%} ({lo:+.1%} to {hi:+.1%})")
         L.append(f"| {name} | " + " | ".join(cells) + " |")
     L += ["", f"Both wires back at their snapshot after the kill on every seed: "
-          f"{all(r['restored'] for r in res['bowl'])}. Requests served are the same work on every arm (the stream is "
+          f"{all(r['restored'] for a in ('bowl', 'bowl_batch') for r in res[a])}. Requests served are the same work on every arm (the stream is "
           "the seed's); a backlog left at the end is in the JSON.", "",
           "A model written by the same people who wrote the law is not an independent test. The card's power curve "
           "(dynamic power rising with clock times voltage squared) is the textbook shape, not a measurement of any "

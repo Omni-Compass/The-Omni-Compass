@@ -57,12 +57,24 @@ rate, so both arms were given **the same work**.
 | **Set 25**: native against Omni-Compass on top (the engine's allocation law), 10 paired repetitions, fixed-rate load, current `main` | running (GitHub Actions `benchmark-reps`) |
 | **Set 26**: native, the engine's allocation law, and **the bowl law in the live controller** (`--law bowl`), 10 paired repetitions, fixed-rate load, rule written first (`docs/K8S_BOWL_PREREGISTRATION.md`) | running (GitHub Actions run 37058424766, commit `e7f920d`) |
 
-## On real hardware now, no result in the repository yet
+## Measured on a real GPU: the card's own meter (evidence class P)
 
-| Instrument | State |
-|---|---|
-| **GPU bench, two wires** (`scripts/gpu_rented_run.sh`: lock, busy check, the seven-step wire check, smoke, the six organisms with the card inside, then the preregistered confirmation of 10 repetitions × native / watch / Omni at 600 s per arm, the card's own meter) | running on a rented NVIDIA A10 (Lambda). The first attempt's smoke was invalid (two copies running, the card already busy) and the wire check failed on a card held below its top clock by its power limit; both were fixed in the script before this run. The packed result will be entered here when it arrives. |
-| CPU clock connector in the controller | built; not run on owned hardware |
+**First confirmation, NVIDIA A10 on Lambda, 2026-10-02** (`results/gpu/run-20261002T082232Z/GPU_REPS.md`, 10 paired
+repetitions × native / watch / Omni, 600 s each, frozen at commit `c908054`, checksums verified). Wire check 7 of 7;
+2,144 writes, none refused, every one read back, every arm ended at the start limit; watch equal to native.
+
+| Gauge | Native | Omni | Change (95% interval) |
+|---|---:|---:|---|
+| **Work per energy** (requests per kJ) | 50.79 | 52.62 | **+3.6% (+2.7% to +4.5%), proven** |
+| GPU energy | 69,180 J | 66,790 J | −3.5%, proven |
+| Requests served / not served | 3,514 / 0 | 3,514 / 0 | equal |
+| **Response time, 95th percentile** | 510 ms | 809 ms | **+58.5%, worse, proven** |
+
+**Result, by rule: ENERGY IMPROVEMENT WITH SERVICE TRADEOFF** (the p95 guardrail of +10% failed). The six organisms
+with the same card inside (`results/hil/run-20261002T082232Z/HIL.md`, 3 repetitions each): the card's work per energy
++1.6% to +2.8% in every organism, the same requests, its p95 500 to about 600-935 ms. The cause, from the card's own
+samples, was wiring in the governor (amendment 6 of `docs/GPU_PREREGISTRATION.md`): busy bursts served at 736-768 MHz
+against 861-889 MHz on its own. Corrected (amendments 6 and 7); the corrected governor has not yet run on a card.
 
 ## Simulated (models: they show the mechanism, not a measurement)
 
