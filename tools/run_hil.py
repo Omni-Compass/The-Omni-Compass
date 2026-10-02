@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """The whole stacks with the real card inside: one harness, one engine, one set of receipts.
 
-Each organism (the four realms and the whole tower of 656, realms/catalog.csv) runs on one clock as in the realm
+Each of six organisms (the four realms, the four stacked with every duplicate kept, 1,226, and the whole tower of 656,
+realms/catalog.csv) runs on one clock as in the realm
 harness, and the real GPU on this machine is wired into it as one more muscle of its NVIDIA GPU family (a spine family,
 so the card sits in every organism): the card serves the pinned request stream (tools/gpu_workload.py), its own
 power.draw is heat in the organism's thermal zones and load on its storage sites, and its meter and its requests are
@@ -42,7 +43,7 @@ from realms.presets import ORGANISM_STEPS  # noqa: E402
 REALMS = ("compute_ai_cloud", "physics_robotics_autonomous", "energy_facility_industrial", "distribution_specialized")
 NAMES = {"compute_ai_cloud": "Compute / AI / Cloud", "physics_robotics_autonomous": "Physics / Robotics / Autonomous",
          "energy_facility_industrial": "Energy / Facility / Industrial", "distribution_specialized": "Distribution / Specialized",
-         "organism_656": "The whole tower (656 muscles)"}
+         "stack_1226": "The four stacked, duplicates kept (1,226)", "organism_656": "The whole tower (656 muscles)"}
 SEED0 = 6000
 SMI_FIELDS = "timestamp,power.draw,clocks.sm,power.limit,utilization.gpu,temperature.gpu"
 
@@ -84,6 +85,7 @@ def last_draw(path, fallback):
 def groups():
     rows = catalog()
     g = {r: [x for x in rows if r in x["realms"].split(";")] for r in REALMS}
+    g["stack_1226"] = [dict(r, muscle_id=f"{r['muscle_id']}@{realm}") for realm in REALMS for r in g[realm]]
     g["organism_656"] = rows
     return g
 
@@ -190,7 +192,7 @@ def main(argv=None):
     ap.add_argument("--out", required=True)
     ap.add_argument("--reps", type=int, default=int(os.environ.get("HIL_REPS", 3)))
     ap.add_argument("--step-s", type=float, default=float(os.environ.get("HIL_STEP_S", 2.0)))
-    ap.add_argument("--organisms", default=os.environ.get("HIL_ORGANISMS", ",".join(REALMS + ("organism_656",))))
+    ap.add_argument("--organisms", default=os.environ.get("HIL_ORGANISMS", ",".join(REALMS + ("stack_1226", "organism_656"))))
     ap.add_argument("--gpu", type=int, default=int(os.environ.get("GPU", 0)))
     ap.add_argument("--smi", default=os.environ.get("NVIDIA_SMI", "nvidia-smi"))
     ap.add_argument("--interval", type=float, default=2.0)

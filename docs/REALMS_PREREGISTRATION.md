@@ -203,8 +203,8 @@ layer, the outcomes, the guardrails and the label rule are round 3's.
 
 ## Round 5: the whole stacks with the real card inside (written 2026-10-02, before any run)
 
-One harness (`tools/run_hil.py`, started by `scripts/gpu_rented_run.sh` after a valid card smoke): each of the five
-organisms (the four realms, the whole tower of 656) runs on one clock as in round 3, with the machine's real GPU wired
+One harness (`tools/run_hil.py`, started by `scripts/gpu_rented_run.sh` after a valid card smoke): each of the six
+organisms (the four realms, the four stacked with every duplicate kept (1,226), the whole tower of 656) runs on one clock as in round 3, with the machine's real GPU wired
 in as one more muscle of its NVIDIA GPU family (a spine family, so the card is in every organism). The card serves the
 pinned request stream; its own power.draw is heat in the organism's thermal zones and load on its storage sites.
 
