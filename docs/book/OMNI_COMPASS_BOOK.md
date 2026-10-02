@@ -3168,10 +3168,10 @@ receipt's energy line is modelled, the receipt says so.
 
 | Result | Class | Source |
 |---|---|---|
-| Real Kubernetes, set 24 (10 paired runs): machines in service -31.6%, p95 response -60.1%, p99 -64.1%, HPA replicas -38.6%, failed requests 0 on both, total CPU including Omni-Compass's own -1.8% (not significant) | L | GitHub run 36983865216 |
+| Real Kubernetes, set 24 (10 paired runs): machines in service -31.6%, p95 response -60.1%, p99 -64.1%, HPA replicas -38.6%, failed requests 0 on both, total CPU including Omni-Compass's own -1.8% (not significant) | L | `results/live/LIVE_REPS_24.md` (GitHub run 36983865216) |
 | Real Kubernetes, set 23 (10 paired runs): p95 -62.2%, replicas -36.6%, machines in service -28.7%, failed requests 0 | L | `results/live/LIVE_REPS_23.md` |
-| Modelled GPU card, fresh seeds: two-wire bowl +9.0% work per energy (energy -8.2%), one-wire governor +0.1%, both wires restored every run | S | `results/sim/gpu_two_wire/` |
-| Six organisms, 1,000 runs each at 1x: work per energy +0.30% (compute), +0.23% (physics), +0.21% (energy), +0.25% (distribution), +0.21% (four stacked), +0.22% (whole tower); every knob handed back; time outside the service line about +0.2 points above native in each, so the band-first rule is not yet met | S | GitHub workflow `six` |
+| Modelled GPU card: two-wire bowl +8.6% work per energy (seeds 5000-5009) and +9.0% (fresh seeds 5100-5109), time over the service line unchanged, but p95 response +33% and +37% against native; one-wire governor +0.1%; both wires restored every run | S | `results/sim/gpu_two_wire/` |
+| Six organisms, 1,000 paired runs each at 1x and at 10x size: work per energy +0.30% / +0.29% (compute), +0.23% / +0.22% (physics), +0.21% / +0.20% (energy), +0.25% / +0.24% (distribution), +0.21% / +0.21% (four stacked), +0.22% / +0.22% (whole tower); every knob handed back; time over the service line +0.19 to +0.27 points above native in every cell, so the band-first rule is not yet met. 100x and 1,000x running | S | `results/scale/GRID.md` |
 | Real GPU (NVIDIA A10) on the two-wire engine | P | in progress; results arrive as `results/gpu/omni-gpu-<stamp>.tar.gz` |
 
 ---
@@ -3874,6 +3874,8 @@ id `29d9808dfb8f…`; the printed configuration `printed_eight_line`, id `cd333d
 | S | Fleet harness, recorded PlanetLab shapes: −40.6% energy vs HPA+CA, −21.7% vs Karpenter-lite (omni_fleet). | C17 |
 | S | Single GPU physics model: the engine alone would save 10.6–13.6% work per kJ on card A but breaks the p95 guardrail by 15–28%; with the frozen guards, about +1 to +5% inside it. | `results/gpu/sim/FINDINGS.md` |
 | S | Node exchange (CPU and GPU on one budget): +1.4 to +5.7% work against the separate budgets, never over budget. | `results/hardware/NODE_EXCHANGE_*.json` |
+| S | Six organisms (345, 262, 282, 337, the four stacked 1,226, the whole tower 656), the bowl law on every muscle against each organism's own controllers, 1,000 paired runs at 1× and 10× size: work per energy +0.20% to +0.30%, energy −0.21% to −0.32%; every knob handed back. | `results/scale/GRID.md` |
+| S | Two-wire GPU card under the bowl law, 10 seeds: work per energy +8.6% (+7.8 to +9.4), time over the line unchanged; the one-wire governor on the same card +0.1%. | `results/sim/gpu_two_wire/RESULT.md` |
 | S | Realm harness round 3 (every realm carries the shared spine), preregistered, seeds 3000-3009: the whole 656-muscle tower native against one governor on top, work per energy +0.1% (+0.1 to +0.1), violations +0.5 pp, SUPERIOR WITHIN GUARDRAILS. Realms: Energy +0.2% with +1.9 pp violations (tradeoff); Compute 0.0% with +2.1 pp (not established); Distribution −0.1% (worse); Physics −0.7% (worse). Rounds 1 and 2 kept, superseded. | `results/realms/REALMS.md` |
 | S | Stacked organism (round 4, seeds 4000-4009): the four realm organisms on one clock, 1,226 muscles with every duplicate; stacked native equals the four realms alone on every seed. One governor over the stack: energy −0.14%, work per energy +0.02%, violations +1.4 pp, ENERGY IMPROVEMENT WITH SERVICE TRADEOFF; four separate governors about the same (+0.04%); one governor against four separate: −0.02% (WORSE, by a hair). | `results/realms/stack/STACK.md` |
 
@@ -3881,6 +3883,7 @@ id `29d9808dfb8f…`; the printed configuration `printed_eight_line`, id `cd333d
 
 | Class | Statement | Where |
 |---|---|---|
+| L | Set 24 (2026-10-02, commit `c908054`), real Kubernetes (kind), 10 paired repetitions: machines in service −31.6% (proven), p95 response time −60.1% (proven), p99 −64.1% (proven), HPA replicas −38.6% (proven), 0 failed requests on both; total CPU including Omni's own −1.8% (not proven); energy with every machine powered −0.3% (declared model). | `results/live/LIVE_REPS_24.md` |
 | L | Set 23 (set 22 repeated on the current code, 2026-10-02), real Kubernetes (kind), 10 paired repetitions, equal work: p95 response time −62% (proven), replicas −37% (proven), pods started −64% (proven), 0 failed requests; total CPU with Omni's own −1.0% and modelled energy −0.2% (no difference). | `results/live/LIVE_REPS_23.md` |
 | L | Set 22, real Kubernetes (kind), 10 paired repetitions, equal work (fixed-rate load): p95 response time −61% (proven), replicas −23% (proven), pending pod-minutes −91% (proven), 0 failed requests. | `results/live/LIVE_REPS_22.md` |
 | L | Set 21, real Kubernetes (kind), 10 paired repetitions: p95 response time −37% (proven), replicas −12% (proven), 0 failed requests. | `results/live/LIVE_REPS_21.md` |
@@ -3903,6 +3906,8 @@ Nothing here is deleted when a later result looks better.
 
 | Class | Statement | Where |
 |---|---|---|
+| S | Two-wire GPU card, same seeds: p95 response **+32.9%** (+6.3 to +59.4) against native. | `results/sim/gpu_two_wire/RESULT.md` |
+| S | Six organisms, same runs: time over the service line **+0.19 to +0.27 pp worse in every cell**; band first is not held anywhere. | `results/scale/GRID.md` |
 | L | Set 21: modelled energy 1.8% **worse** with every machine powered (the only honest energy row on kind). | `results/live/LIVE_REPS_21.md` |
 | S | Realm harness round 1 (superseded, kept): all five organisms **worse** (whole tower −0.1%). Its Omni layer did not follow the shipped controller (no contraction authority or SLO reflex, the stack law in place of the HPA, request traffic paused, a site budget under native draw). | `results/realms/round1/` |
 | S | Realm harness round 2: the Physics / Robotics / Autonomous organism **worse** (−1.9%, violations +2.9 pp); the Compute organism's +2.5% costs +2.9 pp of service violations; 68 single muscles worse, mostly batch pacing and cooling setpoints under the live cooling law. | `results/realms/REALMS.md` |
@@ -3963,6 +3968,8 @@ Every claim, its evidence status and the command that reproduces it. Simulation 
 ## 46. The Benchmark Report
 
 
+
+> **Dated record, kept as written on 26 September 2026.** Where a figure here differs from `STATE_OF_PLAY.md`, the State of Play governs. The GPU power-limit figure in this report (15% to 19% energy, under 1% slower) came from an earlier model of the card; later models with the service guards give +1.3% to +5.1% work per kJ with one wire (`results/gpu/sim/after`) and +8.6% with two wires at a higher p95 (`results/sim/gpu_two_wire/RESULT.md`). No real card has finished the bench yet.
 
 Benchmark report, 26 September 2026. Repository: Omni-Compass/The-Omni-Compass-Control-Core-Engine (private), branch main Every number below is produced by code in that repository and can be regenerated; section 21 gives the commands. Each result states whether it was **measured on a live Kubernetes control plane** or **computed in simulation**.
 
@@ -4472,6 +4479,8 @@ python tools/full_report.py ... && python pilot/bench_pdf.py docs/BENCHMARK_REPO
 ## 47. The Referee Report
 
 
+
+> **Dated record, kept as written on 26 September 2026.** Where a figure here differs from `STATE_OF_PLAY.md`, the State of Play governs. The results below are simulations of platforms (evidence class S), not measurements of those products.
 
 Referee report, 26 September 2026. Repository Omni-Compass/The-Omni-Compass-Control-Core-Engine, branch main, commit 096956a. Every number is generated by `python tools/abc_report.py` from result files in the repository. Each result states how it was obtained: **measured** on a live Kubernetes control plane, **simulated** in this repository's plants, or **emulated** (a competitor reproduced from its public documentation, not its binary).
 
@@ -5002,14 +5011,19 @@ the live evidence and the verification receipt), which `verify.py` checks agains
 ### In one paragraph
 
 Omni-Compass is a supervisory governor that sits on top of Kubernetes and hardware. On a real Kubernetes control plane
-it measurably makes services answer faster, with fewer replicas and a clean kill switch. It has **not** yet been shown to
-save energy on real hardware: on kind every machine stays powered and energy is a declared model, and the GPU bench that
-measures real joules is built and tested but has not been run on a card. That run is the next decisive step.
+it measurably makes services answer faster, on about a third fewer machines, with a clean kill switch. It has **not** yet
+been shown to save energy on real hardware: on kind every machine stays powered and energy is a declared model. The GPU
+bench that measures real joules on a card's own meter is running now on a rented NVIDIA card (Lambda); no result from it
+is in this repository yet. In the models, the bowl law on every muscle of the six organisms gives +0.20% to +0.30% work
+per energy at every size and run count completed, but it spends more time over the service line than native in every
+cell, so the band-first rule is not yet held. Closing that is the open work on the engine.
 
 ### Measured on real systems: the newest set, Omni-Compass against Kubernetes as it runs today
 
-**Set 23 (2026-10-02) repeats set 22 on the current code: p95 −62%, replicas −37%, pod starts −64%, 0 failed requests,
-no energy or total-CPU difference** (`results/live/LIVE_REPS_23.md`). The set-22 table below stands as first measured.
+**Set 24 (2026-10-02, commit `c908054`) repeats it again: machines in service −31.6%, p95 −60.1%, p99 −64.1%, HPA
+replicas −38.6%, 0 failed requests, total CPU including Omni-Compass's own −1.8% (not significant)**
+(`results/live/LIVE_REPS_24.md`). Set 23 before it: p95 −62%, replicas −37%, pod starts −64%, 0 failed requests, no
+energy or total-CPU difference (`results/live/LIVE_REPS_23.md`). The set-22 table below stands as first measured.
 
 Set 22 (`results/live/LIVE_REPS_22.md`): 10 paired repetitions on real Kubernetes (kind), each pair on one machine,
 Kubernetes with its autoscaler alone against the same Kubernetes with Omni-Compass on top. The load is sent at a fixed
@@ -5036,18 +5050,20 @@ rate, so both arms were given **the same work**.
   of it. Cutting the controller's cost is the next improvement.
 - The kill switch restored every setting in every run.
 
-### Built and tested, not yet run on real hardware
+### On real hardware now, no result in the repository yet
 
 | Instrument | State |
 |---|---|
-| **GPU bench** (`scripts/gpu_paired.sh`, native / watch / Omni, the device's own meter, optional wall plug and RAPL, freeze and preregistration) | ready; tested against a stand-in `nvidia-smi` in `verify.py`; **no card has run it** (`results/gpu/` holds models only) |
-| CPU clock and GPU power connectors in the controller | built; not run on owned hardware |
+| **GPU bench, two wires** (`scripts/gpu_rented_run.sh`: lock, busy check, the seven-step wire check, smoke, the six organisms with the card inside, then the preregistered confirmation of 10 repetitions × native / watch / Omni at 600 s per arm, the card's own meter) | running on a rented NVIDIA A10 (Lambda). The first attempt's smoke was invalid (two copies running, the card already busy) and the wire check failed on a card held below its top clock by its power limit; both were fixed in the script before this run. The packed result will be entered here when it arrives. |
+| CPU clock connector in the controller | built; not run on owned hardware |
 
 ### Simulated (models: they show the mechanism, not a measurement)
 
 | Result | Where |
 |---|---|
-| GPU governor with share floor and busy gate, MLPerf-calibrated card: +5.1% and +1.3% work per kJ, p95 within +10% | `results/gpu/sim/after` |
+| GPU governor with share floor and busy gate (one wire, the power limit), MLPerf-calibrated card: +5.1% and +1.3% work per kJ, p95 within +10% | `results/gpu/sim/after` |
+| **Two-wire GPU card (clock ceiling up, power limit down) under the bowl law**, 10 seeds: work per energy **+8.6%** (+7.8 to +9.4), energy −7.9%, time over the line unchanged (−0.01 pp), but p95 response **+32.9%** (+6.3 to +59.4); the one-wire governor on the same card +0.1%; both wires restored every seed | `results/sim/gpu_two_wire/RESULT.md` |
+| **The six organisms** (Compute 345, Physics 262, Energy 282, Distribution 337, the four stacked 1,226, the whole tower 656), native against the bowl law on every muscle, 1,000 paired runs at 1× and at 10× size: work per energy +0.20% to +0.30%, energy −0.21% to −0.32%, work −0.01% to −0.02%, time over the service line **+0.19 to +0.27 pp in every cell (band first not held)**, every knob handed back. 100× and 1,000× are running | `results/scale/GRID.md` |
 | Speed lock (speed won elsewhere spent on GPU watts) | `results/gpu/sim/pipeline/` |
 | CPU and GPU on one conserved power budget: +1.4% to +5.7% work served against a fixed cap, never over the budget | `results/hardware/NODE_EXCHANGE_*.json`, `docs/CONVEYANCE_LAW.md` |
 | GPU groups sharing a site budget: 0 minutes over the budget | `results/hardware/SITE_EXCHANGE_HELDOUT_*.json` |
@@ -5065,17 +5081,19 @@ rate, so both arms were given **the same work**.
 
 ### Open
 
-1. **The first real-hardware run:** `sudo bash scripts/gpu_rented_run.sh` on a rented NVIDIA machine (smoke, then the
+1. **Band first.** In every organism and every size the bowl law raises the time over the service line by about 0.2
+   points. The rule is no win unless that is at or under native's. This is the first thing to fix in the law.
+2. **The first real-hardware run:** `sudo bash scripts/gpu_rented_run.sh` on a rented NVIDIA machine (smoke, then the
    10 preregistered repetitions, `docs/GPU_RUN_GUIDE.md`), or the gpu-bench workflow on GitHub's GPU runner. Then a
-   second machine of the same type, then another GPU type. Status 2026-10-01: GitHub's GPU runner has never been
+   second machine of the same type, then another GPU type. Status 2026-10-02: the rented-card run above is under way. GitHub's GPU runner has never been
    assigned to a job (every run waited in the queue; the repository is public, so the ordinary runners are free while a
    GPU runner is always billed, and the account has an Actions billing notice). The envelope rule is preregistered
    (amendment 3).
-2. **Work per energy on kind:** count requests served, or run an open-loop load at a fixed rate, so work per energy can
+3. **Work per energy on kind:** count requests served, or run an open-loop load at a fixed rate, so work per energy can
    be stated instead of estimated (set 22, `LOADGEN=open`).
-3. **CPU and GPU on one power budget on hardware:** the law is simulated; the live exchange is not wired.
-4. **A global stability proof** of the forced six-state system (`docs/FORMAL_STATUS.md`).
-5. **The principal embodiment for filings** (`docs/CANONICAL_ENGINE.md`, section 5): a decision for the company.
+4. **CPU and GPU on one power budget on hardware:** the law is simulated; the live exchange is not wired.
+5. **A global stability proof** of the forced six-state system (`docs/FORMAL_STATUS.md`).
+6. **The principal embodiment for filings** (`docs/CANONICAL_ENGINE.md`, section 5): a decision for the company.
 
 ### Where things are
 

@@ -571,10 +571,10 @@ receipt's energy line is modelled, the receipt says so.
 
 | Result | Class | Source |
 |---|---|---|
-| Real Kubernetes, set 24 (10 paired runs): machines in service -31.6%, p95 response -60.1%, p99 -64.1%, HPA replicas -38.6%, failed requests 0 on both, total CPU including Omni-Compass's own -1.8% (not significant) | L | GitHub run 36983865216 |
+| Real Kubernetes, set 24 (10 paired runs): machines in service -31.6%, p95 response -60.1%, p99 -64.1%, HPA replicas -38.6%, failed requests 0 on both, total CPU including Omni-Compass's own -1.8% (not significant) | L | `results/live/LIVE_REPS_24.md` (GitHub run 36983865216) |
 | Real Kubernetes, set 23 (10 paired runs): p95 -62.2%, replicas -36.6%, machines in service -28.7%, failed requests 0 | L | `results/live/LIVE_REPS_23.md` |
-| Modelled GPU card, fresh seeds: two-wire bowl +9.0% work per energy (energy -8.2%), one-wire governor +0.1%, both wires restored every run | S | `results/sim/gpu_two_wire/` |
-| Six organisms, 1,000 runs each at 1x: work per energy +0.30% (compute), +0.23% (physics), +0.21% (energy), +0.25% (distribution), +0.21% (four stacked), +0.22% (whole tower); every knob handed back; time outside the service line about +0.2 points above native in each, so the band-first rule is not yet met | S | GitHub workflow `six` |
+| Modelled GPU card: two-wire bowl +8.6% work per energy (seeds 5000-5009) and +9.0% (fresh seeds 5100-5109), time over the service line unchanged, but p95 response +33% and +37% against native; one-wire governor +0.1%; both wires restored every run | S | `results/sim/gpu_two_wire/` |
+| Six organisms, 1,000 paired runs each at 1x and at 10x size: work per energy +0.30% / +0.29% (compute), +0.23% / +0.22% (physics), +0.21% / +0.20% (energy), +0.25% / +0.24% (distribution), +0.21% / +0.21% (four stacked), +0.22% / +0.22% (whole tower); every knob handed back; time over the service line +0.19 to +0.27 points above native in every cell, so the band-first rule is not yet met. 100x and 1,000x running | S | `results/scale/GRID.md` |
 | Real GPU (NVIDIA A10) on the two-wire engine | P | in progress; results arrive as `results/gpu/omni-gpu-<stamp>.tar.gz` |
 
 ---
