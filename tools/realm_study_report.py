@@ -78,7 +78,9 @@ def main():
          f"| protective | {v['protective']} | a safety action owned by a safety system; never for an optimiser |",
          f"| not a control | {v['not-a-control']} | moves no setting (an objective, an alert, or not settable) |", "",
          f"After folding duplicates (including rows that point at the same real control), **{len([k for k in keep if k['origin']=='catalog'])}** "
-         "catalog rows are distinct real controls.", "",
+         "catalog rows are distinct real controls. Some of that folding is by mechanism, not by loop: the furnace, pressure, "
+         "temperature and level setpoints all fold into one \"PID setpoint\" control. On a real plant each loop is its "
+         "own muscle, so 448 is a floor for distinct controls, not a ceiling.", "",
          "## Real controls the 656 does not have", "",
          f"**{len(keep) - len([k for k in keep if k['origin']=='catalog'])}** real controls from waves 1 and 2 are not in "
          "the catalog, among them the HPA's own behaviour settings (stabilisation windows, rate policies, tolerance), the "

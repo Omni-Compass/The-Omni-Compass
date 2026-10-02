@@ -14,7 +14,7 @@ Waves 1 and 2 listed the real controls of each realm from the systems' own docum
 | protective | 4 | a safety action owned by a safety system; never for an optimiser |
 | not a control | 6 | moves no setting (an objective, an alert, or not settable) |
 
-After folding duplicates (including rows that point at the same real control), **448** catalog rows are distinct real controls.
+After folding duplicates (including rows that point at the same real control), **448** catalog rows are distinct real controls. Some of that folding is by mechanism, not by loop: the furnace, pressure, temperature and level setpoints all fold into one "PID setpoint" control. On a real plant each loop is its own muscle, so 448 is a floor for distinct controls, not a ceiling.
 
 ## Real controls the 656 does not have
 
