@@ -4,7 +4,7 @@
 
 | You need | Where |
 |---|---|
-| To understand and wire Omni-Compass | `docs/OMNI_COMPASS_MANUAL.md` (PDF alongside); every command on one page: `HANDOFF.md` |
+| To understand and wire Omni-Compass | the book `docs/OMNI_COMPASS_MANUAL.pdf` and the short manual `docs/OMNI_COMPASS_MANUAL.md`; every command on one page: `HANDOFF.md` |
 | A bug in an evaluation run | open an issue with the "Bug report" template |
 | A pilot, a commercial license, production use | open an issue with the "Licensing and pilots" template, or contact The Omni-Compass LLC |
 | A security issue | follow `SECURITY.md`; do not open a public issue |

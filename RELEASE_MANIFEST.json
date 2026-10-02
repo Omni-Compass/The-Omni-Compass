@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-a029273a7c8e",
- "written_at_commit": "a029273a7c8e3c72fd1669be05afbf3d63bf18a5",
- "written_at": "2026-10-02T17:31:47+00:00",
+ "release_id": "omni-compass-e976c70766c8",
+ "written_at_commit": "e976c70766c8e6d277596af29c2f8e6a9d01dc08",
+ "written_at": "2026-10-02T18:10:46+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -138,10 +138,5 @@
    "raw": "GitHub artifacts, digests in results/live/SET22_ARTIFACTS.json; recomputed by the reaggregate workflow"
   }
  },
- "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card",
- "verification_receipt": {
-  "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "5082ccc1ed44c2d08f0a35bd054e5280700382b11bfd9a4fd513d7d94d71b7e8",
-  "passed": true
- }
+ "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card"
 }

@@ -13,4 +13,4 @@ Engineering rules every change follows:
    rewritten only after every parity test passes.
 3. Every benchmark is preregistered before it runs; its rule decides its label.
 4. `python3 verify.py` must end `VERIFICATION: PASS` on every release.
-5. The manual (`docs/OMNI_COMPASS_MANUAL.md`) changes in the same commit as the behavior it describes.
+5. The manual (`docs/OMNI_COMPASS_MANUAL.md`) and the book built from it and the documents (`docs/book/build_book.py`) change in the same commit as the behavior they describe.

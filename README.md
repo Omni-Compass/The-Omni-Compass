@@ -32,7 +32,7 @@ Dollar figures computed by multiplying modelled per-stack coefficients are not r
 
 ## Start here (evaluators, pilots, licensees)
 
-**The manual:** [`docs/OMNI_COMPASS_MANUAL.md`](docs/OMNI_COMPASS_MANUAL.md) (PDF: `docs/OMNI_COMPASS_MANUAL.pdf`) - what Omni-Compass is, its mechanism of action, and how to wire it onto your stack, step by step. One page of every command: [`HANDOFF.md`](HANDOFF.md).
+**The manual:** [`docs/OMNI_COMPASS_MANUAL.pdf`](docs/OMNI_COMPASS_MANUAL.pdf), the printable book (294 pages, covers to back cover): the philosophy and theory, the mathematics, the physics, the 656 muscles, the harness, how to wire it onto your stack step by step, how to operate it, every result, the license and the source of the engine. Its text in one file: [`docs/book/OMNI_COMPASS_BOOK.md`](docs/book/OMNI_COMPASS_BOOK.md); the short manual: [`docs/OMNI_COMPASS_MANUAL.md`](docs/OMNI_COMPASS_MANUAL.md). One page of every command: [`HANDOFF.md`](HANDOFF.md).
 
 
 0. **`docs/ENGINES.md`**: there is one engine (`omnicompass/core.py`), its C++ twin, and two frozen originals. Nothing
