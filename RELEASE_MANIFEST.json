@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-b14f012e6b4e",
- "written_at_commit": "b14f012e6b4e392c739bdf7822c2ea7ce576f9c2",
- "written_at": "2026-10-02T22:49:14+00:00",
+ "release_id": "omni-compass-590b229bc67e",
+ "written_at_commit": "590b229bc67e4b170ae1e6f823651c626f1bbfa9",
+ "written_at": "2026-10-02T22:55:38+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -85,6 +85,13 @@
   "live_set_24": {
    "results/live/LIVE_REPS_24.md": "a12298ab0daf1e1f57af6aa1e61093d1a93a3729e3c44668d93649d6359bfd75"
   },
+  "live_set_25": {
+   "results/live/LIVE_REPS_25.md": "f5eeae6ca76a545459ec9ace01dab6507850c6566909d29a151d9a065eed5a2c"
+  },
+  "live_set_26": {
+   "results/live/LIVE_REPS_26.md": "643291e75fdf88bf79e9b46e2e4194aaab7c96b0acd7ad37440f40f7d9b3c9d7",
+   "docs/K8S_BOWL_PREREGISTRATION.md": "44b1e440e446db22d442d9b798a9356f3ae67f9cfc0035f01b69e050608245b6"
+  },
   "bowl_law": {
    "omnicompass/bowl.py": "6ec6a5b88d95bce3301320bcac01ee01c3c37f9ea62c98bfc2413f61f500db0b",
    "realms/bowl_arm.py": "eb52e1adbad777bc1968493b32a7617abbb03f95efac5e5c06c1af8d96286aea",
@@ -108,7 +115,23 @@
   "license": {
    "LICENSE": "ba489dcd932cb64357bfa5e098cfc550abbc43c81180a48d73ba359f4d425f58",
    "NOTICE": "8ff81994b95a957b04a556aa6bdfc2edc71a786d34ef4ced31c26796aca88938",
-   "DISCLOSURES.md": "9d7a0dd39f2aaee0cbe9cc4425d1dd89a4cbe49757583022dade2718e19879b0"
+   "DISCLOSURES.md": "a837b502f5d9271e46ab68b02caec1b9b51c5237fbb95d709b594bc08e068499",
+   "LICENSING_FAQ.md": "315b78e829419e83409538d524dbec380b90d5931d14c8dcdcf57e7e361b5924",
+   "THIRD_PARTY_NOTICES.md": "0b041a1c7e5eeee1b9d6f48cb9ea4bc0118a0f9fa06e54b97cf45e0515fa076e",
+   "PATENTS.md": "dc357a83b01201558f9f157f99eb1f5bdd607cd71dab1d089dae0d2fc561a227",
+   "TRADEMARKS.md": "3013627596e1aef800c79d4b410d7c3445f529d7fa9a7feb6457b3dd49ee7784"
+  },
+  "repository_standards": {
+   "docs/REPOSITORY_STANDARDS.md": "3425d69129f6d1a3c5819752a9b0e93f2badec48405b09730df777a7b0458869",
+   "codemeta.json": "a99531c6cd776363426e4aef4fbdbeb13f33c13b44d0ba518617cf6857053ac7",
+   "sbom/omni-compass.cdx.json": "5d6dfe2c36ce9cb811842eafb3ffa95b453cc3c43097be9258071ede8881bbc6",
+   "SECURITY_CONTACTS": "a9ad40f8dd9ca809011fb806df458d3f5cdb0a591ad6ffabbd027833a9894604",
+   ".snyk": "36da82a2be40ac9823b0317c45e3f0643e5162ef05761f75ac39f337c1856354",
+   "pyproject.toml": "a8ad1139882f6da2e7ee0278135ba1ffa61f6289232c5b47f653b8f352eb096b"
+  },
+  "muscle_catalog": {
+   "docs/MUSCLE_CATALOG.md": "24425802344e6301215fa2a85ff1133df8c1e2e92a03af07756c157d1e432f03",
+   "tools/muscle_catalog.py": "a56453b1cea01eb6fd9564dc9648c2b85d88b8962b352b0894696ebc0a2df977"
   },
   "realms": {
    "realms/catalog.csv": "9b085801dfb4b99dd4af001683900e0b9428af460a8d3119d9f23d386c45f2d7",
@@ -165,5 +188,10 @@
    "raw": "GitHub artifacts, digests in results/live/SET22_ARTIFACTS.json; recomputed by the reaggregate workflow"
   }
  },
- "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card"
+ "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card",
+ "verification_receipt": {
+  "file": "results/VERIFY_RECEIPT.txt",
+  "sha256": "0c93fe46b07d3c232c914a1a264a07155c3625f77fae45fa5555193ce4cc46c1",
+  "passed": true
+ }
 }
