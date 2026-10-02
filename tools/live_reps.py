@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Repeated live runs: aggregate native / watch (Omni runs, writes nothing) / omni (B) / strict (C) arms over repetitions of scripts/kind_bench.sh.
 Per repetition the gauges come from pilot/bench_report.py (capture.csv, latency.csv); across repetitions this reports
 means and, for each Omni arm against native, the paired mean difference with a t-based 95% interval (n repetitions).

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Multi-workload fleet benchmark at 15-second resolution.
 
 Baselines: HPA (targets 0.5, 0.7, 0.8) + Cluster Autoscaler; HPA 0.7 + Karpenter-lite; HPA 0.7 + Karpenter-lite + VPA-lite.

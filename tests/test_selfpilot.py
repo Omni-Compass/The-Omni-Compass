@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """End-to-end self-pilot: the shipped controller in nodepool mode (default headroom) against the simulated cluster for one
 day, captured and scored with pilot/score.py against HPA + Cluster Autoscaler on identical traffic. I never loosen the
 operator's own HPA target (fewer, fuller pods always lengthen the wait), so on this plant my machines match the

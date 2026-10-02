@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The speed lock's baseline: response time without Omni, as a function of arrival rate.
 
   python3 tools/gpu_baseline.py baseline.json native-run-1/latency.csv [native-run-2/latency.csv ...]

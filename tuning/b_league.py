@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Architecture B vs A: Omni-Compass on top of each platform against the same platform alone, every gauge, every vessel
 (development seeds). Rule: no gauge worse (tuning/league.py loss rule). One BLaw setting per vessel, the same on every
 platform. Usage: python tuning/b_league.py [dev|heldout] [settings.json]"""

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """End-to-end self-pilot: the shipped controller (omni_controller), capture schema (kube_capture.sh) and scorer
 (pilot/score.py) run together against a simulated cluster, exactly as a user would run them against a real one.
 

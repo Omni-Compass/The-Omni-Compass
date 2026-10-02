@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Exact pod-start timing from the API server's watch stream (pilot/bench_report.py pod_starts): each serving pod created
 in the measured window waits from its creationTimestamp to the moment its Ready condition turned True; a pod not Ready
 by the end waits until the end; pods created before the window are not counted; the stream is kubectl's concatenated,

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+// Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+// Omni-Compass Enterprise License. See LICENSE.
 // Reads an observation stream (CSV), runs one Governor per scenario, writes directives (CSV).
 #include "omnicompass/governor.hpp"
 #include <fstream>

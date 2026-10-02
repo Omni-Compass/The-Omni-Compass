@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+// Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+// Omni-Compass Enterprise License. See LICENSE.
 // oc_closure LAW.csv TRACE.csv OUT.csv : law parameters (one row), then per tick "r,n,c,push,n_min,n_max";
 // writes per tick "target,reserve" from the C++ closure law.
 #include "omnicompass/closure.hpp"

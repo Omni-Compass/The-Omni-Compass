@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Problem map 11: energy measurement inside VMs is impossible (no RAPL/IPMI in guests; kepler #2487).
 
 This muscle is on the sensing side (afferent): how well each VM's energy is attributed, so savings can be proven.

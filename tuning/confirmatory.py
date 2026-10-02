@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Confirmatory run. The single global closure-law setting frozen in tuning/GLOBAL_LEAGUE_PREREGISTRATION.json is run
 once on 100 never-used scenarios per workload (seeds 710001-710100) against the seven platforms, every gauge. For each
 of the 364 (workload x platform x gauge) cells: the paired mean difference, its bootstrap distribution (10,000

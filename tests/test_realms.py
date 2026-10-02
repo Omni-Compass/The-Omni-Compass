@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The realm harness (realms/): the catalog, the arms and the rules, without the full run.
 
 Catalog: 656 muscles, four realms, every row on a known plant with one of the four knobs.

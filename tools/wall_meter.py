@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Whole-machine watts from the wall, read from a smart plug that Omni-Compass never reads or writes.
 
 The plug sits between the wall socket and the machine under test. Its reading covers everything the machine draws:

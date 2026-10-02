@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Real response-time gauge: time HTTP requests to a URL every INTERVAL seconds; append elapsed,ms,ok to OUT."""
 import os, sys, time, urllib.request
 url, out = sys.argv[1], sys.argv[2]

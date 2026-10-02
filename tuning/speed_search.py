@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Speed-first fleet mode: random search on development seeds only (101-104 of every vessel).
 
 Rule, fixed before the search: against HPA 0.7 + Cluster Autoscaler, in EVERY development scenario, NO gauge may be

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """No automated fallback (manuscript Section 5.8): a failed decision is recorded and skipped, it writes nothing, and the
 controller keeps its cadence however many fail in a row; nothing is handed back or stopped automatically. Only the human
 switch (kill file) turns the whole harness OFF, restoring native settings, and removing it turns it back ON."""

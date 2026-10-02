@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Energy to where the work is, against the fake kubectl: each machine's idle CPU (inside the living band, less the
 requests of every other pod on it) is conveyed to the serving pods on it as their CPU limit, resized in place with no
 restart and never below the operator's limit; requests are untouched; a security hold blocks expansion; a machine

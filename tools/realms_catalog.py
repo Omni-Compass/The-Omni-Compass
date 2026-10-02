@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Build realms/catalog.csv: the 656-row muscle tower, each row given its realm, its plant, and the knob Omni may hold.
 
   python3 tools/realms_catalog.py CANONICAL_656_TOWER.csv

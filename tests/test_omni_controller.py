@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Live controller against a fake kubectl (tests/fake_cluster/kubectl): observe writes nothing; target patches HPA
 targets within bounds at the correct metric index and records originals; the kill switch restores originals from the
 HPA annotation (also after a restart); nodepool respects dry-run, the shield step limit and the scheduling floor."""

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """C++ shield vs Python shield on the adversarial generator of tests/test_shield_properties.py (rate limit 4, the value
 the C++ fixture interface carries): enforced actions, intervention counts and violation lists must be identical, and the
 C++ enforced sets must satisfy every invariant. Usage: python tests/test_cpp_shield_adversarial.py OC_SHIELD [cases]"""

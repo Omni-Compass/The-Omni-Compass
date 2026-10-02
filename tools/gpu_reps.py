@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The GPU bench table (scripts/gpu_paired.sh): native / watch (Omni runs, writes nothing) / omni (Omni writes power limits).
 
 Every energy number comes from the device: joules = the time integral of nvidia-smi power.draw over the measured window

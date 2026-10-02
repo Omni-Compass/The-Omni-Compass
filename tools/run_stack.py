@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The stacked organism: the four realm organisms on one clock, every muscle as often as it appears (1,226 with the
 duplicates), native against Omni (docs/REALMS_PREREGISTRATION.md, round 4).
 

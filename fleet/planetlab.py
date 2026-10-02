@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """PlanetLab vessel: recorded VM CPU traces (github.com/beloglazov/planetlab-workload-traces, one integer percent per
 line, 288 lines = 24 h at 5 min) as workload demand in the 15-second fleet harness, run with the frozen laws.
 

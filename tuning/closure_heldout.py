@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Strict C with the closure law, held-out. The settings chosen on development seeds (tuning/CLOSURE_SEARCH2_DEV.json, else
 CLOSURE_SEARCH_DEV.json) are frozen by SHA-256 into tuning/CLOSURE_PREREGISTRATION.json before any held-out run, then run
 once on held-out seeds 700201-700230 against the seven platforms (tuning/league.py loss rule).

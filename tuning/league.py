@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """League table: every competitor against Omni-Compass, one at a time, on every gauge and every vessel.
 
 Rule (the owner's): Omni-Compass must be equal or better than EACH competitor on EACH gauge. A cell is a loss when the

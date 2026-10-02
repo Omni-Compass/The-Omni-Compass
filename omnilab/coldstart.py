@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Problem map 5: cold starts / scale-from-zero latency (knative/serving #4902, #14202; KEDA http-add-on #219).
 
 Plant (one scale-to-zero service, 1-second steps, 4 hours)

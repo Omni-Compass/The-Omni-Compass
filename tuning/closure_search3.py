@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Second closure-law pass: release hysteresis (delta_rel) and calm-set dwell (resource-aware envelope, Proposition 2),
 around each vessel's first-pass winner (tuning/CLOSURE_SEARCH_DEV.json). Development seeds only; scored by losing cells
 against the seven platforms. Usage: python tuning/closure_search3.py  ->  tuning/CLOSURE_SEARCH3_DEV.json (every variant kept;

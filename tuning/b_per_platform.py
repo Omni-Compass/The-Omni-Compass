@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Architecture B with one setting per (workload, platform): Omni-Compass knows which platform it governs. For each pair,
 choose on development seeds the setting with no loss under the strict tolerance (0.25%) and the largest total gain.
 Usage: python tuning/b_per_platform.py VESSEL [VESSEL...]"""

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Device plant: CPU frequency (DVFS) and GPU power-limit muscles, three architectures, 24 scenarios.
 
 SIMULATION. CPU physics use a standard first-order model with declared constants. The GPU performance-vs-power-limit

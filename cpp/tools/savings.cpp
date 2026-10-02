@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+// Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+// Omni-Compass Enterprise License. See LICENSE.
 // Savings projector: measured fractional energy reduction (from the benchmark) x a declared fleet profile.
 // Output is a projection, not a measurement. Input CSV columns:
 // profile,vessel,baseline,nodes,node_avg_kw,pue,usd_per_kwh,kg_co2_per_kwh,reduction_low,reduction_mid,reduction_high

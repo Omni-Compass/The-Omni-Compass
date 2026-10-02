@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The source code as a PDF, for reading, archiving and copyright deposit.
 
   python3 tools/source_book.py cpp       # the C++ engine: docs/source/OMNI_COMPASS_CPP_SOURCE.pdf

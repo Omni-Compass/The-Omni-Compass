@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Fast pod reflex on the fake cluster: calm queue -> no read, no write; a queue building up -> the HPA's replica floor
 rises to exactly the HPA's own rule (current x busy / target) with busy read from queueing (u = 1 - S/R) and the target
 in queue terms (target x request / limit); the queue drained -> the floor is handed back; the kill switch restores the

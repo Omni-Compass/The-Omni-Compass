@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Remove comments and docstrings from a Python file; assert the program is unchanged."""
 import ast, io, sys, tokenize
 sys.path.insert(0, __import__("os").path.dirname(__file__))

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Architecture B, second generation: muscle tone and consolidation on top of each platform. For every (workload,
 platform) the candidates are the frozen B setting (tuning/B_SETTINGS_PER_PLATFORM.json) and that setting plus
   tone     the platform's power-offs become parks (instant wake), reserve horizon tone_H at packing tone_rho

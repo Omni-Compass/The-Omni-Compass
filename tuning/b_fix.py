@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Architecture B, the pairs left after tuning/B_TONE_HELDOUT.json: four clusters on AKS NAP (pod changes), batch on
 Turbonomic (energy, machine-hours) and four clusters on CAST AI (equal, no gain). Wider candidate set, selection on 30
 development seeds (101-130) under the strict tolerance: no losing cell AND at least one gauge better by >= 1%; the frozen

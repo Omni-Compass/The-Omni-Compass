@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Sixth closure pass (muscle tone: released machines are parked alive at low power with instant wake, a warm
 reserve sized by the law; only machines beyond it are powered off). Built on the fifth pass: the two remaining negatives, attacked with the manuscript's math and queueing theory, around the
 frozen energy-first settings (tuning/CLOSURE_FINAL_DEV.json):

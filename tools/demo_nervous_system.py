@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Walk the live controller (omni_controller/controller.py, nodepool mode, closure law, two-way nervous system) through
 five situations on the repository's stand-in cluster (tests/fake_cluster/kubectl: answers like the Kubernetes API from a
 JSON state file; no pods run). Prints the decision trail each decision writes to its audit:

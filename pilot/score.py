@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Score a pilot from your own cluster captures (fleet/capture/kube_capture.sh schema).
 
 Compare a baseline capture (your normal autoscaling: a period before Omni-Compass, or a matched node pool) with an

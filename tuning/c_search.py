@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Strict architecture C (Omni-Compass sets replicas and machines; Kubernetes only schedules and runs pods): evolutionary
 search per vessel on development seeds, scored by losing cells against the seven platforms (tuning/league.py rule).
 Usage: python tuning/c_search.py VESSEL GENERATIONS POP SEED"""

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The compass, computed, against its own face and its own equations.
 C1 the eight points sit where the face puts them: + at Α (0 deg), ⇄ at Δ (45), > at Β (90), ⊤ at Λ (135), − at Ω (180),
    ≈ at Π (225), < at Γ (270), ✦ at Ψ (315); the 24 rim letters are 15 degrees apart, clockwise from Α.

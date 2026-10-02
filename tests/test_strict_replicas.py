@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Strict C on the fake cluster: Omni-Compass sets the replica count from measured utilisation (up at once, down only to
 the highest recent recommendation), sets it as the HPA's floor within the HPA's own range (growth stays free up to the
 operator's maximum), and the kill switch restores the range and leaves no record."""

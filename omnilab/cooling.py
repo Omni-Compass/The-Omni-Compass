@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Problem map 10: cooling. Industry PUE has sat near 1.54 for six years (Uptime 2025).
 
 Plant (5-minute steps, 7 days; one 10 MW data hall with chillers and a water-side economizer)

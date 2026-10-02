@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 # Live pilot on a real Kubernetes control plane (kind): real scheduler, real HPA, real metrics-server.
 # Phase A: baseline (HPA alone; Omni in observe mode, writing nothing). Phase B: Omni in target mode.
 # Then the kill switch is exercised and the original HPA target must be restored. Results in $OUT_DIR.

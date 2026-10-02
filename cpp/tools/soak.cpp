@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+// Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+// Omni-Compass Enterprise License. See LICENSE.
 // Soak test: N consecutive governor decisions on randomized observations spanning and exceeding the sensor ranges.
 // Reports state bounds, non-finite values, resident memory before and after, and time per decision.
 #include "omnicompass/governor.hpp"

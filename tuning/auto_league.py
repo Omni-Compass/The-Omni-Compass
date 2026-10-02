@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The self-calibrating closure law (omnicompass/closure.py AutoClosureLaw) against all seven platforms. No setting is
 tuned per workload: the law derives its horizons from the boot delay and the park break-even, its margin from the
 measured forecast error and the engine's stress, and packs to the physical boundary. The only global choice is the pod

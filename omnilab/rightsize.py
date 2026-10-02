@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Problem map 1 and 2: idle capacity, and HPA + VPA that "cannot be used together on CPU/memory".
 
 Plant (one service, 1-minute steps, 3 days)

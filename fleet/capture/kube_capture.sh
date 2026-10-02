@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 # Cluster capture for the Omni-Compass fleet harness. Read-only: uses get/top only.
 # Requires kubectl (with metrics-server) and jq. Optional: POWER_CMD printing site power in watts.
 # ACTIVE_ONLY=1 counts only nodes in service (open to work, or cordoned but still carrying work), and the usage on them.

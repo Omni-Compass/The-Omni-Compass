@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Parameter sets of the realm plants, fixed before any confirmation run (docs/REALMS_PREREGISTRATION.md).
 
 One set per preset named in realms/catalog.csv. Each muscle runs its family's set at its own size: the work scale

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 # One command: the whole live comparison on real Kubernetes (kind) on any machine with Docker.
 # For each repetition it builds a fresh 7-node cluster (1 control plane + 6 workers) and runs three arms in turn:
 #   native  Kubernetes alone (HPA, scheduler)

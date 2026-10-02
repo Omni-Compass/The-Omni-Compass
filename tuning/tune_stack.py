@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Tune allocation-law variants that remove the negatives of the pre-registered stack benchmark, on DEVELOPMENT seeds only.
 
 The frozen engine files are not edited (verify.py fingerprints them). Variants are law overrides applied on top of the

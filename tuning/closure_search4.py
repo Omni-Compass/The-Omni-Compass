@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Fourth closure pass (web, multi): spend the response-time margin on energy. Strict C already answers far faster than
 every platform, so the pod utilisation target rho* (speed law rho0 = rho_min) is raised above the platforms' 70% and the
 replica release window/backlog gain are varied, on top of the third pass's machine-law picks (both). Development seeds;

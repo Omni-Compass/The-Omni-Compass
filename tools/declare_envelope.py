@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Declare the GPU envelope before any trial (docs/GPU_PREREGISTRATION.md, amendment 3).
 
   python3 tools/declare_envelope.py OUT.json [--gpu 0] [--smi nvidia-smi]

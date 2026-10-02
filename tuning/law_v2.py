@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Prototype law v2: two structural changes to how the engine's directive becomes actions (adapter.directive_to_actions
 is frozen and is not edited; v2 wraps it).
 

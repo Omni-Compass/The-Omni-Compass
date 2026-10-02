@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Three columns, same scenarios: A Kubernetes alone, B Omni-Compass on top of Kubernetes, C Omni-Compass alone.
 Held-out seeds 700201-700230 per workload. Writes results/ABC_TABLE.json and prints the table."""
 import json, sys

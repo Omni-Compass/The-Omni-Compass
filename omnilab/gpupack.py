@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Problem map 6: GPU utilisation ~5% and idle GPUs scattered across nodes (volcano #3948, kueue #5243).
 
 Plant (1-minute steps, 2 days)

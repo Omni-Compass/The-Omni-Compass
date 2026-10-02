@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Problem map 8: GPU failures and stragglers (Llama 3: 419 interruptions in 54 days on 16K H100s; Lablup 2605.09370).
 
 Plant (1-minute steps, 14 days)

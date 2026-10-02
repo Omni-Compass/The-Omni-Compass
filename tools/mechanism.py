@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Mechanism of action: what the Omni-Compass equations actually do inside the governor, measured.
 
   1. linearisation   Jacobian of equations (1)-(7) at the operating point the governor lives at; eigenvalues give each

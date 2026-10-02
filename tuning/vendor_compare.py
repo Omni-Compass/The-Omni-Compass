@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Named products vs Omni-Compass on the fleet plant with the response-time gauge (fleet/sim_slo.py), development seeds.
 Vendor arms emulate documented behaviour (see fleet/sim_slo.py VENDOR notes); they are not the vendors' binaries."""
 import sys, json; sys.path.insert(0,'.')

@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-8f7a1c99a508",
- "written_at_commit": "8f7a1c99a5087d755ca57833601f9d27ade24126",
- "written_at": "2026-10-02T07:05:50+00:00",
+ "release_id": "omni-compass-835bc2215cdc",
+ "written_at_commit": "835bc2215cdc7f416be0c3018465639e22272e1c",
+ "written_at": "2026-10-02T17:13:58+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -27,9 +27,9 @@
   "authority_map_sha256": "7a39f51cc43a594da52ac7d549f0eb3554cbeff24ba10db642770cebc146f1c6",
   "actuator_map_sha256": "8b3ca00878c08850801ccfda3dce4e424d1baebcb486a95f2acdb13c8ced8934",
   "shield_sha256": "88de572557295e04eb1341e64de16b68d74e4f8fa7c2e8bbe9c1d9c0416ea6f5",
-  "gpu_protocol_sha256": "a8fb0c0c2197f396dbfc0f99c4ceac2ca18e50542169882470e52ce68bc0aa90",
-  "preregistration_sha256": "c73fb23737f1206f2883d5884711152ec74963382466e1f3b5633168ee97d5b5",
-  "test_suite_sha256": "bb30e0cb3a5bca9fa91789987e90f9e29ee7368109bf7cc3b1524f1a11fc2c95"
+  "gpu_protocol_sha256": "246f402f3a00377bf74901756c5fdfc6d3728ab2873bb0738ab02c9150f3c30f",
+  "preregistration_sha256": "fe718ca5b8036d902c837be3014d85369a7bd78f3c38e8a42ef0f21a8cc8d28a",
+  "test_suite_sha256": "cad5c6ef571623e263b33c0f0ca34898b2d1d1daa837bd77bb59e96434fa6a92"
  },
  "files": {
   "canonical_engine": {
@@ -45,10 +45,10 @@
    "results/SEAL.json": "aac61979371a16d19ca5803b8c6fb3b33b2568fe5a71c9ca719809d880a6d410"
   },
   "gpu_protocol": {
-   "docs/GPU_PREREGISTRATION.md": "f2fc5d926e08856207ec82e3d6d0f3c1bdb6842cee4b67c5c499798ebd934d63",
-   "scripts/gpu_paired.sh": "f093ad007e28bb927487cfada443d0a9a63a22c868e67798bd01236269240ceb",
-   "tools/gpu_workload.py": "f1f1d19a347db982e6c3381ffb4796ddb3694df049eaccbe253ce859d4cad7bf",
-   "tools/gpu_reps.py": "d00b185618919164b72147155ecf9d8d9dd37d8101a69c32cfc226176b56340b",
+   "docs/GPU_PREREGISTRATION.md": "9c9de2b4996b20764c4782be9776116f56b4c24254ddd8d4142ef2f19077cbc2",
+   "scripts/gpu_paired.sh": "bc09d6a71bc74df5edb700d2185e485bcbe135e6ca4d9ac7acc2b48bbc80ddd6",
+   "tools/gpu_workload.py": "0ca455dc5b19b0c6467e280686ac2743d9e2abb625dd9ee658e8a49a545c65e4",
+   "tools/gpu_reps.py": "065f247aee0d997f71a52569c4bf8107684dfb4f4f442df5f2f2470e95140196",
    "omni_controller/gpu_governor.py": "ec04a9e51364eade6c74611c59cc2a17b0bea61c8574cb421d5019fd44aa4ef3",
    "omnicompass/adapter.py": "57ca59da4024ccea2769083998fdeb7b7c9c05b5c0dbca638375350be7dd93ac",
    "omni_controller/muscles.py": "286302f782935bbc456d9d4b376323a5b38d1b1908bf04b2906b228c6b03a7c4"
@@ -72,25 +72,25 @@
   },
   "mechanism": {
    "results/MECHANISM_IDENTITY.json": "e70928fc015baf04a3c2287052b92f81e2284b6a3d6ba49d88ef237f83651bb5",
-   "tools/mechanism_identity.py": "1fa5edcbf447c488abc92936529d28158e8bba2e95a9f3c5a407d67234dea389",
+   "tools/mechanism_identity.py": "d40d32c97f72fdbdc7bdf55288b3772bbf2c66839ef391cee6cd350771bb6f57",
    "docs/TRACKING_THEOREM.md": "73d3224963f31e0fbacda3e4755a8f3832c937e53553202f46e23ae28d86fb1f",
-   "tools/tracking_bounds.py": "c5fc54965f14a4757f1c6c47d53f2a1011f8b1660d66e21b7b6c2e81aac6e9e1",
+   "tools/tracking_bounds.py": "3dd90a883f6b80cd1eb17a9a4b78e22ef5ac6e6cdff2078ec2d6b254d6690b2b",
    "results/TRACKING_BOUNDS.json": "154ed508c98c4c64775738cfac9a18853b3db6f83d50db094da516c1adfffa0f",
    "docs/EVIDENCE_LEDGER.md": "a1d07b730ed88b016018953ac55bc599e8fb6aad96678e8bdbc464b1d7cec914",
-   "RECEIPT.md": "01837f7fcc04f86de28b772f14fb9fe0d84e1ac0ddca3e359974a112a19cac05"
+   "RECEIPT.md": "6b844b09a5e8d3ef4901ce97a0cb18895ce58c24e40e09f652e5d3549e74a5d9"
   },
   "license": {
-   "LICENSE": "fe5da67a0c6cbb24d27278a26a82d70501917845eb357045189eb5560dac6b62",
-   "NOTICE": "49de4e4a0d299a82cc15c4d13a2712f4bb87ed5a658f0bcb9cb3abed8ef529d2"
+   "LICENSE": "a0d238b0c57fc46f802f30f5ce0ec3062e9b6ccb50962cda95d2133a3bba8472",
+   "NOTICE": "0195a6fa22c42069823324433e67fa77d70620e812c01d3f4fe1bef60d21772d"
   },
   "realms": {
    "realms/catalog.csv": "9b085801dfb4b99dd4af001683900e0b9428af460a8d3119d9f23d386c45f2d7",
-   "realms/plants.py": "a30142e78e00c102c5abcfffcdfce0286b8beb497cb1c5f539c0946819a34091",
-   "realms/presets.py": "4aff93275846a55bab4da1b7922adcb51eaea8c321cc5d8f498453c1a9889970",
-   "realms/harness.py": "866572311a9a4acac776dbee22f0038a406c4e2f7de9721152c63b18f876a204",
-   "tools/realms_catalog.py": "ac3fd702f3e3159b4d546755eae6e7da73ecd27b5641725eeba8dbe840c72bf8",
-   "tools/run_realms.py": "f5fb7ac89910ceb24d6497451461ecefbd90f044873c9324bea687a3a5da4eed",
-   "docs/REALMS_PREREGISTRATION.md": "0693045d2ea941b6cda3a3563916ad378967af4ed556df0372f476d660479c81"
+   "realms/plants.py": "9c3048e4940886c382154ac2c9a91ab39dead2a2fcb3a3010f4f68b841950312",
+   "realms/presets.py": "ce84402f90061259f78c5cae7dddd3b840a1d17086bde116e1d810bcd6503e59",
+   "realms/harness.py": "a8c0d3473a8f401999e6fd9acaef134f4647563e9cf808196a44ad65275baeaa",
+   "tools/realms_catalog.py": "29f9de22733d54bb31fa5becc2108f8ade8ba6165ff82f4223971bd171074c2d",
+   "tools/run_realms.py": "05e6167730222e6c7202570ec11ad4926496fd7213f17ebd1ebc5ba6bd1bbde6",
+   "docs/REALMS_PREREGISTRATION.md": "4be738c8a08210a9e22b285c028f0949145a9fc5dac531b5361baeddfd37a049"
   }
  },
  "live_evidence": {
@@ -141,7 +141,7 @@
  "physical_meter_results": "none yet: the GPU bench (scripts/gpu_paired.sh) has not been run on a card",
  "verification_receipt": {
   "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "62cc854e3be9f5caaea5cac9e0f0918b0f2102ff51526de22475b256b3e08d92",
+  "sha256": "c4376858fb9ba6612daf39ecbcfb1f4fe14467a7e9604c127e2dfc9c851f9e77",
   "passed": true
  }
 }

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 # Live proof of the added levers on a real Kubernetes API server (kind): rightsize, coldstart, batch pace, containment
 # and the cooling connector. Omni-Compass runs as its least-privilege service account (rbac-omni.yaml + rbac-levers.yaml,
 # with `kubectl auth can-i` receipts). For each lever the script drives the triggering condition, checks with kubectl that

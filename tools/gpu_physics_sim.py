@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The GPU test without a GPU: Omni-Compass's own GPU governor (omni_controller/gpu_governor.py, its command-line defaults)
 against a modelled NVIDIA card, in virtual time. A preview, not evidence: every energy number here comes from the model
 below, not from a meter. The hardware answer is scripts/gpu_paired.sh on a real card.

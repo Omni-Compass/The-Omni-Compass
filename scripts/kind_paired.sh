@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 # Paired live repetition: every arm runs back to back on the SAME runner (same CPUs, same host, same noise), each on a
 # fresh kind cluster, in an order rotated by repetition so no arm always runs first or last. Differences between arms in
 # one repetition are then differences between arms, not between machines (separate runners differ by about 15% in

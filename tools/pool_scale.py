@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Pool the shards of a six-organism run (tools/run_scale.py, one SCALE.json per shard) into one receipt.
 
   python3 tools/pool_scale.py OUT.md parts/*/SCALE.json

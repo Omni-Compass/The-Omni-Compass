@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Problem map 13: runaway AI agents (loops, recursive spawning, overnight five-figure bills; Dark Reading).
 
 Plant (1-minute steps, 24 hours; 40 agents)

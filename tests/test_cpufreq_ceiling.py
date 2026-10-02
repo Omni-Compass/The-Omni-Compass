@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """scripts/cpufreq_ceiling.sh against a fake sysfs: sets scaling_max_freq on every policy, clamps to cpuinfo limits,
 restore puts cpuinfo_max_freq back, and fails loudly when there is no cpufreq."""
 import os, subprocess, sys, tempfile

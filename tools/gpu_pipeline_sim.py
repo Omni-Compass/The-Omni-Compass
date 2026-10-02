@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Speed won on the CPU, spent on the GPU: a request served by a CPU stage and then a GPU stage, with Omni-Compass's
 speed lock (omni_controller/gpu_governor.py --baseline-file) on the GPU. A preview on a model, not evidence.
 

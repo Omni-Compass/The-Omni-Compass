@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Site power exchange: G GPU groups share one site power budget (power oversubscription: the budget is below the sum
 of TDPs). THEORETICAL SIMULATION on the device physics of hardware/plant.py (MLPerf-calibrated gamma).
 

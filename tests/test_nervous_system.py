@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Invariants of the supervisory nervous system (omnicompass/nervous_system.py) over random and adversarial states.
 N1 observe executes nothing; N2 kill leaves no authority; N3 a security hold lets no capacity organ expand (cooling is protective: more cooling adds no capacity); N4 more stress (S),
 more push, more unmet need (I_U) or a lower U never grants more contraction authority to any organ; N5 every envelope

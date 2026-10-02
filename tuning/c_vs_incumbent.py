@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Architecture C against each incumbent separately. A buyer replaces one platform, so for every (workload, incumbent)
 the closure law's levers are searched for an operating point with no losing cell against that incumbent (13 gauges,
 league loss rule): warm-reserve horizon tone_H, pod target rho*, exact M/M/c staffing wq, packing boundary rho_max,

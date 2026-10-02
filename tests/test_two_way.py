@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Two-way nervous system (manuscript Appendix J: the nervous system owns sensing integrity, delay and dropout handling,
 and feedback interpretation).
 W1 afferent integrity: a blind sense (stale > 0) never grants any organ contraction and never admits held batch work,

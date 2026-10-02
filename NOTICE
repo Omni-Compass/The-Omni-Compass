@@ -1,20 +1,21 @@
 Omni-Compass
-Copyright (c) 2026 Omni-Compass LLC
+Copyright (c) 2026 The Omni-Compass LLC. All rights reserved.
+SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
 
-This distribution includes a six-state control engine, a C++20 twin, Python
-governors and shields, and simulation harnesses for documented Kubernetes
-HPA / Cluster Autoscaler / metrics-server behaviour.
+PROPRIETARY - EVALUATION AND SIMULATION USE ONLY. This is not open-source software. Any commercial use,
+commercialization, monetization, production use, redistribution, hosted or managed service, or incorporation into
+any product or service requires a signed, paid Omni-Compass Enterprise License from The Omni-Compass LLC. See LICENSE.
 
-This is not the upstream Kubernetes, Cluster Autoscaler, or Karpenter
-binaries. Results in this repository are simulation and recorded-trace
-replays unless a file explicitly says otherwise.
+Omni-Compass, its engine, mechanism and methods are protected by copyright and by patents and patent applications held
+by The Omni-Compass LLC. Omni-Compass and its logos are trademarks of The Omni-Compass LLC.
 
-Trademarks: Omni-Compass and related logos are trademarks of
-Omni-Compass LLC. Kubernetes is a trademark of The Linux Foundation.
-This project is not affiliated with CNCF, Google, Amazon, or Microsoft.
+This distribution includes a six-state control engine, a C++20 twin, Python governors and shields, the bowl law and
+its plug, and simulation and benchmark harnesses. It is not the upstream Kubernetes, Cluster Autoscaler, Karpenter or
+NVIDIA software. Kubernetes is a trademark of The Linux Foundation; NVIDIA is a trademark of NVIDIA Corporation. This
+project is not affiliated with the CNCF, Google, Amazon, Microsoft or NVIDIA. Results in this repository are
+simulations, recorded-trace replays or software benchmarks unless a file explicitly says it is a hardware meter.
 
-Patent and copyright filings are the company's. This NOTICE is not a
-filing receipt and does not list application numbers.
+Third-party: tests/third_party/hpa_independent.py is a separately written component used unmodified under its own
+terms.
 
-Commercial / SaaS contact: rights@omni-compass.example
-(replace before public release)
+Commercial licensing (Omni-Compass Enterprise License): The Omni-Compass LLC.

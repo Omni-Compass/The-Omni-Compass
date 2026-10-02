@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Capture replay and PlanetLab vessel on inputs in the exact real formats (generated here, not real data)."""
 import csv, sys, tempfile
 from pathlib import Path

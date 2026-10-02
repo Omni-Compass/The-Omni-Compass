@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Three-way HPA agreement: fleet harness HPA, independent C++ HPA (test_cpp_hpa_parity), and an externally written
 independent Python HPA (tests/third_party/hpa_independent.py).
 

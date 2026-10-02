@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """League count for the math-driven governor (omnicompass/mathdrive.py): grid of MathLaw settings per vessel against
 the seven platforms, development seeds, same loss rule as tuning/league.py. Usage: python tuning/math_league.py"""
 import itertools, json, sys

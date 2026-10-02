@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Hardware plant integrity (adopted from the Grok review's referee gate, extended).
 H1 on a GPU the arms must not collapse: B (vendor keeps TDP, Omni caps) and C (Omni sizes) give different settings
 H2 C sizes by the device law: setting = min(engine cap, (want / rho)^(1/gamma)), gamma = 1 for CPU clocks

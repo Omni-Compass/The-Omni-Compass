@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """schedutil model: the 1.25 map tips at 80% utilisation, OPP snap, uclamp, RT to policy max, rate limit, iowait boost,
 and the Omni-Compass ceiling (scaling_max_freq) with the kill switch restoring cpuinfo_max_freq."""
 import sys

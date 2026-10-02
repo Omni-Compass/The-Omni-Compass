@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Real demand: recorded PlanetLab VM CPU traces (github.com/beloglazov/planetlab-workload-traces, day 20110303, 1,052
 machines) as web-service demand (fleet/planetlab.py), Omni-Compass alone with the frozen web closure-law setting
 (tuning/CLOSURE_FINAL_DEV.json, never tuned on these traces) against the seven platforms, league loss rule, 30 scenarios.

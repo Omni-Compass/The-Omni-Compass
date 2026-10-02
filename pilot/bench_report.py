@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Native vs Omni-Compass benchmark report.
 
 Reads the two captures written by scripts/kind_bench.sh (same cluster wiring, same load schedule; one arm with

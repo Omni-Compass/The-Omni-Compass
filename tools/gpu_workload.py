@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The pinned GPU workload for scripts/gpu_paired.sh: a fixed stream of inference-like requests served by one GPU.
 
 Each request is --iters fp16 matrix products of size --n x --n on the GPU (synchronised, so its time is the GPU's time).

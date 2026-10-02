@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 # Declared power model for a kind cluster (kind nodes have no power meter): prints site watts as
 #   sum over schedulable workers of IDLE_W + DYN_W * CPU utilisation of that worker
 #   + STANDBY_W for every idle worker (closed to new work and carrying none).

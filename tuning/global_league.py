@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """One global closure-law setting for every workload (no per-workload table). Candidates: each workload's frozen
 setting from tuning/CLOSURE_FINAL_DEV.json applied to all four workloads (pods at 0.8 for services; job workloads have no
 pods to size). Four-cluster sites run the same law on the site total with traffic shift. Selection on 30 development

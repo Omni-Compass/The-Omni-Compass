@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Physical bound: what a controller with perfect knowledge of the future could achieve on node-hours and machine churn.
 
 For each scenario the pods (and their CPU requests) are those produced by HPA 70% (the platforms' setting). A node count

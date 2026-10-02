@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Computational checks behind docs/TRACKING_THEOREM.md, on the frozen 500-fixture population of
 benchmarks/core_evidence.py (seed 223387268). No new population is drawn. Evidence class of every number here: V
 (finite computational verification over these fixtures) — not a theorem, not a physical result.

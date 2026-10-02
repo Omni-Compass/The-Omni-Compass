@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Eighth closure pass: the physical break-even of the warm reserve. A parked machine costs park_frac x idle per tick,
 a cold start costs BOOT_TICKS x idle, so parking pays only for machines needed within BOOT_TICKS / park_frac = 24 ticks;
 the reserve horizon tone_H is searched around that value, with the pod target. Built on tuning/CLOSURE_FINAL_DEV.json; development seeds; every variant kept;

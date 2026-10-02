@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """schedutil, kernel-shaped (kernel/sched/cpufreq_schedutil.c, frequency-invariant case), and the Omni-Compass ceiling.
 
   get_next_freq:  freq = (f_max + (f_max >> 2)) * util / max          # the >> 2 is the 1.25: tip at 80% utilisation

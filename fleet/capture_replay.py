@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Replay a cluster capture (capture/kube_capture.sh schema) through the frozen fleet-mode governor in OBSERVE.
 
 The recommended fleet is carried forward as the governor's own counterfactual state (the node count it would have

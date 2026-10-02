@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+// Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+// Omni-Compass Enterprise License. See LICENSE.
 // oc_twins MODE IN.csv OUT.csv : feeds recorded inputs to a C++ twin and writes its outputs (17 significant digits),
 // for the parity tests (tests/test_cpp_twins_parity.py). Modes:
 //   nervous  rows E,U,I_U,S,push,push_release,U_gate,s_eq,security_block,slo_clean,power_stress,thermal,rollback,stale,autopilot,killed

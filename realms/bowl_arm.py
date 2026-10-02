@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The bowl law on every realm muscle (omnicompass/bowl.py): each plant's knob held by its own bowl.
 
 Each plant's service is read as one position in its bowl (0 calm, 1 the line): the worst of its queue or lateness, its

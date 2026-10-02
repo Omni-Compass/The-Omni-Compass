@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The living band: every level the nervous system hands out stays within 5%..95% of its range, in every state.
 N-band over 300,000 random engine states: cpufreq, GPU and power envelopes inside [0.05, 0.95]; routing (an amount moved)
 never above 0.95. Conveyance over 20,000 random budgets and needs: every organ keeps at least 5% of its range (idle,

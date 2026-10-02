@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The mechanism's identity: M = (F, Theta, C, h, G, M_act, dt, A), one fingerprint per engine configuration.
 
   python3 tools/mechanism_identity.py           # write results/MECHANISM_IDENTITY.json

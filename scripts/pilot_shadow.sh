@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 # Shadow pilot on any Kubernetes cluster (the current kubectl context): Omni-Compass runs read-only beside the cluster's
 # own autoscalers, decides what it would do every 15 s with the benchmarked closure law, and writes nothing.
 #   1. applies deploy/pilot/rbac-shadow.yaml and proves with `kubectl auth can-i` that the identity can read and cannot

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The wire check: before any test, prove both of the card's wires are connected the right way round.
 
 Run as root on the machine with the card (scripts/gpu_rented_run.sh runs it first, and stops if it fails):

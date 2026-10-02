@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Savings projection: fractional energy reductions measured in the fleet benchmark and the recorded-trace run,
 applied to declared fleet profiles. The reductions come from simulation; the profiles are declared examples. The output
 is a projection of annual energy, cost and CO2 differences, not a measurement.

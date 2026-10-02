@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The GPU bench (scripts/gpu_paired.sh, omni_controller/gpu_governor.py, tools/gpu_reps.py) against a stand-in nvidia-smi
 (tests/fake_gpu/nvidia-smi): the governor's contract and the bench's validity checks, without a GPU.
 

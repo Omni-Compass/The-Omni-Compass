@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """CPU-frequency lever through the kernel's policy files (hardware/cpufreq.py, contract adopted from the ChatGPT
 release, wired here under the nervous system). On a fake sysfs tree:
   C1 schedutil map: request = min(1, 1.25 u), tipping at u = 0.8

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Realm plants: the machines the 656 muscles act on (evidence class S: declared models, not meters).
 
 Five plant models. Each one carries its own native controller and runs correctly with no Omni at all:

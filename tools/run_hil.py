@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The whole stacks with the real card inside: one harness, one engine, one set of receipts.
 
 Each of six organisms (the four realms, the four stacked with every duplicate kept, 1,226, and the whole tower of 656,

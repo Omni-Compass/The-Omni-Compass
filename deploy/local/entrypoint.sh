@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 # Creates a kind cluster on the host's Docker, runs the Omni-Compass live pilot on it, saves results to /results.
 set -euo pipefail
 CLUSTER="${CLUSTER:-omni}"

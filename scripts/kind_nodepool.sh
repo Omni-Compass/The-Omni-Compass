@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 # Node-pool actuator: keep exactly N worker nodes in service; the others idle, never powered off, and no pod is ever
 # moved, evicted or restarted to make that happen.
 # Idle a worker: mark it omnicompass.io/idle:PreferNoSchedule (new pods go to open workers first, but a pod that finds

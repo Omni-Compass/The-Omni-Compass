@@ -1,5 +1,7 @@
 # Omni-Compass
 
+> **PROPRIETARY - EVALUATION AND SIMULATION USE ONLY.** Copyright (c) 2026 The Omni-Compass LLC. This is not open-source software (`SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0`). Any commercial use, commercialization, monetization, production use, redistribution, hosted service or incorporation into a product requires a signed, paid **Omni-Compass Enterprise License** from The Omni-Compass LLC. Protected by copyright and by patents and patent applications. See [`LICENSE`](LICENSE).
+
 A six-state control engine that supervises Kubernetes and hardware from above: Kubernetes and its autoscalers stay the
 execution layer.
 
@@ -55,10 +57,14 @@ reclassifying the core law is not. The reference engine `reference/omni_compass_
 
 ## License
 
-Free to download, run, modify and build on for simulation, evaluation, testing, research and non-commercial use,
-including evaluating it on your own systems. Commercialization or monetization in any form requires a paid license from
-The Omni-Compass LLC. Omni-Compass is protected by copyright and by patents and patent applications held by The
-Omni-Compass LLC. See `LICENSE`.
+**Proprietary. Evaluation and simulation use only.** You may download, run and modify the software only to evaluate
+it and to reproduce the published results, including running it in shadow or test mode on systems you own or control.
+Everything else - any commercial use, commercialization or monetization, production use, operating or governing any
+system beyond evaluation, redistribution, a hosted or managed service, or incorporation into any product or service -
+requires a written **Omni-Compass Enterprise License** signed by The Omni-Compass LLC and paid for. Omni-Compass is
+protected by copyright and by patents and patent applications held by The Omni-Compass LLC; no patent or trademark
+license is granted for any other use. Full terms: [`LICENSE`](LICENSE) (`SPDX-License-Identifier:
+LicenseRef-OmniCompass-Evaluation-1.0`), [`NOTICE`](NOTICE).
 
 ## Contents
 

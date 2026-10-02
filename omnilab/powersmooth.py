@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Problem map 7: AI training power swings (SemiAnalysis; Uptime; arXiv 2508.14318, 2606.04869).
 
 Plant (0.1-second steps, 30 minutes)

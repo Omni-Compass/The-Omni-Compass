@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Attack the league's losing cells: evolutionary search of the speed law (with anticipation) per vessel, scored only by
 the number of (competitor, gauge) cells where a platform is significantly better than Omni-Compass (tuning/league.py
 rule), then by how far behind. Development seeds 101-110 only. The engine equations are unchanged.

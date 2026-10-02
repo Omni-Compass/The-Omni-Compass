@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 import sys, json, random; sys.path.insert(0,str(__import__('pathlib').Path(__file__).resolve().parents[2]))
 import numpy as np
 from dataclasses import replace

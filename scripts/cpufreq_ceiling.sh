@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 # Omni-Compass CPU frequency ceiling on a real Linux machine: writes scaling_max_freq for every cpufreq policy.
 #   cpufreq_ceiling.sh KHZ       set the ceiling (clamped to each policy's [cpuinfo_min_freq, cpuinfo_max_freq])
 #   cpufreq_ceiling.sh restore   kill switch: scaling_max_freq back to cpuinfo_max_freq

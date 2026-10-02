@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """pilot/score.py on generated captures: a real efficiency gain is detected, identical clusters show no significant
 difference, a service regression is detected, measured power is used when present."""
 import csv, sys, tempfile

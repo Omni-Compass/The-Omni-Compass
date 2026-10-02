@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The two-wire GPU card in simulation (realms/gpu_card.py; evidence class S): native firmware against a fixed preset
 and against the bowl law through two wires, paired seeds 5000-5009, 600 s each. Writes results/sim/gpu_two_wire/."""
 import json, math, subprocess, sys, time

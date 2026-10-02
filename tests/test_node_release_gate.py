@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Machine-organ release gate (omnicompass/nervous_system.node_release_gate): attribution + coordination + headroom.
 G1 granted only when every condition holds; G2 each condition alone blocks, with its reason; G3 the headroom proof is
 the engine's own rho: util after release = used / ((n-1) per_node); G4 random: a grant never leaves the machines above rho

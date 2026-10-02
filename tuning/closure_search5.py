@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Fifth closure pass: the two remaining negatives, attacked with the manuscript's math and queueing theory, around the
 frozen energy-first settings (tuning/CLOSURE_FINAL_DEV.json):
   flipping   the deviation-bath band z (Chapter 31): a release must survive z standard deviations of the tracker's

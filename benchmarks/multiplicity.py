@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Primary-endpoint and multiplicity analysis of the held-out comparison.
 
 Primary comparison: omni_k8s_throughput vs k8s_ref_70. Primary metric: energy_kwh.

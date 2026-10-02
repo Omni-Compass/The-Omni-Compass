@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """The buyer edition: one clean report from the final result files. Every number is read from a file in the repository.
 Output: docs/OMNICOMPASS_BUYER_EDITION.md (render with pilot/bench_pdf.py)."""
 from __future__ import annotations

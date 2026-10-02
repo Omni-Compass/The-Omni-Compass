@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """OmniCompass Runtime Benchmark Protocol (benchmark_protocol.docx), stage 1, on the fleet plant (fleet/sim_slo.py).
 
 Same scenarios, same faults, every architecture:

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Wave 3 of the realm study: map every row of the 656 catalog to the real controls found in waves 1 and 2.
 
   python3 tools/realm_study_map.py

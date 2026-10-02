@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Run the pre-registered amendment (tuning/PREREGISTRATION_AMENDMENT_2026-09-26.json) once on the new held-out seeds."""
 import json, sys
 from pathlib import Path

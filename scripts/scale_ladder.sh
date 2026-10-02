@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 # The six organisms up the ladder of runs and sizes, on every core of this machine (tools/run_scale.py). Each rung
 # writes results/scale/r<runs>-x<scale>/SCALE.md and is packed at the end. The grid tops out at 1,000 runs and 1,000x:
 # by default 1,000 runs at 1x, 10x and 100x, and 100 runs at 1,000x (each receipt also shows the first 1, 10 and 100

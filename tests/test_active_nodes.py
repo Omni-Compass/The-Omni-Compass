@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Full-engine controller options against the fake kubectl: --active-nodes-only ignores cordoned and NoSchedule-tainted
 nodes (and the pods and usage on them); without it every Ready node counts; the kill switch runs --node-restore-cmd
 exactly once and writes nothing else to the node pool."""

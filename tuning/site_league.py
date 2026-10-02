@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 """Whole body at multi-cluster sites (four clusters, one site). B: each platform's frozen setting with and without traffic
 shift; C: the closure law on the site total (one forecast, one warm reserve) with traffic shift, against each incumbent.
 Selection on 30 development seeds (101-130): no losing cell (strict 0.25% for B, league rule for C), then largest gain;

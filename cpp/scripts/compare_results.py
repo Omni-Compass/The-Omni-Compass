@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
 import csv,json,math,sys
 from pathlib import Path
 if len(sys.argv)!=4: raise SystemExit('usage: compare_results.py expected.csv actual.csv report.json')
