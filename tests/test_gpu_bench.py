@@ -173,6 +173,19 @@ def wire_check():
         assert st["limit"]["0"] == 150.0 and not st.get("clock_lock", {}).get("0"), "the check left the card off its start"
 
 
+def hil():
+    """The whole stacks with the card inside: one organism, one repetition, fast clock; valid and handed back."""
+    d = Path(tempfile.mkdtemp()); state(d, limit={"0": 150.0}, default=150, max=150, draw_w=140.0)
+    r = subprocess.run([sys.executable, str(ROOT / "tools" / "run_hil.py"), "--out", str(d / "hil"), "--reps", "1",
+                        "--step-s", "0.03", "--interval", "0.3", "--drain", "1", "--organisms", "distribution_specialized"],
+                       cwd=ROOT, env=dict(os.environ, NVIDIA_SMI=SMI, SIM="1", WORKLOAD_ARGS="--calib 5 --target-ms 20"),
+                       capture_output=True, text=True, timeout=900)
+    assert r.returncode == 0, r.stdout[-2000:] + r.stderr[-1500:]
+    out = json.loads((d / "hil" / "HIL.json").read_text())
+    assert not out["problems"] and {"sim", "card", "all"} <= set(out["results"]["distribution_specialized"])
+    assert (d / "hil" / "SHA256SUMS.txt").exists()
+
+
 def pooled():
     """Repetitions spread over machines (REP_ONLY): each machine's run carries its own records; pooled, they make one
     valid table."""
@@ -390,7 +403,7 @@ def one_writer():
 
 
 def main():
-    plugs(); governor(); guards(); lock(); enforced(); one_writer(); bench(); bench_bowl(); wire_check(); pooled()
+    plugs(); governor(); guards(); lock(); enforced(); one_writer(); bench(); bench_bowl(); wire_check(); hil(); pooled()
     print("PASS  GPU bench: governor contract (watch writes nothing, shield floor, share floor, busy gate, read-back, blind, SLO reflex, kill), "
           "enforced limit (snapshot, override, power management, refused write ends the arm, fallback), one writer, heat fails up, blocked_by and decided_by, RAPL by domain, credit per write, workload plug, result labels, "
           "and the one-command paired run with its validity checks")

@@ -200,3 +200,20 @@ layer, the outcomes, the guardrails and the label rule are round 3's.
   - separate governors against native;
   - one governor against separate governors (does one Omni over everything beat four).
 - **Seeds:** 4000 to 4009. Development used seed 0 only, never reported.
+
+## Round 5: the whole stacks with the real card inside (written 2026-10-02, before any run)
+
+One harness (`tools/run_hil.py`, started by `scripts/gpu_rented_run.sh` after a valid card smoke): each of the five
+organisms (the four realms, the whole tower of 656) runs on one clock as in round 3, with the machine's real GPU wired
+in as one more muscle of its NVIDIA GPU family (a spine family, so the card is in every organism). The card serves the
+pinned request stream; its own power.draw is heat in the organism's thermal zones and load on its storage sites.
+
+- **Arms:** native (the stacks' own controllers, the card's own firmware) and omni (one engine on everything: the bowl
+  law on every simulated muscle, `realms/bowl_arm.py`, and on the card's two wires, `omni_controller/gpu_bowl.py`). At
+  90% of each arm every knob and both wires are handed back; a knob not handed back, a card limit not back at its
+  start, or a card governor exiting non-zero makes the run invalid (exit 2).
+- **Seeds and repetitions:** 3 paired repetitions, seeds 6000-6002; arm order alternates by repetition and organism.
+- **Clock:** 240 steps of 2 s of wall clock per arm (the card in real time).
+- **Outcomes:** work per energy, work, energy and violations, Omni against native, for three parts kept apart: the
+  simulated stacks (evidence S), the card (its own meter, evidence P), and both added (the card as one more plant,
+  its joules added to the stacks'). Labels by the round 3 rule.
