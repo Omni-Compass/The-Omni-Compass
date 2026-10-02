@@ -1,5 +1,7 @@
 # Realm study, wave 3: the 656 checked against the real systems
 
+> **PROPRIETARY - EVALUATION AND SIMULATION USE ONLY.** Copyright (c) 2026 The Omni-Compass LLC. This is not open-source software (`SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0`). Any commercial use, commercialization, monetization, production use, redistribution, hosted service or incorporation into a product requires a signed, paid **Omni-Compass Enterprise License** from The Omni-Compass LLC. Protected by copyright, patents and trademarks: Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC. See [`LICENSE`](../../LICENSE).
+
 Waves 1 and 2 listed the real controls of each realm from the systems' own documentation (Kubernetes, Linux, NVIDIA, the clouds, ROS 2, PX4, BACnet, IEEE 1547 / 2030.5, IEC 61850, SEMI, PostgreSQL, Kafka, Redis, Envoy, O-RAN and others) and from what Meta, Google, Microsoft, Intel, NVIDIA, Netflix and Uber publish about production. Wave 3 checks every catalog row against them (`wave3_map.csv`, hand verdicts in `wave3_verdicts.csv` and `wave3_overrides.csv`).
 
 ## The 656, row by row

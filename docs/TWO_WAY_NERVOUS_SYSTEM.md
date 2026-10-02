@@ -1,5 +1,7 @@
 # The two-way nervous system (live controller)
 
+> **PROPRIETARY - EVALUATION AND SIMULATION USE ONLY.** Copyright (c) 2026 The Omni-Compass LLC. This is not open-source software (`SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0`). Any commercial use, commercialization, monetization, production use, redistribution, hosted service or incorporation into a product requires a signed, paid **Omni-Compass Enterprise License** from The Omni-Compass LLC. Protected by copyright, patents and trademarks: Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC. See [`LICENSE`](../LICENSE).
+
 **Source.** Manuscript Appendix J: "Nervous system. The signal layer: sensing interfaces, unit integrity, timing
 coherence, delay and dropout handling, and feedback interpretation. … The brain cannot compensate for corrupted
 signals." Section 5.3: the engine "projects forward state trajectories … and detects destabilization pressure before

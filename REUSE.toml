@@ -1,0 +1,17 @@
+# REUSE / SPDX machine-readable licensing for the whole repository.
+version = 1
+SPDX-PackageName = "Omni-Compass"
+SPDX-PackageSupplier = "The Omni-Compass LLC"
+SPDX-PackageDownloadLocation = "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass"
+
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 The Omni-Compass LLC. Patent applications, copyright registrations and trademark applications filed in the United States."
+SPDX-License-Identifier = "LicenseRef-OmniCompass-Evaluation-1.0"
+
+[[annotations]]
+path = "tests/third_party/**"
+precedence = "override"
+SPDX-FileCopyrightText = "Its own authors"
+SPDX-License-Identifier = "NOASSERTION"

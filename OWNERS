@@ -1,0 +1,5 @@
+# Kubernetes-style ownership file. SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+approvers:
+  - The-Omni-Compass-LLC
+reviewers:
+  - The-Omni-Compass-LLC

@@ -1,5 +1,7 @@
 # Proven. Nothing else.
 
+> **PROPRIETARY - EVALUATION AND SIMULATION USE ONLY.** Copyright (c) 2026 The Omni-Compass LLC. This is not open-source software (`SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0`). Any commercial use, commercialization, monetization, production use, redistribution, hosted service or incorporation into a product requires a signed, paid **Omni-Compass Enterprise License** from The Omni-Compass LLC. Protected by copyright, patents and trademarks: Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC. See [`LICENSE`](../LICENSE).
+
 Object under test: Omni-Compass six-state engine + documented HPA replica law.
 Input: PlanetLab/CoMon 2011 VM CPU percent, hold-last to 15 s.
 Not a Kubernetes cluster. Not metrics-server. Not kube-controller-manager.

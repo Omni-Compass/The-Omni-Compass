@@ -6,8 +6,8 @@ PROPRIETARY - EVALUATION AND SIMULATION USE ONLY. This is not open-source softwa
 commercialization, monetization, production use, redistribution, hosted or managed service, or incorporation into
 any product or service requires a signed, paid Omni-Compass Enterprise License from The Omni-Compass LLC. See LICENSE.
 
-Omni-Compass, its engine, mechanism and methods are protected by copyright and by patents and patent applications held
-by The Omni-Compass LLC. Omni-Compass and its logos are trademarks of The Omni-Compass LLC.
+INTELLECTUAL PROPERTY NOTICE: Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC.
+Omni-Compass, its engine, mechanism and methods are protected by copyright, patents and trademarks. Omni-Compass and its logos are trademarks of The Omni-Compass LLC.
 
 This distribution includes a six-state control engine, a C++20 twin, Python governors and shields, the bowl law and
 its plug, and simulation and benchmark harnesses. It is not the upstream Kubernetes, Cluster Autoscaler, Karpenter or

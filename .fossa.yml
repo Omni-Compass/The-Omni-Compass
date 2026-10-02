@@ -1,0 +1,11 @@
+# FOSSA project configuration. Omni-Compass is proprietary (LicenseRef-OmniCompass-Evaluation-1.0).
+version: 3
+project:
+  id: omni-compass
+  name: Omni-Compass
+  team: The Omni-Compass LLC
+  url: https://github.com/The-Omni-Compass-LLC/The-Omni-Compass
+paths:
+  exclude:
+    - ./out
+    - ./release

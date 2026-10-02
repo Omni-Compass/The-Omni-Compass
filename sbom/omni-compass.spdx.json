@@ -1,0 +1,99 @@
+{
+ "spdxVersion": "SPDX-2.3",
+ "dataLicense": "CC0-1.0",
+ "SPDXID": "SPDXRef-DOCUMENT",
+ "name": "Omni-Compass SBOM",
+ "documentNamespace": "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass/sbom/a029273a7c8e3c72fd1669be05afbf3d63bf18a5",
+ "creationInfo": {
+  "created": "2026-10-02T17:31:31Z",
+  "creators": [
+   "Organization: The Omni-Compass LLC"
+  ]
+ },
+ "hasExtractedLicensingInfos": [
+  {
+   "licenseId": "LicenseRef-OmniCompass-Evaluation-1.0",
+   "name": "Omni-Compass Evaluation License 1.0",
+   "extractedText": "Omni-Compass Evaluation License, version 1.0\nSPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0\n\nCopyright (c) 2026 The Omni-Compass LLC. All rights reserved.\n\nThis is NOT an open-source license. The software in this repository (\"the Software\") - including the Omni-Compass\nengine, the bowl law, the governors, the harnesses, the controllers, the plug and wiring, the documentation, the\nbenchmarks and their results, and the methods and mechanism they embody - is the proprietary property of The\nOmni-Compass LLC and is protected by copyright and by patents and patent applications held by The Omni-Compass LLC.\nThe Software is made available publicly for EVALUATION AND SIMULATION PURPOSES ONLY.\n\nINTELLECTUAL PROPERTY NOTICE. Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC. Every person who downloads, copies, forks, scans or runs the\nSoftware is on notice of these filings and of this license.\n\n1. Permitted use (free of charge, no license fee). You may download, copy, read, run and modify the Software solely to\n   (a) evaluate it, including running its tests, benchmarks and simulations, and running it in shadow or test mode on\n   systems you own or control for the purpose of evaluating it; and\n   (b) reproduce and check the results published in this repository.\n   This permission is personal, non-exclusive, non-transferable, non-sublicensable and revocable.\n\n2. Everything else requires a signed, paid license. Any use other than section 1 requires a written commercial\n   license agreement signed by The Omni-Compass LLC and the licensee, and payment of the license fees it sets out (an\n   \"Omni-Compass Enterprise License\"). This includes, without limitation:\n   (a) any commercial use, commercialization or monetization of the Software, its mechanism or its methods;\n   (b) use in production, or to operate, control or govern any system, fleet, cluster, facility, machine, vehicle or\n       grid beyond evaluation;\n   (c) selling, licensing, sublicensing, leasing, renting, distributing or offering the Software, or any product or\n       service that includes, is derived from or is operated by it, including as a hosted, managed or cloud service;\n   (d) incorporating the Software, or any part or derivative of it, into any product, service, platform or offering;\n   (e) using the Software, its results or its methods to build, train, benchmark or improve a competing product or\n       service.\n\n3. No other rights. No right, title, license or interest is granted except as expressly stated in section 1. In\n   particular, no patent license is granted for any use other than section 1, and no trademark license is granted.\n   \"Omni-Compass\" and its logos are trademarks of The Omni-Compass LLC.\n\n4. Redistribution. You may not redistribute the Software or any modified version, in source or binary form, except as\n   permitted by a signed Omni-Compass Enterprise License. Forks on a code-hosting service are permitted only for the\n   purposes in section 1 and must keep this license and all notices unchanged.\n\n5. Notices. You must keep this license, the copyright notice, the SPDX identifiers and all patent and trademark notices\n   in every copy, including modified copies made under section 1.\n\n6. Termination. Any use outside section 1 without a signed, paid Omni-Compass Enterprise License terminates the rights\n   in section 1 automatically, and is infringement of The Omni-Compass LLC's copyright and patent rights.\n\n7. No warranty; no liability. THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,\n   INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE OMNI-COMPASS\n   LLC BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE SOFTWARE OR ITS USE.\n\n8. Third-party components. Files that carry a different license notice (for example `tests/third_party/`) remain under\n   their own terms.\n\nCommercial licensing (Omni-Compass Enterprise License): The Omni-Compass LLC.\n",
+   "comment": "Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC."
+  }
+ ],
+ "packages": [
+  {
+   "SPDXID": "SPDXRef-Package-omni-compass",
+   "name": "Omni-Compass",
+   "versionInfo": "1.0.0",
+   "supplier": "Organization: The Omni-Compass LLC",
+   "originator": "Organization: The Omni-Compass LLC",
+   "downloadLocation": "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass",
+   "filesAnalyzed": false,
+   "licenseConcluded": "LicenseRef-OmniCompass-Evaluation-1.0",
+   "licenseDeclared": "LicenseRef-OmniCompass-Evaluation-1.0",
+   "copyrightText": "Copyright (c) 2026 The Omni-Compass LLC. Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC.",
+   "comment": "Proprietary. Evaluation and simulation use only; any other use requires a signed, paid Omni-Compass Enterprise License."
+  },
+  {
+   "SPDXID": "SPDXRef-Package-numpy",
+   "name": "numpy",
+   "downloadLocation": "https://pypi.org/project/numpy/",
+   "filesAnalyzed": false,
+   "licenseConcluded": "NOASSERTION",
+   "licenseDeclared": "NOASSERTION",
+   "copyrightText": "NOASSERTION"
+  },
+  {
+   "SPDXID": "SPDXRef-Package-matplotlib",
+   "name": "matplotlib",
+   "downloadLocation": "https://pypi.org/project/matplotlib/",
+   "filesAnalyzed": false,
+   "licenseConcluded": "NOASSERTION",
+   "licenseDeclared": "NOASSERTION",
+   "copyrightText": "NOASSERTION"
+  },
+  {
+   "SPDXID": "SPDXRef-Package-reportlab",
+   "name": "reportlab",
+   "downloadLocation": "https://pypi.org/project/reportlab/",
+   "filesAnalyzed": false,
+   "licenseConcluded": "NOASSERTION",
+   "licenseDeclared": "NOASSERTION",
+   "copyrightText": "NOASSERTION"
+  },
+  {
+   "SPDXID": "SPDXRef-Package-numba",
+   "name": "numba",
+   "downloadLocation": "https://pypi.org/project/numba/",
+   "filesAnalyzed": false,
+   "licenseConcluded": "NOASSERTION",
+   "licenseDeclared": "NOASSERTION",
+   "copyrightText": "NOASSERTION"
+  }
+ ],
+ "relationships": [
+  {
+   "spdxElementId": "SPDXRef-DOCUMENT",
+   "relationshipType": "DESCRIBES",
+   "relatedSpdxElement": "SPDXRef-Package-omni-compass"
+  },
+  {
+   "spdxElementId": "SPDXRef-Package-omni-compass",
+   "relationshipType": "DEPENDS_ON",
+   "relatedSpdxElement": "SPDXRef-Package-numpy"
+  },
+  {
+   "spdxElementId": "SPDXRef-Package-omni-compass",
+   "relationshipType": "DEPENDS_ON",
+   "relatedSpdxElement": "SPDXRef-Package-matplotlib"
+  },
+  {
+   "spdxElementId": "SPDXRef-Package-omni-compass",
+   "relationshipType": "DEPENDS_ON",
+   "relatedSpdxElement": "SPDXRef-Package-reportlab"
+  },
+  {
+   "spdxElementId": "SPDXRef-Package-omni-compass",
+   "relationshipType": "DEPENDS_ON",
+   "relatedSpdxElement": "SPDXRef-Package-numba"
+  }
+ ]
+}

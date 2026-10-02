@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you refer to Omni-Compass, cite it as below. Use beyond evaluation requires an Omni-Compass Enterprise License."
+title: "Omni-Compass: a unified governing control plane"
+type: software
+authors:
+  - name: "The Omni-Compass LLC"
+  - family-names: "Dubra"
+    given-names: "AJ"
+license: "LicenseRef-OmniCompass-Evaluation-1.0"
+repository-code: "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass"
+date-released: "2026-10-02"
+version: "1.0"
+abstract: "Proprietary. Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC."

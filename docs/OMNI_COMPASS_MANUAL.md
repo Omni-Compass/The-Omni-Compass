@@ -5,6 +5,8 @@
 **Edition 1.0, October 2026**
 **The Omni-Compass LLC**
 
+Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC.
+
 ---
 
 > **PROPRIETARY - EVALUATION AND SIMULATION USE ONLY.** Copyright (c) 2026 The Omni-Compass LLC. All rights reserved.
@@ -13,7 +15,7 @@
 > shadow or test mode on systems you own or control. Any commercial use, commercialization, monetization, production
 > use, operation of any system beyond evaluation, redistribution, hosted or managed service, or incorporation into any
 > product or service requires a written **Omni-Compass Enterprise License**, signed by The Omni-Compass LLC and paid
-> for. Omni-Compass is protected by copyright and by patents and patent applications held by The Omni-Compass LLC.
+> for. Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC.
 > "Omni-Compass" and its marks are trademarks of The Omni-Compass LLC. Full terms: `LICENSE` and `NOTICE`.
 
 ---
@@ -585,7 +587,7 @@ The software and this manual are licensed under the Omni-Compass Evaluation Lice
 simulation use only. Everything else - commercial use, production use, operating any system beyond evaluation,
 redistribution, a hosted or managed service, incorporation into a product or service, or using the software or its
 results to build a competing product - requires a written Omni-Compass Enterprise License signed by The Omni-Compass
-LLC and paid for. No patent or trademark license is granted for any other use. Contributions are accepted only on the
+LLC and paid for. Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC. No patent or trademark license is granted for any other use. Contributions are accepted only on the
 terms in `CONTRIBUTING.md`, which assign their rights to The Omni-Compass LLC.
 
 ## 17. Python, C++ and the Seal

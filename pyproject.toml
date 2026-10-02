@@ -1,0 +1,21 @@
+# Package metadata for license scanners (Black Duck, FOSSA, Snyk, ScanCode, REUSE). Omni-Compass is proprietary:
+# evaluation and simulation use only; everything else requires a signed, paid Omni-Compass Enterprise License.
+[project]
+name = "omni-compass"
+version = "1.0.0"
+description = "Omni-Compass: a unified governing control plane (proprietary; evaluation and simulation use only)"
+readme = "README.md"
+license = "LicenseRef-OmniCompass-Evaluation-1.0"
+license-files = ["LICENSE", "NOTICE", "PATENTS.md", "TRADEMARKS.md", "LICENSES/*"]
+authors = [{ name = "The Omni-Compass LLC" }]
+requires-python = ">=3.10"
+classifiers = [
+  "License :: Other/Proprietary License",
+  "Private :: Do Not Upload",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: C++",
+]
+
+[project.urls]
+Repository = "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass"
+License = "https://github.com/The-Omni-Compass-LLC/The-Omni-Compass/blob/main/LICENSE"

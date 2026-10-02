@@ -9,6 +9,9 @@ benchmarks and their results, and the methods and mechanism they embody - is the
 Omni-Compass LLC and is protected by copyright and by patents and patent applications held by The Omni-Compass LLC.
 The Software is made available publicly for EVALUATION AND SIMULATION PURPOSES ONLY.
 
+INTELLECTUAL PROPERTY NOTICE. Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC. Every person who downloads, copies, forks, scans or runs the
+Software is on notice of these filings and of this license.
+
 1. Permitted use (free of charge, no license fee). You may download, copy, read, run and modify the Software solely to
    (a) evaluate it, including running its tests, benchmarks and simulations, and running it in shadow or test mode on
    systems you own or control for the purpose of evaluating it; and

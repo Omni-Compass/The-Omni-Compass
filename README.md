@@ -1,6 +1,6 @@
 # Omni-Compass
 
-> **PROPRIETARY - EVALUATION AND SIMULATION USE ONLY.** Copyright (c) 2026 The Omni-Compass LLC. This is not open-source software (`SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0`). Any commercial use, commercialization, monetization, production use, redistribution, hosted service or incorporation into a product requires a signed, paid **Omni-Compass Enterprise License** from The Omni-Compass LLC. Protected by copyright and by patents and patent applications. See [`LICENSE`](LICENSE).
+> **PROPRIETARY - EVALUATION AND SIMULATION USE ONLY.** Copyright (c) 2026 The Omni-Compass LLC. This is not open-source software (`SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0`). Any commercial use, commercialization, monetization, production use, redistribution, hosted service or incorporation into a product requires a signed, paid **Omni-Compass Enterprise License** from The Omni-Compass LLC. Protected by copyright, patents and trademarks: Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC. See [`LICENSE`](LICENSE).
 
 A six-state control engine that supervises Kubernetes and hardware from above: Kubernetes and its autoscalers stay the
 execution layer.
@@ -65,9 +65,20 @@ it and to reproduce the published results, including running it in shadow or tes
 Everything else - any commercial use, commercialization or monetization, production use, operating or governing any
 system beyond evaluation, redistribution, a hosted or managed service, or incorporation into any product or service -
 requires a written **Omni-Compass Enterprise License** signed by The Omni-Compass LLC and paid for. Omni-Compass is
-protected by copyright and by patents and patent applications held by The Omni-Compass LLC; no patent or trademark
+protected by copyright, patents and trademarks (Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC.); no patent or trademark
 license is granted for any other use. Full terms: [`LICENSE`](LICENSE) (`SPDX-License-Identifier:
 LicenseRef-OmniCompass-Evaluation-1.0`), [`NOTICE`](NOTICE).
+
+## Legal
+
+| File | What it says |
+|---|---|
+| [`LICENSE`](LICENSE) | evaluation and simulation use only; everything else needs a signed, paid Omni-Compass Enterprise License |
+| [`NOTICE`](NOTICE) | copyright, the US filings notice, third-party notices |
+| [`PATENTS.md`](PATENTS.md) | patent applications filed in the United States; no patent license is granted |
+| [`TRADEMARKS.md`](TRADEMARKS.md) | the Omni-Compass marks; trademark applications filed in the United States |
+| [`CLA.md`](CLA.md) | contributions are assigned to The Omni-Compass LLC |
+| [`sbom/omni-compass.spdx.json`](sbom/omni-compass.spdx.json), [`pyproject.toml`](pyproject.toml), [`REUSE.toml`](REUSE.toml), [`.fossa.yml`](.fossa.yml) | machine-readable license declarations for Black Duck, FOSSA, Snyk, ScanCode and REUSE scanners |
 
 ## Contents
 

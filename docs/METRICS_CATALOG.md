@@ -1,5 +1,7 @@
 # Omni-Compass metrics catalog
 
+> **PROPRIETARY - EVALUATION AND SIMULATION USE ONLY.** Copyright (c) 2026 The Omni-Compass LLC. This is not open-source software (`SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0`). Any commercial use, commercialization, monetization, production use, redistribution, hosted service or incorporation into a product requires a signed, paid **Omni-Compass Enterprise License** from The Omni-Compass LLC. Protected by copyright, patents and trademarks: Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC. See [`LICENSE`](../LICENSE).
+
 Every gauge Omni-Compass produces, where it comes from, and what kind of number it is. Three kinds:
 
 - **Measured**: read from a real system (a real Kubernetes cluster, a real GPU's own meter, a real wall plug).
