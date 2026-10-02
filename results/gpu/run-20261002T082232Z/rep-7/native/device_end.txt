@@ -1,0 +1,5 @@
+energy_mj 4069548617
+ecc.errors.uncorrected.volatile.total 0
+ecc.errors.corrected.volatile.total 0
+retired_pages.pending [N/A]
+clocks_event_reasons.hw_thermal_slowdown NotActive

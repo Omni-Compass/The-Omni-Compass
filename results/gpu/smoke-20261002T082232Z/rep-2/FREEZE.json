@@ -1,0 +1,16 @@
+{
+ "phase": "smoke",
+ "commit": "c908054053e9645e6021df8143e64d39c2c3273a",
+ "dirty": false,
+ "git_error": "",
+ "files": {
+  "omni_controller/gpu_governor.py": "ec04a9e51364eade6c74611c59cc2a17b0bea61c8574cb421d5019fd44aa4ef3",
+  "omni_controller/muscles.py": "286302f782935bbc456d9d4b376323a5b38d1b1908bf04b2906b228c6b03a7c4",
+  "omnicompass/adapter.py": "57ca59da4024ccea2769083998fdeb7b7c9c05b5c0dbca638375350be7dd93ac",
+  "omnicompass/core.py": "bd615f156169f6794b41439c4ce0726deb6a0b620fac76e072d24b357ab8b0a4",
+  "tools/gpu_workload.py": "f1f1d19a347db982e6c3381ffb4796ddb3694df049eaccbe253ce859d4cad7bf",
+  "tools/gpu_reps.py": "d9b7878cf20d18c3b0b1ab5690241ff67bb5eaf84a80608d097370358f9272b7",
+  "scripts/gpu_paired.sh": "f093ad007e28bb927487cfada443d0a9a63a22c868e67798bd01236269240ceb",
+  "docs/GPU_PREREGISTRATION.md": "9c9de2b4996b20764c4782be9776116f56b4c24254ddd8d4142ef2f19077cbc2"
+ }
+}

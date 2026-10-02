@@ -1,0 +1,1 @@
+timestamp,index,power.draw,temperature.gpu,utilization.gpu,power.limit,clocks.sm,enforced.power.limit,clocks_event_reasons.active

@@ -1,0 +1,32 @@
+{
+ "gpus": "0",
+ "gpu_name": "NVIDIA A10",
+ "driver": "580.105.08",
+ "persistence": "Enabled",
+ "power_management": "Enabled",
+ "power_limit_enforced_w": "150.00",
+ "gpu_uuid": "GPU-facb4048-30ab-047f-b2ab-90990d3845c3",
+ "gpu_serial": "1324521037546",
+ "vbios": "94.02.5C.00.04",
+ "kernel": "6.8.0-1046-nvidia",
+ "host": "170-9-60-198",
+ "power_limit_start_w": "150.00",
+ "power_limit_default_w": "150.00",
+ "power_limit_min_w": "100.00",
+ "power_limit_max_w": "150.00",
+ "reps": 3,
+ "duration_s": 180.0,
+ "drain_s": 30.0,
+ "cooldown_s": 30.0,
+ "sample_ms": 200,
+ "workload": "tools/gpu_workload.py (seeded fp16 matmul request stream)",
+ "workload_sha256": "f1f1d19a347db982e6c3381ffb4796ddb3694df049eaccbe253ce859d4cad7bf",
+ "workload_cmd": "",
+ "envelope": {
+  "power_min_w": 105,
+  "power_max_w": 150.0,
+  "rule": "amendment 3 default: max(device minimum, 70% of the limit read at declaration); response-time target from calibration (10 service times)"
+ },
+ "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
+ "git": "c908054053e9645e6021df8143e64d39c2c3273a"
+}

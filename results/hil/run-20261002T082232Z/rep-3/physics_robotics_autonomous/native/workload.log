@@ -1,0 +1,3 @@
+/home/ubuntu/the-omni-compass/tools/gpu_workload.py:32: UserWarning: Attempting to run cuBLAS, but there was no current CUDA context! Attempting to set the primary context... (Triggered internally at ./aten/src/ATen/cuda/CublasHandlePool.cpp:181.)
+  torch.matmul(a, b)
+{"requests": 2949, "served": 2949, "not_served": 0, "duration_s": 480.0, "t0_epoch": 1790944984.0244284, "drain_s": 10.0, "iters": 30, "service_ms": 78.22780599963153, "n": 4096, "seed": 20260928, "phases": "0.3,0.6,0.8,0.3,0.6,0.3", "sim": false}

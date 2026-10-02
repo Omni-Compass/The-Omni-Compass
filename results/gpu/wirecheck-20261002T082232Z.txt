@@ -1,0 +1,13 @@
+PASS  1 read: draw 19.76 W, temp 32.0 C, util 0.00, limit 150.0 W, clock 210.0 MHz, top clock 1695.0 MHz
+PASS  2 snapshot: start power limit 150.0 W
+PASS  3 up wire (lock): busy clock on its own 975.0 MHz; nvidia-smi -lgc 210,585 returned 0
+PASS  3 up wire (follows down): ceiling 585 MHz, the card's clock 585.0 MHz
+PASS  3 up wire (reset): nvidia-smi -rgc returned 0
+PASS  3 up wire (follows up): after reset the card's clock 945.0 MHz, above the ceiling 585 MHz (on its own it ran 975.0 MHz)
+PASS  4 down wire (lower): nvidia-smi -pl 120 returned 0
+PASS  4 down wire (read back): asked 120 W, the card reports 120.0 W
+PASS  4 down wire (back up): asked 150 W, the card reports 150.0 W
+PASS  5 restore: clocks reset, limit 150.0 W (start 150.0 W)
+PASS  6 stop: governor exit 0, limit after stop 150.0 W (start 150.0 W)
+PASS  7 other writer: governor exit 5 (5 expected), limit left at 135.0 W (the other writer set 135 W)
+WIRED RIGHT: both wires follow, read back and go home.

@@ -1,0 +1,14 @@
+{
+ "requests": 3514,
+ "served": 3514,
+ "not_served": 0,
+ "duration_s": 600.0,
+ "t0_epoch": 1790963325.6225526,
+ "drain_s": 30.0,
+ "iters": 31,
+ "service_ms": 81.60699300060514,
+ "n": 4096,
+ "seed": 20260928,
+ "phases": "0.3,0.6,0.8,0.3,0.6,0.3",
+ "sim": false
+}
