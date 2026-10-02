@@ -88,7 +88,7 @@ smi = os.environ.get("NVIDIA_SMI", "nvidia-smi")
 q = lambda f: subprocess.run([smi, "-i", gpu, f"--query-gpu={f}", "--format=csv,noheader,nounits"], capture_output=True, text=True).stdout.strip()
 r = {"gpus": gpu, "gpu_name": q("name"), "driver": q("driver_version"), "persistence": q("persistence_mode"),
      "power_management": q("power.management"), "power_limit_enforced_w": q("enforced.power.limit") or "unsupported",
-     "gpu_uuid": q("uuid"), "vbios": q("vbios_version"), "kernel": os.uname().release, "host": os.uname().nodename,
+     "gpu_uuid": q("uuid"), "gpu_serial": q("serial"), "vbios": q("vbios_version"), "kernel": os.uname().release, "host": os.uname().nodename,
      "power_limit_start_w": start, "power_limit_default_w": q("power.default_limit"), "power_limit_min_w": q("power.min_limit"),
      "power_limit_max_w": q("power.max_limit"), "reps": int(os.environ.get("REPS", 5)),
      "duration_s": float(os.environ.get("DURATION", 600)), "drain_s": float(os.environ.get("DRAIN", 30)),
