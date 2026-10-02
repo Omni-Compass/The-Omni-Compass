@@ -20,8 +20,9 @@ Every decision (--interval seconds):
   race      while the card is saturated (utilization at or over --race-util: work is waiting), the ceiling goes to the
             top and the lid to the start limit, so a burst is served at full speed; the bowl paces only the slack
   force     the bowl: pull to the center, push against what is rising, tanh-bounded; past the 0.95 wall: fail up
-  profile   service (default): down gain 0.01, the slow answers kept at native; batch: down gain 0.02, more saved,
-            for work nobody waits on answer by answer
+  profile   service (default): down gain 0.0125, the bowl's center at 0.4 and the speed floor 3% above the card's own
+            busy clock, so the slow answers stay at native or faster; batch: down gain 0.015, center 0.5, floor at the
+            card's own busy clock, more saved, for work nobody waits on answer by answer
   write     up wire: the ceiling moves by the force (fast up, gently down), inside its cover: from the card's own busy
             clock (never slower than native while there is work) to the top; down wire: the lid at the card's own busy
             draw plus --lid-headroom, never under it and never over the start limit, inside the declared envelope;
@@ -52,7 +53,11 @@ from omni_controller.gpu_governor import query, snapshot, throttle, slowed, Writ
 from omni_controller.muscles import latency_sense, latency_window
 
 
-PROFILES = {"service": 0.01, "batch": 0.02}   # down gain per profile (docs/GPU_PREREGISTRATION.md, amendment 7)
+# each profile: the down gain (share of the top clock per unit of force), the bowl's center (where it holds the response
+# time, 0 the bare service time and 1 the line), and the speed floor (a share above the card's own busy clock)
+# (docs/GPU_PREREGISTRATION.md, amendment 7)
+PROFILES = {"service": {"down": 0.0125, "center": 0.4, "floor": 1.03},
+            "batch": {"down": 0.015, "center": 0.5, "floor": 1.0}}
 
 
 def smi_run(smi, args):
@@ -104,14 +109,17 @@ class GpuBowl:
         self.ceiling = self.top            # where the bowl holds the ceiling (continuous)
         self.written_ceiling = self.top    # what the card was last told
         self.busy_clk, self.busy_draw = [], []    # the card on its own: busy clock and busy draw, ceiling at the top
-        self.brain = Bowl(Band(0.0, 1.0), dt=a.interval, tau=2.0 * a.interval, kp=1.0, smooth=0.3)
+        self.prof = dict(PROFILES[a.profile])
+        if a.down_gain is not None:
+            self.prof["down"] = a.down_gain
+        self.brain = Bowl(Band(0.0, 1.0, center=self.prof["center"]), dt=a.interval, tau=2.0 * a.interval, kp=1.0, smooth=0.3)
         self.brain.kd *= 3.0
         self.audit({"snapshot": {str(self.g): {"limit_w": self.start, "min_limit_w": s[self.g]["min"],
                                                "enforced_w": s[self.g]["enforced"] if self.enforced_ok else None,
                                                "clock_top_mhz": self.top,
                                                **{f: snap[f][str(self.g)] for f in SNAPSHOT}}},
                     "engine": "bowl, two wires", "mode": a.mode, "profile": a.profile,
-                    "down_gain": a.down_gain if a.down_gain is not None else PROFILES[a.profile],
+                    "profile_settings": self.prof,
                     "covers": {"clock_mhz": [round(self.c_lo), round(self.top)], "power_w": [self.floor_w, self.start]}})
         if a.mode == "cap" and snap["power.management"][str(self.g)].lower() != "enabled":
             self.audit({"refused": "power management not Enabled: a written limit would not bind"})
@@ -213,11 +221,11 @@ class GpuBowl:
             F = self.brain.force(p)
             # the speed floor: never under the clock the card reaches on its own while busy (until that is learned,
             # the top), so work waiting on the card is never served slower than native
-            c_floor = self.top if n_clk is None else max(self.c_lo, min(self.top, n_clk))
+            c_floor = self.top if n_clk is None else max(self.c_lo, min(self.top, n_clk * self.prof["floor"]))
             # the ceiling moves in whole clock steps, as the card's own clock does: the force times the gain (a share
             # of the top clock per unit of force) rounded to whole --min-change-mhz steps; a pull under half a step
             # moves nothing and is not stored up, so a calm card is paced only when the pull is clearly down
-            down = a.down_gain if a.down_gain is not None else PROFILES[a.profile]
+            down = self.prof["down"]
             step = (a.up_gain if F > 0 else down) * F * self.top
             step = round(step / a.min_change_mhz) * a.min_change_mhz
             ceiling = clamp(self.ceiling + step, c_floor, self.top)

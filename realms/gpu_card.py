@@ -50,7 +50,9 @@ T_SLOW = 87.0
 MU = 100.0                  # requests per second at the top clock
 LIMIT_DEFAULT, LIMIT_MIN = 150.0, 105.0
 SLO_S = 10.0 / MU           # the service line: ten bare service times (as the GPU bench sets it)
-DOWN = {"bowl": 0.01, "bowl_batch": 0.02}   # the down gain of each profile: service (the default) and batch
+# the profiles of omni_controller/gpu_bowl.py: down gain, the bowl's center, the speed floor above the card's own busy clock
+PROFILES = {"bowl": {"down": 0.0125, "center": 0.4, "floor": 1.03}, "bowl_batch": {"down": 0.015, "center": 0.5, "floor": 1.0}}
+DOWN = {k: v["down"] for k, v in PROFILES.items()}
 SATURATED = 0.95            # busy share over a decision at which work is waiting: race, never pace
 
 
@@ -173,7 +175,7 @@ def run(seed: int, arm: str, duration: float = 600.0, center: float = 0.5) -> Di
     if arm in DOWN:
         up, down = CeilingPlug(card), LimitPlug(card)
         up.attach(); down.attach()
-        brain = Bowl(Band(lo=0.0, hi=1.0, center=center), dt=DECIDE, tau=2.0, kp=1.0, authority=1.0, smooth=0.3)
+        brain = Bowl(Band(lo=0.0, hi=1.0, center=PROFILES[arm]["center"]), dt=DECIDE, tau=2.0, kp=1.0, authority=1.0, smooth=0.3)
         brain.kd *= 3.0                                  # the push: three times the damping that only stops the slosh,
                                                          # so a rising load is met before it reaches the wall
     if arm == "old":
@@ -227,7 +229,7 @@ def run(seed: int, arm: str, duration: float = 600.0, center: float = 0.5) -> Di
                     c = up.write(1.0)
                 else:
                     g = 0.10 if F > 0 else DOWN[arm]             # up fast (service first), down by the profile
-                    c = up.write(max(f_nat, card.ceiling + g * F))
+                    c = up.write(max(min(1.0, f_nat * PROFILES[arm]["floor"]), card.ceiling + g * F))
                 # the lid just above what the ceiling draws fully busy, never under the card's own busy draw
                 lid = max(power(c, 1.0, card.T), p_nat) * 1.06
                 down.write(lid)

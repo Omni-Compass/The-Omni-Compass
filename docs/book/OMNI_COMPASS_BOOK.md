@@ -3170,7 +3170,7 @@ receipt's energy line is modelled, the receipt says so.
 |---|---|---|
 | Real Kubernetes, set 24 (10 paired runs): machines in service -31.6%, p95 response -60.1%, p99 -64.1%, HPA replicas -38.6%, failed requests 0 on both, total CPU including Omni-Compass's own -1.8% (not significant) | L | `results/live/LIVE_REPS_24.md` (GitHub run 36983865216) |
 | Real Kubernetes, set 23 (10 paired runs): p95 -62.2%, replicas -36.6%, machines in service -28.7%, failed requests 0 | L | `results/live/LIVE_REPS_23.md` |
-| Modelled GPU card: two-wire bowl +8.6% work per energy (seeds 5000-5009) and +9.0% (fresh seeds 5100-5109), time over the service line unchanged, but p95 response +33% and +37% against native; one-wire governor +0.1%; both wires restored every run | S | `results/sim/gpu_two_wire/` |
+| Modelled GPU card, corrected governor: service profile +6.9% / +3.8% work per energy with p95 5.9% / 2.3% faster than native (tuning / fresh seeds); batch profile +8.1% / +4.2% with p95 +7.0% / -2.3%; one-wire governor +0.1%; both wires restored every run | S | `results/sim/gpu_two_wire/` |
 | Six organisms, 1,000 paired runs each at 1x and at 10x size: work per energy +0.30% / +0.29% (compute), +0.23% / +0.22% (physics), +0.21% / +0.20% (energy), +0.25% / +0.24% (distribution), +0.21% / +0.21% (four stacked), +0.22% / +0.22% (whole tower); every knob handed back; time over the service line +0.19 to +0.27 points above native in every cell, so the band-first rule is not yet met. 100x and 1,000x running | S | `results/scale/GRID.md` |
 | Real GPU (NVIDIA A10), first confirmation, 10 paired runs, the card's own meter: work per energy +3.6% (proven), energy -3.5%, same requests, none lost, every write read back and restored; p95 response +58.5% worse, so the label by rule is energy improvement with service tradeoff. The cause was governor wiring, corrected (service profile, amendments 6-7); the corrected governor is next on a card | P | `results/gpu/run-20261002T082232Z/GPU_REPS.md` |
 
@@ -3638,19 +3638,26 @@ rules are unchanged):
 The outcomes, arms, guardrails, analysis and validity rules are unchanged. The Omni arm of the confirmation runs the
 **service** profile.
 
-- **Two profiles, one switch** (`--profile`): **service** (the default and the confirmation's arm), down gain 0.01;
-  **batch**, down gain 0.02, for work nobody waits on answer by answer. The batch profile may be run as a separate,
-  declared confirmation (`OMNI_ARGS="--profile batch"`); it is reported as its own result, never pooled with service.
-- **Why 0.01, chosen on the model before the trial** (`results/sim/gpu_two_wire/`, 20 paired seeds, 5000-5009 and
-  5100-5109): of the down gains 0.005, 0.0075, 0.01, 0.0125 and 0.02, 0.01 is the largest at which no seed's p95 was
-  more than 10% slower than native (0 of 20; 7 of 20 faster): work per energy +3.9% (+3.0 to +4.7), energy -3.7%,
-  p95 -1.6% (-4.8 to +1.6), p99 -0.8%, time over the line -0.02 pp, median +10.5%. At 0.0125 and 0.02 the saving is
-  +6.2% but 3 of 20 seeds' p95 was more than 10% slower (a burst arriving while the clock rests on its floor).
+- **Two profiles, one switch** (`--profile`, `omni_controller/gpu_bowl.py`; the same in `realms/gpu_card.py`):
+  - **service**, the default and the confirmation's arm: down gain 0.0125, the bowl's center at 0.4, the speed floor 3%
+    above the card's own busy clock;
+  - **batch**: down gain 0.015, center 0.5, the floor at the card's own busy clock, for work nobody waits on answer by
+    answer. It may be run as a separate, declared confirmation (`OMNI_ARGS="--profile batch"`) and is reported as its
+    own result, never pooled with service.
+- **How service was chosen, on the model, before the trial** (20 paired seeds, 5000-5009 and 5100-5109; ratios
+  summarised as the geometric mean of the per-seed ratios): down gains 0.01, 0.0125, 0.015, 0.0175 and 0.02 alone, and
+  0.0125 to 0.0175 crossed with the bowl's center (0.4, 0.5), the speed floor (1.00, 1.03 of the card's own busy clock)
+  and the race threshold (0.90, 0.95). The rule: the most work per energy at which no seed's p95 is more than 10% slower
+  than native. Service (0.0125, 0.4, 1.03) gave work per energy +5.3% (+4.2 to +6.5), energy -5.0%, p95 -4.1% (-9.7 to
+  +1.7), worst seed +9%, 0 of 20 seeds more than 10% slower, p99 -1.8%; its neighbours gave the same within a point.
+  0.015 alone gave +6.2% but 3 of 20 seeds 10% to 48% slower at p95; 0.01 alone gave +3.8% with p95 -1.9%.
 - **The ceiling moves in whole clock steps** (--min-change-mhz, 15 MHz), as the card's own clock does and as the model
   moves it: the force times the gain, as a share of the top clock, is rounded to whole steps, and a pull under half a
   step moves nothing and is not stored up.
 - **The position reads the mean response time of the window** (as the model does), between the bare service time and
   the line; the 95th percentile at or past the line, or any failed request, is past the wall (fail up).
+- **The model's report summarises ratios on the log scale** (`tools/run_gpu_card.py`): the arithmetic mean of per-seed
+  percentages let one seed (+240%) stand for twenty.
 
 ## 43. The Realms Preregistration
 
@@ -3977,7 +3984,7 @@ id `29d9808dfb8f…`; the printed configuration `printed_eight_line`, id `cd333d
 | S | Single GPU physics model: the engine alone would save 10.6–13.6% work per kJ on card A but breaks the p95 guardrail by 15–28%; with the frozen guards, about +1 to +5% inside it. | `results/gpu/sim/FINDINGS.md` |
 | S | Node exchange (CPU and GPU on one budget): +1.4 to +5.7% work against the separate budgets, never over budget. | `results/hardware/NODE_EXCHANGE_*.json` |
 | S | Six organisms (345, 262, 282, 337, the four stacked 1,226, the whole tower 656), the bowl law on every muscle against each organism's own controllers, 1,000 paired runs at 1× and 10× size: work per energy +0.20% to +0.30%, energy −0.21% to −0.32%; every knob handed back. | `results/scale/GRID.md` |
-| S | Two-wire GPU card under the bowl law, 10 seeds: work per energy +8.6% (+7.8 to +9.4), time over the line unchanged; the one-wire governor on the same card +0.1%. | `results/sim/gpu_two_wire/RESULT.md` |
+| S | Two-wire GPU card, corrected governor (amendments 6-7), geometric means over 10 seeds and 10 fresh seeds: service profile work per energy +6.9% / +3.8%, p95 −5.9% / −2.3%; batch +8.1% / +4.2%; the one-wire governor +0.1%. | `results/sim/gpu_two_wire/RESULT.md` |
 | S | Realm harness round 3 (every realm carries the shared spine), preregistered, seeds 3000-3009: the whole 656-muscle tower native against one governor on top, work per energy +0.1% (+0.1 to +0.1), violations +0.5 pp, SUPERIOR WITHIN GUARDRAILS. Realms: Energy +0.2% with +1.9 pp violations (tradeoff); Compute 0.0% with +2.1 pp (not established); Distribution −0.1% (worse); Physics −0.7% (worse). Rounds 1 and 2 kept, superseded. | `results/realms/REALMS.md` |
 | S | Stacked organism (round 4, seeds 4000-4009): the four realm organisms on one clock, 1,226 muscles with every duplicate; stacked native equals the four realms alone on every seed. One governor over the stack: energy −0.14%, work per energy +0.02%, violations +1.4 pp, ENERGY IMPROVEMENT WITH SERVICE TRADEOFF; four separate governors about the same (+0.04%); one governor against four separate: −0.02% (WORSE, by a hair). | `results/realms/stack/STACK.md` |
 
@@ -4010,7 +4017,7 @@ Nothing here is deleted when a later result looks better.
 | Class | Statement | Where |
 |---|---|---|
 | P | Same run: p95 response time **+58.5% worse** (510 to 809 ms), mean +48%; label by rule ENERGY IMPROVEMENT WITH SERVICE TRADEOFF. Cause: governor wiring (busy bursts served below the card's own clock); corrected in amendments 6-7, not yet re-run on a card. | `results/gpu/run-20261002T082232Z/GPU_REPS.md`, `docs/GPU_PREREGISTRATION.md` |
-| S | Two-wire GPU card, same seeds: p95 response **+32.9%** (+6.3 to +59.4) against native. | `results/sim/gpu_two_wire/RESULT.md` |
+| S | Two-wire GPU card, batch profile: p95 +7.0% (−4.8 to +20.3) on the tuning seeds; the governor before amendment 6 gave p95 +32.9% and +37.1%. | `results/sim/gpu_two_wire/RESULT.md`, history in git |
 | S | Six organisms, same runs: time over the service line **+0.19 to +0.27 pp worse in every cell**; band first is not held anywhere. | `results/scale/GRID.md` |
 | L | Set 21: modelled energy 1.8% **worse** with every machine powered (the only honest energy row on kind). | `results/live/LIVE_REPS_21.md` |
 | S | Realm harness round 1 (superseded, kept): all five organisms **worse** (whole tower −0.1%). Its Omni layer did not follow the shipped controller (no contraction authority or SLO reflex, the stack law in place of the HPA, request traffic paused, a site budget under native draw). | `results/realms/round1/` |
@@ -5185,7 +5192,7 @@ against 861-889 MHz on its own. Corrected (amendments 6 and 7); the corrected go
 | Result | Where |
 |---|---|
 | GPU governor with share floor and busy gate (one wire, the power limit), MLPerf-calibrated card: +5.1% and +1.3% work per kJ, p95 within +10% | `results/gpu/sim/after` |
-| **Two-wire GPU card (clock ceiling up, power limit down) under the bowl law**, 10 seeds: work per energy **+8.6%** (+7.8 to +9.4), energy −7.9%, time over the line unchanged (−0.01 pp), but p95 response **+32.9%** (+6.3 to +59.4); the one-wire governor on the same card +0.1%; both wires restored every seed | `results/sim/gpu_two_wire/RESULT.md` |
+| **Two-wire GPU card under the bowl law, corrected governor** (amendments 6-7), 10 seeds and 10 fresh seeds, geometric means: **service** profile work per energy **+6.9% / +3.8%**, energy −6.4% / −3.7%, p95 **−5.9% / −2.3%** (faster), time over the line −0.03 / −0.04 pp; **batch** profile +8.1% / +4.2%, p95 +7.0% / −2.3%; the one-wire governor +0.1%; both wires restored every seed | `results/sim/gpu_two_wire/RESULT.md`, `fresh/` |
 | **The six organisms** (Compute 345, Physics 262, Energy 282, Distribution 337, the four stacked 1,226, the whole tower 656), native against the bowl law on every muscle, 1,000 paired runs at 1× and at 10× size: work per energy +0.20% to +0.30%, energy −0.21% to −0.32%, work −0.01% to −0.02%, time over the service line **+0.19 to +0.27 pp in every cell (band first not held)**, every knob handed back. 100× and 1,000× are running | `results/scale/GRID.md` |
 | Speed lock (speed won elsewhere spent on GPU watts) | `results/gpu/sim/pipeline/` |
 | CPU and GPU on one conserved power budget: +1.4% to +5.7% work served against a fixed cap, never over the budget | `results/hardware/NODE_EXCHANGE_*.json`, `docs/CONVEYANCE_LAW.md` |

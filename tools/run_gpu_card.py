@@ -49,12 +49,13 @@ def main(out=ROOT / "results" / "sim" / "gpu_two_wire", fresh=""):
          "service position (response time) to the middle of its bowl, racing at full speed while the card is "
          "saturated and never pacing under the clock or the draw the card reaches on its own while busy (amendment 6); "
          "both wires restored "
-         "to their snapshot at 90% of the run. **Service** profile (the default and the benchmark's arm): down gain 0.01; "
-         "**batch** profile: down gain 0.02, for work nobody waits on answer by answer.", "",
+         "to their snapshot at 90% of the run. **Service** profile (the default and the benchmark's arm): down gain 0.0125, bowl center "
+         "0.4, speed floor 3% above the card's own busy clock; **batch** profile: down gain 0.015, center 0.5, floor at "
+         "the card's own busy clock, for work nobody waits on answer by answer.", "",
          "## Mean over seeds", "", "| Gauge | Native | Preset | Old governor | Bowl, service | Bowl, batch |", "|---|---:|---:|---:|---:|---:|"]
     for k, name, f in ROWS:
         L.append(f"| {name} | " + " | ".join(f.format(sum(r[k] for r in res[a]) / len(SEEDS)) for a in ARMS) + " |")
-    L += ["", "## Paired against native (95% interval over seeds)", "", "| Gauge | Preset | Old governor | Bowl, service | Bowl, batch |", "|---|---:|---:|---:|---:|"]
+    L += ["", "## Paired against native (ratios: geometric mean over seeds with its 95% interval; time over the line: mean difference)", "", "| Gauge | Preset | Old governor | Bowl, service | Bowl, batch |", "|---|---:|---:|---:|---:|"]
     for k, name, f in [("work_per_kj", "work per energy", None), ("energy_j", "energy", None),
                        ("viol_share", "time over the line (pp)", "pp"), ("p95_ms", "response p95", None),
                        ("hammer_per_s", "hammer blows", None)]:
@@ -64,8 +65,10 @@ def main(out=ROOT / "results" / "sim" / "gpu_two_wire", fresh=""):
                 d = [100 * (x[k] - n[k]) for x, n in zip(res[a], res["native"])]
                 m, lo, hi = ci(d); cells.append(f"{m:+.2f} ({lo:+.2f} to {hi:+.2f})")
             else:
-                d = [x[k] / n[k] - 1 if n[k] else 0.0 for x, n in zip(res[a], res["native"])]
-                m, lo, hi = ci(d); cells.append(f"{m:+.1%} ({lo:+.1%} to {hi:+.1%})")
+                # a ratio is summarised on the log scale (the geometric mean of the per-seed ratios and its interval),
+                # so one seed's large ratio cannot stand for the others
+                d = [math.log(x[k] / n[k]) for x, n in zip(res[a], res["native"]) if n[k] > 0 and x[k] > 0]
+                m, lo, hi = ci(d); cells.append(f"{math.exp(m) - 1:+.1%} ({math.exp(lo) - 1:+.1%} to {math.exp(hi) - 1:+.1%})")
         L.append(f"| {name} | " + " | ".join(cells) + " |")
     L += ["", f"Both wires back at their snapshot after the kill on every seed: "
           f"{all(r['restored'] for a in ('bowl', 'bowl_batch') for r in res[a])}. Requests served are the same work on every arm (the stream is "

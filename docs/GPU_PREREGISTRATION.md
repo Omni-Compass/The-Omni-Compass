@@ -283,16 +283,23 @@ rules are unchanged):
 The outcomes, arms, guardrails, analysis and validity rules are unchanged. The Omni arm of the confirmation runs the
 **service** profile.
 
-- **Two profiles, one switch** (`--profile`): **service** (the default and the confirmation's arm), down gain 0.01;
-  **batch**, down gain 0.02, for work nobody waits on answer by answer. The batch profile may be run as a separate,
-  declared confirmation (`OMNI_ARGS="--profile batch"`); it is reported as its own result, never pooled with service.
-- **Why 0.01, chosen on the model before the trial** (`results/sim/gpu_two_wire/`, 20 paired seeds, 5000-5009 and
-  5100-5109): of the down gains 0.005, 0.0075, 0.01, 0.0125 and 0.02, 0.01 is the largest at which no seed's p95 was
-  more than 10% slower than native (0 of 20; 7 of 20 faster): work per energy +3.9% (+3.0 to +4.7), energy -3.7%,
-  p95 -1.6% (-4.8 to +1.6), p99 -0.8%, time over the line -0.02 pp, median +10.5%. At 0.0125 and 0.02 the saving is
-  +6.2% but 3 of 20 seeds' p95 was more than 10% slower (a burst arriving while the clock rests on its floor).
+- **Two profiles, one switch** (`--profile`, `omni_controller/gpu_bowl.py`; the same in `realms/gpu_card.py`):
+  - **service**, the default and the confirmation's arm: down gain 0.0125, the bowl's center at 0.4, the speed floor 3%
+    above the card's own busy clock;
+  - **batch**: down gain 0.015, center 0.5, the floor at the card's own busy clock, for work nobody waits on answer by
+    answer. It may be run as a separate, declared confirmation (`OMNI_ARGS="--profile batch"`) and is reported as its
+    own result, never pooled with service.
+- **How service was chosen, on the model, before the trial** (20 paired seeds, 5000-5009 and 5100-5109; ratios
+  summarised as the geometric mean of the per-seed ratios): down gains 0.01, 0.0125, 0.015, 0.0175 and 0.02 alone, and
+  0.0125 to 0.0175 crossed with the bowl's center (0.4, 0.5), the speed floor (1.00, 1.03 of the card's own busy clock)
+  and the race threshold (0.90, 0.95). The rule: the most work per energy at which no seed's p95 is more than 10% slower
+  than native. Service (0.0125, 0.4, 1.03) gave work per energy +5.3% (+4.2 to +6.5), energy -5.0%, p95 -4.1% (-9.7 to
+  +1.7), worst seed +9%, 0 of 20 seeds more than 10% slower, p99 -1.8%; its neighbours gave the same within a point.
+  0.015 alone gave +6.2% but 3 of 20 seeds 10% to 48% slower at p95; 0.01 alone gave +3.8% with p95 -1.9%.
 - **The ceiling moves in whole clock steps** (--min-change-mhz, 15 MHz), as the card's own clock does and as the model
   moves it: the force times the gain, as a share of the top clock, is rounded to whole steps, and a pull under half a
   step moves nothing and is not stored up.
 - **The position reads the mean response time of the window** (as the model does), between the bare service time and
   the line; the 95th percentile at or past the line, or any failed request, is past the wall (fail up).
+- **The model's report summarises ratios on the log scale** (`tools/run_gpu_card.py`): the arithmetic mean of per-seed
+  percentages let one seed (+240%) stand for twenty.
