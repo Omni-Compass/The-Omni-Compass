@@ -104,6 +104,89 @@ def ar_trace(rng, n, rho, sd):
     return out
 
 
+def _jit(f):
+    """Compile a pure-number kernel with numba when it is installed (same arithmetic, in the same order); else plain."""
+    try:
+        import numba
+        return numba.njit(cache=True)(f)
+    except Exception:  # noqa: BLE001  numba missing or unable to compile: the plain function runs, identically
+        return f
+
+
+@_jit
+def _motion_substeps(n, dt, theta, omega, integ, Tm, backlog, dwell, pos, mv_on, mv_t, mv_v, mv_a, mv_T, mv_start,
+                     mv_sgn, s, effort, admit, tau_dk, v_max, a_max, D, i_max, kp, kd, ki, J, load_bias, tau_max,
+                     t_lim, b, R, kt, p_idle, regen, t_amb, r_th, c_th, tol, dwell_p):
+    """MotionAxis.step's inner loop, every fine step of one decision, as plain numbers (see MotionAxis.step)."""
+    e = 0.0
+    err_max = 0.0
+    tau_peak = 0.0
+    hot = False
+    done = 0
+    for _ in range(n):
+        if not mv_on:
+            if dwell > 0.0:
+                dwell -= dt
+            elif backlog > 0 and admit:
+                mv_sgn = 1.0 if pos == 0.0 else -1.0
+                mv_v = v_max * s
+                mv_a = a_max * s
+                mv_T = 2.0 * math.sqrt(D / mv_a) if D < mv_v * mv_v / mv_a else D / mv_v + mv_v / mv_a
+                mv_t = 0.0
+                mv_start = pos
+                mv_on = True
+        if mv_on:
+            ta = mv_v / mv_a if D >= mv_v * mv_v / mv_a else math.sqrt(D / mv_a)
+            vp = mv_a * ta
+            t = mv_t
+            if t < ta:
+                off, vr, ar = 0.5 * mv_a * t * t, mv_a * t, mv_a
+            elif t < mv_T - ta:
+                off, vr, ar = 0.5 * mv_a * ta * ta + vp * (t - ta), vp, 0.0
+            elif t < mv_T:
+                tr = mv_T - t
+                off, vr, ar = D - 0.5 * mv_a * tr * tr, mv_a * tr, -mv_a
+            else:
+                off, vr, ar = D, 0.0, 0.0
+            th_r = mv_start + mv_sgn * off
+            w_r = mv_sgn * vr
+            a_r = mv_sgn * ar
+            mv_t += dt
+        else:
+            th_r, w_r, a_r = pos, 0.0, 0.0
+        err = th_r - theta
+        integ = integ + err * dt
+        integ = -i_max if integ < -i_max else i_max if integ > i_max else integ
+        tau = kp * err + kd * (w_r - omega) + ki * integ + J * a_r + load_bias
+        lim = tau_max * effort
+        if Tm > t_lim:
+            lim *= 0.5
+            hot = True
+        tau = -lim if tau < -lim else lim if tau > lim else tau
+        if abs(tau) > tau_peak:
+            tau_peak = abs(tau)
+        acc = (tau - b * omega - tau_dk) / J
+        omega += acc * dt
+        theta += omega * dt
+        q = tau / kt
+        i2r = R * (q * q)
+        mech = tau * omega
+        pw = p_idle + i2r + (mech if mech > 0 else regen * mech)
+        e += pw * dt
+        Tm += (i2r - (Tm - t_amb) / r_th) * dt / c_th
+        if mv_on:
+            if abs(err) > err_max:
+                err_max = abs(err)
+            if mv_t >= mv_T and abs(err) < tol and abs(omega) < 10 * tol:
+                pos = mv_start + mv_sgn * D
+                mv_on = False
+                dwell = dwell_p
+                backlog -= 1
+                done += 1
+    return (theta, omega, integ, Tm, backlog, dwell, pos, mv_on, mv_t, mv_v, mv_a, mv_T, mv_start, mv_sgn, e, err_max,
+            tau_peak, hot, done)
+
+
 class Plant:
     template = ""
 
@@ -585,52 +668,18 @@ class MotionAxis(Plant):
         self.s = self.override.get("capacity", 1.0)
         effort = self.override.get("power", 1.0)
         admit = self.override.get("admission", 1.0) >= 0.5
-        e = 0.0
-        err_max = 0.0
-        tau_peak = 0.0
-        hot = False
-        done = 0
-        for _ in range(n):
-            if self.move is None:
-                if self.dwell > 0.0:
-                    self.dwell -= dt
-                elif self.backlog > 0 and admit:
-                    sgn = 1.0 if self.pos == 0.0 else -1.0
-                    self.move = {"t": 0.0, "v": P["v_max"] * self.s, "a": P["a_max"] * self.s,
-                                 "T": self.move_time(self.s), "start": self.theta_ref_end(), "sgn": sgn}
-            if self.move is not None:
-                off, vr, ar = self.ref(self.move["t"])
-                th_r = self.move["start"] + self.move["sgn"] * off
-                w_r, a_r = self.move["sgn"] * vr, self.move["sgn"] * ar
-                self.move["t"] += dt
-            else:
-                th_r, w_r, a_r = self.pos, 0.0, 0.0
-            err = th_r - self.theta
-            self.integ = clamp(self.integ + err * dt, -P["i_max"], P["i_max"])
-            tau = P["kp"] * err + P["kd"] * (w_r - self.omega) + P["ki"] * self.integ + P["J"] * a_r + P["load_bias"]
-            lim = P["tau_max"] * effort
-            if self.Tm > P["t_lim"]:
-                lim *= 0.5                                         # firmware derating while the winding is hot
-                hot = True
-            tau = clamp(tau, -lim, lim)
-            tau_peak = max(tau_peak, abs(tau))
-            acc = (tau - P["b"] * self.omega - self.tau_d[k]) / P["J"]
-            self.omega += acc * dt
-            self.theta += self.omega * dt
-            i2r = P["R"] * (tau / P["kt"]) ** 2
-            mech = tau * self.omega
-            p = P["p_idle"] + i2r + (mech if mech > 0 else P["regen"] * mech)
-            e += p * dt
-            self.Tm += (i2r - (self.Tm - P["t_amb"]) / P["r_th"]) * dt / P["c_th"]
-            if self.move is not None:
-                err_max = max(err_max, abs(err))
-                if self.move["t"] >= self.move["T"] and abs(err) < P["tol"] and abs(self.omega) < 10 * P["tol"]:
-                    self.pos = self.move["start"] + self.move["sgn"] * P["D"]
-                    self.move = None
-                    self.dwell = P["dwell"]
-                    self.backlog -= 1
-                    self.waits.pop(0)
-                    done += 1
+        mv = self.move
+        out = _motion_substeps(
+            n, dt, self.theta, self.omega, self.integ, self.Tm, self.backlog, self.dwell, self.pos, mv is not None,
+            mv["t"] if mv else 0.0, mv["v"] if mv else 0.0, mv["a"] if mv else 0.0, mv["T"] if mv else 0.0,
+            mv["start"] if mv else 0.0, mv["sgn"] if mv else 0.0, self.s, effort, admit, self.tau_d[k],
+            P["v_max"], P["a_max"], P["D"], P["i_max"], P["kp"], P["kd"], P["ki"], P["J"], P["load_bias"], P["tau_max"],
+            P["t_lim"], P["b"], P["R"], P["kt"], P["p_idle"], P["regen"], P["t_amb"], P["r_th"], P["c_th"], P["tol"],
+            P["dwell"])
+        (self.theta, self.omega, self.integ, self.Tm, self.backlog, self.dwell, self.pos, mv_on, mv_t, mv_v, mv_a, mv_T,
+         mv_start, mv_sgn, e, err_max, tau_peak, hot, done) = out
+        self.move = {"t": mv_t, "v": mv_v, "a": mv_a, "T": mv_T, "start": mv_start, "sgn": mv_sgn} if mv_on else None
+        del self.waits[:done]                                      # the finished moves are the oldest waiting tasks
         self.waits = [w + P["dt_dec"] for w in self.waits]
         late = bool(self.waits) and self.waits[0] > P["deadline_s"]
         self.m["work"] += done

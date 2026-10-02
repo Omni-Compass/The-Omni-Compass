@@ -10,6 +10,7 @@ on:
       scale: {description: "Copies of each organism on one clock (1, 10, 100, ...)", default: "1"}
       shards: {description: "Shard numbers, as a JSON list", default: "[0,1,2,3,4,5,6,7,8,9]"}
       orgs: {description: "Organisms, as a JSON list of numbers 1-6", default: '["1","2","3","4","5","6"]'}
+      workers: {description: "Processes per runner (fewer for the largest sizes, which need the memory)", default: "4"}
   push:
 jobs:
   shard:
@@ -30,7 +31,8 @@ jobs:
       - run: |
           N="${{ github.event.inputs.runs_per_shard || '100' }}"
           python3 tools/run_scale.py --runs "$N" --first $(( ${{ matrix.shard }} * N )) --scale "${{ github.event.inputs.scale || '1' }}" \
-            --organisms "${{ matrix.org }}" --out "part-${{ matrix.org }}-${{ matrix.shard }}"
+            --organisms "${{ matrix.org }}" --out "part-${{ matrix.org }}-${{ matrix.shard }}" \
+            --workers "${{ github.event.inputs.workers || '4' }}"
       - uses: actions/upload-artifact@v4
         if: always()
         with: {name: "part-${{ matrix.org }}-${{ matrix.shard }}", path: "part-${{ matrix.org }}-${{ matrix.shard }}"}
