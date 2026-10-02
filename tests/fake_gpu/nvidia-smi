@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """A stand-in for nvidia-smi for the harness's own tests (no GPU on CI). State in $FAKE_SMI_STATE (JSON):
 limit per GPU, default/min/max limit, the draw the GPU would take unlimited (draw_w), utilization %, temperature.
-Supports: --query-gpu=<fields> --format=csv,noheader,nounits [-i N] [-lms MS]   and   -i N -pl W.
+Supports: --query-compute-apps=..., --query-gpu=<fields> --format=csv,noheader,nounits [-i N] [-lms MS]   and   -i N -pl W.
 Every -pl is appended to $FAKE_SMI_STATE.writes. FAKE_SMI_BLIND=1 makes every query fail. Optional state keys:
 "enforced_cap" (another authority holds enforced.power.limit at or under it), "management" (power.management, default
 Enabled), "refuse_pl" (every -pl fails), "no_enforced" (the driver does not know enforced.power.limit)."""
@@ -21,6 +21,8 @@ if "-pl" in args:
     print(f"Power limit for GPU {gpu} was set to {w:.2f} W"); sys.exit(0)
 if os.environ.get("FAKE_SMI_BLIND") == "1":
     sys.exit(9)
+if any(a.startswith("--query-compute-apps=") for a in args):
+    print(st.get("apps", ""), end=""); sys.exit(0)             # other processes on the GPU ("apps"; none by default)
 fields = [a for a in args if a.startswith("--query-gpu=")][0].split("=", 1)[1].split(",")
 if st.get("no_enforced") and "enforced.power.limit" in fields:
     print("Field \"enforced.power.limit\" is not a valid field to query.", file=sys.stderr); sys.exit(2)

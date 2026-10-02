@@ -200,3 +200,17 @@ trial data exist. Unchanged:
 - **Narrow cards are reported as they are.** The device's own limit range is in the snapshot. On a card whose range is
   narrow (for example a 70 W card that accepts 60–70 W), the envelope is that narrow range; the result is reported for
   that card and range and not extrapolated to wider cards.
+
+## Amendment 4 (2026-10-02, after an invalid smoke; no confirmation data exist)
+
+The first smoke on a rented A10 (results/gpu/smoke-20261002T032459Z, never counted) was invalid by rule: two copies of
+`scripts/gpu_rented_run.sh` had been started on the same machine, so both benches wrote the same card's power limit.
+The native and watch arms saw limits they never wrote (116, 137 and 150 W), each governor refused to start beside the
+other one (exit 5), and one kill-switch restore was undone by the other copy. The card also began at 116 W, a limit an
+earlier start had left behind, not its 150 W default, so native itself ran capped (83% of samples). None of these
+numbers measures Omni. The engine, the governor, the outcomes and the analysis are unchanged. The run script now:
+
+- **runs once per machine:** it takes a lock and refuses to start while another copy runs;
+- **runs alone on the card:** it refuses to start while any other process is using the GPU;
+- **starts from the card's default limit:** it sets power.default_limit before the envelope is declared, so the
+  envelope, the snapshot and every arm start from the card's own default, not from a limit an earlier run left behind.

@@ -19,6 +19,15 @@ mkdir -p results/gpu
 echo "== checking the machine"
 [ "$(id -u)" = 0 ] || [ -n "${SIM:-}" ] || { echo "run with sudo: setting the power limit needs root"; exit 1; }
 command -v "$SMI" >/dev/null || { echo "nvidia-smi not found: this machine has no NVIDIA driver"; exit 1; }
+# one copy only: two copies on one card write the same power limit and every arm of both is invalid (amendment 4)
+exec 9>"${LOCK:-/tmp/omni-gpu-bench.lock}"
+flock -n 9 || { echo "another copy of this test is already running on this machine. Start it once only: wait for it to finish (or reboot the machine), then run this one command again."; exit 1; }
+BUSY=$($SMI -i "$GPU" --query-compute-apps=pid,process_name --format=csv,noheader 2>/dev/null || true)
+[ -z "$BUSY" ] || { echo "something else is using the GPU, so the test would not be measuring only itself:"; echo "$BUSY"; echo "stop it (or reboot the machine), then run this one command again."; exit 1; }
+# every run starts from the card's own default limit, not from whatever an earlier or aborted run left behind
+DEF=$($SMI -i "$GPU" --query-gpu=power.default_limit --format=csv,noheader,nounits | tr -d ' ')
+[ -n "${SIM:-}" ] || $SMI -i "$GPU" -pl "${DEF%.*}" >/dev/null || { echo "cannot set the default power limit $DEF W"; exit 1; }
+echo "power limit reset to the card's default: $DEF W"
 $SMI -i "$GPU" --query-gpu=name,driver_version,power.limit,power.min_limit,power.management --format=csv,noheader
 $PY -c "import torch, sys; sys.exit(0 if torch.cuda.is_available() else 1)" 2>/dev/null || [ -n "${SIM:-}" ] \
   || { echo "PyTorch with CUDA not found: pip install torch, or rent an image that has it"; exit 1; }
