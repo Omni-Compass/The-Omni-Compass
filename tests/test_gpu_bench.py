@@ -145,16 +145,19 @@ def bench_bowl():
     """The paired run with the two-wire engine (the default Omni arm): valid, watch writes nothing, Omni moves both wires,
     and the card's clock range and power limit are back at the start after every arm."""
     d = Path(tempfile.mkdtemp())
-    state(d)
+    state(d, util_pattern=[100, 100, 100, 40, 40, 40], busy_clock=1200.0)   # busy in bursts, held at 1200 MHz by its own limit
     env = dict(os.environ, NVIDIA_SMI=SMI, SIM="1", REPS="2", DURATION="20", DRAIN="1", COOLDOWN="0", INTERVAL="1",
-               SAMPLE_MS="200", OUT=str(d / "run"), WORKLOAD_ARGS="--calib 5 --target-ms 20")
+               SAMPLE_MS="200", OUT=str(d / "run"), WORKLOAD_ARGS="--calib 5 --target-ms 20", OMNI_ARGS="--learn-samples 3")
     r = subprocess.run(["bash", str(ROOT / "scripts" / "gpu_paired.sh")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=600)
     assert r.returncode == 0, r.stdout[-3000:] + r.stderr[-2000:]
     out = json.loads((d / "run" / "GPU_REPS.json").read_text())
     assert not out["problems"], out["problems"]
     assert {c["writes"] for c in out["checks"]["watch"].values()} == {0}
     recs = [json.loads(x) for x in open(d / "run" / "rep-1" / "omni" / "audit.jsonl") if x.strip()]
-    assert any("clock_write" in x and "-lgc" in x["clock_write"] for x in recs), "the up wire never moved"
+    # in 20 s the gentle down pull moves the ceiling less than one 15 MHz step before each burst races it back up; the
+    # lid moves, and the clock wire is proved by the wire check and tests/test_gpu_bowl.py
+    assert any("write" in x and "-pl" in x["write"] for x in recs), "the down wire never moved"
+    assert any(x.get("decision", {}).get("0", {}).get("decided_by") == "race" for x in recs), "the card never raced a burst"
     assert any("would_clock_write" in json.loads(x) or "decision" in json.loads(x)
                for x in open(d / "run" / "rep-1" / "watch" / "audit.jsonl") if x.strip())
     rest = [x for x in recs if "restored" in x][-1]

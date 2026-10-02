@@ -4,7 +4,9 @@ limit per GPU, default/min/max limit, the draw the GPU would take unlimited (dra
 Supports: -lgc MIN,MAX and -rgc (the clock wire; state keys clock_top, refuse_lgc, ignore_lgc), --query-compute-apps=..., --query-gpu=<fields> --format=csv,noheader,nounits [-i N] [-lms MS]   and   -i N -pl W.
 Every -pl is appended to $FAKE_SMI_STATE.writes. FAKE_SMI_BLIND=1 makes every query fail. Optional state keys:
 "enforced_cap" (another authority holds enforced.power.limit at or under it), "management" (power.management, default
-Enabled), "refuse_pl" (every -pl fails), "no_enforced" (the driver does not know enforced.power.limit)."""
+Enabled), "refuse_pl" (every -pl fails), "no_enforced" (the driver does not know enforced.power.limit), "busy_clock" (while utilization is 50% or more the card
+runs no faster than this, as a real card held by its own power limit does), "util_pattern" (utilization per second,
+cycling, for a card that is busy in bursts)."""
 import datetime, json, os, sys, time
 
 path = os.environ["FAKE_SMI_STATE"]
@@ -45,9 +47,13 @@ lms = int(args[args.index("-lms") + 1]) if "-lms" in args else 0
 
 def row(g):
     st = json.load(open(path)); lim = float(st["limit"][g])
+    if st.get("util_pattern"):                                  # utilization changing second by second, cycling
+        st["util"] = st["util_pattern"][int(time.time()) % len(st["util_pattern"])]
     top = float(st.get("clock_top", 1695.0))
     lock = st.get("clock_lock", {}).get(g)
     clk = min(top, lock[1]) if lock else top
+    if st.get("busy_clock") and float(st["util"]) >= 50:      # the clock the card's own power limit holds it at while busy
+        clk = min(clk, float(st["busy_clock"]))
     draw = st["draw_w"] * (st.get("idle_share", 0.2) + (1 - st.get("idle_share", 0.2)) * (clk / top) ** 2.5)
     v = {"index": g, "power.draw": min(lim, draw), "clocks.max.sm": top, "temperature.gpu": st["temp"], "utilization.gpu": st["util"],
          "power.limit": lim, "enforced.power.limit": min(lim, float(st.get("enforced_cap", lim))),

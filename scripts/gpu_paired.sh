@@ -172,7 +172,7 @@ for rep in ${REP_ONLY:-$(seq 1 "$REPS")}; do
       rm -f "$D/kill"
       ENGINE_MOD=omni_controller.gpu_governor; [ "${OMNI_ENGINE:-bowl}" = bowl ] && ENGINE_MOD=omni_controller.gpu_bowl
       $PY -m "$ENGINE_MOD" --mode "$mode" --gpus "$GPU" --smi "$SMI" --interval "$INTERVAL" \
-        --audit "$D/audit.jsonl" --kill-file "$D/kill" --latency-file "$D/latency.csv" --slo-ms "$SLO_MS" --floor-w "$ENV_FLOOR_W" \
+        --audit "$D/audit.jsonl" --kill-file "$D/kill" --latency-file "$D/latency.csv" --slo-ms "$SLO_MS" --floor-w "$ENV_FLOOR_W" ${OMNI_ARGS:-} \
         > "$D/governor.log" 2>&1 &
       gov_pid=$!
     fi

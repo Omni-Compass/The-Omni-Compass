@@ -25,7 +25,7 @@ The arms
             decisions), 5 W minimum change, every 2 s, the power limit only
   bowl      Omni-Compass through two wires (omnicompass/bowl.py): the clock ceiling is the up wire (how high boost may
             push), the power limit is the down wire (the lid, set just above what the ceiling draws, inside its cover
-            of 105-150 W). The bowl's reading is the response time as a position between the bare service time (0)
+            of 105-150 W, never under the card's own busy draw). The bowl's reading is the response time as a position between the bare service time (0)
             and the service line (1); the brain pulls it to the center. Both wires are restored to their snapshot at
             90% of the run, and the run checks they were.
 """
@@ -50,6 +50,7 @@ T_SLOW = 87.0
 MU = 100.0                  # requests per second at the top clock
 LIMIT_DEFAULT, LIMIT_MIN = 150.0, 105.0
 SLO_S = 10.0 / MU           # the service line: ten bare service times (as the GPU bench sets it)
+SATURATED = 0.95            # busy share over a decision at which work is waiting: race, never pace
 
 
 def volt(f):
@@ -132,13 +133,10 @@ class CeilingPlug(Plug):
         self.card = card
 
     def _read_service(self):
-        """The service as a position in its bowl: the worse of response time (bare service time 0, the line 1) and
-        busy share (half busy 0, saturated 1). Response time is a cliff near saturation (a queue's wait grows as
-        1 / (1 - busy)); busy share is the smooth coordinate under it, so the bowl sees the cliff coming."""
-        w, b = self.card.window, self.card.bwin
-        resp = (sum(w) / len(w) - 1.0 / MU) / (SLO_S - 1.0 / MU) if w else 0.0
-        busy = (sum(b) / len(b) - 0.5) / 0.5 if b else 0.0
-        return max(resp, busy)
+        """The service as a position in its bowl: response time only (bare service time 0, the line 1). A busy card is
+        doing its work; being busy is not a breach and is not read as one."""
+        w = self.card.window
+        return (sum(w) / len(w) - 1.0 / MU) / (SLO_S - 1.0 / MU) if w else 0.0
 
     def _read_lever(self):
         return self.card.ceiling
@@ -180,7 +178,10 @@ def run(seed: int, arm: str, duration: float = 600.0, center: float = 0.5) -> Di
     if arm == "old":
         gov, lp_hist, util_avg, gated = Governor(), [], None, False
         old_per = int(2.0 / TICK)
+    learn_f, learn_p = [], []          # the card on its own while busy, ceiling at the top: its clock and its draw
     for k in range(card.n):
+        if brain is not None and card.ceiling >= 1.0 and card.limit >= LIMIT_DEFAULT and card.last_busy >= 0.9:
+            learn_f.append(card.f); learn_p.append(card.last_p)
         if arm == "old" and k % old_per == 0 and k:
             if k >= kill:
                 card.limit = LIMIT_DEFAULT                       # the kill: the limit read at start
@@ -213,12 +214,21 @@ def run(seed: int, arm: str, duration: float = 600.0, center: float = 0.5) -> Di
                     restored = up.restore() and down.restore()
             else:
                 F = brain.force(up.read())
-                if brain.p >= brain.band.wall_high:
-                    c = up.write(1.0)                            # fail up: past the wall, the ceiling to the top at once
+                # the speed floor: never under the clock the card reaches on its own while busy (the top until 15
+                # busy readings are in), so waiting work is never served slower than native
+                f_nat = sorted(learn_f[-10000:])[len(learn_f[-10000:]) // 2] if len(learn_f) >= 15 else 1.0
+                p_nat = sorted(learn_p[-10000:])[int(0.9 * (len(learn_p[-10000:]) - 1))] if len(learn_p) >= 15 else LIMIT_DEFAULT
+                b = card.bwin
+                saturated = bool(b) and sum(b) / len(b) >= SATURATED
+                if brain.p >= brain.band.wall_high or saturated:
+                    # fail up past the wall; and race while work waits (the card saturated: a queue is forming), so a
+                    # burst is always served at full speed; the bowl paces only the slack between bursts
+                    c = up.write(1.0)
                 else:
                     g = 0.10 if F > 0 else 0.02                  # up fast (service first), down gently
-                    c = up.write(card.ceiling + g * F)
-                lid = power(c, 1.0, card.T) * 1.06             # the lid just above what the ceiling draws, fully busy
+                    c = up.write(max(f_nat, card.ceiling + g * F))
+                # the lid just above what the ceiling draws fully busy, never under the card's own busy draw
+                lid = max(power(c, 1.0, card.T), p_nat) * 1.06
                 down.write(lid)
             card.window, card.bwin = [], []
         elif k % per == 0:

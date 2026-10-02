@@ -246,3 +246,34 @@ unchanged.
   check now reads the card's busy clock on its own first and locks at 60% of that. The governor likewise starts its
   ceiling at the clock the busy card actually runs (a ceiling above it holds nothing), and its clock cover is 35% of
   the top clock to the top. No trial had run.
+
+## Amendment 6 (2026-10-02, after the first confirmation and before any further trial)
+
+**What the first confirmation showed** (A10, commit `c908054`, `results/gpu/run-20261002T082232Z/`): work per energy
++3.6% (+2.7% to +4.5%, proven), the same requests served, no request lost, but the 95th-percentile response time
++58.5% (510 to 809 ms), so the response-time guardrail failed and the label by rule was ENERGY IMPROVEMENT WITH
+SERVICE TRADEOFF. It stands as the result of that run.
+
+**Why, from the card's own samples:** while busy the card ran at 736 to 768 MHz under Omni against 861 to 889 MHz on
+its own, and spent about 30% more time busy for the same work; requests queued behind each slower one. Three faults
+in the governor, not in the engine: (1) the position counted utilization above half as service trouble, so every
+burst read as past the wall (fail up in 46% of decisions) and every quiet gap pulled the ceiling down, so each burst
+began on a lowered clock; (2) the lid followed a curve from the top clock and sat at the 105 W envelope floor in 49 of
+165 bowl decisions, under the 135 W the card itself draws while busy; (3) the ceiling's cover reached 35% of the top
+clock, far under the clock the card's own power limit holds it at while busy.
+
+**The Omni arm from now on** (`omni_controller/gpu_bowl.py`; the outcomes, arms, guardrails, analysis and validity
+rules are unchanged):
+
+- the position is response time only (p95 over 5 s, not 30 s); being busy is not a breach;
+- **race while work waits:** at 95% utilization or more the ceiling goes to the top and the lid to the start limit;
+  the bowl paces only the slack between bursts;
+- **the card's own level, learned from its own meter** while the ceiling is at the top and the card is busy: its
+  busy clock (median) and busy draw (90th percentile); until 15 such readings are in, neither wire moves;
+- **speed floor:** the ceiling never goes under the card's own busy clock; **lid floor:** the lid never goes under the
+  card's own busy draw plus 10%;
+- fail up (past 95% of the line, or blind) is unchanged.
+
+**On the modelled card, before any trial** (`results/sim/gpu_two_wire/`, seeds 5000 to 5009): p95 122.1 ms native,
+123.7 ms with the corrected bowl; work per energy +8.2% (+6.3% to +10.1%); energy -7.5%; the median response 10.1 to
+12.1 ms, slower in the quiet stretches the bowl paces. That is a model; the next trial is the card's own meter.

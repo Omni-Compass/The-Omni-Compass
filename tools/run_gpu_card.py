@@ -46,7 +46,9 @@ def main(out=ROOT / "results" / "sim" / "gpu_two_wire", fresh=""):
          "- **preset**: a fixed 105 W limit (70%), set and left, as an operator would;",
          "- **old governor**: the shipped one-wire GPU governor (its defaults), the power limit only;",
          "- **bowl**: Omni through two wires, the clock ceiling (up) and the power limit (down, the lid), pulling the "
-         "service position (the worse of response time and busy share) to the middle of its bowl; both wires restored "
+         "service position (response time) to the middle of its bowl, racing at full speed while the card is "
+         "saturated and never pacing under the clock or the draw the card reaches on its own while busy (amendment 6); "
+         "both wires restored "
          "to their snapshot at 90% of the run.", "",
          "## Mean over seeds", "", "| Gauge | Native | Preset | Old governor | Bowl |", "|---|---:|---:|---:|---:|"]
     for k, name, f in ROWS:

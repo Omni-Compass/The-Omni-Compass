@@ -10,13 +10,19 @@ card already accepts, and nothing else:
 
 Every decision (--interval seconds):
   read      nvidia-smi: power.draw, temperature, utilization, power.limit, clocks.sm; the workload's response times
-  position  the service as one place in its bowl, 0 calm to 1 the line: the worse of response time (p95 between a
-            tenth of the line, the bare service time, and the line) and utilization above half
+  position  the service as one place in its bowl, 0 calm to 1 the line: response time only (p95 over the last
+            --latency-window-s, between a tenth of the line, the bare service time, and the line). A card that is busy
+            is doing its work; being busy is not a breach and is not read as one
+  native    what the card does on its own, learned from its own meter before the bowl may lower anything: while the
+            ceiling is at the top and the card is busy, its clock and its draw (the clock its own power limit holds it
+            at, and what that costs). Until --learn-samples busy readings are in, the ceiling stays at the top
+  race      while the card is saturated (utilization at or over --race-util: work is waiting), the ceiling goes to the
+            top and the lid to the start limit, so a burst is served at full speed; the bowl paces only the slack
   force     the bowl: pull to the center, push against what is rising, tanh-bounded; past the 0.95 wall: fail up
-  write     up wire: the ceiling moves by the force (fast up, gently down), inside its cover (--clock-min-share of the
-            top clock to the top); down wire: the lid at what a fully busy card draws at that ceiling plus
-            --lid-headroom (the start limit at the top clock), inside its cover (the declared envelope floor to the limit read at start); fail up: ceiling to the top and the lid to
-            the start limit at once
+  write     up wire: the ceiling moves by the force (fast up, gently down), inside its cover: from the card's own busy
+            clock (never slower than native while there is work) to the top; down wire: the lid at the card's own busy
+            draw plus --lid-headroom, never under it and never over the start limit, inside the declared envelope;
+            fail up: ceiling to the top and the lid to the start limit at once
   guards    blind (meters unreadable, response times stale): fail up; heat (the card reports a thermal or hardware
             slowdown): never tighten; one writer: a power limit neither mine nor the start means another writer, so
             observe only from then on and exit 5; read-back: every write is read back
@@ -91,6 +97,7 @@ class GpuBowl:
         self.c_floor = query_min_clock(a.smi, self.g)
         self.ceiling = self.top            # where the bowl holds the ceiling (continuous)
         self.written_ceiling = self.top    # what the card was last told
+        self.busy_clk, self.busy_draw = [], []    # the card on its own: busy clock and busy draw, ceiling at the top
         self.brain = Bowl(Band(0.0, 1.0), dt=a.interval, tau=2.0 * a.interval, kp=1.0, smooth=0.3)
         self.brain.kd *= 3.0
         self.audit({"snapshot": {str(self.g): {"limit_w": self.start, "min_limit_w": s[self.g]["min"],
@@ -117,7 +124,20 @@ class GpuBowl:
             resp = (ls["p95"] - bare) / (a.slo_ms - bare)
             if ls["fail"]:
                 resp = max(resp, 1.0)
-        return max(resp, (util - 0.5) / 0.5), ls
+        return resp, ls
+
+    def learn(self, r):
+        """The card on its own: while the ceiling is at the top and the card is busy, its clock and draw are native's."""
+        if r is not None and self.written_ceiling >= self.top and r["limit"] >= self.start - 1.0 and r["util"] >= 0.9:
+            self.busy_clk = (self.busy_clk + [r["clock_mhz"]])[-200:]
+            self.busy_draw = (self.busy_draw + [r["draw"]])[-200:]
+
+    def native(self):
+        """(busy clock, busy draw) of the card on its own, or (None, None) until enough busy readings are in."""
+        if len(self.busy_clk) < self.a.learn_samples:
+            return None, None
+        c, d = sorted(self.busy_clk), sorted(self.busy_draw)
+        return c[len(c) // 2], d[int(0.9 * (len(d) - 1))]
 
     def write_clock(self, mhz, why):
         mhz = int(round(mhz))
@@ -166,20 +186,25 @@ class GpuBowl:
                 self.audit({"foreign_writer": {"gpu": g, "reads_w": r["limit"], "expected_w": self.expect},
                             "action": "observe only from now on; both wires left to the other writer"})
             p, ls = self.position(r["util"])
+        self.learn(r)
+        n_clk, n_draw = self.native()
         thr = throttle(a.smi, [g]) if r is not None else None
         heat = slowed((thr or {}).get(g))
-        if p is None or p >= self.brain.band.wall_high:
+        saturated = r is not None and r["util"] >= a.race_util
+        if p is None or p >= self.brain.band.wall_high or saturated:
+            # fail up past the wall or blind; and race while work waits (the card saturated: a queue is forming), so a
+            # burst is always served at full speed and the bowl paces only the slack between bursts
             if p is not None:
                 self.brain.force(p)
-            ceiling, lid, who = self.top, self.start, "blind_fail_up" if p is None else "fail_up"
+            ceiling, lid = self.top, self.start
+            who = "blind_fail_up" if p is None else "fail_up" if p >= self.brain.band.wall_high else "race"
         else:
             F = self.brain.force(p)
-            if r["util"] > 0.3 and self.ceiling > r["clock_mhz"] + 2 * a.min_change_mhz:
-                # a ceiling above where the busy card already runs (its own limits hold it lower) holds nothing: it is
-                # brought down to where the card is, which changes nothing the card does, so the force acts at once
-                self.ceiling = max(self.c_lo, r["clock_mhz"] + a.min_change_mhz)
-            gain = (a.up_gain if F > 0 else a.down_gain) * (self.top - self.c_lo)
-            ceiling = clamp(self.ceiling + gain * F, self.c_lo, self.top)
+            # the speed floor: never under the clock the card reaches on its own while busy (until that is learned,
+            # the top), so work waiting on the card is never served slower than native
+            c_floor = self.top if n_clk is None else max(self.c_lo, min(self.top, n_clk))
+            gain = (a.up_gain if F > 0 else a.down_gain) * (self.top - c_floor)
+            ceiling = clamp(self.ceiling + gain * F, c_floor, self.top)
             if heat and ceiling < self.ceiling:
                 ceiling, who = self.ceiling, "thermal_hold"
             else:
@@ -187,14 +212,16 @@ class GpuBowl:
             # the lid: the start limit scaled to what a fully busy card draws at this ceiling (a fifth of the draw does not
             # scale with the clock; the rest goes as clock^2.5, clock times voltage squared), plus headroom; at the top
             # clock the lid is the start limit, so the lid never adds a hammer of its own
-            share = 0.2 + 0.8 * (ceiling / self.top) ** 2.5
-            lid = clamp(math.ceil(self.start * share * (1.0 + a.lid_headroom)), self.floor_w, self.start)
+            # the lid: never under what the card draws on its own while busy (its own meter, not a curve), plus
+            # headroom; the start limit until that is learned
+            lid = self.start if n_draw is None else clamp(math.ceil(n_draw * (1.0 + a.lid_headroom)), self.floor_w, self.start)
         rec = {"decision": {str(g): {"telemetry": None if r is None else {
                    "util": r["util"], "draw_w": r["draw"], "temp_c": r["temp"], "limit_w": r["limit"],
                    "enforced_w": r["enforced"], "clock_mhz": r["clock_mhz"], "throttle": (thr or {}).get(g)},
                "position": None if p is None else round(p, 4), "velocity": round(self.brain.v, 4),
                "latency_p95_ms": None if not ls else ls.get("p95"),
-               "ceiling_mhz": round(ceiling), "want_w": int(lid), "decided_by": who}}}
+               "ceiling_mhz": round(ceiling), "want_w": int(lid), "decided_by": who,
+               "native_busy_clock_mhz": n_clk, "native_busy_draw_w": n_draw}}}
         self.audit(rec)
         self.ceiling = ceiling
         if abs(ceiling - self.written_ceiling) >= a.min_change_mhz or (ceiling >= self.top and self.written_ceiling < self.top):
@@ -243,7 +270,9 @@ def parser():
     ap.add_argument("--kill-file", default="/tmp/omni-gpu-kill")
     ap.add_argument("--latency-file", default="")
     ap.add_argument("--slo-ms", type=float, default=0.0)
-    ap.add_argument("--latency-window-s", type=float, default=30.0)
+    ap.add_argument("--latency-window-s", type=float, default=5.0, help="seconds of response times the position reads")
+    ap.add_argument("--race-util", type=float, default=0.95, help="utilization at which work is waiting: race, never pace")
+    ap.add_argument("--learn-samples", type=int, default=15, help="busy readings of the card on its own before the bowl may lower anything")
     ap.add_argument("--floor-w", type=float, default=0.0, help="the declared envelope's lowest watts")
     ap.add_argument("--clock-min-share", type=float, default=0.35, help="the clock ceiling's cover: lowest share of the top")
     ap.add_argument("--up-gain", type=float, default=0.10, help="share of the clock cover moved per unit of force, up")
