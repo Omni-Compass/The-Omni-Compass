@@ -47,6 +47,7 @@ id `29d9808dfb8f…`; the printed configuration `printed_eight_line`, id `cd333d
 | S | Single GPU physics model: the engine alone would save 10.6–13.6% work per kJ on card A but breaks the p95 guardrail by 15–28%; with the frozen guards, about +1 to +5% inside it. | `results/gpu/sim/FINDINGS.md` |
 | S | Node exchange (CPU and GPU on one budget): +1.4 to +5.7% work against the separate budgets, never over budget. | `results/hardware/NODE_EXCHANGE_*.json` |
 | S | Realm harness round 3 (every realm carries the shared spine), preregistered, seeds 3000-3009: the whole 656-muscle tower native against one governor on top, work per energy +0.1% (+0.1 to +0.1), violations +0.5 pp, SUPERIOR WITHIN GUARDRAILS. Realms: Energy +0.2% with +1.9 pp violations (tradeoff); Compute 0.0% with +2.1 pp (not established); Distribution −0.1% (worse); Physics −0.7% (worse). Rounds 1 and 2 kept, superseded. | `results/realms/REALMS.md` |
+| S | Stacked organism (round 4, seeds 4000-4009): the four realm organisms on one clock, 1,226 muscles with every duplicate; stacked native equals the four realms alone on every seed. One governor over the stack: energy −0.14%, work per energy +0.02%, violations +1.4 pp, ENERGY IMPROVEMENT WITH SERVICE TRADEOFF; four separate governors about the same (+0.04%); one governor against four separate: −0.02% (WORSE, by a hair). | `results/realms/stack/STACK.md` |
 
 ## Layer 3: live external software
 
