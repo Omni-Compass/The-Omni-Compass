@@ -178,74 +178,113 @@ def run_muscle(row, seed) -> Dict:
 
 
 # ---------------------------------------------------------------------------------------------------------------
-def run_organism_arm(rows, seed, arm, nominal="calibrated"):
-    plants = [make_plant(r, seed, organism=True) for r in rows]
-    if nominal == "calibrated":
-        for p, w in zip(plants, calibrate_organism(rows)):
-            p.nominal_w = max(w, 1.0)
-    knobs = [r["knob"] for r in rows]
-    paced = [p for p, r in zip(plants, rows) if r["knob"] == "admission"
-             and (r["template"] != "compute_pool" or p.P.get("pausable"))]
-    zones = [p for p in plants if isinstance(p, ThermalZone)]
-    stores = [p for p in plants if isinstance(p, EnergyStorage)]
-    sources = [p for p in plants if not isinstance(p, (ThermalZone, EnergyStorage))]
-    nom_src = sum(p.nominal_w for p in sources) or 1.0
-    nom_sz = nom_src + sum(z.nominal_w for z in zones)
-    nom_all = nom_sz + sum(s.nominal_w for s in stores)
-    k_heat = [0.3 * z.P["q_it_w"] / (nom_src / len(zones)) for z in zones] if zones else []
-    k_load = [0.3 * s.P["load_w"] / (nom_sz / len(stores)) for s in stores] if stores else []
-    budget = 1.25 * nom_all
-    g = None if arm == "native" else Governor()
-    if arm == "watch":
-        g.set_mode(OBSERVE)
+class Body:
+    """One organism's plants and its internal coupling: the electrical power of compute, motion and process plants is
+    heat in its thermal zones, its load swing is load on its storage sites, and its zones' temperature is the ambient
+    every other plant reports."""
+
+    def __init__(self, rows, seed, nominal="calibrated"):
+        self.rows = rows
+        self.plants = [make_plant(r, seed, organism=True) for r in rows]
+        if nominal == "calibrated":
+            for p, w in zip(self.plants, calibrate_organism(rows)):
+                p.nominal_w = max(w, 1.0)
+        self.knobs = [r["knob"] for r in rows]
+        self.paced = [p for p, r in zip(self.plants, rows) if r["knob"] == "admission"
+                      and (r["template"] != "compute_pool" or p.P.get("pausable"))]
+        self.zones = [p for p in self.plants if isinstance(p, ThermalZone)]
+        self.stores = [p for p in self.plants if isinstance(p, EnergyStorage)]
+        self.sources = [p for p in self.plants if not isinstance(p, (ThermalZone, EnergyStorage))]
+        self.nom_src = sum(p.nominal_w for p in self.sources) or 1.0
+        self.nom_sz = self.nom_src + sum(z.nominal_w for z in self.zones)
+        self.nom_all = self.nom_sz + sum(s.nominal_w for s in self.stores)
+        self.k_heat = [0.3 * z.P["q_it_w"] / (self.nom_src / len(self.zones)) for z in self.zones] if self.zones else []
+        self.k_load = [0.3 * s.P["load_w"] / (self.nom_sz / len(self.stores)) for s in self.stores] if self.stores else []
+        self.budget = 1.25 * self.nom_all
+        self.src_w, self.sz_w, self.all_w = self.nom_src, self.nom_sz, self.nom_all
+        self.psum = [0.0] * len(self.plants)
+
+    def couple(self):
+        zones = self.zones
+        th = sum(z.zone_thermal() for z in zones) / len(zones) if zones else None
+        for z, kh in zip(zones, self.k_heat):
+            z.ext = {"heat_w": kh * self.src_w / len(zones)}
+        for s, kl in zip(self.stores, self.k_load):
+            s.ext = {"load_w": kl * (self.sz_w - self.nom_sz) / len(self.stores)}
+        if th is not None:
+            for p in self.plants:
+                if not isinstance(p, ThermalZone):
+                    p.ext["thermal"] = th
+
+    def step(self):
+        for i, p in enumerate(self.plants):
+            p.step()
+            self.psum[i] += p.power_w
+        self.src_w = sum(p.power_w for p in self.sources)
+        self.sz_w = self.src_w + sum(p.power_w for p in self.zones)
+        self.all_w = self.sz_w + sum(p.power_w for p in self.stores)
+
+
+def aggregate(bodies):
+    """One governor's reading of the bodies it serves: the mean of every plant's observation, and power stress as the
+    bodies' total draw against their total budget."""
+    obs = [p.observe() for b in bodies for p in b.plants]
+    n = len(obs)
+    agg = {key: sum(o[key] for o in obs) / n for key in ("queue_ratio", "load_ratio", "network_stress", "drift_ratio",
+                                                          "thermal")}
+    agg.update(power_stress=sum(b.all_w for b in bodies) / sum(b.budget for b in bodies), stale=0.0,
+               security_block=0.0)
+    return agg
+
+
+def run_bodies(bodies, arm, groups):
+    """Run bodies on one 15 s clock. groups: lists of body indices, one governor per group (one group of all bodies is
+    one governor over the whole stack; one group per body is a separate governor per body). arm native: no governor."""
+    govs = []
+    if arm != "native":
+        for grp in groups:
+            g = Governor()
+            if arm == "watch":
+                g.set_mode(OBSERVE)
+            govs.append((g, [bodies[i] for i in grp]))
     kill_at = int(KILL_AT * ORGANISM_STEPS)
     writes = after_kill_writes = 0
     restore_ok = True
-    last = [None] * len(plants)
-    src_w, sz_w, all_w = nom_src, nom_sz, nom_all
-    psum = [0.0] * len(plants)
+    last = {}
     for k in range(ORGANISM_STEPS):
-        th = sum(z.zone_thermal() for z in zones) / len(zones) if zones else None
-        for z, kh in zip(zones, k_heat):
-            z.ext = {"heat_w": kh * src_w / len(zones)}
-        for s, kl in zip(stores, k_load):
-            s.ext = {"load_w": kl * (sz_w - nom_sz) / len(stores)}
-        if th is not None:
-            for p in plants:
-                if not isinstance(p, ThermalZone):
-                    p.ext["thermal"] = th
-        if g is not None:
-            obs = [p.observe() for p in plants]
-            n = len(obs)
-            agg = {key: sum(o[key] for o in obs) / n for key in ("queue_ratio", "load_ratio", "network_stress",
-                                                               "drift_ratio", "thermal")}
-            agg.update(power_stress=all_w / budget, stale=0.0, security_block=0.0)
+        for b in bodies:
+            b.couple()
+        for g, bs in govs:
+            agg = aggregate(bs)
             if arm == "omni" and k == kill_at:
                 g.kill()
             g.current_cap = 1.0
             d = g.step(agg, 0)
             auth = {c: authority(g, agg, d, c) for c in (True, False)} if g.has_authority else {True: None, False: None}
             if g.has_authority:
-                pace(paced, agg, auth[True])
-            for i, (p, knob) in enumerate(zip(plants, knobs)):
-                v = _apply(p, knob, g, d, auth[p.slo_clean])
-                if v:
-                    if v != last[i]:
-                        writes += 1
-                    last[i] = v
-                if arm == "omni" and k >= kill_at:
-                    after_kill_writes += int(bool(v))
-                    restore_ok = restore_ok and _restored(p, knob)
-        for i, p in enumerate(plants):
-            p.step()
-            psum[i] += p.power_w
-        src_w = sum(p.power_w for p in sources)
-        sz_w = src_w + sum(p.power_w for p in zones)
-        all_w = sz_w + sum(p.power_w for p in stores)
-    for p in plants:
-        p.finalize()
-    return {"plants": [dict(p.m) for p in plants], "writes": writes, "after_kill_writes": after_kill_writes,
-            "restore_ok": restore_ok and after_kill_writes == 0, "mean_power": [x / ORGANISM_STEPS for x in psum]}
+                pace([p for b in bs for p in b.paced], agg, auth[True])
+            for b in bs:
+                for p, knob in zip(b.plants, b.knobs):
+                    v = _apply(p, knob, g, d, auth[p.slo_clean])
+                    if v:
+                        if v != last.get(id(p)):
+                            writes += 1
+                        last[id(p)] = v
+                    if arm == "omni" and k >= kill_at:
+                        after_kill_writes += int(bool(v))
+                        restore_ok = restore_ok and _restored(p, knob)
+        for b in bodies:
+            b.step()
+    for b in bodies:
+        for p in b.plants:
+            p.finalize()
+    return {"plants": [dict(p.m) for b in bodies for p in b.plants], "writes": writes,
+            "after_kill_writes": after_kill_writes, "restore_ok": restore_ok and after_kill_writes == 0,
+            "mean_power": [x / ORGANISM_STEPS for b in bodies for x in b.psum]}
+
+
+def run_organism_arm(rows, seed, arm, nominal="calibrated"):
+    return run_bodies([Body(rows, seed, nominal)], arm, [[0]])
 
 
 def run_organism(rows, seed) -> Dict:
@@ -302,3 +341,25 @@ def label(per_seed, valid=True):
 
 def summarize(per_seed):
     return {k: interval([c[k] for c in per_seed]) for k in ("primary", "work", "energy", "viol_pp")}
+
+
+# ---------------------------------------------------------------------------------------------------------------
+def run_stack(realm_rows, seed) -> Dict:
+    """The four realm organisms stacked on one clock, every muscle as often as it appears (duplicates included), each
+    realm keeping its own internal coupling. Arms:
+      native     no governor
+      separate   one governor per realm (as if each realm had its own Omni)
+      one        one governor over the whole stack
+    native_equal: the stacked native run reproduces each realm's own native run exactly, plant by plant."""
+    out = {}
+    for arm, groups in (("native", None), ("separate", [[i] for i in range(len(realm_rows))]),
+                        ("one", [list(range(len(realm_rows)))])):
+        bodies = [Body(rows, seed) for rows in realm_rows]
+        out[arm] = run_bodies(bodies, "native" if arm == "native" else "omni", groups or [])
+    alone = []
+    for rows in realm_rows:
+        alone += run_organism_arm(rows, seed, "native")["plants"]
+    out["native_equal"] = alone == out["native"]["plants"]
+    for arm in ("native", "separate", "one"):
+        out[arm].pop("mean_power", None)
+    return out

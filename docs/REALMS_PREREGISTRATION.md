@@ -183,3 +183,20 @@ rule and the invalidity rules are round 2's, unchanged.
   - The whole-tower organism still holds each of the 656 once.
 - **Quantum Computing Control moves to the compute realm** (it behaves as a compute job queue).
 - **Round 3 seeds:** 3000 to 3009. Round 2 is kept in `results/realms/round2/` with a note on why it is superseded.
+
+## Round 4: the stacked organism (2026-10-02, before any round-4 seed)
+
+The four realm organisms of round 3, stacked on one 15 s clock (`realms/harness.py`, `run_stack`; `tools/run_stack.py`).
+Every muscle appears as often as it appears in the realms, duplicates included: 345 + 262 + 282 + 337 = 1,226. A
+duplicate is still a muscle that has to converge. Each realm keeps its own internal coupling. The plants, the Omni
+layer, the outcomes, the guardrails and the label rule are round 3's.
+
+- **Arms:** native (no governor); separate (one governor per realm); one (one governor over the whole stack, reading
+  the mean of all 1,226 muscles and the stack's total power against its total budget).
+- **Check, required for validity:** the stacked native run equals each realm's own native run, plant by plant, on
+  every seed. Stacking must change nothing natively.
+- **Comparisons, each labelled by the rule:**
+  - one governor against native;
+  - separate governors against native;
+  - one governor against separate governors (does one Omni over everything beat four).
+- **Seeds:** 4000 to 4009. Development used seed 0 only, never reported.
