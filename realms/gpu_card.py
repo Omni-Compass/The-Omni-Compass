@@ -16,6 +16,10 @@ The firmware (native, what ships on the card), 50 times a second
 The arms
   native    the card as shipped: power limit 150 W, clock ceiling at the top, firmware alone
   preset    a fixed efficiency preset: power limit 105 W (70%), as an operator would set and leave
+  old       the shipped one-wire governor (omni_controller/gpu_governor.py, its defaults): the frozen engine's
+            power_cap through the shield (draw x 1.3, 70% share floor, device minimum), the busy gate (smoothed
+            utilization 0.5, band 0.1), the response-time reflex (p95 over 30 s against the line, clear after 3
+            decisions), 5 W minimum change, every 2 s, the power limit only
   bowl      Omni-Compass through two wires (omnicompass/bowl.py): the clock ceiling is the up wire (how high boost may
             push), the power limit is the down wire (the lid, set just above what the ceiling draws, inside its cover
             of 105-150 W). The bowl's reading is the response time as a position between the bare service time (0)
@@ -28,7 +32,9 @@ import math
 import random
 from typing import Dict
 
+from omnicompass.adapter import Governor
 from omnicompass.bowl import Band, Bowl, Plug, clamp
+from omni_controller.gpu_governor import shield_limit, busy_gate
 
 TICK = 0.02                 # firmware period, s
 DECIDE = 1.0                # brain period, s
@@ -69,6 +75,7 @@ class Card:
         self.n = n
         self.k = 0
         self.f, self.T, self.Q = 0.5, 45.0, 0.0
+        self.last_p, self.last_busy = P_IDLE, 0.0
         self.limit, self.ceiling = LIMIT_DEFAULT, 1.0
         self.m = {"energy_j": 0.0, "served": 0.0, "arrived": 0.0, "hammer": 0, "reversals": 0, "viol_s": 0.0,
                   "t_peak": 0.0, "t_sum": 0.0, "f_sum": 0.0, "f_sq": 0.0}
@@ -91,6 +98,7 @@ class Card:
         self.window.append(w)
         self.bwin.append(busy)
         m = self.m
+        self.last_p, self.last_busy = P, busy
         m["energy_j"] += P * TICK; m["served"] += served; m["arrived"] += a
         m["t_peak"] = max(m["t_peak"], self.T); m["t_sum"] += self.T
         m["f_sum"] += self.f; m["f_sq"] += self.f * self.f
@@ -166,7 +174,36 @@ def run(seed: int, arm: str, duration: float = 600.0, center: float = 0.5) -> Di
         brain = Bowl(Band(lo=0.0, hi=1.0, center=center), dt=DECIDE, tau=2.0, kp=1.0, authority=1.0, smooth=0.3)
         brain.kd *= 3.0                                  # the push: three times the damping that only stops the slosh,
                                                          # so a rising load is met before it reaches the wall
+    if arm == "old":
+        gov, lp_hist, util_avg, gated = Governor(), [], None, False
+        old_per = int(2.0 / TICK)
     for k in range(card.n):
+        if arm == "old" and k % old_per == 0 and k:
+            if k >= kill:
+                card.limit = LIMIT_DEFAULT                       # the kill: the limit read at start
+            else:
+                recent = card.resp[-int(30.0 / TICK):]
+                tot = sum(a for _, a in recent) or 1.0
+                acc, p95 = 0.0, recent[-1][0]
+                for w, a in sorted(recent):
+                    acc += a
+                    if acc >= 0.95 * tot:
+                        p95 = w; break
+                lp = max(0.0, p95 / SLO_S - 1.0)
+                lp_hist.append(lp)
+                clean = len(lp_hist) >= 3 and all(x == 0.0 for x in lp_hist[-3:])
+                gov.current_cap = min(1.0, card.limit / LIMIT_DEFAULT)
+                d = gov.step({"queue_ratio": min(2.0, lp), "load_ratio": card.last_busy,
+                              "power_stress": card.last_p / LIMIT_DEFAULT, "thermal": card.T / 83.0,
+                              "network_stress": 0.0, "drift_ratio": 0.0, "stale": 0.0, "security_block": 0.0}, 0)
+                cap = float(d["power_cap"]) if clean else 1.0
+                want, _ = shield_limit(cap, card.last_p, LIMIT_DEFAULT, 100.0, 0.3, 0.70, clean)
+                util_avg, gated = busy_gate(util_avg, card.last_busy, gated, 0.5, 0.1)
+                if gated:
+                    want = int(LIMIT_DEFAULT)
+                want = max(want, int(LIMIT_MIN))
+                if abs(want - card.limit) >= 5.0 or (want == LIMIT_DEFAULT and card.limit != want):
+                    card.limit = float(want)
         if brain is not None and k % per == 0 and k:
             if k >= kill:
                 if k - per < kill:

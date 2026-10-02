@@ -11,7 +11,7 @@ from realms.harness import T95  # noqa: E402
 
 SEEDS = list(range(5000, 5010))       # tuning seeds (the gains were chosen on these)
 FRESH = list(range(5100, 5110))       # fresh seeds, never used while tuning
-ARMS = ("native", "preset", "bowl")
+ARMS = ("native", "preset", "old", "bowl")
 ROWS = [("work_per_kj", "work per energy (requests per kJ)", "{:.1f}"), ("energy_j", "energy (J)", "{:.0f}"),
         ("served", "requests served", "{:.0f}"), ("p50_ms", "response, median (ms)", "{:.1f}"),
         ("p95_ms", "response, 95th percentile (ms)", "{:.1f}"), ("p99_ms", "response, 99th percentile (ms)", "{:.1f}"),
@@ -41,18 +41,19 @@ def main(out=ROOT / "results" / "sim" / "gpu_two_wire", fresh=""):
          "`omnicompass/bowl.py`. The frozen engine is not used here; this is the bowl law as its own arm.", "",
          "- **native**: the card as shipped, 150 W limit, firmware boost up a bin and hammer down three at the limit;",
          "- **preset**: a fixed 105 W limit (70%), set and left, as an operator would;",
+         "- **old governor**: the shipped one-wire GPU governor (its defaults), the power limit only;",
          "- **bowl**: Omni through two wires, the clock ceiling (up) and the power limit (down, the lid), pulling the "
          "service position (the worse of response time and busy share) to the middle of its bowl; both wires restored "
          "to their snapshot at 90% of the run.", "",
-         "## Mean over seeds", "", "| Gauge | Native | Preset | Bowl |", "|---|---:|---:|---:|"]
+         "## Mean over seeds", "", "| Gauge | Native | Preset | Old governor | Bowl |", "|---|---:|---:|---:|---:|"]
     for k, name, f in ROWS:
         L.append(f"| {name} | " + " | ".join(f.format(sum(r[k] for r in res[a]) / len(SEEDS)) for a in ARMS) + " |")
-    L += ["", "## Paired against native (95% interval over seeds)", "", "| Gauge | Preset | Bowl |", "|---|---:|---:|"]
+    L += ["", "## Paired against native (95% interval over seeds)", "", "| Gauge | Preset | Old governor | Bowl |", "|---|---:|---:|---:|"]
     for k, name, f in [("work_per_kj", "work per energy", None), ("energy_j", "energy", None),
                        ("viol_share", "time over the line (pp)", "pp"), ("p95_ms", "response p95", None),
                        ("hammer_per_s", "hammer blows", None)]:
         cells = []
-        for a in ("preset", "bowl"):
+        for a in ("preset", "old", "bowl"):
             if f == "pp":
                 d = [100 * (x[k] - n[k]) for x, n in zip(res[a], res["native"])]
                 m, lo, hi = ci(d); cells.append(f"{m:+.2f} ({lo:+.2f} to {hi:+.2f})")
