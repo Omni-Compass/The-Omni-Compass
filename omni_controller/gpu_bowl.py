@@ -171,6 +171,10 @@ class GpuBowl:
             ceiling, lid, who = self.top, self.start, "blind_fail_up" if p is None else "fail_up"
         else:
             F = self.brain.force(p)
+            if r["util"] > 0.3 and self.ceiling > r["clock_mhz"] + 2 * a.min_change_mhz:
+                # a ceiling above where the busy card already runs (its own limits hold it lower) holds nothing: it is
+                # brought down to where the card is, which changes nothing the card does, so the force acts at once
+                self.ceiling = max(self.c_lo, r["clock_mhz"] + a.min_change_mhz)
             gain = (a.up_gain if F > 0 else a.down_gain) * (self.top - self.c_lo)
             ceiling = clamp(self.ceiling + gain * F, self.c_lo, self.top)
             if heat and ceiling < self.ceiling:
@@ -238,7 +242,7 @@ def parser():
     ap.add_argument("--slo-ms", type=float, default=0.0)
     ap.add_argument("--latency-window-s", type=float, default=30.0)
     ap.add_argument("--floor-w", type=float, default=0.0, help="the declared envelope's lowest watts")
-    ap.add_argument("--clock-min-share", type=float, default=0.5, help="the clock ceiling's cover: lowest share of the top")
+    ap.add_argument("--clock-min-share", type=float, default=0.35, help="the clock ceiling's cover: lowest share of the top")
     ap.add_argument("--up-gain", type=float, default=0.10, help="share of the clock cover moved per unit of force, up")
     ap.add_argument("--down-gain", type=float, default=0.02, help="share of the clock cover moved per unit of force, down")
     ap.add_argument("--lid-headroom", type=float, default=0.10, help="the lid above the draw the ceiling takes")

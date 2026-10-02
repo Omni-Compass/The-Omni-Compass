@@ -221,7 +221,7 @@ The Omni arm changes engine. The outcomes, the arms' order, the guardrails, the 
 unchanged.
 
 - **The Omni arm holds two wires** (`omni_controller/gpu_bowl.py`, the bowl law of `omnicompass/bowl.py`): the clock
-  ceiling (`nvidia-smi -lgc`, reset with `-rgc`), which sets how high the card's own boost may climb, and the power
+  ceiling (`nvidia-smi -lgc`, reset with `-rgc`; cover 35% of the top clock to the top), which sets how high the card's own boost may climb, and the power
   limit (`-pl`), the lid at what a fully busy card draws at that ceiling plus 10%, never under the declared envelope
   floor and never over the start limit. The service is read as one position between calm and the response-time line
   (the worse of p95 and utilization above half) and pulled to the middle; past 95% both wires go to full at once
@@ -238,3 +238,9 @@ unchanged.
   come back up when reset, the power limit must read back what was set, the governor must hand both wires back when
   stopped and must leave a limit set by another writer alone (exit 5). If any step fails, nothing else runs and the
   check's report names the wire, the step and what the card said.
+- **Wire check, corrected before any trial (2026-10-02):** on the A10 the first wire check failed at "3 up wire
+  (follows up)" although the wire works: under the heavy check load the card's own 150 W limit already held it near
+  990 MHz, so a ceiling at 60% of the top clock (1017 MHz) left no room for the clock to come back up above it. The
+  check now reads the card's busy clock on its own first and locks at 60% of that. The governor likewise starts its
+  ceiling at the clock the busy card actually runs (a ceiling above it holds nothing), and its clock cover is 35% of
+  the top clock to the top. No trial had run.

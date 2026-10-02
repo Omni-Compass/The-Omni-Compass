@@ -7,8 +7,9 @@ Run as root on the machine with the card (scripts/gpu_rented_run.sh runs it firs
 
   1 read        every meter answers: watts, temperature, utilization, power limit, clock, top clock
   2 snapshot    the starting power limit, read once
-  3 up wire     with the card busy, lock the clock ceiling low: the clock must come down under it; reset it: the clock
-                must come back up (the ceiling is followed, in the right direction)
+  3 up wire     with the card busy, read the clock it runs at on its own (its power limit may already hold it below
+                the top), lock the ceiling at 60% of that: the clock must come down under it; reset it: the clock
+                must come back above it (the ceiling is followed, in the right direction)
   4 down wire   set the power limit lower: the card must report it; set it back: the card must report the start
   5 restore     clocks reset and the start limit, read back
   6 stop        the two-wire governor, stopped by its stop signal, hands both wires back
@@ -81,10 +82,13 @@ def main(argv=None):
         start = r["limit"]
         say("2 snapshot", start > 0, f"start power limit {start} W")
 
-        busy(4 * a.settle + 6)
-        low, floor = int(0.6 * top), query_min_clock(smi, g)
+        busy(5 * a.settle + 8)
+        time.sleep(a.settle)
+        c_free = read()["clock_mhz"]                         # the busy clock with the card's own range (its limits hold it)
+        floor = query_min_clock(smi, g)
+        low = int(max(floor + 60, 0.6 * c_free))             # a ceiling clearly under where the card runs on its own
         rc, err = smi_run(smi, ["-i", str(g), "-lgc", f"{floor},{low}"])
-        say("3 up wire (lock)", rc == 0, f"nvidia-smi -lgc {floor},{low} returned {rc} {err}".strip())
+        say("3 up wire (lock)", rc == 0, f"busy clock on its own {c_free} MHz; nvidia-smi -lgc {floor},{low} returned {rc} {err}".strip())
         time.sleep(a.settle)
         c_low = read()["clock_mhz"]
         say("3 up wire (follows down)", c_low <= low + 30, f"ceiling {low} MHz, the card's clock {c_low} MHz")
@@ -92,7 +96,8 @@ def main(argv=None):
         say("3 up wire (reset)", rc == 0, f"nvidia-smi -rgc returned {rc} {err}".strip())
         time.sleep(a.settle)
         c_up = read()["clock_mhz"]
-        say("3 up wire (follows up)", c_up > c_low + 30, f"after reset the card's clock {c_up} MHz, under the lock {c_low} MHz")
+        say("3 up wire (follows up)", c_up > low + 30,
+            f"after reset the card's clock {c_up} MHz, above the ceiling {low} MHz (on its own it ran {c_free} MHz)")
 
         mn = read().get("min", 0.0)
         lower = int(max(mn, 0.8 * start))
