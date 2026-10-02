@@ -842,6 +842,7 @@ def build():
     story += front_chapter(doc, "Foreword", MAN["Foreword"])
     story += front_chapter(doc, "Preface", PREFACE.splitlines())
     story += front_chapter(doc, "Executive Summary", MAN["Executive Summary"])
+    story += front_chapter(doc, "Disclosures, Declarations and Disclaimers", doc_body("DISCLOSURES.md")[1])
     md_parts = ["# THE OMNI-COMPASS MANUAL", "", BANNER_MD, "", EDITION, "", FILED, "",
                 "The printable book of this text, with its covers, plates, contents and appendices: "
                 "`docs/OMNI_COMPASS_MANUAL.pdf`. Built by `docs/book/build_book.py`.", ""]

@@ -2,6 +2,8 @@
 
 > **PROPRIETARY - EVALUATION AND SIMULATION USE ONLY.** Copyright (c) 2026 The Omni-Compass LLC. This is not open-source software (`SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0`). Any commercial use, commercialization, monetization, production use, redistribution, hosted service or incorporation into a product requires a signed, paid **Omni-Compass Enterprise License** from The Omni-Compass LLC. Protected by copyright, patents and trademarks: Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC. See [`LICENSE`](../LICENSE).
 
+> **Before you wire anything:** read [`DISCLOSURES.md`](../DISCLOSURES.md). Omni-Compass acts only through the wires it is given; it cannot be slapped on. If your paired receipts differ from the published benchmarks in direction, the first presumption is wiring: confirm the installation with section 8.5 of the manual (*Wired right or wired wrong*).
+
 There are three ways to get real-machine numbers:
 - **Your own tower:** a machine you control, with a smart plug measuring the whole machine at the wall (section A).
 - **GitHub's GPU machines:** they run the test from the repository with one click (section B).
@@ -68,65 +70,48 @@ The rental site shows a command like `ssh ubuntu@123.45.67.89`. Paste it into Te
 
 ## 3. Get the code
 
-The repository is private, so GitHub needs a key:
-
-1. On github.com go to **Settings → Developer settings → Personal access tokens → Fine-grained tokens**.
-2. Create a token with **read-only** access to this one repository. Copy it.
-
-Then on the rented machine:
+On the rented machine (the repository is public while the benchmarks run; if it is private, use a read-only
+fine-grained token in the URL):
 
 ```bash
-git clone -b claude/kubernetes-clusters-docker-stack-gp26ve https://<YOUR-GITHUB-NAME>:<TOKEN>@github.com/The-Omni-Compass-LLC/The-Omni-Compass omni
-cd omni
-pip install numpy          # PyTorch is already on the machine
+git clone https://github.com/The-Omni-Compass-LLC/The-Omni-Compass the-omni-compass
+cd the-omni-compass
+git log --oneline -1       # the commit you are about to test; write it down
+pip install -r requirements.txt
 nvidia-smi                 # should show your GPU
 ```
 
-## 4. The trial run (about 40 minutes)
-
-This checks that everything works on your machine. It is never published.
+## 4. The whole test, one command (about 12 hours)
 
 ```bash
-sudo REPS=2 DURATION=300 bash scripts/gpu_paired.sh
+sudo nohup bash scripts/gpu_rented_run.sh > run.log 2>&1 &
+tail -f run.log            # Ctrl+C stops watching; the test keeps running
 ```
 
-At the end it prints a table. What matters here:
-- It doesn't say **INVALID**.
-- The *Omni governs* column shows power-limit writes.
-- The watch arm shows zero writes.
+It runs, in order, and stops at the first failure:
+1. the machine check (one copy only, nothing else on the card, the card's default limit and clock range restored);
+2. the **wire check**, which must end `WIRED RIGHT` (manual, section 8.4);
+3. the smoke test, about 40 minutes, never counted;
+4. the six organisms with this card inside, about 5½ hours (`SKIP_HIL=1` skips it);
+5. the preregistered confirmation: 10 repetitions × native / watch / Omni, 600 s each, the governor's **service**
+   profile, about 6 hours;
+6. one packed file: `== send this one file back: results/gpu/omni-gpu-<stamp>.tar.gz`, with the label the table chose
+   by rule.
 
-## 5. The real test (about 6 hours)
+Do not start it twice and do not use the card for anything else while it runs.
 
-The code is frozen, with 10 repetitions, exactly as fixed in `docs/GPU_PREREGISTRATION.md`. Don't change anything
-between the trial and this.
+## 5. Bring the results back
 
-```bash
-sudo PHASE=confirm nohup bash scripts/gpu_paired.sh > confirm.log 2>&1 &
-```
+Download `results/gpu/omni-gpu-<stamp>.tar.gz` (in JupyterLab: right-click, Download; or `scp` from your own computer).
+It holds every raw reading, every table, the verdict and the checksums. **Then shut the rented machine down** on the
+rental site, so the billing stops.
 
-`nohup ... &` keeps it running if your connection drops. You can close the window and come back. To check on it:
+## 6. Read it before you believe it
 
-```bash
-tail -5 confirm.log
-```
-
-## 6. Bring the results back
-
-When `confirm.log` ends with the table:
-
-```bash
-sudo tar czf gpu_results.tgz results/gpu
-```
-
-Then, from your own computer (a new Terminal window, not the rented machine):
-
-```bash
-scp ubuntu@123.45.67.89:omni/gpu_results.tgz .
-```
-
-Send that file to Claude, or keep it. It holds every raw reading, the table, the verdict and checksums.
-
-**Then shut the rented machine down** on the rental site, so the billing stops.
+Open `results/gpu/run-<stamp>/GPU_REPS.md` and check the rows of the manual's section 8.5 (*Wired right or wired
+wrong*): watch equal to native, requests equal, the card's busy clock under Omni at or above its own, the lid while busy
+at or above its own busy draw, fail-up rare in the credit-per-write table. If a row reads wired wrong, the run says
+nothing about Omni-Compass until the wiring is fixed (`DISCLOSURES.md`, section 3).
 
 ## Before any machine: the simulated card
 

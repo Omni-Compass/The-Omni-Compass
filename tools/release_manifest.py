@@ -40,7 +40,7 @@ GROUPS = {
     "gpu_rented_run": ["scripts/gpu_rented_run.sh", "tools/run_hil.py", "tests/fake_gpu/nvidia-smi"],
     "six_organisms": ["tools/run_scale.py", "tools/pool_scale.py", "scripts/scale_ladder.sh", ".github/workflows/six.yml",
                       "results/scale/GRID.md"],
-    "license": ["LICENSE", "NOTICE"],
+    "license": ["LICENSE", "NOTICE", "DISCLOSURES.md"],
     "realms": ["realms/catalog.csv", "realms/plants.py", "realms/presets.py", "realms/harness.py",
                "tools/realms_catalog.py", "tools/run_realms.py", "docs/REALMS_PREREGISTRATION.md"],
 }

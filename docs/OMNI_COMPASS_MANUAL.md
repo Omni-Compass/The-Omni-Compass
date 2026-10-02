@@ -31,6 +31,12 @@ saving on a particular system. The only number that applies to your system is th
 on your own receipt. Before Omni-Compass writes to any production system, it must run in watch mode, pass the wire
 check, and be covered by a signed Omni-Compass Enterprise License.
 
+**The wiring declaration.** Omni-Compass acts only through the wires it is given. A wrong reading, a wrong or shared
+lever, a wrong range, or a service line set for another workload makes it do exactly what its law says with the wrong
+information. It cannot be slapped on. If your paired receipts differ from the published benchmarks in direction, the
+first presumption is wiring: confirm the installation with section 8.5 before drawing any conclusion. Every
+declaration, disclosure and disclaimer is made once, in `DISCLOSURES.md`, and governs this manual.
+
 ## Foreword
 
 I built Omni-Compass to sit on top of what already exists. Kubernetes, the GPU driver, the building controller, the
@@ -271,8 +277,15 @@ power limiter knocks the clock back each time the draw crosses the limit; on a b
 second, at the top of the clock range where each extra step of speed costs the most watts. With one wire (the power
 limit) a governor can only move the wall the boost pushes against. With two wires, the clock ceiling sets how high the
 boost may climb and the power limit becomes a lid that rarely needs to act: the card runs at the bottom of its bowl
-instead of fighting itself at the top. On a modelled card, the same engine moved from +0.1% work per energy with one
-wire to +9.0% with two (section 15).
+instead of fighting itself at the top.
+
+**What the card taught us.** Two rules make the difference between saving energy and spending the customer's time.
+First, *race while work waits*: when the card is saturated, both wires go to full at once, so a burst is always served
+at full speed; the bowl paces only the slack between bursts. Second, *never slower than the card on its own*: the
+governor learns, from the card's own meter, the clock and the draw the card reaches by itself while busy, and never
+sets the clock ceiling or the lid under them. Without these rules the first real card saved 3.5% of its energy and
+made the slowest answers 58.5% slower; with them, the modelled card saves energy with the slowest answers at native
+speed or faster (section 15, and `docs/GPU_PREREGISTRATION.md`, amendments 6 and 7).
 
 ## 7. The Two-Way Nervous System
 
@@ -347,6 +360,28 @@ in reverse order.
 
 Any failure prints the wire, the step and what the device said, and nothing else runs. That turns a wiring fault from
 guesswork into one named line to fix.
+
+**8.5 Wired right or wired wrong.** The wire check proves the wires move. It does not prove the governor reads the
+right thing. A correct installation leaves signatures in its own receipts; a wrong one leaves others. Check them on
+your first paired runs, before you believe any number, good or bad.
+
+| Check | Wired right | Wired wrong, and what to look at |
+|---|---|---|
+| Watch arm against native | equal on every gauge (watch writes nothing) | different: the probe, the load or the machine differs between arms, not Omni |
+| Requests served, failed requests | equal to native | fewer served or more failed: a lever is cutting capacity; check its cover and its sign |
+| p95 and p99 response time | at native or faster | slower: the reading or the floors are wrong (rows below) |
+| GPU: the card's clock while busy | at or above the clock the card reaches on its own | below it: the speed floor is missing or the lid is under the card's own draw |
+| GPU: the lid while busy | at or above the card's own busy draw | at the envelope floor while busy: the lid is sized from a curve, not from the card's own meter |
+| GPU: credit per write (`GPU_REPS.md`) | bowl decisions pace the slack, race decisions cover the bursts; fail-up is rare | fail-up in most decisions: being busy is being read as a breach, or the service line is set too low |
+| Kubernetes: machines given back | through the release gate, one per decision, with no pod waiting | machines given back while pods wait, or none at all while the service is far inside its band: check the latency feed, `--slo-ms` and the release gate's reasons in the audit |
+| Kubernetes: the kill switch | every HPA target, replica range, CPU limit and worker back to native, no record left | anything left: an earlier run or another controller wrote the same objects |
+| Every lever after the run | at its snapshot | not at its snapshot: another writer, or a restore that failed (exit 3): restore by hand and investigate |
+| The feed itself | fresh samples every few seconds | stale or empty: Omni reads it as blind and fails up; fix the feed, not the governor |
+
+**The rule.** If any row reads "wired wrong", the result of that run says nothing about Omni-Compass: fix the wiring,
+run the wire check and the watch arm again, and only then compare. The first real card run is the worked example: its
+receipts showed the card's busy clock under its own (736-768 MHz against 861-889), the lid at the 105 W floor under its
+own 135 W draw, and fail-up in 46% of decisions. Each of those is a row in this table.
 
 ---
 
@@ -430,7 +465,10 @@ Pass: p95, p99 and failed requests no worse than native, over paired runs (secti
 **Level 3 - The machines. WRITES.**
 1. Grant `patch nodes` and `patch pods` (`deploy/kind/rbac-omni.yaml`).
 2. Run with `--mode nodepool --active-nodes-only --closure /app/law/closure.json --node-scale-cmd "<command with {n}>"`
-   and `--node-restore-cmd "<command>"` for the OFF switch.
+   and `--node-restore-cmd "<command>"` for the OFF switch. For the bowl law on the same levers, use `--law bowl`
+   (reads the mean response time of the latency window between a tenth of `--slo-ms` and `--slo-ms`, held at
+   `--bowl-center 0.4`; p95 at the SLO, a blind feed or a waiting pod adds capacity at once; the HPA target never goes
+   above the operator's; machines go back one at a time through the release gate).
 
 | Your platform | The park/wake command |
 |---|---|
@@ -461,11 +499,21 @@ sudo python3 -m omni_controller.gpu_bowl --mode cap --gpus 0 --audit /var/log/om
 sudo touch /tmp/omni-gpu-kill
 ```
 
-Every `--interval` seconds (default 2) it reads the card's own meters and the response times, places the service in
-its bowl, and moves the clock ceiling (cover: `--clock-min-share` of the top clock, default 35%, to the top) and the
-lid (never under `--floor-w`, never over the start limit). A breach, a blind sense or a heat slowdown sends it up at
-once. The one-wire governor (`omni_controller.gpu_governor`, power limit only) remains available.
-Pass: work per energy up; requests served and p95 inside the guardrails.
+Every `--interval` seconds (default 2) it reads the card's own meters and the response times, and:
+- **learns the card on its own** first: while the ceiling is at the top and the card is busy, its busy clock and busy
+  draw; until 15 such readings are in, neither wire moves;
+- **races while work waits**: at 95% utilization or more, the ceiling to the top and the lid to the start limit;
+- **paces the slack**: the mean response time of the last 5 s, between a tenth of `--slo-ms` and `--slo-ms`, held at
+  the profile's center; the ceiling moves in whole 15 MHz steps, never under the card's own busy clock (times the
+  profile's floor), and the lid never under the card's own busy draw plus 10%, never over the start limit;
+- **fails up** when p95 reaches `--slo-ms`, a request fails, the feed goes blind or the card reports a heat slowdown.
+
+`--profile service` (the default; down gain 0.0125, center 0.4, floor 3% above the card's own busy clock) keeps the
+slowest answers at native or faster; `--profile batch` (0.015, 0.5, floor at the card's own clock) saves more for work
+nobody waits on answer by answer, at a p95 cost. The one-wire governor (`omni_controller.gpu_governor`, power limit
+only) remains available.
+Pass: work per energy up; requests served equal; p95 at native or faster (service profile); every row of section 8.5
+reads "wired right".
 
 **Level 6 - CPU clock and power. WRITES.** On bare metal, add to the controller:
 `--cpufreq-policy-root /sys/devices/system/cpu/cpufreq --cpufreq-require-schedutil --rapl-cmd "<prints CPU package watts>"`.
@@ -632,6 +680,9 @@ test passes. `verify.py` fails, naming the file, if any sealed file changes afte
 | Native | the system as it runs without Omni-Compass |
 | Organism | a set of muscles run together on one clock |
 | Plug | the two-way connection to one muscle: read, write, read back, restore |
+| Profile | a named set of the bowl's settings for one kind of work: service (the default) or batch |
+| Race | full speed at once while work waits, so a burst is never served slowly |
+| Speed floor | the clock a card reaches on its own while busy, learned from its own meter; the governor never sets the ceiling under it |
 | Receipt | the paired record of native against Omni-Compass for one run |
 | Snapshot | a knob's value read once before the first write; the restore point |
 | Wire check | the test that proves every wire follows, reads back and returns before anything runs |
@@ -690,6 +741,13 @@ test passes. `verify.py` fails, naming the file, if any sealed file changes afte
         p >= 0.95  =>  full up force; down side held
         knob <- clip(knob + g_side F span, cover)
 
+    The GPU governor (two wires, omni_controller/gpu_bowl.py):
+        p = (mean response of the last 5 s - S) / (SLO - S),  S = SLO / 10;  p95 >= SLO, a failure, blind  =>  fail up
+        utilization >= 0.95  =>  race: ceiling = top clock, lid = start limit
+        ceiling <- clip(ceiling + round(g_side F f_top / 15 MHz) 15 MHz, floor x f_busy_own, f_top)
+        lid = clip(1.10 P_busy_own, envelope floor, start limit)
+        service: g_down 0.0125, center 0.4, floor 1.03;  batch: g_down 0.015, center 0.5, floor 1.00;  g_up 0.10
+
 Parameter ranges, defaults and the proof of convergence: `omnicompass/core.py`, `docs/TRACKING_THEOREM.md`,
 `docs/CANONICAL_ENGINE.md`.
 
@@ -709,6 +767,10 @@ Every gauge, where it comes from, and whether it is measured or modelled: `docs/
 | Governor exit 5 | another writer changed a knob | find the other controller; Omni-Compass left its value alone |
 | Governor exit 3 | a restore did not read back | restore by hand (`nvidia-smi -rgc`, `-pl <start>`); investigate before rerunning |
 | `decision failed (n in a row)` | the cluster API is unreachable | turn it OFF; native runs on |
+| Energy saved but p95 slower than native | the card served bursts below its own clock, or the lid sat under its own draw | read section 8.5; in the audit compare `telemetry.clock_mhz` while busy with `native_busy_clock_mhz`, and `want_w` with `native_busy_draw_w` |
+| Fail-up in most decisions | `--slo-ms` set too low for the workload, or a stale feed read as blind | set `--slo-ms` from the workload's own target; check the feed's age |
+| No saving at all, service unchanged | the card is saturated almost all the time (it races), or the service sits above the bowl's center | expected on a card with no slack; the saving comes from the quiet stretches |
+| Kubernetes: no machine ever given back | the release gate refuses (its reason is in the audit), or the service is above the bowl's center | read `node_gate.reason` in the audit; check `--slo-ms` and the latency feed |
 
 ## Appendix F - Evidence Map
 

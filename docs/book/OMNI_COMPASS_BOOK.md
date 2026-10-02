@@ -743,7 +743,8 @@ Three openings were found and each has its closure:
    frozen engine and is a new version with its own proof.
 2. **The outer loop.** The frozen live governor computes the push and pull u and uses it as a convergence signal; it
    does not send u to a lever. The bowl closes this loop: reading, force, plug, lever, read-back. On the modelled card
-   this is the difference between +0.1% and +9.0% work per energy.
+   this is the difference between +0.1% and several percent of work per energy (the one-wire governor against the
+   corrected two-wire bowl, `results/sim/gpu_two_wire/`).
 3. **The corner.** clip() is a hard stop; tanh is its smooth form. The bowl uses tanh.
 
 
@@ -1274,8 +1275,15 @@ power limiter knocks the clock back each time the draw crosses the limit; on a b
 second, at the top of the clock range where each extra step of speed costs the most watts. With one wire (the power
 limit) a governor can only move the wall the boost pushes against. With two wires, the clock ceiling sets how high the
 boost may climb and the power limit becomes a lid that rarely needs to act: the card runs at the bottom of its bowl
-instead of fighting itself at the top. On a modelled card, the same engine moved from +0.1% work per energy with one
-wire to +9.0% with two (section 15).
+instead of fighting itself at the top.
+
+**What the card taught us.** Two rules make the difference between saving energy and spending the customer's time.
+First, *race while work waits*: when the card is saturated, both wires go to full at once, so a burst is always served
+at full speed; the bowl paces only the slack between bursts. Second, *never slower than the card on its own*: the
+governor learns, from the card's own meter, the clock and the draw the card reaches by itself while busy, and never
+sets the clock ceiling or the lid under them. Without these rules the first real card saved 3.5% of its energy and
+made the slowest answers 58.5% slower; with them, the modelled card saves energy with the slowest answers at native
+speed or faster (section 15, and `docs/GPU_PREREGISTRATION.md`, amendments 6 and 7).
 
 
 ## 17. The Physics of a Processor
@@ -2069,12 +2077,36 @@ in reverse order.
 Any failure prints the wire, the step and what the device said, and nothing else runs. That turns a wiring fault from
 guesswork into one named line to fix.
 
+**8.5 Wired right or wired wrong.** The wire check proves the wires move. It does not prove the governor reads the
+right thing. A correct installation leaves signatures in its own receipts; a wrong one leaves others. Check them on
+your first paired runs, before you believe any number, good or bad.
+
+| Check | Wired right | Wired wrong, and what to look at |
+|---|---|---|
+| Watch arm against native | equal on every gauge (watch writes nothing) | different: the probe, the load or the machine differs between arms, not Omni |
+| Requests served, failed requests | equal to native | fewer served or more failed: a lever is cutting capacity; check its cover and its sign |
+| p95 and p99 response time | at native or faster | slower: the reading or the floors are wrong (rows below) |
+| GPU: the card's clock while busy | at or above the clock the card reaches on its own | below it: the speed floor is missing or the lid is under the card's own draw |
+| GPU: the lid while busy | at or above the card's own busy draw | at the envelope floor while busy: the lid is sized from a curve, not from the card's own meter |
+| GPU: credit per write (`GPU_REPS.md`) | bowl decisions pace the slack, race decisions cover the bursts; fail-up is rare | fail-up in most decisions: being busy is being read as a breach, or the service line is set too low |
+| Kubernetes: machines given back | through the release gate, one per decision, with no pod waiting | machines given back while pods wait, or none at all while the service is far inside its band: check the latency feed, `--slo-ms` and the release gate's reasons in the audit |
+| Kubernetes: the kill switch | every HPA target, replica range, CPU limit and worker back to native, no record left | anything left: an earlier run or another controller wrote the same objects |
+| Every lever after the run | at its snapshot | not at its snapshot: another writer, or a restore that failed (exit 3): restore by hand and investigate |
+| The feed itself | fresh samples every few seconds | stale or empty: Omni reads it as blind and fails up; fix the feed, not the governor |
+
+**The rule.** If any row reads "wired wrong", the result of that run says nothing about Omni-Compass: fix the wiring,
+run the wire check and the watch arm again, and only then compare. The first real card run is the worked example: its
+receipts showed the card's busy clock under its own (736-768 MHz against 861-889), the lid at the 105 W floor under its
+own 135 W draw, and fail-up in 46% of decisions. Each of those is a row in this table.
+
 ---
 
 
 ## 28. The Harness
 
 
+
+> **Before you wire anything:** read [`DISCLOSURES.md`](DISCLOSURES.md). Omni-Compass acts only through the wires it is given; it cannot be slapped on. If your paired receipts differ from the published benchmarks in direction, the first presumption is wiring: confirm the installation with section 8.5 of the manual (*Wired right or wired wrong*).
 
 This tree is the GitHub-ready kit: frozen engine + C++ twin + two plants + live stub.
 
@@ -2126,6 +2158,8 @@ See `LIMITS.md`.
 ## 29. The Wiring Guide
 
 
+
+> **Before you wire anything:** read [`DISCLOSURES.md`](../DISCLOSURES.md). Omni-Compass acts only through the wires it is given; it cannot be slapped on. If your paired receipts differ from the published benchmarks in direction, the first presumption is wiring: confirm the installation with section 8.5 of the manual (*Wired right or wired wrong*).
 
 > **The current manual is `docs/INTEGRATION_MANUAL.md`** (every stack, every level, every switch). This page is kept for
 > reference; where the two differ, the integration manual is current.
@@ -2296,7 +2330,10 @@ Pass: p95, p99 and failed requests no worse than native, over paired runs (secti
 **Level 3 - The machines. WRITES.**
 1. Grant `patch nodes` and `patch pods` (`deploy/kind/rbac-omni.yaml`).
 2. Run with `--mode nodepool --active-nodes-only --closure /app/law/closure.json --node-scale-cmd "<command with {n}>"`
-   and `--node-restore-cmd "<command>"` for the OFF switch.
+   and `--node-restore-cmd "<command>"` for the OFF switch. For the bowl law on the same levers, use `--law bowl`
+   (reads the mean response time of the latency window between a tenth of `--slo-ms` and `--slo-ms`, held at
+   `--bowl-center 0.4`; p95 at the SLO, a blind feed or a waiting pod adds capacity at once; the HPA target never goes
+   above the operator's; machines go back one at a time through the release gate).
 
 | Your platform | The park/wake command |
 |---|---|
@@ -2338,6 +2375,8 @@ sudo python3 tools/gpu_wire_check.py --gpu 0                    # must end: WIRE
 ## 32. The Integration Manual
 
 
+
+> **Before you wire anything:** read [`DISCLOSURES.md`](../DISCLOSURES.md). Omni-Compass acts only through the wires it is given; it cannot be slapped on. If your paired receipts differ from the published benchmarks in direction, the first presumption is wiring: confirm the installation with section 8.5 of the manual (*Wired right or wired wrong*).
 
 How to wire Omni-Compass into your own systems yourself, from watching only to running your stack from the top. This
 manual ships in the box with the code and the license. Nobody from The Omni-Compass LLC needs to be on site.
@@ -2609,6 +2648,8 @@ commit.
 
 
 
+> **Before you wire anything:** read [`DISCLOSURES.md`](../DISCLOSURES.md). Omni-Compass acts only through the wires it is given; it cannot be slapped on. If your paired receipts differ from the published benchmarks in direction, the first presumption is wiring: confirm the installation with section 8.5 of the manual (*Wired right or wired wrong*).
+
 There are three ways to get real-machine numbers:
 - **Your own tower:** a machine you control, with a smart plug measuring the whole machine at the wall (section A).
 - **GitHub's GPU machines:** they run the test from the repository with one click (section B).
@@ -2675,64 +2716,48 @@ The rental site shows a command like `ssh ubuntu@123.45.67.89`. Paste it into Te
 
 ### 3. Get the code
 
-The repository is private, so GitHub needs a key:
-
-1. On github.com go to **Settings → Developer settings → Personal access tokens → Fine-grained tokens**.
-2. Create a token with **read-only** access to this one repository. Copy it.
-
-Then on the rented machine:
+On the rented machine (the repository is public while the benchmarks run; if it is private, use a read-only
+fine-grained token in the URL):
 
 ```bash
-git clone -b main https://<YOUR-GITHUB-NAME>:<TOKEN>@github.com/The-Omni-Compass-LLC/The-Omni-Compass omni
-cd omni
-pip install numpy          # PyTorch is already on the machine
+git clone https://github.com/The-Omni-Compass-LLC/The-Omni-Compass the-omni-compass
+cd the-omni-compass
+git log --oneline -1       # the commit you are about to test; write it down
+pip install -r requirements.txt
 nvidia-smi                 # should show your GPU
 ```
 
-### 4. The trial run (about 40 minutes)
-
-This checks that everything works on your machine. It is never published.
+### 4. The whole test, one command (about 12 hours)
 
 ```bash
-sudo REPS=2 DURATION=300 bash scripts/gpu_paired.sh
+sudo nohup bash scripts/gpu_rented_run.sh > run.log 2>&1 &
+tail -f run.log            # Ctrl+C stops watching; the test keeps running
 ```
 
-At the end it prints a table. What matters here:
-- It doesn't say **INVALID**.
-- The *Omni governs* column shows power-limit writes.
-- The watch arm shows zero writes.
+It runs, in order, and stops at the first failure:
+1. the machine check (one copy only, nothing else on the card, the card's default limit and clock range restored);
+2. the **wire check**, which must end `WIRED RIGHT` (manual, section 8.4);
+3. the smoke test, about 40 minutes, never counted;
+4. the six organisms with this card inside, about 5½ hours (`SKIP_HIL=1` skips it);
+5. the preregistered confirmation: 10 repetitions × native / watch / Omni, 600 s each, the governor's **service**
+   profile, about 6 hours;
+6. one packed file: `== send this one file back: results/gpu/omni-gpu-<stamp>.tar.gz`, with the label the table chose
+   by rule.
 
-### 5. The real test (about 6 hours)
+Do not start it twice and do not use the card for anything else while it runs.
 
-The code is frozen, with 10 repetitions, exactly as fixed in `docs/GPU_PREREGISTRATION.md`. Don't change anything
-between the trial and this.
+### 5. Bring the results back
 
-```bash
-sudo PHASE=confirm nohup bash scripts/gpu_paired.sh > confirm.log 2>&1 &
-```
+Download `results/gpu/omni-gpu-<stamp>.tar.gz` (in JupyterLab: right-click, Download; or `scp` from your own computer).
+It holds every raw reading, every table, the verdict and the checksums. **Then shut the rented machine down** on the
+rental site, so the billing stops.
 
-`nohup ... &` keeps it running if your connection drops. You can close the window and come back. To check on it:
+### 6. Read it before you believe it
 
-```bash
-tail -5 confirm.log
-```
-
-### 6. Bring the results back
-
-When `confirm.log` ends with the table:
-
-```bash
-sudo tar czf gpu_results.tgz results/gpu
-```
-
-Then, from your own computer (a new Terminal window, not the rented machine):
-
-```bash
-scp ubuntu@123.45.67.89:omni/gpu_results.tgz .
-```
-
-
-**Then shut the rented machine down** on the rental site, so the billing stops.
+Open `results/gpu/run-<stamp>/GPU_REPS.md` and check the rows of the manual's section 8.5 (*Wired right or wired
+wrong*): watch equal to native, requests equal, the card's busy clock under Omni at or above its own, the lid while busy
+at or above its own busy draw, fail-up rare in the credit-per-write table. If a row reads wired wrong, the run says
+nothing about Omni-Compass until the wiring is fixed (`DISCLOSURES.md`, section 3).
 
 ### Before any machine: the simulated card
 
@@ -2807,6 +2832,8 @@ compute.
 ## 36. The Operator Manual
 
 
+
+> **Before you wire anything:** read [`DISCLOSURES.md`](../DISCLOSURES.md). Omni-Compass acts only through the wires it is given; it cannot be slapped on. If your paired receipts differ from the published benchmarks in direction, the first presumption is wiring: confirm the installation with section 8.5 of the manual (*Wired right or wired wrong*).
 
 > **The current manual is `docs/INTEGRATION_MANUAL.md`** (every stack, every level, every switch). This page is kept for its
 > first-person account of the laws; where the two differ, the integration manual is current.
@@ -3306,6 +3333,8 @@ receipt's energy line is modelled, the receipt says so.
 
 
 
+> **Before you wire anything:** read [`DISCLOSURES.md`](../DISCLOSURES.md). Omni-Compass acts only through the wires it is given; it cannot be slapped on. If your paired receipts differ from the published benchmarks in direction, the first presumption is wiring: confirm the installation with section 8.5 of the manual (*Wired right or wired wrong*).
+
 #### Phase 0: Simulation evaluation (evaluator's own environment)
 Run `python verify.py`. Pass criterion: VERIFICATION: PASS.
 
@@ -3361,6 +3390,8 @@ The kit is exercised end to end on kind by the `live-shadow` workflow.
 ## 42. The GPU Bench
 
 
+
+> **Before you wire anything:** read [`DISCLOSURES.md`](../DISCLOSURES.md). Omni-Compass acts only through the wires it is given; it cannot be slapped on. If your paired receipts differ from the published benchmarks in direction, the first presumption is wiring: confirm the installation with section 8.5 of the manual (*Wired right or wired wrong*).
 
 This is the test that answers "does Omni-Compass save real energy?" with the GPU's own power meter. There is no model
 in it. Nobody has run it yet on real hardware for this repository; the first run is the first real-meter result.
@@ -6062,6 +6093,9 @@ locally at this commit.
 | Native | the system as it runs without Omni-Compass |
 | Organism | a set of muscles run together on one clock |
 | Plug | the two-way connection to one muscle: read, write, read back, restore |
+| Profile | a named set of the bowl's settings for one kind of work: service (the default) or batch |
+| Race | full speed at once while work waits, so a burst is never served slowly |
+| Speed floor | the clock a card reaches on its own while busy, learned from its own meter; the governor never sets the ceiling under it |
 | Receipt | the paired record of native against Omni-Compass for one run |
 | Snapshot | a knob's value read once before the first write; the restore point |
 | Wire check | the test that proves every wire follows, reads back and returns before anything runs |
@@ -6126,6 +6160,13 @@ locally at this commit.
         p >= 0.95  =>  full up force; down side held
         knob <- clip(knob + g_side F span, cover)
 
+    The GPU governor (two wires, omni_controller/gpu_bowl.py):
+        p = (mean response of the last 5 s - S) / (SLO - S),  S = SLO / 10;  p95 >= SLO, a failure, blind  =>  fail up
+        utilization >= 0.95  =>  race: ceiling = top clock, lid = start limit
+        ceiling <- clip(ceiling + round(g_side F f_top / 15 MHz) 15 MHz, floor x f_busy_own, f_top)
+        lid = clip(1.10 P_busy_own, envelope floor, start limit)
+        service: g_down 0.0125, center 0.4, floor 1.03;  batch: g_down 0.015, center 0.5, floor 1.00;  g_up 0.10
+
 Parameter ranges, defaults and the proof of convergence: `omnicompass/core.py`, `docs/TRACKING_THEOREM.md`,
 `docs/CANONICAL_ENGINE.md`.
 
@@ -6149,6 +6190,10 @@ Every gauge, where it comes from, and whether it is measured or modelled: `docs/
 | Governor exit 5 | another writer changed a knob | find the other controller; Omni-Compass left its value alone |
 | Governor exit 3 | a restore did not read back | restore by hand (`nvidia-smi -rgc`, `-pl <start>`); investigate before rerunning |
 | `decision failed (n in a row)` | the cluster API is unreachable | turn it OFF; native runs on |
+| Energy saved but p95 slower than native | the card served bursts below its own clock, or the lid sat under its own draw | read section 8.5; in the audit compare `telemetry.clock_mhz` while busy with `native_busy_clock_mhz`, and `want_w` with `native_busy_draw_w` |
+| Fail-up in most decisions | `--slo-ms` set too low for the workload, or a stale feed read as blind | set `--slo-ms` from the workload's own target; check the feed's age |
+| No saving at all, service unchanged | the card is saturated almost all the time (it races), or the service sits above the bowl's center | expected on a card with no slack; the saving comes from the quiet stretches |
+| Kubernetes: no machine ever given back | the release gate refuses (its reason is in the audit), or the service is above the bowl's center | read `node_gate.reason` in the audit; check `--slo-ms` and the latency feed |
 
 
 ## Appendix F. Evidence Map

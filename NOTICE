@@ -19,3 +19,6 @@ Third-party: tests/third_party/hpa_independent.py is a separately written compon
 terms.
 
 Commercial licensing (Omni-Compass Enterprise License): The Omni-Compass LLC.
+
+Every declaration, disclosure and disclaimer about Omni-Compass, including the wiring declaration, is made in
+DISCLOSURES.md, which governs every other page of this repository.

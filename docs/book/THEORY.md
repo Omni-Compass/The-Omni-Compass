@@ -276,7 +276,8 @@ Three openings were found and each has its closure:
    frozen engine and is a new version with its own proof.
 2. **The outer loop.** The frozen live governor computes the push and pull u and uses it as a convergence signal; it
    does not send u to a lever. The bowl closes this loop: reading, force, plug, lever, read-back. On the modelled card
-   this is the difference between +0.1% and +9.0% work per energy.
+   this is the difference between +0.1% and several percent of work per energy (the one-wire governor against the
+   corrected two-wire bowl, `results/sim/gpu_two_wire/`).
 3. **The corner.** clip() is a hard stop; tanh is its smooth form. The bowl uses tanh.
 
 # The Physics of a Processor

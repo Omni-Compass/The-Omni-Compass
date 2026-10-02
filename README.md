@@ -5,11 +5,25 @@
 A six-state control engine that supervises Kubernetes and hardware from above: Kubernetes and its autoscalers stay the
 execution layer.
 
-**Where it stands, plainly.** Omni-Compass is a small supervisory governor. It reads power and queue, writes caps and
-taints, and can be killed clean. It does not replace your autoscaler. Use it on top, in shadow first. Connectors for
-RAPL, nvidia-smi and a site meter are in the controller; nobody has yet published a run of them on real hardware. On
-kind, energy is a declared model, not a meter. The first metered test is one command on any NVIDIA GPU machine:
-`sudo bash scripts/gpu_paired.sh` (`docs/GPU_BENCH.md`; step by step for a rented GPU: `docs/GPU_RUN_GUIDE.md`).
+**Read first: [`DISCLOSURES.md`](DISCLOSURES.md).** Every declaration, disclosure and disclaimer is made there once,
+including the wiring declaration: Omni-Compass acts only through the wires it is given, it cannot be slapped on, and if
+your paired receipts differ from the published benchmarks in direction, the first presumption is wiring (manual,
+section 8.5).
+
+**Where it stands, plainly.** Omni-Compass is a supervisory governor. It reads the meters of each muscle, holds each
+muscle's own setting in the middle of its band with one bounded law, and hands every setting back when it stops. It
+does not replace your autoscaler or your firmware; it sits on top, in watch mode first.
+
+| Measured | Result | Class |
+|---|---|---|
+| Real Kubernetes, sets 22-26, 10 paired runs each, same work | machines in service −29% to −36%, p95 −55% to −65%, 0 failed requests, every set proven; total CPU including Omni's own: no difference | L |
+| Real NVIDIA A10, 10 paired runs, the card's own meter | work per energy **+3.6%** (proven), energy −3.5%, same requests; p95 **+58.5% worse**, a wiring fault in the governor, found in the card's own samples and corrected (`docs/GPU_PREREGISTRATION.md`, amendments 6-7) | P |
+| The corrected GPU governor, modelled card | service profile work per energy +6.9% / +3.8%, p95 5.9% / 2.3% faster (tuning / fresh seeds) | S |
+| Six organisms (656 muscles), 1-1,000 runs, 1× and 10× size | work per energy +0.20% to +0.31% in every cell; time over the service line +0.2 points (band first not yet held) | S |
+
+Everything, with charts: [`docs/DOSSIER.md`](docs/DOSSIER.md). Where everything stands: [`STATE_OF_PLAY.md`](STATE_OF_PLAY.md).
+On kind, energy is a declared model, not a meter. The corrected GPU governor's real-card run is next: one command on a
+rented NVIDIA machine, `sudo bash scripts/gpu_rented_run.sh` (`docs/GPU_RUN_GUIDE.md`).
 
 ## What each piece of evidence establishes, and what it does not
 
@@ -25,7 +39,7 @@ kind, energy is a declared model, not a meter. The first metered test is one com
 | Shield adversarial tests, 100M-decision soak | The safety logic holds under generated bad inputs; the code runs long without failing | Behaviour under real faults |
 | Fleet and cluster simulators (`fleet/`, `k8s_controlplane/`) | Behaviour against modelled plants with declared assumptions | Real savings; the plant and Omni are in the same program |
 | Live Kubernetes on kind (`results/live/LIVE_PAIRED.md`) | Omni changes a real control plane: faster responses, fewer pod starts, zero failures, a clean kill switch | Energy or money: kind has no meter and every machine stayed on |
-| GPU bench (`scripts/gpu_paired.sh`) | Not run yet. This is where real joules enter | |
+| GPU bench (`scripts/gpu_rented_run.sh`, `scripts/gpu_paired.sh`) | Run once on a real A10 (2026-10-02): energy saved, proven, and the slowest answers slower because of a wiring fault since corrected. Real joules from the card's own meter | That the corrected governor holds response time on a real card (its run is next); other cards |
 | Production data centre | Not run | |
 
 Dollar figures computed by multiplying modelled per-stack coefficients are not results and do not appear here.
