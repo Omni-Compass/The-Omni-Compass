@@ -27,11 +27,6 @@ The force (Bowl.force), the physics of a ball in a bowl with the right friction
   fail up   past the 0.95 wall the up side goes to its full force at once, and the down side may not act until the
             position is back inside the bowl
 
-  walls     with kw > 0, each edge of the band repels like a charge of the same sign: a force growing as 1/distance^2
-            near the wall, nothing at the center (the two walls cancel there). It is the slope of the walls' potential,
-            so the field itself points inward at the boundary (G(X).n(X) <= 0 on the boundary: nothing crosses) and the
-            bowl's energy only falls (grad L . G <= 0): the Unified Circle Principle, written as the force
-
 Two forces (antagonist pairs)
   up        a positive force adds capacity, power, cooling or speed (scale out, raise a clock, start a chiller)
   down      a negative force takes it back (scale in, lower a limit, warm a setpoint)
@@ -82,7 +77,6 @@ class Bowl:
     kp: float = 1.0
     kd: Optional[float] = None
     authority: float = 1.0
-    kw: float = 0.0              # the walls' repulsion (like charges at 0 and 1): kw x (1/(1-p)^2 - 1/p^2)
     smooth: float = 0.5          # the velocity estimate's smoothing (0: raw difference, near 1: heavily smoothed)
     p: Optional[float] = field(default=None, init=False)
     v: float = field(default=0.0, init=False)
@@ -105,8 +99,7 @@ class Bowl:
         p = self.sense(reading)
         if p >= self.band.wall_high:
             return self.authority                                  # fail up: past the wall, full force up at once
-        q = clamp(p, 1e-3, 1.0 - 1e-3)
-        raw = self.kp * (p - self.band.center) + self.kd * self.v + self.kw * (1.0 / (1.0 - q) ** 2 - 1.0 / q ** 2)
+        raw = self.kp * (p - self.band.center) + self.kd * self.v
         f = self.authority * math.tanh(raw / self.authority)
         if f < 0.0 and self.v > 0.0 and p > self.band.center:
             f = 0.0                                                # never take back while it climbs above the center
