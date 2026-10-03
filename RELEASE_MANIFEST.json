@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-fd7ad30f3164",
- "written_at_commit": "fd7ad30f316461135253953532ad230f9ee6bef2",
- "written_at": "2026-10-03T17:03:13+00:00",
+ "release_id": "omni-compass-ec5b666ec000",
+ "written_at_commit": "ec5b666ec0008e0bb21a1852da89b9de8a7d7e65",
+ "written_at": "2026-10-03T17:17:57+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -131,6 +131,7 @@
    ".github/workflows/kwok-scale.yml": "a5194b9fd8f30d22eab8291a07b0d6c99f8434ce68d5a2581fbc4baca3cbc0b9"
   },
   "six_organisms": {
+   "scripts/grid_one_machine.sh": "b2a08fd908398627c22173ab3bf146c21908900a3ce68e3bf1a05eaa60db7cd9",
    "tools/run_scale.py": "013b684e2092f3445063c3fa2faad07bac12dd35682eddb8fe6d92f0188cf02b",
    "tools/pool_scale.py": "d2a6c9e97af364d67e375d136a81ee441ce40d0f3ddc616f780b11d136a4b2b3",
    "scripts/scale_ladder.sh": "8a5bf85660fcca478f3c7e81366861768f32c144c59f8639febc2b46d2a66baf",
@@ -169,7 +170,7 @@
    "realms/harness.py": "56490080a6eef944512531de208ded8bca99d4184dbec2509b14cc3b5fced784",
    "tools/realms_catalog.py": "29f9de22733d54bb31fa5becc2108f8ade8ba6165ff82f4223971bd171074c2d",
    "tools/run_realms.py": "05e6167730222e6c7202570ec11ad4926496fd7213f17ebd1ebc5ba6bd1bbde6",
-   "docs/REALMS_PREREGISTRATION.md": "6014577d551b76f61b9a90325b7021c494701db1de6271912d1e64ddf4adb473"
+   "docs/REALMS_PREREGISTRATION.md": "8f39e2b41ee630d3f847fe49c2d048efb6ea65e73d877872f8d0277d7014f157"
   }
  },
  "live_evidence": {
@@ -220,7 +221,7 @@
  "physical_meter_results": "NVIDIA A10 on Lambda, 2026-10-02, 10 paired runs (results/gpu/run-20261002T082232Z/GPU_REPS.md): work per energy +3.6% (proven), p95 +58.5%, label energy improvement with service tradeoff; the governor corrected in GPU amendments 6 and 7 has not yet run on a card",
  "verification_receipt": {
   "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "a8d18ff8b59ebb4e75cc3712ef0837df14479c2d52d3091575e064d2879636ec",
+  "sha256": "cfd12cac5b9b7dc563e0615dd35af5343e5ef144986a05f353d96fa414ab963e",
   "passed": true
  }
 }

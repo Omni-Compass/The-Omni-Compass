@@ -299,3 +299,8 @@ plant, and with the calibration organism built while the result organism was sti
 Same outputs: four organisms, two seeds each, at 1x to 3x, byte-identical before and after. A plant now takes 6.7 KB;
 the four stacked at 1,000 copies needs about 9 GB. The re-run: 10 runs per organism at 1,000 copies (the 1-run and
 10-run cells); 100 runs at 1,000 copies follows when the runners allow it (about 650 runner-hours).
+
+The 100-run cells at 1,000 copies run on one rented machine (`scripts/grid_one_machine.sh`): every organism in turn,
+as many processes as the machine's cores and memory allow, the same seeds (7000 on), each finished organism saved at
+once, one receipt at the end (`SIX-1000x.md`), saved as `results/scale/receipts/round6-1000x.md` in place of the
+1-run and 10-run receipt it contains.
