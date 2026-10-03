@@ -9,7 +9,7 @@
 set -euo pipefail
 KUBECTL="${KUBECTL:-kubectl}"   # kind_bench.sh sets this to scripts/kubectl_omni.sh (least privilege)
 IDLE_W="${IDLE_W:-100}"; DYN_W="${DYN_W:-150}"; STANDBY_W="${STANDBY_W:-$IDLE_W}"
-nodes=$($KUBECTL get nodes -l '!node-role.kubernetes.io/control-plane' -o json)
+nodes=$($KUBECTL get nodes -l "${WORKER_SEL:-!node-role.kubernetes.io/control-plane}" -o json)
 # a worker carrying work (any running or starting pod that is not a DaemonSet's) is in service even while closed;
 # only a closed worker with no work left idles at STANDBY_W
 carrying=$($KUBECTL get pods -A -o json | jq -r '[.items[] | select(.status.phase=="Running" or .status.phase=="Pending")

@@ -151,3 +151,34 @@ window, so the extra pods outlived the fault.
 its center), the response line is clean and no pod is waiting, the operator's own target returns at once and is not
 held by the window. More pods only while the fault lasts. The re-run is the same fault test, arms, load, duration and
 rule (set 30 F); set 30 runs the same code without faults, to show nothing else moved.
+
+## The bill on a real cloud (written before its run)
+
+The question a buyer pays for: the same work, a smaller bill? On kind every machine stays powered, so a machine given
+back saves only a declared model's energy. On a real cloud the machine is deleted and stops being billed. The run
+(`.github/workflows/aks-metered.yml`, `scripts/aks_paired.sh`, `scripts/kind_bench.sh` with `PLATFORM=aks`):
+
+- **The cluster.** Azure Kubernetes Service, a fresh cluster for every arm, built the same way:
+  - a system pool of one machine, tainted so no workload lands on it (AKS's add-ons and the load generator: kind's
+    control plane);
+  - a work pool starting at 4 machines (Standard_D2s_v5) under **Azure's own cluster autoscaler** (min 1, max 4; scale
+    down after 2 minutes unneeded), which deletes a machine once it is empty.
+- **The arms**, rotated in each repetition:
+  - native: Kubernetes with Azure's autoscaler alone;
+  - native with Omni-Compass on top, the bowl law with the verdict (`bowl`);
+  - native with Omni-Compass on top, the allocation law (`omni`).
+
+  With Omni-Compass on top, the machines it gives back are idled (new pods go elsewhere, their pods leave first), and
+  Azure's autoscaler then deletes them. Omni-Compass never deletes a machine itself.
+- **The same work** in every arm: the fixed-rate load of sets 22 onward, 900 measured seconds after 120 s of warm-up.
+- **The bill.** Every 15 s, the number of work machines that exist (in service or idle, every one is billed),
+  integrated over the measured window: billed machine-hours, priced at Azure's list price for the machine
+  (USD 0.096 an hour for Standard_D2s_v5, Linux, pay as you go, set in the workflow's input). Omni-Compass never reads
+  this count.
+- **Outcomes.** Billed machine-hours and the bill (lower is better), and every gauge of sets 28 and 29 (response time,
+  failures, pods waiting, CPU including Omni-Compass's own), paired against native with 95% intervals over 5
+  repetitions. Labelled by the one rule (`DISCLOSURES.md`, section 3): nothing more than 2% worse, and only where the
+  bill or energy is saved.
+- **Housekeeping.** One repetition at a time; each cluster deleted when its arm ends, before the next is made; the
+  resource group deleted at the end of every repetition whatever happens. It needs the repository secret
+  `AZURE_CREDENTIALS`.

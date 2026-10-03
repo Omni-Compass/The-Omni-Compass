@@ -57,6 +57,13 @@ def main():
         (d / "faults.log").write_text("1100 machine down: kind-worker6\n1220 machine back: kind-worker6\n")
     tab = "\n".join(LR.fault_table(f, ["native", "bowl"]))
     assert "| machine down | native | 120 |" in tab and "| machine down | bowl | 30 |" in tab and "-90 s" in tab, tab
+    # the bill on a real cloud: 4 machines for the first hour, then 2 (Azure deleted two empty ones): 6 machine-hours
+    b = Path(tempfile.mkdtemp()) / "bench-bowl-1"; b.mkdir()
+    (b / "window_start.txt").write_text("0\n"); (b / "window_end.txt").write_text("7200\n")
+    (b / "billed_nodes.csv").write_text("epoch_s,machines\n" + "".join(f"{t},{4 if t < 3600 else 2}\n" for t in range(0, 7201, 15)))
+    bl = LR.bill(b)
+    assert abs(bl["machines billed, machine-hours"] - 6.0) < 0.02 and abs(bl["compute bill at list price ($)"] - 6.0 * 0.096) < 0.01, bl
+    assert LR.bill(f / "bench-native-1") == {}                         # kind: no bill rows
     print("PASS cost to match: every arm listed, the cheapest native setting that reaches Omni-Compass's p95 and its extra "
           "pods, CPU and machines, and a plain statement when none reaches it; fault recovery times paired against native")
 

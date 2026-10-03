@@ -15,7 +15,7 @@
 set -euo pipefail
 KUBECTL="${KUBECTL:-kubectl}"   # kind_bench.sh sets this to scripts/kubectl_omni.sh (least privilege)
 want="${1:?usage: kind_nodepool.sh N}"
-workers=$($KUBECTL get nodes -l '!node-role.kubernetes.io/control-plane' -o json)
+workers=$($KUBECTL get nodes -l "${WORKER_SEL:-!node-role.kubernetes.io/control-plane}" -o json)
 CLOSED_Q='(.spec.unschedulable == true or any(.spec.taints[]?; .key == "omnicompass.io/idle"))'
 mapfile -t active < <(echo "$workers" | jq -r ".items[] | select($CLOSED_Q | not) | .metadata.name")
 mapfile -t parked < <(echo "$workers" | jq -r ".items[] | select($CLOSED_Q) | .metadata.name")
@@ -66,7 +66,7 @@ elif (( want < n )); then
   done
   # one machine empties at a time: the closed machine with the least work goes first (cost -1000 x N), the next
   # after it (-1000 x (N-1)), ... so each scale-down takes whole machines' work, not one pod from each
-  mapfile -t closed < <($KUBECTL get nodes -l '!node-role.kubernetes.io/control-plane' -o json \
+  mapfile -t closed < <($KUBECTL get nodes -l "${WORKER_SEL:-!node-role.kubernetes.io/control-plane}" -o json \
       | jq -r ".items[] | select($CLOSED_Q) | .metadata.name" | while read -r node; do
         sv=0
         for row in "${served[@]}"; do
@@ -87,4 +87,4 @@ elif (( want < n )); then
     rank=$(( rank - 1 ))
   done
 fi
-echo "open workers: $($KUBECTL get nodes -l '!node-role.kubernetes.io/control-plane' -o json | jq "[.items[] | select($CLOSED_Q | not)] | length") (wanted $want)"
+echo "open workers: $($KUBECTL get nodes -l "${WORKER_SEL:-!node-role.kubernetes.io/control-plane}" -o json | jq "[.items[] | select($CLOSED_Q | not)] | length") (wanted $want)"

@@ -44,13 +44,19 @@ IDLE_W="${IDLE_W:-100}"; DYN_W="${DYN_W:-150}"
 PARK_FRAC="${PARK_FRAC:-0.25}"
 STANDBY_W="${STANDBY_W:-$(python -c "print($IDLE_W * $PARK_FRAC)")}"; export IDLE_W DYN_W STANDBY_W
 mkdir -p "$OUT_DIR"
-WORKERS=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' --no-headers | wc -l)
+# PLATFORM=kind (default): the kind cluster on one runner. PLATFORM=aks: a real Azure Kubernetes Service cluster
+# (.github/workflows/aks-metered.yml): workers are the user pool (agentpool=work) under Azure's own cluster autoscaler,
+# which deletes a machine once it is empty, so a machine given back is a machine no longer billed; the system pool
+# carries the NoSchedule taint kind's control plane carries, so every count below is the same on both
+PLATFORM="${PLATFORM:-kind}"
+if [ "$PLATFORM" = aks ]; then export WORKER_SEL="${WORKER_SEL:-agentpool=work}"; else export WORKER_SEL="!node-role.kubernetes.io/control-plane"; fi
+WORKERS=${AKS_MAX_NODES:-$(kubectl get nodes -l "$WORKER_SEL" --no-headers | wc -l)}
 SITE_LIMIT_W=$(( WORKERS * (IDLE_W + DYN_W) ))
 
 METRICS_SERVER_VERSION="${METRICS_SERVER_VERSION:-v0.9.0}"
 METRICS_SERVER_SHA256="${METRICS_SERVER_SHA256:-1cec29a5267809306a2c6ec74a3e449abbb705b4a8beed0c8a1963910f72c79b}"
 server_minor=$(kubectl version -o json | jq -r '.serverVersion.minor' | tr -cd '0-9')
-[ -n "$server_minor" ] && [ "$server_minor" -ge 34 ] || { echo "metrics-server $METRICS_SERVER_VERSION needs Kubernetes 1.34+ (minor=$server_minor)"; exit 1; }
+[ "$PLATFORM" = aks ] || { [ -n "$server_minor" ] && [ "$server_minor" -ge 34 ]; } || { echo "metrics-server $METRICS_SERVER_VERSION needs Kubernetes 1.34+ (minor=$server_minor)"; exit 1; }
 {
   echo "date_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"; echo "arm=$ARM"; echo "git_commit=$(git rev-parse HEAD 2>/dev/null || echo unknown)"
   echo "docker=$(docker --version 2>/dev/null || echo n/a)"; echo "kind=$(kind version 2>/dev/null || echo n/a)"
@@ -58,6 +64,7 @@ server_minor=$(kubectl version -o json | jq -r '.serverVersion.minor' | tr -cd '
   kubectl version -o json | jq -r '"server=" + .serverVersion.gitVersion'; echo "python=$(python --version 2>&1)"
   echo "metrics_server=$METRICS_SERVER_VERSION sha256=$METRICS_SERVER_SHA256"; echo "workers=$WORKERS"
 } | tee "$OUT_DIR/preflight.txt"
+if [ "$PLATFORM" = kind ]; then
 curl -fsSL "https://github.com/kubernetes-sigs/metrics-server/releases/download/${METRICS_SERVER_VERSION}/components.yaml" -o "$OUT_DIR/metrics-server-components.yaml"
 actual_sha=$(sha256sum "$OUT_DIR/metrics-server-components.yaml" | cut -d' ' -f1)
 [ "$actual_sha" = "$METRICS_SERVER_SHA256" ] || { echo "metrics-server manifest SHA-256 mismatch: $actual_sha"; exit 1; }
@@ -69,6 +76,7 @@ kubectl -n kube-system patch deployment metrics-server -p "$pin"
 kubectl -n kube-system patch deployment coredns -p "$pin"
 kubectl -n kube-system rollout status deployment/metrics-server --timeout=300s
 kubectl -n kube-system rollout status deployment/coredns --timeout=300s
+fi   # AKS runs its own metrics-server and CoreDNS on the system pool
 kubectl apply -f deploy/kind/demo.yaml
 if [ -n "$TUNE" ]; then
   kubectl patch hpa php-apache --type=json -p "[{\"op\":\"replace\",\"path\":\"/spec/metrics/0/resource/target/averageUtilization\",\"value\":$TUNE}]"
@@ -76,8 +84,16 @@ if [ -n "$TUNE" ]; then
 fi
 kubectl apply -f deploy/kind/bench-serving.yaml
 kubectl rollout status deployment/php-apache --timeout=300s
+if [ "$PLATFORM" = aks ]; then
+  # the runner is outside Azure's network: the probe reaches the Service through Azure's load balancer, still
+  # load-balanced across every ready endpoint, as a client outside the cluster sees it
+  kubectl patch service php-apache-edge -p '{"spec":{"type":"LoadBalancer"}}'
+  for i in $(seq 1 60); do EDGE_IP=$(kubectl get service php-apache-edge -o jsonpath='{.status.loadBalancer.ingress[0].ip}'); [ -n "$EDGE_IP" ] && break; sleep 5; done
+  PROBE_URL="http://${EDGE_IP}:80/"
+else
 EDGE_IP=$(kubectl get nodes -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 PROBE_URL="http://${EDGE_IP}:30080/"
+fi
 for i in $(seq 1 30); do curl -fsS -m 5 "$PROBE_URL" >/dev/null && break; sleep 2; done
 curl -fsS -m 5 "$PROBE_URL" >/dev/null || { echo "serving path $PROBE_URL not reachable"; exit 1; }
 echo "probe_url=$PROBE_URL (Service via kube-proxy on the control plane)" | tee -a "$OUT_DIR/preflight.txt"
@@ -85,12 +101,15 @@ kubectl create configmap omni-security --from-literal=hold=false --dry-run=clien
 # LOADGEN=closed (default, every set before 22): waits for each answer. LOADGEN=open: a fixed rate, the same work in every arm
 LOADGEN="${LOADGEN:-closed}"
 if [ "$LOADGEN" = "open" ]; then kubectl apply -f deploy/kind/loadgen-open.yaml; else kubectl apply -f deploy/kind/loadgen.yaml; fi
+if [ "$PLATFORM" = aks ]; then   # the load generator lives where kind keeps it, off the measured workers: the system pool
+  kubectl patch deployment load-generator -p '{"spec":{"template":{"spec":{"nodeSelector":{"kubernetes.azure.com/mode":"system"},"tolerations":[{"key":"CriticalAddonsOnly","operator":"Exists","effect":"NoSchedule"}]}}}}'
+fi
 echo "loadgen=$LOADGEN" | tee -a "$OUT_DIR/preflight.txt"
 kubectl rollout status deployment/load-generator --timeout=300s
 for i in $(seq 1 30); do kubectl top nodes >/dev/null 2>&1 && break; sleep 10; done
 hpa_count=$(kubectl get hpa -A -o json | jq '.items | length')
 [ "$hpa_count" = "1" ] || { echo "expected exactly one HPA, found $hpa_count"; exit 1; }
-foreign=$(kubectl get pods -A -o json | jq '[.items[] | select(.metadata.namespace | IN("kube-system","local-path-storage","default","omni-compass") | not)] | length')
+foreign=$(kubectl get pods -A -o json | jq '[.items[] | select(.metadata.namespace | IN("kube-system","local-path-storage","default","omni-compass","gatekeeper-system") | not)] | length')
 [ "$foreign" = "0" ] || { echo "cluster contains non-harness pods"; exit 1; }
 if [ -z "$NATIVE" ]; then
   kubectl apply -f deploy/kind/rbac-omni.yaml
@@ -146,6 +165,13 @@ fi
 # every start of a serving pod, timed exactly: the API server's own record of each pod from creation to Ready, streamed
 # for the whole measured window (pilot/bench_report.py pod_starts), in every arm alike
 date -u +%s > "$OUT_DIR/window_start.txt"
+meter_pid=""
+if [ "$PLATFORM" = aks ]; then
+  # the bill: every worker machine that exists is billed, in service or idle; every 15 s, how many exist (Omni never
+  # reads this file)
+  ( echo "epoch_s,machines"; while :; do echo "$(date -u +%s),$(kubectl get nodes -l "$WORKER_SEL" --no-headers 2>/dev/null | wc -l)"; sleep 15; done ) > "$OUT_DIR/billed_nodes.csv" &
+  meter_pid=$!
+fi
 kubectl get pods -n default -l run=php-apache -w --output-watch-events -o json > "$OUT_DIR/pod_watch.json" 2>"$OUT_DIR/pod_watch.err" &
 watch_pid=$!
 omni_pid=""
@@ -169,6 +195,7 @@ wait "$load_pid" || true
 wait "$probe_pid" || true
 [ -n "$fault_pid" ] && { wait "$fault_pid" || true; }
 date -u +%s > "$OUT_DIR/window_end.txt"
+[ -n "$meter_pid" ] && { kill "$meter_pid" 2>/dev/null || true; }
 kill "$watch_pid" 2>/dev/null || true; wait "$watch_pid" 2>/dev/null || true
 kubectl get pods -n default -l run=php-apache -o json > "$OUT_DIR/pods_end.json"
 [ -n "$omni_pid" ] && { wait "$omni_pid" || true; }
@@ -183,9 +210,10 @@ if [ "$ARM" = "watch" ]; then
   cpu_limit=$(kubectl get pods -l run=php-apache -o jsonpath='{range .items[*]}{.spec.containers[0].resources.limits.cpu}{"\n"}{end}' | sort -u | tr '\n' ' ' | sed 's/ $//')
   target=$(kubectl get hpa php-apache -o jsonpath='{.spec.metrics[0].resource.target.averageUtilization}')
   range_now=$(kubectl get hpa php-apache -o jsonpath='{.spec.minReplicas},{.spec.maxReplicas}')
-  back=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' -o json | jq '[.items[] | select(.spec.unschedulable != true and (any(.spec.taints[]?; .key == "omnicompass.io/idle") | not))] | length')
+  back=$(kubectl get nodes -l "$WORKER_SEL" -o json | jq '[.items[] | select(.spec.unschedulable != true and (any(.spec.taints[]?; .key == "omnicompass.io/idle") | not))] | length')
   echo "cluster after the run: target $target, range $range_now, CPU limits $cpu_limit, workers $back of $WORKERS" | tee "$OUT_DIR/kill_switch.txt"
-  test "$executed" = "0" && test "$target" = "50" && test "$range_now" = "1,10" && test "$cpu_limit" = "500m" && test "$back" = "$WORKERS"
+  exist=$(kubectl get nodes -l "$WORKER_SEL" --no-headers | wc -l); [ "$PLATFORM" = aks ] || exist="$WORKERS"
+  test "$executed" = "0" && test "$target" = "50" && test "$range_now" = "1,10" && test "$cpu_limit" = "500m" && test "$back" = "$exist"
 elif [ -z "$NATIVE" ]; then
   echo "== kill switch"
   touch "$OUT_DIR/kill"
@@ -201,11 +229,12 @@ elif [ -z "$NATIVE" ]; then
   range_now=$(kubectl get hpa php-apache -o jsonpath='{.spec.minReplicas},{.spec.maxReplicas}')
   echo "HPA replica range after kill: $range_now" | tee -a "$OUT_DIR/kill_switch.txt"
   test "$range_now" = "1,10"
-  back=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' -o json | jq '[.items[] | select(.spec.unschedulable != true and (any(.spec.taints[]?; .key == "omnicompass.io/idle") | not))] | length')
+  back=$(kubectl get nodes -l "$WORKER_SEL" -o json | jq '[.items[] | select(.spec.unschedulable != true and (any(.spec.taints[]?; .key == "omnicompass.io/idle") | not))] | length')
   { echo "restored target: $restored"; echo "workers in service: $back of $WORKERS"; } | tee "$OUT_DIR/kill_switch.txt"
   leftover=$(kubectl get hpa php-apache -o json | jq -r '.metadata.annotations // {} | keys[] | select(startswith("omnicompass.io/"))'; kubectl get deployment php-apache -o json | jq -r '.metadata.annotations // {} | keys[] | select(startswith("omnicompass.io/"))')
   echo "Omni records left after kill: ${leftover:-none}" | tee -a "$OUT_DIR/kill_switch.txt"
-  test "$restored" = "50" && test "$back" = "$WORKERS" && test "$cpu_limit" = "500m" && test -z "$leftover"
+  exist=$(kubectl get nodes -l "$WORKER_SEL" --no-headers | wc -l); [ "$PLATFORM" = aks ] || exist="$WORKERS"
+  test "$restored" = "50" && test "$back" = "$exist" && test "$cpu_limit" = "500m" && test -z "$leftover"
 fi
 echo "rows captured: $(( $(wc -l < "$OUT_DIR/capture.csv") - 1 ))"
 ( cd "$OUT_DIR" && sha256sum $(ls -1 | grep -v '^SHA256SUMS.txt$') > SHA256SUMS.txt )

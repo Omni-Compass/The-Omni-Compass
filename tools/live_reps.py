@@ -16,7 +16,9 @@ KEYS = ["worker nodes in service, mean", "node-hours", "energy, parked workers s
         "response time (ms), 99th percentile", "time over the response line (% of samples)", "failed requests (%)", "pending pods, pod-minutes", "utilisation (used / allocatable)",
         "CPU used (cores), mean", "Omni's own CPU (cores), mean", "CPU used with Omni's own (cores), mean",
         "energy per core-hour (Wh)", "HPA replicas, mean",
-        "pods started", "pod start wait, total (s)", "pod start wait, mean (s)"]
+        "pods started", "pod start wait, total (s)", "pod start wait, mean (s)",
+        "machines billed, machine-hours", "compute bill at list price ($)"]
+BILL = {"machines billed, machine-hours", "compute bill at list price ($)"}   # a real cloud only (PLATFORM=aks)
 
 
 LABEL = {"energy, parked workers still on at idle power (Wh)": "energy, parked workers still on at idle power (Wh, declared model)",
@@ -27,6 +29,24 @@ NEUTRAL = {"CPU used (cores), mean", "utilisation (used / allocatable)", "Omni's
 NOTE = ["**Energy on kind is a declared model, not a meter.** Every worker stays powered and Ready in every arm; the first",
         "energy row counts a parked worker at its full idle power, which is what kind does. The second counts it at the",
         "declared standby power, which needs a node autoscaler that really removes the machine; this run has none.", ""]
+
+
+def bill(d):
+    """The bill on a real cloud: every worker machine that exists is billed (scripts/kind_bench.sh, PLATFORM=aks),
+    integrated over the measured window, priced at the cloud's list price per machine-hour (PRICE_PER_NODE_HOUR)."""
+    g = {}
+    if not (d / "billed_nodes.csv").exists():
+        return g
+    import os
+    t0 = float((d / "window_start.txt").read_text().split()[0])
+    t1 = float((d / "window_end.txt").read_text().split()[0]) if (d / "window_end.txt").exists() else float("inf")
+    b = [(float(r["epoch_s"]), float(r["machines"])) for r in csv.DictReader(open(d / "billed_nodes.csv")) if r.get("machines")]
+    b = [x for x in b if t0 <= x[0] <= t1]
+    if len(b) > 1:
+        mh = sum((y[0] - x[0]) * x[1] for x, y in zip(b, b[1:])) / 3600.0
+        g["machines billed, machine-hours"] = mh
+        g["compute bill at list price ($)"] = mh * float(os.environ.get("PRICE_PER_NODE_HOUR", "0.096"))
+    return g
 
 
 def arm_gauges(d):
@@ -47,6 +67,7 @@ def arm_gauges(d):
         own = float("nan")
     g["Omni's own CPU (cores), mean"] = own
     g["CPU used with Omni's own (cores), mean"] = g.get("CPU used (cores), mean", float("nan")) + own
+    g.update(bill(d))
     return g
 
 
@@ -124,15 +145,21 @@ def main(root):
     out = {"repetitions": {a: sorted(r) for a, r in runs.items()}, "means": {}, "paired": {}}
     for a, r in runs.items():
         out["means"][a] = {k: float(np.nanmean([g.get(k, np.nan) for g in r.values()])) for k in KEYS}
-    L = ["# Repeated live runs on kind (native vs Omni watching only vs Omni on top vs Omni alone)", ""]
+    cloud = any(not math.isnan(m.get("machines billed, machine-hours", float("nan"))) for m in out["means"].values())
+    keys = [k for k in KEYS if k not in BILL or cloud]
+    L = [f"# Repeated live runs on {'Azure Kubernetes Service (AKS), billed machines' if cloud else 'kind'} "
+         "(native vs Omni watching only vs Omni on top vs Omni alone)", ""]
     tuned = sorted((a for a in runs if re.fullmatch(r"native\d+", a)), key=lambda a: -int(a[6:]))
     cols = [a for a in ("native",) if a in runs] + tuned + [a for a in ("watch", "omni", "bowl", "strict") if a in runs]
     names = {"native": "Native", "watch": "Omni watches only", "omni": "Omni on top", "bowl": "Omni on top, bowl law", "strict": "Omni alone",
              **{a: f"Native tuned, HPA target {a[6:]}" for a in tuned}}
     L += ["## All columns, mean over repetitions", "", "| Gauge | " + " | ".join(names[a] for a in cols) + " |",
           "|---|" + "---:|" * len(cols)]
-    L += [f"| {LABEL.get(k, k)} | " + " | ".join(f"{out['means'][a][k]:.4g}" for a in cols) + " |" for k in KEYS]
-    L += [""] + NOTE
+    L += [f"| {LABEL.get(k, k)} | " + " | ".join(f"{out['means'][a][k]:.4g}" for a in cols) + " |" for k in keys]
+    L += [""] + (["**The bill is Azure's own count of machines.** Every worker machine that exists is billed, in service or idle;",
+                  "Azure's cluster autoscaler deletes a machine once it is empty. Machine-hours are integrated every 15 s over the",
+                  "measured window and priced at the list price per machine-hour. The energy rows remain the declared model.", ""]
+                 if cloud else NOTE)
     for a in ("watch", "omni", "bowl", "strict"):
         if a not in runs or "native" not in runs:
             continue
@@ -150,7 +177,7 @@ def main(root):
             nb = float(np.nanmean([runs["native"][r].get(k, np.nan) for r in reps])); ob = nb + float(d.mean())
             half = T95.get(len(d) - 1, 1.96) * (d.std(ddof=1) / math.sqrt(len(d))) if len(d) > 1 else float("nan")
             sig = len(d) > 1 and (d.mean() - half > 0 or d.mean() + half < 0)
-            better = (d.mean() < 0) == (k in LOWER_BETTER)
+            better = (d.mean() < 0) == (k in LOWER_BETTER or k in BILL)
             ch = (ob - nb) / abs(nb) * 100 if abs(nb) > 1e-12 else None
             out["paired"][a][k] = {"native": nb, "omni": ob, "diff": float(d.mean()), "ci95": [float(d.mean() - half), float(d.mean() + half)], "significant": bool(sig)}
             ch_s = f"{ch:+.1f}%" if ch is not None else f"{ob - nb:+.3g} (native is 0)"

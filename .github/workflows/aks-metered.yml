@@ -1,0 +1,75 @@
+# SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0
+# Copyright (c) 2026 The Omni-Compass LLC. Evaluation and simulation use only; any other use requires a signed, paid
+# Omni-Compass Enterprise License. See LICENSE.
+# The bill on a real cloud: native Kubernetes (Azure Kubernetes Service with its own cluster autoscaler) against the
+# same with Omni-Compass on top, the same work, the machines Azure bills counted every 15 s and priced at the list
+# price. Needs the repository secret AZURE_CREDENTIALS (docs/K8S_BOWL_PREREGISTRATION.md, the bill on a real cloud).
+# One repetition at a time (a new subscription's core quota), each cluster deleted when its arm ends; the resource
+# group is deleted at the end whatever happens.
+name: aks-metered
+on:
+  workflow_dispatch:
+    inputs:
+      reps: {description: "Paired repetitions", default: "5"}
+      arms: {description: "Arms, in rotation order", default: "native bowl omni"}
+      duration_s: {description: "Measured seconds per arm", default: "900"}
+      location: {description: "Azure region", default: "eastus"}
+      vm_size: {description: "Worker machine size", default: "Standard_D2s_v5"}
+      price_per_node_hour: {description: "List price of one worker machine-hour in USD (Standard_D2s_v5, Linux, pay as you go)", default: "0.096"}
+concurrency: {group: aks-metered, cancel-in-progress: false}
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs: {reps: "${{ steps.r.outputs.reps }}"}
+    steps:
+      - id: r
+        run: echo "reps=$(python3 -c "import json; print(json.dumps(list(range(1, ${{ github.event.inputs.reps || '5' }} + 1))))")" >> "$GITHUB_OUTPUT"
+  run:
+    needs: plan
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix: {rep: "${{ fromJSON(needs.plan.outputs.reps) }}"}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      AZ_RG: omni-compass-bench-${{ github.run_id }}-${{ matrix.rep }}
+      AZ_LOCATION: ${{ github.event.inputs.location || 'eastus' }}
+      AKS_VM_SIZE: ${{ github.event.inputs.vm_size || 'Standard_D2s_v5' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - uses: azure/login@v2
+        with: {creds: "${{ secrets.AZURE_CREDENTIALS }}"}
+      - uses: azure/setup-kubectl@v4
+      - run: az provider register --namespace Microsoft.ContainerService --wait
+      - run: bash scripts/aks_paired.sh
+        env:
+          REP: ${{ matrix.rep }}
+          ARMS: ${{ github.event.inputs.arms || 'native bowl omni' }}
+          DURATION: ${{ github.event.inputs.duration_s || '900' }}
+          LOADGEN: open
+          CLOSURE: tuning/GLOBAL_LEAGUE_PREREGISTRATION.json
+      - if: always()
+        run: az group delete -n "$AZ_RG" --yes --no-wait || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: "aks-${{ matrix.rep }}", path: "bench-*-${{ matrix.rep }}"}
+  aggregate:
+    needs: run
+    if: always() && needs.run.result != 'skipped'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with: {pattern: "aks-*", path: reps, merge-multiple: true}
+      - run: ls reps && python tools/live_reps.py reps
+        env: {PRICE_PER_NODE_HOUR: "${{ github.event.inputs.price_per_node_hour || '0.096' }}"}
+      - run: cat reps/LIVE_REPS.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with: {name: live-reps-aks, path: "reps/LIVE_REPS.*"}
