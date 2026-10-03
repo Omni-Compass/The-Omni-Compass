@@ -81,7 +81,7 @@ pip install -r requirements.txt
 nvidia-smi                 # should show your GPU
 ```
 
-## 4. The whole test, one command (about 18 hours)
+## 4. The whole test, one command (about 40 hours)
 
 ```bash
 sudo nohup bash scripts/gpu_rented_run.sh > run.log 2>&1 &
@@ -92,11 +92,14 @@ It runs, in order, and stops at the first failure:
 1. the machine check (one copy only, nothing else on the card, the card's default limit and clock range restored);
 2. the **wire check**, which must end `WIRED RIGHT` (manual, section 8.4);
 3. the smoke test, about 40 minutes, never counted;
-4. the six organisms with this card inside, about 5½ hours (`SKIP_HIL=1` skips it);
-5. the preregistered confirmation on compute-bound work: 10 repetitions × native / watch / Omni, 600 s each, about
+4. the preregistered confirmation on compute-bound work: 10 repetitions × native / watch / Omni, 600 s each, about
    6 hours;
-6. the second preregistered confirmation on AI token generation (memory-bound), the same design, about 6 hours
-   (`SKIP_DECODE=1` skips it); each is its own result, never pooled;
+5. the second preregistered confirmation on AI token generation (memory-bound), the same design, about 6 hours
+   (`SKIP_DECODE=1` skips it); each is its own result, never pooled. Both are packed into one file as soon as they
+   finish: `results/gpu/omni-gpu-<stamp>-confirmations.tar.gz`;
+6. the six organisms with this card inside, each as **1, 10, 100 and 1,000 copies** on one clock (3, 3, 2 and 1
+   repetitions), about 25 hours; the 1,000-copy stacks need a longer step than 2 s, measured on the machine and stated
+   in the receipt (`SKIP_HIL=1` skips this stage);
 7. one packed file: `== send this one file back: results/gpu/omni-gpu-<stamp>.tar.gz`, with the label each table chose
    by rule.
 

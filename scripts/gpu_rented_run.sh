@@ -11,14 +11,16 @@
 # 2. declares the envelope before any trial (docs/GPU_PREREGISTRATION.md, amendment 3): lowest watts =
 #    max(device minimum, 70% of the limit read now), unless ENVELOPE=file.json is given;
 # 3. smoke: 3 repetitions x 3 arms x 180 s (about 40 minutes). It checks the wiring on real hardware. It never counts;
-# 4. if smoke is valid: the whole stacks with this card inside (tools/run_hil.py: the four realms and the whole tower
-#    of 656 and the four stacked with duplicates, native and Omni, 3 repetitions, about 5.5 hours; SKIP_HIL=1 skips it), then the preregistered
-#    confirmation, 10 repetitions x 3 arms x 600 s (about 6 hours), on the same committed code (STOP_AFTER_SMOKE=1
-#    stops after step 3), on the pinned compute-bound workload (matrix products);
+# 4. if smoke is valid: the preregistered confirmation, 10 repetitions x 3 arms x 600 s (about 6 hours), on the same
+#    committed code (STOP_AFTER_SMOKE=1 stops after step 3), on the pinned compute-bound workload (matrix products);
 # 5. the second preregistered confirmation, the same 10 x 3 x 600 s on AI token generation (the decode workload:
 #    every weight streamed from memory once per pass, batch one), about 6 hours more (SKIP_DECODE=1 skips it). Each
 #    workload is its own result, never pooled;
-# 6. packs every result folder into one file to send back, and prints the label each table chose by rule.
+# 6. the whole stacks with this card inside (tools/run_hil.py): the four realms, the four stacked with duplicates
+#    (1,226) and the whole tower (656), each as 1, 10, 100 and 1,000 copies on one clock with the card inside, native
+#    and Omni (repetitions 3, 3, 2, 1 by size; HIL_SCALES and HIL_REPS_BY_SCALE change them; SKIP_HIL=1 skips it);
+#    the results so far are packed after every stage, so a stop loses nothing already measured;
+# 7. packs every result folder into one file to send back, and prints the label each table chose by rule.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 SMI="${NVIDIA_SMI:-nvidia-smi}"; PY="${PYTHON:-python3}"; GPU="${GPU:-0}"
@@ -70,16 +72,6 @@ if [ "$smoke_rc" != 0 ]; then
 elif [ -n "${STOP_AFTER_SMOKE:-}" ]; then
   echo "smoke valid; stopping as asked (STOP_AFTER_SMOKE)."
 else
-  if [ -z "${SKIP_HIL:-}" ]; then
-    echo "== the whole stacks with this card inside: six organisms (four realms, the four stacked, the whole tower), native and Omni (tools/run_hil.py)"
-    set +e
-    ENV_FLOOR_W=$($PY -c "import json,sys; print(json.load(open(sys.argv[1]))['power_min_w'])" "$ENVELOPE") \
-      NVIDIA_SMI="$SMI" GPU="$GPU" $PY tools/run_hil.py --out "results/hil/run-$STAMP" | tee "results/gpu/hil-$STAMP.log" | grep -E "^== |^\| |^- "
-    hil_rc=${PIPESTATUS[0]}
-    set -e
-    PACK+=("results/hil/run-$STAMP")
-    echo "whole stacks: exit $hil_rc (0 valid, 2 a validity problem, see results/hil/run-$STAMP/HIL.md)"
-  fi
   echo "== confirmation (preregistered: 10 repetitions, 600 s per arm, frozen code)"
   set +e
   PHASE=confirm OUT="results/gpu/run-$STAMP" bash scripts/gpu_paired.sh
@@ -97,6 +89,18 @@ else
     PACK+=("results/gpu/run-$STAMP-decode")
     $PY -c "import json,sys; h=json.load(open(sys.argv[1])).get('headline',{}); print('RESULT, BY RULE (AI token generation):', h.get('verdict','(no verdict)'))" \
       "results/gpu/run-$STAMP-decode/GPU_REPS.json" 2>/dev/null || echo "no table produced (exit $decode_rc)"
+  fi
+  tar czf "results/gpu/omni-gpu-$STAMP-confirmations.tar.gz" "${PACK[@]}"
+  echo "== both confirmations packed (send this now if you like; the stacks run next): results/gpu/omni-gpu-$STAMP-confirmations.tar.gz"
+  if [ -z "${SKIP_HIL:-}" ]; then
+    echo "== the whole stacks with this card inside: six organisms at 1x, 10x, 100x and 1,000x copies, native and Omni (tools/run_hil.py)"
+    set +e
+    ENV_FLOOR_W=$($PY -c "import json,sys; print(json.load(open(sys.argv[1]))['power_min_w'])" "$ENVELOPE") \
+      NVIDIA_SMI="$SMI" GPU="$GPU" $PY tools/run_hil.py --out "results/hil/run-$STAMP" | tee "results/gpu/hil-$STAMP.log" | grep -E "^== |^\| |^- "
+    hil_rc=${PIPESTATUS[0]}
+    set -e
+    PACK+=("results/hil/run-$STAMP")
+    echo "whole stacks: exit $hil_rc (0 valid, 2 a validity problem, see results/hil/run-$STAMP/HIL.md)"
   fi
 fi
 tar czf "results/gpu/omni-gpu-$STAMP.tar.gz" "${PACK[@]}"

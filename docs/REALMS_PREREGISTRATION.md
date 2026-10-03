@@ -254,3 +254,16 @@ over the line is at or under native): 1.0, 0.8, 0.75, 0.7, 0.65 and 0.6 on the t
 
 Every knob was handed back. The grid runs at 100× and 1,000× now on GitHub were started on round 3's law. They are
 recorded as round 3's result, and the grid is rerun on round 6's law.
+
+## Round 5, amended (2026-10-03, before any round-5 run on the corrected law)
+
+The whole stacks with the real card inside run at four sizes, as the six-organism grid does: each organism as 1, 10, 100
+and 1,000 copies governed together on one clock, with the one real card inside as one more muscle of its NVIDIA GPU
+family, native against Omni on top. Repetitions by size: 3, 3, 2 and 1 (seeds from 6000).
+
+The step is 2 s of wall clock wherever the simulation keeps up. A size whose step takes longer gets a longer step:
+1.5 times the measured time per muscle on that machine, times its muscles. The card's request stream runs for the same
+240 steps, so the card and the stacks stay on one clock. The step of every size is in the receipt. At 1,000 copies the
+card is one muscle among hundreds of thousands, so its watts are a small share of the organism's; that is the
+arithmetic of one card in a large stack, and the card's own meter is reported apart from the stacks. Everything else is
+as round 5. The two GPU confirmations now run before this stage, so the most important results are in hand first.
