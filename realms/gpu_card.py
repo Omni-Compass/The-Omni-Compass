@@ -215,7 +215,11 @@ def run(seed: int, arm: str, duration: float = 600.0, memb: float = 0.0) -> Dict
                     key = {"trial": "trials", "step allowed": "allowed"}.get(ev["verdict"], "refused" if "refused" in ev["verdict"] else None)
                     if key:
                         events[key] += 1
-                if brain.p >= brain.band.wall_high or saturated:
+                at_limit = card.last_p >= 0.97 * card.limit
+                if saturated and at_limit and len(learn_f) >= 15:
+                    # saturated against the card's own limit: hold at its own busy clock under that limit (amendment 9)
+                    c = up.write(max(0.3, min(1.0, f_nat)))
+                elif brain.p >= brain.band.wall_high or saturated:
                     # fail up past the wall; and race while work waits (the card saturated: a queue is forming), so a
                     # burst is always served at full speed; the bowl paces only the slack between bursts
                     c = up.write(1.0)

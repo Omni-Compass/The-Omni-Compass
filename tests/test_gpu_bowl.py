@@ -73,6 +73,18 @@ def main():
     s = json.loads(st.read_text())
     assert s["limit"]["0"] == 150.0 and "0" not in s.get("clock_lock", {})
     print("restore: clocks reset, limit back to 150 W")
+    # steady: a card saturated against its own limit (it would draw far more): after learning, the ceiling holds at the
+    # card's own busy clock under that limit, never under it, the lid at the start (amendment 9)
+    t2 = tempfile.mkdtemp(); st2 = setup(t2, util=100)
+    s2 = json.loads(st2.read_text()); s2["draw_w"] = 600.0; st2.write_text(json.dumps(s2))
+    lat2 = latency(t2, 100.0); g2 = gov(t2, lat2)
+    for _ in range(12):
+        latency(t2, 100.0); g2.step()
+    d2 = decisions(t2)
+    assert d2[-1]["decided_by"] == "steady_under_limit" and d2[-1]["ceiling_mhz"] == 900 and d2[-1]["want_w"] == 150, d2[-1]
+    assert all(x["ceiling_mhz"] >= 900 for x in d2)
+    g2.restore()
+    print("steady: saturated at its own limit, the ceiling holds at the card's own busy clock (900 MHz), lid at the start")
     print("PASS two-wire GPU governor: never slower than the card on its own while it works")
 
 

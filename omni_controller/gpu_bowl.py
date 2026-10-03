@@ -27,6 +27,10 @@ Every decision (--interval seconds):
             slower than that and it is refused and not tried again for --verdict-recheck decisions. Where no step
             passes, the ceiling stays at the top: the card runs as it does alone
   law       down gain 0.0125, the bowl's center at 0.4, the speed floor at the card's own busy clock (amendment 8)
+  steady    while the card is saturated against its own power limit (work waiting and the draw at the limit), the
+            firmware boosts a step, hits the limit and is knocked back: a sawtooth. The ceiling is then held at the
+            card's own busy clock under that limit (what the sawtooth averages to), so the same watts serve the work
+            without the knock-backs (amendment 9). It never holds under that clock, and blind always fails up
   write     up wire: the ceiling moves by the force (fast up, gently down), inside its cover: from the card's own busy
             clock (never slower than native while there is work) to the top; down wire: the lid at the card's own busy
             draw plus --lid-headroom, never under it and never over the start limit, inside the declared envelope;
@@ -246,7 +250,15 @@ class GpuBowl:
         deepest, trial, ev = self.verdict.tick(calm)
         if ev:
             self.audit({"verdict": ev, "state": self.verdict.state, "deepest_step": self.verdict.allowed})
-        if p is None or p >= self.brain.band.wall_high or saturated:
+        at_limit = r is not None and r["draw"] >= 0.97 * r["limit"]
+        if p is not None and saturated and at_limit and n_clk is not None:
+            # saturated against the card's own limit: hold the ceiling at the card's own busy clock under that limit,
+            # no knock-backs; the lid stays at the start limit
+            self.brain.force(p)
+            ceiling = clamp(round(n_clk / a.min_change_mhz) * a.min_change_mhz, self.c_lo, self.top)
+            lid = self.start
+            who = "steady_under_limit"
+        elif p is None or p >= self.brain.band.wall_high or saturated:
             # fail up past the wall or blind; and race while work waits (the card saturated: a queue is forming), so a
             # burst is always served at full speed and the bowl paces only the slack between bursts
             if p is not None:

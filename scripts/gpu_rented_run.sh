@@ -16,11 +16,17 @@
 # 5. the second preregistered confirmation, the same 10 x 3 x 600 s on AI token generation (the decode workload:
 #    every weight streamed from memory once per pass, batch one), about 6 hours more (SKIP_DECODE=1 skips it). Each
 #    workload is its own result, never pooled;
-# 6. the whole stacks with this card inside (tools/run_hil.py): the four realms, the four stacked with duplicates
+# 6. an operator's power cap underneath (70% of the default limit): the cap alone vs the cap with Omni-Compass on top,
+#    at the usual load and fully loaded (more work from the same watts), 5 repetitions each, 300 s per arm, about 3 hours
+#    (SKIP_CAP=1);
+# 7. the GPU fault drill, about 10 minutes: the governor killed outright, the master switch pulled, the response feed
+#    blind (SKIP_DRILL=1); everything so far is then packed;
+# 8. the whole stacks with this card inside (tools/run_hil.py): the four realms, the four stacked with duplicates
 #    (1,226) and the whole tower (656), each as 1, 10, 100 and 1,000 copies on one clock with the card inside, native
 #    and Omni (repetitions 3, 3, 2, 1 by size; HIL_SCALES and HIL_REPS_BY_SCALE change them; SKIP_HIL=1 skips it);
-#    the results so far are packed after every stage, so a stop loses nothing already measured;
-# 7. packs every result folder into one file to send back, and prints the label each table chose by rule.
+# 9. real AI serving last: a language model served by vLLM, installed in its own environment, 5 repetitions x 3 arms x
+#    300 s; if it cannot install or start, the stage says so and nothing before it is affected (SKIP_LLM=1);
+# 10. packs every result folder into one file to send back, and prints the label each table chose by rule.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 SMI="${NVIDIA_SMI:-nvidia-smi}"; PY="${PYTHON:-python3}"; GPU="${GPU:-0}"
@@ -91,6 +97,29 @@ else
       "results/gpu/run-$STAMP-decode/GPU_REPS.json" 2>/dev/null || echo "no table produced (exit $decode_rc)"
   fi
   tar czf "results/gpu/omni-gpu-$STAMP-confirmations.tar.gz" "${PACK[@]}"
+  # an operator's power cap underneath (the envelope's lowest watts, 70% of the default limit): the cap alone against
+  # the cap with Omni-Compass on top, at the usual load and then fully loaded (more work from the same watts)
+  CAP=$($PY -c "import json,sys; print(int(float(json.load(open(sys.argv[1]))['power_min_w'])))" "$ENVELOPE")
+  if [ -z "${SKIP_CAP:-}" ]; then
+    for kind in cap cap-full; do
+      [ "$kind" = cap ] && WA="" || WA="--phases 1.3,1.3,1.3"
+      echo "== an operator's power cap underneath ($CAP W): the cap alone vs the cap with Omni-Compass on top${WA:+, fully loaded (more work from the same watts)}"
+      [ -n "${SIM:-}" ] || $SMI -i "$GPU" -pl "$CAP" >/dev/null
+      set +e
+      PHASE=confirm REPS_CONFIRM="${REPS_CAP:-5}" DURATION="${DURATION_CAP:-300}" WORKLOAD_ARGS="$WA" \
+        OUT="results/gpu/run-$STAMP-$kind" bash scripts/gpu_paired.sh
+      set -e
+      [ -n "${SIM:-}" ] || $SMI -i "$GPU" -pl "${DEF%.*}" >/dev/null
+      PACK+=("results/gpu/run-$STAMP-$kind")
+    done
+  fi
+  if [ -z "${SKIP_DRILL:-}" ]; then
+    echo "== the GPU fault drill: governor killed outright, the master switch pulled, the response feed blind"
+    set +e; OUT="results/gpu/drill-$STAMP" bash scripts/gpu_fault_drill.sh; set -e
+    PACK+=("results/gpu/drill-$STAMP")
+  fi
+  tar czf "results/gpu/omni-gpu-$STAMP-partial.tar.gz" "${PACK[@]}"
+  echo "== everything so far packed: results/gpu/omni-gpu-$STAMP-partial.tar.gz"
   echo "== both confirmations packed (send this now if you like; the stacks run next): results/gpu/omni-gpu-$STAMP-confirmations.tar.gz"
   if [ -z "${SKIP_HIL:-}" ]; then
     echo "== the whole stacks with this card inside: six organisms at 1x, 10x, 100x and 1,000x copies, native and Omni (tools/run_hil.py)"
@@ -101,6 +130,11 @@ else
     set -e
     PACK+=("results/hil/run-$STAMP")
     echo "whole stacks: exit $hil_rc (0 valid, 2 a validity problem, see results/hil/run-$STAMP/HIL.md)"
+  fi
+  if [ -z "${SKIP_LLM:-}" ]; then
+    echo "== real AI serving: a language model served by vLLM, the firmware alone vs with Omni-Compass on top"
+    set +e; OUT="results/gpu/run-$STAMP-llm" bash scripts/gpu_vllm.sh; set -e
+    PACK+=("results/gpu/run-$STAMP-llm")
   fi
 fi
 tar czf "results/gpu/omni-gpu-$STAMP.tar.gz" "${PACK[@]}"

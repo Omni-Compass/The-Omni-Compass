@@ -344,3 +344,33 @@ The outcomes, arms, guardrails, analysis and validity rules are unchanged, excep
     the line 0.
 
   That is a model; the next trial is the card's own meter.
+
+## Amendment 9 (2026-10-03, before any trial on this code)
+
+Everything in amendment 8 stands. Four additions, each run by `scripts/gpu_rented_run.sh` after the two confirmations
+and each reported as its own result:
+
+1. **Steady under the limit** (`omni_controller/gpu_bowl.py`, the same in `realms/gpu_card.py`). While the card is
+   saturated against its own power limit (work waiting, the draw at 97% of the limit or more), the firmware boosts a
+   step, hits the limit and is knocked back. The ceiling is then held at the card's own busy clock under that limit,
+   so the same watts serve the work without the knock-backs. It is never held under that clock, the lid stays at the
+   start limit, and a blind feed still fails up. In the card model, fully loaded under a fixed cap, this gives about
+   +0.6% requests served from the same watts, with p95 about 2% faster.
+2. **An operator's power cap underneath.** The card's limit is set to the envelope's lowest watts (70% of its default)
+   before the run, and the paired bench runs native (the cap alone), watch and Omni-Compass on top of the cap (the lid
+   never above the cap). It runs twice, 5 repetitions × 3 arms × 300 s each time:
+   - at the usual load;
+   - fully loaded (arrivals at 130% of the card's capacity under the cap), so the result is requests served from the same watts.
+
+   The card is returned to its default limit afterwards.
+3. **The GPU fault drill** (`scripts/gpu_fault_drill.sh`). With the request stream running:
+   - the governor is killed outright, and the watchdog must hand the card back;
+   - the master switch is pulled, and the governor must hand back, exit and refuse to restart while OFF;
+   - the response feed is paused, and the governor must fail up.
+
+   Every check must pass, and the card must end at its start limit.
+4. **Real AI serving** (`scripts/gpu_vllm.sh`, `tools/llm_workload.py`). An open language model
+   (Qwen/Qwen2.5-0.5B-Instruct) is served by vLLM, installed in its own environment. It is asked the same seeded stream
+   of prompts in every arm, each for exactly 128 new tokens; 5 repetitions × 3 arms × 300 s. Tokens per second and
+   tokens per kilojoule follow from requests served. If vLLM cannot be installed or started on the machine, the stage
+   says so and nothing measured before it changes.

@@ -81,7 +81,7 @@ pip install -r requirements.txt
 nvidia-smi                 # should show your GPU
 ```
 
-## 4. The whole test, one command (about 40 hours)
+## 4. The whole test, one command (about 45 hours)
 
 ```bash
 sudo nohup bash scripts/gpu_rented_run.sh > run.log 2>&1 &
@@ -97,10 +97,18 @@ It runs, in order, and stops at the first failure:
 5. the second preregistered confirmation on AI token generation (memory-bound), the same design, about 6 hours
    (`SKIP_DECODE=1` skips it); each is its own result, never pooled. Both are packed into one file as soon as they
    finish: `results/gpu/omni-gpu-<stamp>-confirmations.tar.gz`;
-6. the six organisms with this card inside, each as **1, 10, 100 and 1,000 copies** on one clock (3, 3, 2 and 1
+6. **an operator's power cap underneath** (70% of the card's default limit): the cap alone vs the cap with
+   Omni-Compass on top, at the usual load and fully loaded (more work from the same watts), about 3 hours
+   (`SKIP_CAP=1` skips it);
+7. **the GPU fault drill**, about 10 minutes: the governor killed outright, the master switch pulled, the response
+   feed blind; every check must pass (`SKIP_DRILL=1` skips it). Everything so far is then packed into
+   `results/gpu/omni-gpu-<stamp>-partial.tar.gz`;
+8. the six organisms with this card inside, each as **1, 10, 100 and 1,000 copies** on one clock (3, 3, 2 and 1
    repetitions), about 25 hours; the 1,000-copy stacks need a longer step than 2 s, measured on the machine and stated
    in the receipt (`SKIP_HIL=1` skips this stage);
-7. one packed file: `== send this one file back: results/gpu/omni-gpu-<stamp>.tar.gz`, with the label each table chose
+9. **real AI serving** last: a small open language model served by vLLM, about 2 hours (`SKIP_LLM=1` skips it); if
+   vLLM cannot install on the machine, the stage says so and nothing before it changes;
+10. one packed file: `== send this one file back: results/gpu/omni-gpu-<stamp>.tar.gz`, with the label each table chose
    by rule.
 
 To stop everything at any moment: `sudo python3 tools/omni_switch.py off` turns every Omni-Compass governor off and
