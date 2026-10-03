@@ -76,7 +76,7 @@ The core does not change when the lever changes.
 | E1 | T / V | deterministic tests and proofs: Python against the C++ twin, the tracking theorem |
 | E2 | S | simulation on a made plant (the realms, the fleet and GPU models) |
 | E3 | L | real software: Kubernetes on kind, no card (sets 22 and 23) |
-| E4 | P | a physical meter: the card's own power reading (the GPU bench; not yet run on a card) |
+| E4 | P | a physical meter: the card's own power reading (the GPU bench; first run on an NVIDIA A10, 2026-10-02, `results/gpu/run-20261002T082232Z/GPU_REPS.md`; the corrected governor not yet run on a card) |
 
 A result does not climb a rung by itself. The four realms are plants; E1 to E4 are how hard the proof is on whichever
 plant is run.

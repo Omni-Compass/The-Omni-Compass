@@ -34,7 +34,7 @@ contrast), `RUN.json` and `SHA256SUMS.txt` (commit and fingerprints).
 | Mathematics (T, V) | uses the frozen engine and governor unchanged | `docs/TRACKING_THEOREM.md`, `verify.py` |
 | Simulation (S) | **this** | fleet and cluster simulators, GPU model |
 | Real software (L) | not here | set 22 on real Kubernetes (`results/live/LIVE_REPS_22.md`) |
-| Physical (P) | not here | the GPU bench, not yet run on a card (`docs/GPU_PREREGISTRATION.md`) |
+| Physical (P) | not here | the GPU bench: first run on an NVIDIA A10, 2026-10-02 (`results/gpu/run-20261002T082232Z/GPU_REPS.md`); the corrected governor not yet run on a card (`docs/GPU_PREREGISTRATION.md`) |
 
 A realm result that looks good is a reason to test that knob on a real machine, not a substitute for it. The realms
 whose knobs can be tested for real first are the compute realm's (the GPU bench, kind), because the tools already

@@ -11,10 +11,12 @@ the live evidence and the verification receipt), which `verify.py` checks agains
 ## In one paragraph
 
 Omni-Compass is a supervisory governor that sits on top of Kubernetes and hardware. On a real Kubernetes control plane
-it measurably makes services answer faster, on about a third fewer machines, with a clean kill switch. It has **not** yet
-been shown to save energy on real hardware: on kind every machine stays powered and energy is a declared model. The GPU
-bench that measures real joules on a card's own meter is running now on a rented NVIDIA card (Lambda); no result from it
-is in this repository yet. In the models, the bowl law on every muscle of the six organisms gives +0.20% to +0.30% work
+it measurably makes services answer faster, on about a third fewer machines, with a clean kill switch. On kind every
+machine stays powered, so energy there is a declared model. On a real card (NVIDIA A10 on Lambda, the card's own meter,
+10 paired runs, `results/gpu/run-20261002T082232Z/GPU_REPS.md`) the first governor saved energy (+3.6% work per energy,
+proven) but made the slowest answers 58.5% slower, so its label by rule is energy improvement with service tradeoff.
+The cause was the governor's wiring, corrected in GPU amendments 6 and 7; the corrected governor has not yet run on a
+card, so no real-hardware result inside the band exists yet. In the models, the bowl law on every muscle of the six organisms gives +0.20% to +0.30% work
 per energy at every size and run count completed, but it spends more time over the service line than native in every
 cell, so the band-first rule is not yet held. Closing that is the open work on the engine.
 

@@ -1482,7 +1482,7 @@ contrast), `RUN.json` and `SHA256SUMS.txt` (commit and fingerprints).
 | Mathematics (T, V) | uses the frozen engine and governor unchanged | `docs/TRACKING_THEOREM.md`, `verify.py` |
 | Simulation (S) | **this** | fleet and cluster simulators, GPU model |
 | Real software (L) | not here | set 22 on real Kubernetes (`results/live/LIVE_REPS_22.md`) |
-| Physical (P) | not here | the GPU bench, not yet run on a card (`docs/GPU_PREREGISTRATION.md`) |
+| Physical (P) | not here | the GPU bench: first run on an NVIDIA A10, 2026-10-02 (`results/gpu/run-20261002T082232Z/GPU_REPS.md`); the corrected governor not yet run on a card (`docs/GPU_PREREGISTRATION.md`) |
 
 A realm result that looks good is a reason to test that knob on a real machine, not a substitute for it. The realms
 whose knobs can be tested for real first are the compute realm's (the GPU bench, kind), because the tools already
@@ -4260,7 +4260,7 @@ Every claim, its evidence status and the command that reproduces it. Simulation 
 
 
 
-> **Dated record, kept as written on 26 September 2026.** Where a figure here differs from `STATE_OF_PLAY.md`, the State of Play governs. The GPU power-limit figure in this report (15% to 19% energy, under 1% slower) came from an earlier model of the card; later models with the service guards give +1.3% to +5.1% work per kJ with one wire (`results/gpu/sim/after`) and +8.6% with two wires at a higher p95 (`results/sim/gpu_two_wire/RESULT.md`). No real card has finished the bench yet.
+> **Dated record, kept as written on 26 September 2026.** Where a figure here differs from `STATE_OF_PLAY.md`, the State of Play governs. The GPU power-limit figure in this report (15% to 19% energy, under 1% slower) came from an earlier model of the card; later models with the service guards give +1.3% to +5.1% work per kJ with one wire (`results/gpu/sim/after`) and +8.6% with two wires at a higher p95 (`results/sim/gpu_two_wire/RESULT.md`). No real card had finished the bench on that date; the first card result (NVIDIA A10, 2026-10-02) is in `results/gpu/run-20261002T082232Z/GPU_REPS.md` and `STATE_OF_PLAY.md`.
 
 Benchmark report, 26 September 2026. Repository: Omni-Compass/The-Omni-Compass-Control-Core-Engine (private), branch main Every number below is produced by code in that repository and can be regenerated; section 21 gives the commands. Each result states whether it was **measured on a live Kubernetes control plane** or **computed in simulation**.
 
@@ -5302,10 +5302,12 @@ the live evidence and the verification receipt), which `verify.py` checks agains
 ### In one paragraph
 
 Omni-Compass is a supervisory governor that sits on top of Kubernetes and hardware. On a real Kubernetes control plane
-it measurably makes services answer faster, on about a third fewer machines, with a clean kill switch. It has **not** yet
-been shown to save energy on real hardware: on kind every machine stays powered and energy is a declared model. The GPU
-bench that measures real joules on a card's own meter is running now on a rented NVIDIA card (Lambda); no result from it
-is in this repository yet. In the models, the bowl law on every muscle of the six organisms gives +0.20% to +0.30% work
+it measurably makes services answer faster, on about a third fewer machines, with a clean kill switch. On kind every
+machine stays powered, so energy there is a declared model. On a real card (NVIDIA A10 on Lambda, the card's own meter,
+10 paired runs, `results/gpu/run-20261002T082232Z/GPU_REPS.md`) the first governor saved energy (+3.6% work per energy,
+proven) but made the slowest answers 58.5% slower, so its label by rule is energy improvement with service tradeoff.
+The cause was the governor's wiring, corrected in GPU amendments 6 and 7; the corrected governor has not yet run on a
+card, so no real-hardware result inside the band exists yet. In the models, the bowl law on every muscle of the six organisms gives +0.20% to +0.30% work
 per energy at every size and run count completed, but it spends more time over the service line than native in every
 cell, so the band-first rule is not yet held. Closing that is the open work on the engine.
 
@@ -5958,7 +5960,7 @@ The core does not change when the lever changes.
 | E1 | T / V | deterministic tests and proofs: Python against the C++ twin, the tracking theorem |
 | E2 | S | simulation on a made plant (the realms, the fleet and GPU models) |
 | E3 | L | real software: Kubernetes on kind, no card (sets 22 and 23) |
-| E4 | P | a physical meter: the card's own power reading (the GPU bench; not yet run on a card) |
+| E4 | P | a physical meter: the card's own power reading (the GPU bench; first run on an NVIDIA A10, 2026-10-02, `results/gpu/run-20261002T082232Z/GPU_REPS.md`; the corrected governor not yet run on a card) |
 
 A result does not climb a rung by itself. The four realms are plants; E1 to E4 are how hard the proof is on whichever
 plant is run.
