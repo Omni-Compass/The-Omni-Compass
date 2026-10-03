@@ -30,6 +30,10 @@ ARM="${ARM:?set ARM=native, ARM=watch (Omni watches, writes nothing), ARM=omni (
 STRICT=""; [ "$ARM" = "strict" ] && STRICT="--strict-replicas"
 LAW=""; [ "$ARM" = "bowl" ] && LAW="--law bowl"
 DRY=""; [ "$ARM" = "watch" ] && DRY="--dry-run"
+# native tuned harder (the cost-to-match test): ARM=native40, native30, native20 is Kubernetes alone with its HPA target
+# lowered to that value by the operator, no Omni-Compass; it shows what native needs to reach Omni-Compass's response times
+TUNE=""; [[ "$ARM" =~ ^native([0-9]+)$ ]] && TUNE="${BASH_REMATCH[1]}"
+NATIVE=""; { [ "$ARM" = "native" ] || [ -n "$TUNE" ]; } && NATIVE=1
 OUT_DIR="${OUT_DIR:-bench_$ARM}"; DURATION="${DURATION:-1200}"; WARMUP="${WARMUP:-120}"
 LOAD_STEPS="${LOAD_STEPS:-1 2 3 1 2 1}"
 export DRAIN_TIMEOUT="${DRAIN_TIMEOUT:-45s}"   # a drain blocked by the disruption budget gives up and the node stays in service
@@ -66,6 +70,10 @@ kubectl -n kube-system patch deployment coredns -p "$pin"
 kubectl -n kube-system rollout status deployment/metrics-server --timeout=300s
 kubectl -n kube-system rollout status deployment/coredns --timeout=300s
 kubectl apply -f deploy/kind/demo.yaml
+if [ -n "$TUNE" ]; then
+  kubectl patch hpa php-apache --type=json -p "[{\"op\":\"replace\",\"path\":\"/spec/metrics/0/resource/target/averageUtilization\",\"value\":$TUNE}]"
+  echo "native tuned by the operator: HPA target $TUNE (no Omni-Compass)" | tee "$OUT_DIR/tuned.txt"
+fi
 kubectl apply -f deploy/kind/bench-serving.yaml
 kubectl rollout status deployment/php-apache --timeout=300s
 EDGE_IP=$(kubectl get nodes -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
@@ -84,7 +92,7 @@ hpa_count=$(kubectl get hpa -A -o json | jq '.items | length')
 [ "$hpa_count" = "1" ] || { echo "expected exactly one HPA, found $hpa_count"; exit 1; }
 foreign=$(kubectl get pods -A -o json | jq '[.items[] | select(.metadata.namespace | IN("kube-system","local-path-storage","default","omni-compass") | not)] | length')
 [ "$foreign" = "0" ] || { echo "cluster contains non-harness pods"; exit 1; }
-if [ "$ARM" != "native" ]; then
+if [ -z "$NATIVE" ]; then
   kubectl apply -f deploy/kind/rbac-omni.yaml
   SA="system:serviceaccount:omni-compass:omni-compass"
   can() { kubectl auth can-i "$@" --as="$SA"; }
@@ -135,7 +143,7 @@ date -u +%s > "$OUT_DIR/window_start.txt"
 kubectl get pods -n default -l run=php-apache -w --output-watch-events -o json > "$OUT_DIR/pod_watch.json" 2>"$OUT_DIR/pod_watch.err" &
 watch_pid=$!
 omni_pid=""
-if [ "$ARM" != "native" ]; then
+if [ -z "$NATIVE" ]; then
   echo "== ARM $ARM: Omni-Compass driving HPA target + node pool + power sensing${DRY:+ (dry run: watches only, writes nothing)}"
   nice -n 19 python -m omni_controller.controller $DRY --kubectl "$KUBECTL" --mode nodepool --active-nodes-only --interval 60 --floor-interval 5 --reflex-window-s 15 \
     --iterations $(( DURATION / 60 )) --min-nodes 1 --max-nodes "$WORKERS" --max-node-step 1 \
@@ -171,7 +179,7 @@ if [ "$ARM" = "watch" ]; then
   back=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' -o json | jq '[.items[] | select(.spec.unschedulable != true and (any(.spec.taints[]?; .key == "omnicompass.io/idle") | not))] | length')
   echo "cluster after the run: target $target, range $range_now, CPU limits $cpu_limit, workers $back of $WORKERS" | tee "$OUT_DIR/kill_switch.txt"
   test "$executed" = "0" && test "$target" = "50" && test "$range_now" = "1,10" && test "$cpu_limit" = "500m" && test "$back" = "$WORKERS"
-elif [ "$ARM" != "native" ]; then
+elif [ -z "$NATIVE" ]; then
   echo "== kill switch"
   touch "$OUT_DIR/kill"
   omni_writes=$(grep -c '"write"' "$OUT_DIR/audit.jsonl" || true)
@@ -194,7 +202,7 @@ elif [ "$ARM" != "native" ]; then
 fi
 echo "rows captured: $(( $(wc -l < "$OUT_DIR/capture.csv") - 1 ))"
 ( cd "$OUT_DIR" && sha256sum $(ls -1 | grep -v '^SHA256SUMS.txt$') > SHA256SUMS.txt )
-if [ "$ARM" != "native" ]; then
+if [ -z "$NATIVE" ]; then
   # Evidence discipline: the run counts only if the engine decided for the whole run.
   decisions=$(grep -c '"decision"' "$OUT_DIR/audit.jsonl" || true); expected=$(( DURATION / 60 ))
   errors=$(grep -c '"error"' "$OUT_DIR/audit.jsonl" || true)

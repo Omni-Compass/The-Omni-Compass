@@ -38,7 +38,7 @@ GROUPS = {
     "live_set_25": ["results/live/LIVE_REPS_25.md"],
     "live_set_26": ["results/live/LIVE_REPS_26.md", "docs/K8S_BOWL_PREREGISTRATION.md"],
     "live_set_27": ["results/live/LIVE_REPS_27.md"],
-    "bowl_law": ["tests/test_api_proxy.py", "omnicompass/bowl.py", "omnicompass/verdict.py", "tests/test_verdict.py", "omnicompass/master.py", "tools/omni_switch.py", "tests/test_master_switch.py", "realms/bowl_arm.py", "omni_controller/gpu_bowl.py", "tools/gpu_wire_check.py",
+    "bowl_law": ["tests/test_api_proxy.py", "tests/test_cost_to_match.py", "omnicompass/bowl.py", "omnicompass/verdict.py", "tests/test_verdict.py", "omnicompass/master.py", "tools/omni_switch.py", "tests/test_master_switch.py", "realms/bowl_arm.py", "omni_controller/gpu_bowl.py", "tools/gpu_wire_check.py",
                  "realms/gpu_card.py", "results/sim/gpu_two_wire/RESULT.json"],
     "gpu_rented_run": ["scripts/gpu_rented_run.sh", "tools/run_hil.py", "tests/fake_gpu/nvidia-smi"],
     "kwok_scale": ["scripts/kwok_scale.sh", "deploy/kwok/kubectl_kwok.sh", "tools/kwok_report.py", ".github/workflows/kwok-scale.yml"],

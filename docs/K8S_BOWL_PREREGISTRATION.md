@@ -102,3 +102,18 @@ the same set: machines −29.6%, p95 −58.0%, total CPU including its own −1.
 through one `kubectl proxy` started once, under the same least-privilege identity, so a read is a local HTTP request
 instead of a new kubectl process (`omni_controller/controller.py`, `Kube`; writes are unchanged; `tests/test_api_proxy.py`).
 The label also requires total CPU including Omni-Compass's own to be no more than 2% above native.
+
+## The cost to match (written before its run)
+
+The question a buyer asks: what would native Kubernetes have to spend to answer as fast as it does with Omni-Compass on
+top? Each repetition runs, on the same runner and the same work, in rotated order:
+- native (the operator's HPA target 50);
+- native tuned harder by its operator, HPA target 40, 30 and 20 (more pods, faster answers), no Omni-Compass (`ARM=native40`, `native30`, `native20` in `scripts/kind_bench.sh`);
+- native with Omni-Compass on top, the allocation law (`omni`);
+- native with Omni-Compass on top, the bowl law with the verdict (`bowl`).
+
+The report (`tools/live_reps.py`, "The cost to match") lists every arm's p95, p99, HPA replicas, CPU including
+Omni-Compass's own, and machines in service. For each Omni-Compass arm it names the cheapest native setting (by CPU)
+whose p95 is at or under Omni-Compass's, and that setting's extra replicas, CPU and machines over Omni-Compass. If no
+native setting tried reaches it, the report says so and gives the lowest native p95. 10 repetitions, 900 measured
+seconds per arm, fixed-rate load.
