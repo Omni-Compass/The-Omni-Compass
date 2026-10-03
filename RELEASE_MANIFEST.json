@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-c5e56cd05f7f",
- "written_at_commit": "c5e56cd05f7f24c802c255e96891037e32743ee2",
- "written_at": "2026-10-03T06:21:53+00:00",
+ "release_id": "omni-compass-16332d310f60",
+ "written_at_commit": "16332d310f6095b2cebff09bded9ffc8e7a14f29",
+ "written_at": "2026-10-03T06:33:14+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -218,7 +218,7 @@
  "physical_meter_results": "NVIDIA A10 on Lambda, 2026-10-02, 10 paired runs (results/gpu/run-20261002T082232Z/GPU_REPS.md): work per energy +3.6% (proven), p95 +58.5%, label energy improvement with service tradeoff; the governor corrected in GPU amendments 6 and 7 has not yet run on a card",
  "verification_receipt": {
   "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "96477aa7cbfa52379abb83ba5a49e5fdaf0be1c59005d858ea48e75290e63a0b",
+  "sha256": "d43fcefa773b42a3143b9da9bba93f23f4e3e3c5a082900f42ec0ba9e97946b5",
   "passed": true
  }
 }

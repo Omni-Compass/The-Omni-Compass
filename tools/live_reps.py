@@ -33,15 +33,17 @@ def arm_gauges(d):
     rows = list(csv.DictReader(open(d / "capture.csv")))
     g = gauges(rows); g.update(latency(str(d / "latency.csv"))); g.update(pod_starts(d))
     # the controller's own cost (its process and every command it ran; it runs beside the cluster, not in it), from its
-    # audit: counted so a CPU saving in the cluster is never reported without what Omni itself spent. Native: 0.
+    # audit: counted so a CPU saving in the cluster is never reported without what Omni itself spent. Native, and native
+    # tuned by its operator (native40, native30, native20), run no Omni process: 0.
     own = 0.0
-    if "-native-" not in d.name and (d / "audit.jsonl").exists():
+    native = d.name.split("-")[1].startswith("native") if d.name.count("-") >= 2 else "-native-" in d.name
+    if not native and (d / "audit.jsonl").exists():
         for line in open(d / "audit.jsonl"):
             if '"overhead"' in line:
                 own = float(json.loads(line)["overhead"].get("cores_mean", 0.0))
         if own == 0.0:
             own = float("nan")        # an Omni arm without its cost record: unknown, never zero
-    elif "-native-" not in d.name:
+    elif not native:
         own = float("nan")
     g["Omni's own CPU (cores), mean"] = own
     g["CPU used with Omni's own (cores), mean"] = g.get("CPU used (cores), mean", float("nan")) + own
