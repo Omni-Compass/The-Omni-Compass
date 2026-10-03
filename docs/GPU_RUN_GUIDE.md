@@ -147,11 +147,15 @@ Each card: wire check, envelope, smoke, the compute confirmation, the AI token g
 power cap underneath (about 15 to 16 hours, all cards together). Then the fault drill once on card 0, with every other
 card idle. Then one pooled table per workload (every repetition of every card, each paired within its own card: 80
 repetitions per workload on 8 cards) and each card's own table. `SKIP_DECODE=1 SKIP_CAP=1` runs the compute
-confirmation alone, about 6.5 hours. **`sudo FAST=1 nohup bash scripts/gpu_8card.sh > run8.log 2>&1 &` is the short
-design, about 3.5 hours:** 3 repetitions per card (24 on 8 cards), then one model across every card; AI token
-generation and the power cap are left to the one-card machine. Last, the whole server as one: a language model (Qwen2.5-7B-Instruct, open)
+confirmation alone, about 6.5 hours. `sudo FAST=1 nohup bash scripts/gpu_8card.sh > run8.log 2>&1 &` is a short
+look, about 3.5 hours: 3 repetitions per card (24 on 8 cards), then one model across every card; it leaves AI token
+generation, the power cap and the whole stacks out, so it is never the result to show. Last, the whole server as one: a language model (Qwen2.5-7B-Instruct, open)
 served across every card at once by vLLM, one Omni-Compass governor per card, the server's total GPU energy, about
-2 hours (`SKIP_LLM=1` skips it). The whole stacks run on the one-card machine (section C) and are skipped here. Progress: `tail -f results/gpu/8card-<stamp>/card-*.log`. At the end: `== send this one file back:
+2 hours (`SKIP_LLM=1` skips it). Before it, **the whole stacks with a real card inside**: the six organisms at 1, 10,
+100 and 1,000 copies, native and Omni, the full repetitions (3, 3, 2, 1 by size), each organism on its own card at
+the same time, so the stage that takes about 25 hours on one card takes the time of its longest organism (the four
+stacked, 1,226 muscles, at 1,000 copies), about 4 to 6 hours (`SKIP_HIL=1` skips it). The whole design, every stage:
+about 22 to 24 hours. Progress: `tail -f results/gpu/8card-<stamp>/card-*.log`. At the end: `== send this one file back:
 results/gpu/omni-8card-<stamp>.tar.gz`. The master switch (`sudo python3 tools/omni_switch.py off`) stops every card's
 governor at once.
 

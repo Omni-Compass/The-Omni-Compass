@@ -19,8 +19,9 @@
 #
 # Last, the whole server as one: a language model served across every card at once (scripts/gpu_vllm.sh with GPU=all
 # cards: vLLM tensor parallel, one Omni-Compass governor per card, the server's total GPU energy), SKIP_LLM=1 skips it.
-# CARDS (default: every card nvidia-smi lists), SKIP_DECODE=1, SKIP_CAP=1, SKIP_DRILL=1 as in gpu_rented_run.sh. The
-# whole stacks (HIL) run on the one-card machine and are skipped here.
+# Then the whole stacks with a real card inside: the six organisms at 1x, 10x, 100x and 1,000x copies, full
+# repetitions, each organism on its own card at the same time (SKIP_HIL=1 skips it; HIL_ARGS passes options through).
+# CARDS (default: every card nvidia-smi lists), SKIP_DECODE=1, SKIP_CAP=1, SKIP_DRILL=1 as in gpu_rented_run.sh.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 SMI="${NVIDIA_SMI:-nvidia-smi}"; PY="${PYTHON:-python3}"
@@ -30,7 +31,7 @@ if [ -n "${FAST:-}" ]; then
   # compute confirmation (24 paired repetitions on 8 cards, pooled), one smoke round, one model across every card with
   # 3 repetitions. AI token generation and the power cap underneath are measured on the one-card machine
   export SMOKE_REPS="${SMOKE_REPS:-1}" REPS_CONFIRM="${REPS_CONFIRM:-3}" SKIP_DECODE="${SKIP_DECODE:-1}" \
-         SKIP_CAP="${SKIP_CAP:-1}" REPS_LLM="${REPS_LLM:-3}"
+         SKIP_CAP="${SKIP_CAP:-1}" REPS_LLM="${REPS_LLM:-3}" SKIP_HIL="${SKIP_HIL:-1}"
   echo "== FAST: 3 repetitions per card, compute, then one model across every card"
 fi
 [ "$(id -u)" = 0 ] || [ -n "${SIM:-}" ] || { echo "run with sudo: setting the power limit needs root"; exit 1; }
@@ -64,6 +65,29 @@ if [ -z "${SKIP_DRILL:-}" ]; then
   GPU="${C[0]}" OUT="results/gpu/drill-$STAMP-8card" bash scripts/gpu_fault_drill.sh || rc=1
 fi
 
+if [ -z "${SKIP_HIL:-}" ]; then
+  # the whole stacks with a real card inside (tools/run_hil.py), every organism at 1x, 10x, 100x and 1,000x copies,
+  # native and Omni, the full repetitions (3, 3, 2, 1 by size): each organism on its own card, all at once, so the
+  # stage that takes about 25 hours on one card takes the time of its longest organism
+  read -r -a ORGS <<< "${HIL_ORGS:-compute_ai_cloud physics_robotics_autonomous energy_facility_industrial distribution_specialized stack_1226 organism_656}"
+  H="results/hil/run-$STAMP-8card"; mkdir -p "$H"
+  echo "== the whole stacks with the card inside: ${#ORGS[@]} organisms, each on its own card, 1x to 1,000x"
+  hpids=(); hcard=()
+  for i in "${!ORGS[@]}"; do
+    g="${C[$(( i % ${#C[@]} ))]}"
+    [ "$i" -lt "${#C[@]}" ] || { wait "${hpids[$(( i - ${#C[@]} ))]}" || rc=1; }   # fewer cards than organisms: wait for a card
+    ENV_FLOOR_W=$($PY -c "import json,sys; print(json.load(open(sys.argv[1]))['power_min_w'])" "results/gpu/envelope-$STAMP-card$g.json") \
+      NVIDIA_SMI="$SMI" GPU="$g" $PY tools/run_hil.py --out "$H/${ORGS[$i]}" --organisms "${ORGS[$i]}" ${HIL_ARGS:-} \
+      > "$H/${ORGS[$i]}.log" 2>&1 &
+    hpids+=($!); hcard+=("$g")
+    echo "   ${ORGS[$i]} on card $g (log $H/${ORGS[$i]}.log)"
+  done
+  for i in "${!hpids[@]}"; do wait "${hpids[$i]}" 2>/dev/null || true; done
+  for o in "${ORGS[@]}"; do
+    [ -f "$H/$o/HIL.md" ] && grep -E "^\| " "$H/$o/HIL.md" | head -12 || echo "   $o: no table (see $H/$o.log)"
+  done
+fi
+
 if [ -z "${SKIP_LLM:-}" ]; then
   echo "== one model served across all ${#C[@]} cards (vLLM tensor parallel), one Omni-Compass governor per card"
   ENVELOPE="results/gpu/envelope-$STAMP-card${C[0]}.json" GPU="$CARDS" OUT="results/gpu/run-$STAMP-8card-llm" \
@@ -89,7 +113,7 @@ for kind in "" -decode -cap -cap-full; do
 done
 
 PACK=("$OUT")
-for d in results/gpu/*-"$STAMP"-card* results/gpu/drill-"$STAMP"-8card results/gpu/run-"$STAMP"-8card-llm; do [ -e "$d" ] && PACK+=("$d"); done
+for d in results/gpu/*-"$STAMP"-card* results/gpu/drill-"$STAMP"-8card results/gpu/run-"$STAMP"-8card-llm results/hil/run-"$STAMP"-8card; do [ -e "$d" ] && PACK+=("$d"); done
 tar czf "results/gpu/omni-8card-$STAMP.tar.gz" "${PACK[@]}"
 echo "== send this one file back: results/gpu/omni-8card-$STAMP.tar.gz"
 exit $rc

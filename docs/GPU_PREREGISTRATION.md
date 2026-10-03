@@ -393,3 +393,8 @@ repetition's own receipt).
 repetitions of the compute confirmation (24 paired repetitions on 8 cards, pooled and labelled by the same rule, each
 card's own table reported beside it), then one model across every card with 3 repetitions. AI token generation and the
 power cap underneath are measured on the one-card machine (amendment 9) and are not repeated here.
+
+**The whole stacks with a real card inside, on several cards** (written before any trial): `tools/run_hil.py` as on the
+one-card machine (amendment 9, the six organisms at 1x, 10x, 100x and 1,000x, repetitions 3, 3, 2, 1 by size, the
+adaptive step), each organism on its own card at the same time (organism i on card i; with fewer cards than
+organisms, the next organism waits for a card). Each organism's receipt is its own; nothing is pooled across organisms.
