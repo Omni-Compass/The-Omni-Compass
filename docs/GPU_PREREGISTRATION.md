@@ -388,3 +388,8 @@ finished. Last, **one model across every card** (`scripts/gpu_vllm.sh` with GPU 
 Qwen/Qwen2.5-7B-Instruct, one governor per card on its own card's two wires, all reading the same response times;
 the energy is every card's summed; 5 repetitions × 3 arms × 300 s, labelled by the same rule. Each card's energy is read from that card alone (the bench's sampling filtered to the card in each
 repetition's own receipt).
+
+**The short design** (`FAST=1`, written before any trial on several cards): each card runs one smoke round and 3
+repetitions of the compute confirmation (24 paired repetitions on 8 cards, pooled and labelled by the same rule, each
+card's own table reported beside it), then one model across every card with 3 repetitions. AI token generation and the
+power cap underneath are measured on the one-card machine (amendment 9) and are not repeated here.

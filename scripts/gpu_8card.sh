@@ -4,7 +4,8 @@
 # Omni-Compass Enterprise License. See LICENSE.
 # The 8-GPU result, one command on a rented machine with several NVIDIA cards (docs/GPU_RUN_GUIDE.md, section D):
 #
-#   sudo bash scripts/gpu_8card.sh
+#   sudo bash scripts/gpu_8card.sh            the whole design, about 17 to 18 hours
+#   sudo FAST=1 bash scripts/gpu_8card.sh     the short design, about 3.5 hours (what only a full server shows)
 #
 # Every card on the machine runs the whole card test at the same time (scripts/gpu_rented_run.sh with GPU=<card>): its
 # own wire check, envelope, smoke, the two preregistered confirmations (compute and AI token generation) and the
@@ -24,6 +25,14 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 SMI="${NVIDIA_SMI:-nvidia-smi}"; PY="${PYTHON:-python3}"
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
+if [ -n "${FAST:-}" ]; then
+  # the short design (amendment 10): what only a full server shows, about 3.5 hours. Each card 3 repetitions of the
+  # compute confirmation (24 paired repetitions on 8 cards, pooled), one smoke round, one model across every card with
+  # 3 repetitions. AI token generation and the power cap underneath are measured on the one-card machine
+  export SMOKE_REPS="${SMOKE_REPS:-1}" REPS_CONFIRM="${REPS_CONFIRM:-3}" SKIP_DECODE="${SKIP_DECODE:-1}" \
+         SKIP_CAP="${SKIP_CAP:-1}" REPS_LLM="${REPS_LLM:-3}"
+  echo "== FAST: 3 repetitions per card, compute, then one model across every card"
+fi
 [ "$(id -u)" = 0 ] || [ -n "${SIM:-}" ] || { echo "run with sudo: setting the power limit needs root"; exit 1; }
 command -v "$SMI" >/dev/null || { echo "nvidia-smi not found: this machine has no NVIDIA driver"; exit 1; }
 CARDS="${CARDS:-$($SMI --query-gpu=index --format=csv,noheader | tr -d ' ' | paste -sd, -)}"
