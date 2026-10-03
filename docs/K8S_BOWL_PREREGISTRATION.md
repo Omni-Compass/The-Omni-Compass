@@ -103,6 +103,11 @@ through one `kubectl proxy` started once, under the same least-privilege identit
 instead of a new kubectl process (`omni_controller/controller.py`, `Kube`; writes are unchanged; `tests/test_api_proxy.py`).
 The label also requires total CPU including Omni-Compass's own to be no more than 2% above native.
 
+Set 29 result (run 37094338955, commit `a3721cc`): the bowl law with the verdict, total CPU including its own **−4.7%**
+(−0.071 to −0.017 cores), passes; Omni-Compass's own CPU 0.011 cores (set 28: 0.063). Machines −5.1%, p95 −64.4%,
+p99 −71.1%, HPA replicas −7.6%, failed requests 0. No measure significantly worse than native in either arm. Receipt:
+`results/live/LIVE_REPS_29.md`.
+
 ## The cost to match (written before its run)
 
 The question a buyer asks: what would native Kubernetes have to spend to answer as fast as it does with Omni-Compass on
