@@ -30,14 +30,14 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 SMI="${NVIDIA_SMI:-nvidia-smi}"; PY="${PYTHON:-python3}"; GPU="${GPU:-0}"
-STAMP=$(date -u +%Y%m%dT%H%M%SZ)
+STAMP="${STAMP:-$(date -u +%Y%m%dT%H%M%SZ)}${CARD_TAG:+-$CARD_TAG}"   # CARD_TAG: one folder per card (scripts/gpu_8card.sh)
 mkdir -p results/gpu
 
 echo "== checking the machine"
 [ "$(id -u)" = 0 ] || [ -n "${SIM:-}" ] || { echo "run with sudo: setting the power limit needs root"; exit 1; }
 command -v "$SMI" >/dev/null || { echo "nvidia-smi not found: this machine has no NVIDIA driver"; exit 1; }
 # one copy only: two copies on one card write the same power limit and every arm of both is invalid (amendment 4)
-exec 9>"${LOCK:-/tmp/omni-gpu-bench.lock}"
+exec 9>"${LOCK:-/tmp/omni-gpu-bench${CARD_TAG:+-$CARD_TAG}.lock}"
 flock -n 9 || { echo "another copy of this test is already running on this machine. Start it once only: wait for it to finish (or reboot the machine), then run this one command again."; exit 1; }
 BUSY=$($SMI -i "$GPU" --query-compute-apps=pid,process_name --format=csv,noheader 2>/dev/null || true)
 [ -z "$BUSY" ] || { echo "something else is using the GPU, so the test would not be measuring only itself:"; echo "$BUSY"; echo "stop it (or reboot the machine), then run this one command again."; exit 1; }

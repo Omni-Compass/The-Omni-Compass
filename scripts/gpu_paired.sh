@@ -36,8 +36,14 @@ WL_ARGS=${WORKLOAD_ARGS:-}
 export TZ=UTC
 mkdir -p "$OUT"
 
-lim() { $SMI -i "$GPU" --query-gpu=power.limit --format=csv,noheader,nounits | tr -d ' '; }
-q1() { $SMI -i "$GPU" --query-gpu="$1" --format=csv,noheader,nounits 2>/dev/null | tr -d ' '; }
+# GPU is one card ("0") or several ("0,1,2,3,4,5,6,7": one workload across the cards, one governor per card). With one
+# card every command below is the one-card command it always was
+IFS=, read -r -a CARDS <<< "$GPU"
+lim() { local g; for g in "${CARDS[@]}"; do $SMI -i "$g" --query-gpu=power.limit --format=csv,noheader,nounits | tr -d ' '; done; }
+q1() { $SMI -i "${CARDS[0]}" --query-gpu="$1" --format=csv,noheader,nounits 2>/dev/null | tr -d ' '; }
+setstart() { local i=0 g s; read -r -a s <<< "$(echo $START)"; for g in "${CARDS[@]}"; do $SMI -i "$g" -pl "${s[$i]%.*}" || return 1; i=$((i + 1)); done; }
+rgc() { local g; for g in "${CARDS[@]}"; do $SMI -i "$g" -rgc >/dev/null 2>&1 || true; done; }
+[ "${#CARDS[@]}" = 1 ] || [ -n "${WORKLOAD_CMD:-}" ] || { echo "several cards need WORKLOAD_CMD (one workload across them, e.g. scripts/gpu_vllm.sh)"; exit 1; }
 devmeter() {  # the card's own energy counter (NVML total energy, millijoules, Volta and newer) and its health counters:
   # a cross-check on the integrated power.draw and a record of wear, read by the bench only. "unavailable" where absent.
   local e; e=$($PY -c "import pynvml as n; n.nvmlInit(); print(n.nvmlDeviceGetTotalEnergyConsumption(n.nvmlDeviceGetHandleByIndex($GPU)))" 2>/dev/null || true)
@@ -74,16 +80,18 @@ if [ -n "${ENVELOPE:-}" ]; then
   [ -r "$ENVELOPE" ] || { echo "ENVELOPE file $ENVELOPE unreadable"; exit 1; }
   read -r ENV_FLOOR_W ENV_SLO < <($PY -c "import json,sys; e=json.load(open(sys.argv[1])); print(float(e['power_min_w']), float(e.get('slo_ms', 0)))" "$ENVELOPE") \
     || { echo "ENVELOPE must hold power_min_w (and optionally slo_ms)"; exit 1; }
-  DEVMIN=$(q1 power.min_limit); $PY -c "import sys; f,lo,hi=map(float,sys.argv[1:4]); sys.exit(0 if lo<=f<=hi else 1)" "$ENV_FLOOR_W" "$DEVMIN" "$START" \
+  DEVMIN=$(q1 power.min_limit); $PY -c "import sys; f,lo,hi=map(float,sys.argv[1:4]); sys.exit(0 if lo<=f<=hi else 1)" "$ENV_FLOOR_W" "$DEVMIN" "${START%%$'\n'*}" \
     || { echo "envelope floor $ENV_FLOOR_W W outside the device range [$DEVMIN, $START] W"; exit 1; }
   cp "$ENVELOPE" "$OUT/envelope.json"
   if [ "${ENV_SLO%.*}" != "0" ] && [ -z "${SLO_MS:-}" ]; then SLO_MS="$ENV_SLO"; fi
 elif [ "$PHASE" = "confirm" ]; then
   echo "confirmation refuses to start without a declared envelope: ENVELOPE=file.json with power_min_w (and slo_ms)"; exit 1
 fi
-MGMT=$(q1 power.management || true)
-[ "$MGMT" = "Enabled" ] || { echo "power management is '${MGMT:-unsupported}', not Enabled: a written limit would not bind"; exit 1; }
-$SMI -i "$GPU" -pl "${START%.*}" >/dev/null || { echo "cannot set the power limit (run as root)"; exit 1; }
+for g in "${CARDS[@]}"; do
+  MGMT=$($SMI -i "$g" --query-gpu=power.management --format=csv,noheader,nounits 2>/dev/null | tr -d ' ' || true)
+  [ "$MGMT" = "Enabled" ] || { echo "power management is '${MGMT:-unsupported}' on card $g, not Enabled: a written limit would not bind"; exit 1; }
+done
+setstart >/dev/null || { echo "cannot set the power limit (run as root)"; exit 1; }
 [ "$(lim)" = "$START" ] || { echo "power limit moved during preflight"; exit 1; }
 $PY - "$OUT" "$GPU" "$START" <<'EOF'
 import json, subprocess, sys, os
@@ -150,12 +158,12 @@ fail=0
 # REP_ONLY=k runs repetition k alone (its rotation included): one repetition per machine when repetitions are spread
 # over several machines of one type; the three arms of a repetition always share one machine
 for rep in ${REP_ONLY:-$(seq 1 "$REPS")}; do
-  k=$(( (rep - 1) % 3 )); order=("${ARMS[@]:$k}" "${ARMS[@]:0:$k}")
+  k=$(( (rep - 1 + ${ROT_OFFSET:-0}) % 3 )); order=("${ARMS[@]:$k}" "${ARMS[@]:0:$k}")
   for arm in "${order[@]}"; do
     D="$OUT/rep-$rep/$arm"; mkdir -p "$D"
     echo "== rep $rep, arm $arm"
-    if [ "$(lim)" != "$START" ]; then echo "limit $(lim) != start $START before the arm"; $SMI -i "$GPU" -pl "${START%.*}"; fail=1; fi
-    $SMI -i "$GPU" -rgc >/dev/null 2>&1 || true            # every arm starts with the card's own clock range
+    if [ "$(lim)" != "$START" ]; then echo "limit $(lim) != start $START before the arm"; setstart; fail=1; fi
+    rgc                                                    # every arm starts with the card's own clock range
     sleep "$COOLDOWN"
     lim > "$D/limit_start.txt"
     cp "$OUT/smi_fields.txt" "$D/smi_fields.txt"
@@ -166,18 +174,22 @@ for rep in ${REP_ONLY:-$(seq 1 "$REPS")}; do
     rapl > "$D/rapl_start.tsv"
     devmeter > "$D/device_start.txt"
     date -u +%s.%N > "$D/window_start.txt"
-    gov_pid=""
+    gov_pids=()
     if [ "$arm" != "native" ]; then
       mode=watch; [ "$arm" = "omni" ] && mode=cap
       rm -f "$D/kill"
       ENGINE_MOD=omni_controller.gpu_governor; [ "${OMNI_ENGINE:-bowl}" = bowl ] && ENGINE_MOD=omni_controller.gpu_bowl
-      $PY -m "$ENGINE_MOD" --mode "$mode" --gpus "$GPU" --smi "$SMI" --interval "$INTERVAL" \
-        --audit "$D/audit.jsonl" --kill-file "$D/kill" --latency-file "$D/latency.csv" --slo-ms "$SLO_MS" --floor-w "$ENV_FLOOR_W" ${OMNI_ARGS:-} \
-        > "$D/governor.log" 2>&1 &
-      gov_pid=$!
+      # one governor per card, each on its own card's two wires, all reading the same response times
+      for g in "${CARDS[@]}"; do
+        sfx=""; [ "${#CARDS[@]}" = 1 ] || sfx="-$g"
+        $PY -m "$ENGINE_MOD" --mode "$mode" --gpus "$g" --smi "$SMI" --interval "$INTERVAL" \
+          --audit "$D/audit$sfx.jsonl" --kill-file "$D/kill" --latency-file "$D/latency.csv" --slo-ms "$SLO_MS" --floor-w "$ENV_FLOOR_W" ${OMNI_ARGS:-} \
+          > "$D/governor$sfx.log" 2>&1 &
+        gov_pids+=($!)
+      done
     fi
     if [ -n "${WORKLOAD_CMD:-}" ]; then
-      OUT_DIR="$D" DEVICE="cuda:$GPU" bash -c "$WORKLOAD_CMD" > "$D/workload.log" 2>&1 || echo "workload exited $?" >> "$D/workload.log"
+      OUT_DIR="$D" DEVICE="cuda:${CARDS[0]}" CARDS="$GPU" bash -c "$WORKLOAD_CMD" > "$D/workload.log" 2>&1 || echo "workload exited $?" >> "$D/workload.log"
     else
       $PY tools/gpu_workload.py run --calib-file "$OUT/calib.json" --out "$D" --device "cuda:$GPU" \
         --duration "$DURATION" --drain "$DRAIN" > "$D/workload.log" 2>&1
@@ -186,14 +198,16 @@ for rep in ${REP_ONLY:-$(seq 1 "$REPS")}; do
     devmeter > "$D/device_end.txt"
     rapl > "$D/rapl_end.tsv"
     [ -n "$wall_pid" ] && { kill "$wall_pid" 2>/dev/null || true; wait "$wall_pid" 2>/dev/null || true; }
-    if [ -n "$gov_pid" ]; then
-      touch "$D/kill"; wait "$gov_pid" && echo 0 > "$D/governor_exit.txt" || echo $? > "$D/governor_exit.txt"
+    if [ "${#gov_pids[@]}" -gt 0 ]; then
+      touch "$D/kill"; gx=0
+      for p in "${gov_pids[@]}"; do wait "$p" || { r=$?; [ "$gx" != 0 ] || gx=$r; }; done
+      echo "$gx" > "$D/governor_exit.txt"                  # the first governor that did not exit cleanly, else 0
     fi
     kill "$smi_pid" 2>/dev/null || true; wait "$smi_pid" 2>/dev/null || true
-    $SMI -i "$GPU" -rgc >/dev/null 2>&1 || true            # and leaves it to the next arm the same way
+    rgc                                                    # and leaves it to the next arm the same way
     lim > "$D/limit_end.txt"
     if [ "$(cat "$D/limit_end.txt")" != "$START" ]; then
-      echo "limit not restored after $arm: $(cat "$D/limit_end.txt") != $START"; $SMI -i "$GPU" -pl "${START%.*}"; fail=1
+      echo "limit not restored after $arm: $(cat "$D/limit_end.txt") != $START"; setstart; fail=1
     fi
   done
 done

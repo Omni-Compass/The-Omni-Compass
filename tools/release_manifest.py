@@ -40,7 +40,7 @@ GROUPS = {
     "live_set_27": ["results/live/LIVE_REPS_27.md"],
     "bowl_law": ["scripts/kind_faults.sh", "tests/test_api_proxy.py", "tests/test_cost_to_match.py", "omnicompass/bowl.py", "omnicompass/verdict.py", "tests/test_verdict.py", "omnicompass/master.py", "tools/omni_switch.py", "tests/test_master_switch.py", "realms/bowl_arm.py", "omni_controller/gpu_bowl.py", "tools/gpu_wire_check.py",
                  "realms/gpu_card.py", "results/sim/gpu_two_wire/RESULT.json"],
-    "gpu_rented_run": ["scripts/gpu_rented_run.sh", "scripts/gpu_fault_drill.sh", "scripts/gpu_vllm.sh", "tools/llm_workload.py", "tools/run_hil.py", "tests/fake_gpu/nvidia-smi"],
+    "gpu_rented_run": ["scripts/gpu_rented_run.sh", "scripts/gpu_8card.sh", "tools/wall_meter.py", "tests/test_server_power.py", "scripts/gpu_fault_drill.sh", "scripts/gpu_vllm.sh", "tools/llm_workload.py", "tools/run_hil.py", "tests/fake_gpu/nvidia-smi"],
     "kwok_scale": ["scripts/kwok_scale.sh", "deploy/kwok/kubectl_kwok.sh", "tools/kwok_report.py", ".github/workflows/kwok-scale.yml"],
     "six_organisms": ["tools/run_scale.py", "tools/pool_scale.py", "scripts/scale_ladder.sh", ".github/workflows/six.yml",
                       "results/scale/GRID.md", "tools/grid.py", "results/scale/receipts/round6-1x.md", "results/scale/receipts/round6-10x.md", "docs/HOW_TO_READ_THE_RESULTS.md"],

@@ -7,9 +7,26 @@ Every -pl is appended to $FAKE_SMI_STATE.writes. FAKE_SMI_BLIND=1 makes every qu
 Enabled), "refuse_pl" (every -pl fails), "no_enforced" (the driver does not know enforced.power.limit), "busy_clock" (while utilization is 50% or more the card
 runs no faster than this, as a real card held by its own power limit does), "util_pattern" (utilization per second,
 cycling, for a card that is busy in bursts)."""
-import datetime, json, os, sys, time
+import datetime, fcntl, json, os, sys, time
 
 path = os.environ["FAKE_SMI_STATE"]
+_dump = json.dump
+
+
+def _atomic(obj, f):
+    """Several cards share one state file: every write is locked and replaces the file whole, so a reader never sees
+    half of it."""
+    f.close()
+    tmp = f"{path}.{os.getpid()}.tmp"
+    with open(tmp, "w") as t:
+        _dump(obj, t)
+    os.replace(tmp, path)
+
+
+args0 = sys.argv[1:]
+if "-pl" in args0 or "-lgc" in args0 or "-rgc" in args0:
+    _lock = open(path + ".lock", "a"); fcntl.flock(_lock, fcntl.LOCK_EX)   # held until this command exits
+    json.dump = _atomic
 st = json.load(open(path))
 args = sys.argv[1:]
 gpu = args[args.index("-i") + 1] if "-i" in args else None
@@ -65,7 +82,7 @@ def row(g):
 
 
 while True:
-    for g in ([gpu] if gpu else sorted(st["limit"])):
+    for g in (gpu.split(",") if gpu else sorted(st["limit"])):
         print(row(g), flush=True)
     if not lms:
         break

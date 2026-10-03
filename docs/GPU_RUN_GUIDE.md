@@ -129,6 +129,50 @@ wrong*): watch equal to native, requests equal, the card's busy clock under Omni
 at or above its own busy draw, fail-up rare in the credit-per-write table. If a row reads wired wrong, the run says
 nothing about Omni-Compass until the wiring is fixed (`DISCLOSURES.md`, section 3).
 
+## D. The 8-GPU result: every card of one server at once
+
+The same test as section C, on a machine with several cards (Lambda "8x A100" or "8x H100", a VM, the Lambda Stack
+image). Every card runs its own paired test at the same moment, sharing the server's power supply, cooling and
+neighbours' heat, as in a real data center. Each card starts its arm rotation one step later than the card before it,
+so at any moment some cards run native and some run Omni-Compass.
+
+Get the code as in step 3, then:
+
+```bash
+sudo nohup bash scripts/gpu_8card.sh > run8.log 2>&1 &
+tail -f run8.log
+```
+
+Each card: wire check, envelope, smoke, the compute confirmation, the AI token generation confirmation, the operator's
+power cap underneath (about 15 to 16 hours, all cards together). Then the fault drill once on card 0, with every other
+card idle. Then one pooled table per workload (every repetition of every card, each paired within its own card: 80
+repetitions per workload on 8 cards) and each card's own table. `SKIP_DECODE=1 SKIP_CAP=1` runs the compute
+confirmation alone, about 6.5 hours. Last, the whole server as one: a language model (Qwen2.5-7B-Instruct, open)
+served across every card at once by vLLM, one Omni-Compass governor per card, the server's total GPU energy, about
+2 hours (`SKIP_LLM=1` skips it). The whole stacks run on the one-card machine (section C) and are skipped here. Progress: `tail -f results/gpu/8card-<stamp>/card-*.log`. At the end: `== send this one file back:
+results/gpu/omni-8card-<stamp>.tar.gz`. The master switch (`sudo python3 tools/omni_switch.py off`) stops every card's
+governor at once.
+
+## E. Your own serving engine
+
+Already serving with TensorRT-LLM (`trtllm-serve`), SGLang, NVIDIA NIM, Triton's OpenAI-compatible frontend or your
+own vLLM? Start it as you always do, then:
+
+```bash
+sudo LLM_URL=http://127.0.0.1:8000 LLM_MODEL=<your model name> GPU=0 ENVELOPE=<envelope.json> OUT=results/gpu/mine \
+  bash scripts/gpu_vllm.sh
+```
+
+The same paired test (your engine alone against your engine with Omni-Compass on top) runs against it; nothing is
+installed or started. `GPU=0,1,2,3,4,5,6,7` when your engine spans several cards. Make the envelope once with
+`python3 tools/declare_envelope.py envelope.json --gpu 0`.
+
+## F. Whole-server power from the server itself
+
+The bench records the whole machine's watts beside the cards' own when you give it a meter: `WALL_METER=redfish:<BMC
+address>` (with `REDFISH_USER` and `REDFISH_PASSWORD`, read only), `WALL_METER=ipmi:local` (the server's management
+controller, read on the machine), or a smart plug (`tools/wall_meter.py` lists them). Omni-Compass never reads it.
+
 ## Before any machine: the simulated card
 
 `python3 tools/gpu_physics_sim.py --out results/gpu/sim/after` runs Omni's own GPU governor, with its current

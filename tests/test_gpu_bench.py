@@ -122,7 +122,8 @@ def bench():
     assert "Credit per write" in (d / "run" / "GPU_REPS.md").read_text()
     # the three contrasts and the receipts
     assert {"omni", "watch", "omni_vs_watch"} <= set(out["paired"]) and out["headline"]["verdict"] in (
-        "SUPERIOR WITHIN GUARDRAILS", "ENERGY IMPROVEMENT WITH SERVICE TRADEOFF", "NONINFERIOR / INCONCLUSIVE", "NOT ESTABLISHED", "WORSE")
+        "SUPERIOR WITHIN GUARDRAILS", "ENERGY IMPROVEMENT WITH SERVICE TRADEOFF", "NONINFERIOR / INCONCLUSIVE", "NOT ESTABLISHED", "WORSE",
+        "NOT ATTRIBUTABLE: WATCH DIFFERS FROM NATIVE")   # every label the rule can choose; 2 short repetitions pick any
     c1 = out["checks"]["omni"]["1"]
     assert c1["actuator"]["writes_ok"] > 0 and c1["actuator"]["restored_ok"] and c1["governor"]["decisions"] and c1["representation"]["pairs"]
     assert "enforced.power.limit" in (d / "run" / "rep-1" / "native" / "smi_fields.txt").read_text()
@@ -410,11 +411,31 @@ def one_writer():
     assert "powercap" not in (ROOT / "omni_controller" / "gpu_governor.py").read_text() and "energy_uj" not in (ROOT / "omni_controller" / "gpu_governor.py").read_text()
 
 
+def several_cards():
+    """One workload across three cards (the 8-GPU server's serving stage): one governor per card, the energy of every
+    card summed, each card handed back; watch writes nothing on any card."""
+    d = Path(tempfile.mkdtemp()); state(d, limit={"0": 300.0, "1": 300.0, "2": 300.0})
+    r = subprocess.run([sys.executable, str(ROOT / "tools" / "gpu_workload.py"), "calibrate", "--out", str(d), "--sim",
+                        "--calib", "5", "--target-ms", "20"], cwd=ROOT, capture_output=True, text=True, timeout=120)
+    assert r.returncode == 0, r.stderr
+    env = dict(os.environ, NVIDIA_SMI=SMI, SIM="1", GPU="0,1,2", REPS="2", DURATION="5", DRAIN="1", COOLDOWN="0",
+               INTERVAL="1", SLO_MS="200", OUT=str(d / "run"), OMNI_MASTER_OFF=str(d / "OFF"),
+               WORKLOAD_CMD=f"{sys.executable} tools/gpu_workload.py run --calib-file {d}/calib.json --out $OUT_DIR --sim "
+                            "--duration $DURATION --drain $DRAIN")
+    r = subprocess.run(["bash", str(ROOT / "scripts" / "gpu_paired.sh")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=600)
+    assert r.returncode == 0, r.stdout[-3000:] + r.stderr[-2000:]
+    out = json.loads((d / "run" / "GPU_REPS.json").read_text())
+    assert not out["problems"], out["problems"]
+    assert {c["writes"] for c in out["checks"]["watch"].values()} == {0} and all(c["writes"] > 0 for c in out["checks"]["omni"].values())
+    assert all((d / "run" / "rep-1" / "omni" / f"audit-{g}.jsonl").exists() for g in "012")
+    assert json.loads((d / "state.json").read_text())["limit"] == {"0": 300.0, "1": 300.0, "2": 300.0}
+
+
 def main():
-    plugs(); governor(); guards(); lock(); enforced(); one_writer(); bench(); bench_bowl(); wire_check(); hil(); pooled()
+    plugs(); governor(); guards(); lock(); enforced(); one_writer(); bench(); bench_bowl(); wire_check(); hil(); pooled(); several_cards()
     print("PASS  GPU bench: governor contract (watch writes nothing, shield floor, share floor, busy gate, read-back, blind, SLO reflex, kill), "
           "enforced limit (snapshot, override, power management, refused write ends the arm, fallback), one writer, heat fails up, blocked_by and decided_by, RAPL by domain, credit per write, workload plug, result labels, "
-          "and the one-command paired run with its validity checks")
+          "the one-command paired run with its validity checks, and one workload across several cards with one governor per card")
 
 
 if __name__ == "__main__":

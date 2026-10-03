@@ -128,8 +128,8 @@ def arm(d, gpus):
         g["energy, rest of the machine (J)"] = (g["energy, whole machine at the wall (J)"] - joules - g["energy, CPU package (J)"]
                                               - (0.0 if math.isnan(dram) else dram))
     writes = would = 0
-    if (d / "audit.jsonl").exists():
-        for line in open(d / "audit.jsonl"):
+    for af in sorted(d.glob("audit*.jsonl")):          # audit.jsonl, or audit-<card>.jsonl with one governor per card
+        for line in open(af):
             rec = json.loads(line)
             writes += "write" in rec; would += "would_write" in rec
             # the two-wire engine's clock wire counts too (its reset at the end is the restore, not a write)
@@ -380,7 +380,9 @@ def main(root):
             continue
         rep, a = d.parent.name.split("-", 1)[1], d.name
         start = (d.parent / "snapshot.txt").read_text().split() if (d.parent / "snapshot.txt").exists() else start0
-        g, c = arm(d, gpus); dirs.setdefault(rep, {})[a] = d
+        # a repetition pooled from another card or machine carries its own receipt: read that card, not the first one's
+        rg = json.loads((d.parent / "receipt.json").read_text()).get("gpus") if (d.parent / "receipt.json").exists() else None
+        g, c = arm(d, [int(x) for x in str(rg).split(",")] if rg is not None else gpus); dirs.setdefault(rep, {})[a] = d
         runs.setdefault(a, {})[rep] = g; checks.setdefault(a, {})[rep] = c
         lim = [f"{x:.2f}" for x in c["limits_seen"]]
         if a in ("native", "watch") and start and any(all(abs(x - float(s)) >= 1.0 for s in start) for x in c["limits_seen"]):
@@ -394,7 +396,7 @@ def main(root):
         rc = json.loads((d.parent / "receipt.json").read_text()) if (d.parent / "receipt.json").exists() else receipt
         enf0 = str(rc.get("power_limit_enforced_w", "unsupported"))
         if a in ("native", "watch") and c["enforced_seen"] and enf0 not in ("", "unsupported") \
-                and any(abs(x - float(enf0)) >= 1.0 for x in c["enforced_seen"]):
+                and any(all(abs(x - float(e)) >= 1.0 for e in enf0.split()) for x in c["enforced_seen"]):   # one value per card
             problems.append(f"{a} rep {rep}: enforced power limit {c['enforced_seen']} differs from the snapshot {enf0}")
         if a in ("watch", "omni") and c["governor_exit"] not in (None, "0"):
             problems.append(f"{a} rep {rep}: the governor exited {c['governor_exit']} (a refused write or a refused start)")

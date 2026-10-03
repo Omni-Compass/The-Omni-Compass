@@ -374,3 +374,17 @@ and each reported as its own result:
    of prompts in every arm, each for exactly 128 new tokens; 5 repetitions × 3 arms × 300 s. Tokens per second and
    tokens per kilojoule follow from requests served. If vLLM cannot be installed or started on the machine, the stage
    says so and nothing measured before it changes.
+
+## Amendment 10 (2026-10-03, before any trial on several cards)
+
+Everything in amendments 8 and 9 stands. **Several cards in one server** (`scripts/gpu_8card.sh`): every card runs
+`scripts/gpu_rented_run.sh` at the same time, each on its own card with its own wire check, envelope, smoke, the two
+confirmations and the power cap underneath, on the same committed code. Card i starts its arm rotation i steps later
+(`ROT_OFFSET`), so no arm always meets the same neighbours. Each repetition stays paired within its own card (its three
+arms on one card); the pooled table per workload holds every card's repetitions (card c, repetition r is pooled as
+repetition 100(c+1)+r) and is labelled by the same rule. Each card's own table is reported beside it; a card whose
+table is invalid is reported, never dropped. The fault drill runs once, on the first card, after every card has
+finished. Last, **one model across every card** (`scripts/gpu_vllm.sh` with GPU = every card): vLLM tensor parallel,
+Qwen/Qwen2.5-7B-Instruct, one governor per card on its own card's two wires, all reading the same response times;
+the energy is every card's summed; 5 repetitions × 3 arms × 300 s, labelled by the same rule. Each card's energy is read from that card alone (the bench's sampling filtered to the card in each
+repetition's own receipt).

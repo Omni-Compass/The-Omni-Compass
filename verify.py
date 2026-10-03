@@ -287,6 +287,8 @@ def main():
     test_gpu_bowl.main(); check("two-wire GPU governor: races while work waits, never slower than the card on its own while busy, lid never under its own busy draw, fail up past the line, restores", True)
     from tests import test_cost_to_match
     test_cost_to_match.main(); check("cost to match: the cheapest native setting that reaches Omni-Compass's p95, its extra pods, CPU and machines", True)
+    from tests import test_server_power
+    test_server_power.main(); check("server power: Redfish and IPMI give the whole-server watts, read only", True)
     from tests import test_api_proxy
     test_api_proxy.main(); check("controller reads through one kubectl proxy: kubectl's own output shape, missing objects are errors, anything else goes to kubectl", True)
     from tests import test_master_switch

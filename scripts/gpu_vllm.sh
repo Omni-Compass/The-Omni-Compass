@@ -10,11 +10,22 @@
 #   sudo OUT=results/gpu/run-STAMP-llm ENVELOPE=... bash scripts/gpu_vllm.sh
 #   LLM_MODEL (default Qwen/Qwen2.5-0.5B-Instruct, open, no account needed), LLM_RATE (requests per second, default 4),
 #   REPS_LLM (default 5), DURATION_LLM (default 300 s per arm)
+# Several cards: GPU=0,1,2,3,4,5,6,7 serves one model across them (vLLM tensor parallel, one Omni-Compass governor per
+# card); LLM_MODEL then defaults to Qwen/Qwen2.5-7B-Instruct (open, no account needed).
+# Your own serving engine: start it yourself (vLLM, TensorRT-LLM's trtllm-serve, SGLang, NVIDIA NIM, Triton's
+# OpenAI-compatible frontend: anything that answers /v1/completions), then LLM_URL=http://host:port LLM_MODEL=<name>
+# runs the same paired test against it; nothing is installed or started.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 OUT="${OUT:?set OUT}"; GPU="${GPU:-0}"
-VENV="${VLLM_VENV:-/opt/omni-vllm}"; MODEL="${LLM_MODEL:-Qwen/Qwen2.5-0.5B-Instruct}"; PORT="${LLM_PORT:-8000}"
+IFS=, read -r -a CARDS <<< "$GPU"; TP=${#CARDS[@]}
+DEFMODEL=Qwen/Qwen2.5-0.5B-Instruct; [ "$TP" = 1 ] || DEFMODEL=Qwen/Qwen2.5-7B-Instruct
+VENV="${VLLM_VENV:-/opt/omni-vllm}"; MODEL="${LLM_MODEL:-$DEFMODEL}"; PORT="${LLM_PORT:-8000}"
 mkdir -p "$OUT"
+if [ -n "${LLM_URL:-}" ]; then
+  echo "== your own serving engine at $LLM_URL (model $MODEL): nothing installed or started"
+  curl -sf "$LLM_URL/v1/models" >/dev/null 2>&1 || { echo "nothing answers at $LLM_URL/v1/models" | tee "$OUT/SKIPPED.txt"; exit 0; }
+else
 echo "== real AI serving: installing vLLM in its own environment ($VENV)"
 if [ ! -x "$VENV/bin/python" ]; then
   python3 -m venv "$VENV" && "$VENV/bin/pip" install -q --upgrade pip && "$VENV/bin/pip" install -q vllm \
@@ -22,7 +33,7 @@ if [ ! -x "$VENV/bin/python" ]; then
 fi
 echo "== starting the model server: $MODEL"
 CUDA_VISIBLE_DEVICES="$GPU" "$VENV/bin/python" -m vllm.entrypoints.openai.api_server --model "$MODEL" --port "$PORT" \
-  --gpu-memory-utilization 0.80 --max-model-len 2048 > "$OUT/vllm.log" 2>&1 &
+  --gpu-memory-utilization 0.80 --max-model-len 2048 --tensor-parallel-size "$TP" > "$OUT/vllm.log" 2>&1 &
 SRV=$!
 trap 'kill $SRV 2>/dev/null; wait $SRV 2>/dev/null' EXIT
 for _ in $(seq 1 120); do
@@ -32,10 +43,12 @@ for _ in $(seq 1 120); do
 done
 curl -sf "http://127.0.0.1:$PORT/v1/models" >/dev/null 2>&1 \
   || { echo "the model server did not start; real AI serving skipped (see $OUT/vllm.log)" | tee "$OUT/SKIPPED.txt"; exit 0; }
-export LLM_URL="http://127.0.0.1:$PORT" LLM_MODEL="$MODEL"
+LLM_URL="http://127.0.0.1:$PORT"
+fi
+export LLM_URL LLM_MODEL="$MODEL"
 python3 tools/llm_workload.py calibrate --out "$OUT" > "$OUT/calibrate.log" 2>&1 \
   || { echo "calibration failed; real AI serving skipped" | tee "$OUT/SKIPPED.txt"; exit 0; }
 SLO=$(python3 -c "import json; print(round(10*json.load(open('$OUT/calib.json'))['service_ms'],1))")
 echo "one request at a time: $(python3 -c "import json; print(round(json.load(open('$OUT/calib.json'))['service_ms']))") ms; response line $SLO ms"
-PHASE=confirm REPS_CONFIRM="${REPS_LLM:-5}" DURATION="${DURATION_LLM:-300}" SLO_MS="$SLO" \
+PHASE=confirm REPS_CONFIRM="${REPS_LLM:-5}" DURATION="${DURATION_LLM:-300}" SLO_MS="$SLO" GPU="$GPU" \
   WORKLOAD_CMD="python3 tools/llm_workload.py run" OUT="$OUT" bash scripts/gpu_paired.sh
