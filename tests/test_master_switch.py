@@ -11,6 +11,9 @@ nvidia-smi, and the Kubernetes controller (bowl law, HPA target mode) on the fak
             clocks, the operator's HPA target) and exit, within seconds
   refused   while the switch is OFF, neither governor will start (no authority taken)
   on        after ON, a governor starts again
+  crash     both governors killed outright (SIGKILL: no chance to hand back) while acting; status names them; the
+            watchdog runs their recorded restore commands: the HPA target back to the operator's and the card's clocks
+            and limit back to the start
 """
 import json, os, subprocess, sys, tempfile, time
 from pathlib import Path
@@ -78,8 +81,29 @@ def main():
     subprocess.run(switch + ["on"], env=env, check=True, capture_output=True)
     p = subprocess.run(k8s_cmd + ["--iterations", "1"], env=env, cwd=ROOT, capture_output=True, text=True, timeout=60)
     assert p.returncode == 0, p.stderr[-300:]
+    # crash: killed outright while acting, the watchdog hands back
+    gpu = subprocess.Popen(gpu_cmd, env=env, cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    k8s = subprocess.Popen(k8s_cmd, env=env, cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    t0 = time.time()
+    while time.time() - t0 < 30 and target() == 50:
+        time.sleep(0.5)
+    time.sleep(2)
+    assert target() < 50
+    s0 = json.loads(smi.read_text()); s0["limit"]["0"] = 130.0; smi.write_text(json.dumps(s0))   # as if the governor had lowered it
+    gpu.kill(); k8s.kill(); gpu.wait(10); k8s.wait(10)
+    st = subprocess.run(switch + ["status"], env=env, capture_output=True, text=True).stdout
+    assert st.count("DIED OR HUNG") == 2, st
+    assert target() < 50, "nothing should have handed back yet"
+    w = subprocess.run(switch + ["watchdog", "--once"], env=env, capture_output=True, text=True, timeout=120)
+    done = [json.loads(l) for l in w.stdout.splitlines() if l.startswith("{")]
+    assert len(done) == 2 and all(d["ok"] for d in done), w.stdout + w.stderr
+    assert target() == 50, f"HPA target not handed back after a crash: {target()}"
+    assert json.loads(smi.read_text())["limit"]["0"] == 150.0, "card limit not handed back after a crash"
+    st = subprocess.run(switch + ["status"], env=env, capture_output=True, text=True).stdout
+    assert "DIED OR HUNG" not in st and "running:" not in st, st
     print("PASS master switch: one OFF stops every governor at once, every setting handed back (card limit and clocks, "
-          "HPA target), nothing starts while OFF, ON allows a start again")
+          "HPA target), nothing starts while OFF, ON allows a start again; governors killed outright are handed back by "
+          "the watchdog")
 
 
 if __name__ == "__main__":

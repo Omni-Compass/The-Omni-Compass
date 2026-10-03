@@ -601,6 +601,7 @@ def parser():
     ap.add_argument("--kubectl", default="kubectl")
     ap.add_argument("--audit", default="omni_audit.jsonl")
     ap.add_argument("--kill-file", default="/tmp/omni.kill")
+    ap.add_argument("--restore-only", action="store_true", help="put every setting back from the records on the objects and exit (the watchdog's way back)")
     ap.add_argument("--node-scale-cmd", default="")
     ap.add_argument("--min-nodes", type=int, default=1)
     ap.add_argument("--max-nodes", type=int, default=1000)
@@ -651,9 +652,16 @@ def safe_step(c, fails):
 
 def main(argv=None):
     a = parser().parse_args(argv)
+    if a.restore_only:
+        # the watchdog's way back for a controller that died: every setting back to the operator's, from the records
+        # kept on the objects themselves (annotations), then exit
+        c = Controller(a); c.restore(); c.audit({"decision": "restore only: every setting handed back"})
+        return 0
     master.refuse_if_off("kubernetes controller")
     c = Controller(a); i = 0; fails = 0
-    master.register("kubernetes controller")
+    args = list(sys.argv[1:] if argv is None else argv)
+    master.register("kubernetes controller", restore=[[sys.executable, "-m", "omni_controller.controller", *args, "--restore-only"]],
+                    stale_s=max(120.0, 5 * a.interval))
     import signal
 
     def master_off(*_):
@@ -673,7 +681,10 @@ def main(argv=None):
                               "cores_mean": round(cpu / max(1e-9, time.time() - t0), 4)}})
     atexit.register(overhead)
     while a.iterations == 0 or i < a.iterations:
+        master.heartbeat()
+        t_dec = time.time()
         fails = safe_step(c, fails); i += 1
+        c.audit({"decision_ms": round(1000 * (time.time() - t_dec), 1)})
         if a.iterations == 0 or i < a.iterations:
             waited = 0.0
             while waited + 1e-9 < a.interval:

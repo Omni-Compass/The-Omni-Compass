@@ -499,7 +499,8 @@ def main(argv=None):
     a = parser().parse_args(argv)
     master.refuse_if_off("GPU governor (one wire)")
     gov = GpuGovernor(a)
-    master.register("GPU governor (one wire)")
+    back = [[a.smi, "-i", str(g), "-pl", str(int(round(gov.start[g])))] for g in gov.gpus] if a.mode == "cap" else []
+    master.register("GPU governor (one wire)", restore=back, stale_s=max(60.0, 5 * a.interval))
     stop = {"now": False}
     signal.signal(signal.SIGTERM, lambda *_: stop.__setitem__("now", True))
     t0 = time.time()
@@ -507,7 +508,7 @@ def main(argv=None):
     try:
         while not stop["now"] and not gov.killed() and not master.is_off() and (a.duration <= 0 or time.time() - t0 < a.duration):
             try:
-                gov.step()
+                master.heartbeat(); gov.step()
             except WriteFailed as e:   # the actuator refused: the arm ends here, never carries on as if watching
                 gov.audit({"fatal": f"write failed: {e}"}); failed = True
                 break

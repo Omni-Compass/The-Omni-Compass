@@ -359,7 +359,10 @@ def main(argv=None):
     a = parser().parse_args(argv)
     master.refuse_if_off("GPU governor (two wires)")
     gov = GpuBowl(a)
-    master.register("GPU governor (two wires)")
+    # what puts the card back if this process dies without doing it itself (the watchdog runs it)
+    back = ([[a.smi, "-i", str(gov.g), "-rgc"], [a.smi, "-i", str(gov.g), "-pl", str(int(round(gov.start)))]]
+            if a.mode == "cap" else [])
+    master.register("GPU governor (two wires)", restore=back, stale_s=max(60.0, 5 * a.interval))
     stop = {"now": False}
     signal.signal(signal.SIGTERM, lambda *_: stop.__setitem__("now", True))
     t0 = time.time()
@@ -367,7 +370,7 @@ def main(argv=None):
     try:
         while not stop["now"] and not os.path.exists(a.kill_file) and not master.is_off() and (a.duration <= 0 or time.time() - t0 < a.duration):
             try:
-                gov.step()
+                master.heartbeat(); gov.step()
             except WriteFailed as e:
                 gov.audit({"fatal": f"write failed: {e}"}); failed = True
                 break

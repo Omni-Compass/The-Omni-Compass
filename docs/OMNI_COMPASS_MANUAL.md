@@ -556,6 +556,11 @@ budget (`hardware/site_exchange.py`) run in simulation today. Batteries are desi
    them to be started again (nothing restarts by itself); `status` shows the switch and every governor running. Use it
    the moment anything looks wrong, including a suspected breach. Each governor also keeps its own switch for one
    muscle at a time: the kill file (or `OMNI_KILL=1`, or SIGTERM to the GPU governor).
+   **If a governor dies without handing back** (killed outright, the machine crashed, it hung), nothing it wrote is
+   left in place: every governor records, before its first write, the exact commands that put every setting back, and
+   renews a lease every decision. Run `python3 tools/omni_switch.py watchdog` as its own service next to the governors:
+   it hands back for any governor whose process is gone or whose lease has run out (a hung one is stopped first).
+   `status` names any governor that died without handing back.
 2. It records before it acts (annotations on Kubernetes objects; the `snapshot` line in the GPU audit).
 3. It watches before it writes.
 4. It never acts blind.

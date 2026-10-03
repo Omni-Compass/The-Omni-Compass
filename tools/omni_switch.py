@@ -11,7 +11,10 @@
   python3 tools/omni_switch.py on
       allows governors to be started again (nothing restarts by itself)
   python3 tools/omni_switch.py status
-      OFF or ON, and every governor running
+      OFF or ON, every governor running, and any that died without handing back
+  python3 tools/omni_switch.py watchdog [--stale 60] [--every 10] [--once]
+      puts back every setting of any governor that died or hung without doing it itself (its recorded restore commands),
+      stopping a hung one first; run it as its own service next to the governors
 
 OMNI_MASTER_OFF sets the switch file (default /tmp/omni-compass/OFF); every governor and this tool must agree on it.
 """
@@ -21,6 +24,7 @@ import argparse
 import json
 import os
 import signal
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -29,17 +33,61 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from omnicompass import master  # noqa: E402
 
 
+def reclaim(stale):
+    """Run the recorded restore commands of every governor that died or hung; returns what was done."""
+    done = []
+    now = time.time()
+    for r in master.records():
+        alive = master._alive(r.get("pid", -1))
+        limit = stale if stale is not None else r.get("stale_s", 60.0)
+        if alive and now - r.get("lease", 0) <= limit:
+            continue
+        if alive:                                  # hung: stop it before its settings are put back over it
+            try:
+                os.kill(int(r["pid"]), signal.SIGKILL)
+            except OSError:
+                pass
+        results = []
+        for cmd in r.get("restore", []):
+            try:
+                c = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+                results.append({"cmd": cmd, "rc": c.returncode, "stderr": c.stderr[-300:]})
+            except (OSError, subprocess.SubprocessError) as e:
+                results.append({"cmd": cmd, "rc": None, "error": str(e)})
+        ok = all(x.get("rc") == 0 for x in results)
+        if ok:
+            try:
+                os.remove(r["_path"])
+            except OSError:
+                pass
+        done.append({"watchdog": "handed back", "name": r["name"], "pid": r["pid"], "hung": alive, "ok": ok,
+                     "commands": results, "time": now})
+    return done
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["off", "on", "status"])
+    ap.add_argument("cmd", choices=["off", "on", "status", "watchdog"])
+    ap.add_argument("--stale", type=float, default=None, help="watchdog: a lease older than this many seconds is hung (default: each governor's own)")
+    ap.add_argument("--every", type=float, default=10.0, help="watchdog: seconds between passes")
+    ap.add_argument("--once", action="store_true", help="watchdog: one pass")
     ap.add_argument("--reason", default="turned off by hand")
     ap.add_argument("--wait", type=float, default=60.0)
     a = ap.parse_args(argv)
     p = master.switch_path()
+    if a.cmd == "watchdog":
+        while True:
+            for r in reclaim(a.stale):
+                print(json.dumps(r), flush=True)
+            if a.once:
+                return 0
+            time.sleep(a.every)
     if a.cmd == "status":
         print(f"master switch: {'OFF' if master.is_off() else 'ON'} ({p})")
         for r in master.running():
             print(f"  running: {r['name']} pid {r['pid']}")
+        for r in master.orphans():
+            print(f"  DIED OR HUNG WITHOUT HANDING BACK: {r['name']} pid {r['pid']} (run: omni_switch.py watchdog --once)")
         return 0
     if a.cmd == "on":
         try:
@@ -65,6 +113,8 @@ def main(argv=None):
         left = master.running()
     for r in left:
         print(f"  STILL RUNNING after {a.wait:.0f} s: {r['name']} pid {r['pid']}")
+    for r in reclaim(None):
+        print(f"  handed back for a governor that had died: {r['name']} pid {r['pid']}, ok {r['ok']}")
     if not left:
         print("every governor has restored and exited")
     return 1 if left else 0

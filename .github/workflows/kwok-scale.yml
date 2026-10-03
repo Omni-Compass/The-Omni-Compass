@@ -1,0 +1,39 @@
+name: kwok-scale
+# Omni-Compass on a real Kubernetes control plane at 50, 500 and 1,000 nodes (KWOK nodes: real Node and Pod objects in
+# the real API server, no machines behind them; scripts/kwok_scale.sh). What the controller costs at each size, whether
+# its counts are right and its commands land, and whether the master switch hands everything back.
+# Started by hand (Actions -> kwok-scale -> Run workflow) or by a commit message containing [kwok].
+on:
+  workflow_dispatch:
+    inputs:
+      nodes: {description: "Node counts, as a JSON list", default: "[50, 500, 1000]"}
+  push:
+jobs:
+  scale:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[kwok]')
+    strategy:
+      fail-fast: false
+      matrix:
+        nodes: ${{ fromJSON(github.event.inputs.nodes || '[50, 500, 1000]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt && sudo apt-get install -y time jq >/dev/null
+      - uses: helm/kind-action@v1
+        with: {install_only: true}
+      - run: NODES=${{ matrix.nodes }} OUT=kwok-${{ matrix.nodes }} bash scripts/kwok_scale.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: "kwok-${{ matrix.nodes }}", path: "kwok-${{ matrix.nodes }}"}
+  report:
+    needs: scale
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: {path: parts}
+      - run: python3 tools/kwok_report.py parts | tee -a "$GITHUB_STEP_SUMMARY"
