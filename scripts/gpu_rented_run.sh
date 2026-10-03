@@ -97,6 +97,7 @@ else
       "results/gpu/run-$STAMP-decode/GPU_REPS.json" 2>/dev/null || echo "no table produced (exit $decode_rc)"
   fi
   tar czf "results/gpu/omni-gpu-$STAMP-confirmations.tar.gz" "${PACK[@]}"
+  echo "== both confirmations packed (send this now if you like): results/gpu/omni-gpu-$STAMP-confirmations.tar.gz"
   # an operator's power cap underneath (the envelope's lowest watts, 70% of the default limit): the cap alone against
   # the cap with Omni-Compass on top, at the usual load and then fully loaded (more work from the same watts)
   CAP=$($PY -c "import json,sys; print(int(float(json.load(open(sys.argv[1]))['power_min_w'])))" "$ENVELOPE")
@@ -120,7 +121,6 @@ else
   fi
   tar czf "results/gpu/omni-gpu-$STAMP-partial.tar.gz" "${PACK[@]}"
   echo "== everything so far packed: results/gpu/omni-gpu-$STAMP-partial.tar.gz"
-  echo "== both confirmations packed (send this now if you like; the stacks run next): results/gpu/omni-gpu-$STAMP-confirmations.tar.gz"
   if [ -z "${SKIP_HIL:-}" ]; then
     echo "== the whole stacks with this card inside: six organisms at 1x, 10x, 100x and 1,000x copies, native and Omni (tools/run_hil.py)"
     set +e
