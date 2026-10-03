@@ -43,7 +43,7 @@ GROUPS = {
     "gpu_rented_run": ["scripts/gpu_rented_run.sh", "tools/run_hil.py", "tests/fake_gpu/nvidia-smi"],
     "kwok_scale": ["scripts/kwok_scale.sh", "deploy/kwok/kubectl_kwok.sh", "tools/kwok_report.py", ".github/workflows/kwok-scale.yml"],
     "six_organisms": ["tools/run_scale.py", "tools/pool_scale.py", "scripts/scale_ladder.sh", ".github/workflows/six.yml",
-                      "results/scale/GRID.md"],
+                      "results/scale/GRID.md", "tools/grid.py", "results/scale/receipts/round6-1x.md", "docs/HOW_TO_READ_THE_RESULTS.md"],
     "license": ["LICENSE", "NOTICE", "DISCLOSURES.md", "LICENSING_FAQ.md", "THIRD_PARTY_NOTICES.md", "PATENTS.md",
                 "TRADEMARKS.md"],
     "repository_standards": ["docs/REPOSITORY_STANDARDS.md", "codemeta.json", "sbom/omni-compass.cdx.json", "SECURITY_CONTACTS",

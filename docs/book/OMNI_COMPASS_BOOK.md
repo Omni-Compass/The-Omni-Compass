@@ -2730,7 +2730,7 @@ pip install -r requirements.txt
 nvidia-smi                 # should show your GPU
 ```
 
-### 4. The whole test, one command (about 18 hours)
+### 4. The whole test, one command (about 40 hours)
 
 ```bash
 sudo nohup bash scripts/gpu_rented_run.sh > run.log 2>&1 &
@@ -2741,11 +2741,14 @@ It runs, in order, and stops at the first failure:
 1. the machine check (one copy only, nothing else on the card, the card's default limit and clock range restored);
 2. the **wire check**, which must end `WIRED RIGHT` (manual, section 8.4);
 3. the smoke test, about 40 minutes, never counted;
-4. the six organisms with this card inside, about 5½ hours (`SKIP_HIL=1` skips it);
-5. the preregistered confirmation on compute-bound work: 10 repetitions × native / watch / Omni, 600 s each, about
+4. the preregistered confirmation on compute-bound work: 10 repetitions × native / watch / Omni, 600 s each, about
    6 hours;
-6. the second preregistered confirmation on AI token generation (memory-bound), the same design, about 6 hours
-   (`SKIP_DECODE=1` skips it); each is its own result, never pooled;
+5. the second preregistered confirmation on AI token generation (memory-bound), the same design, about 6 hours
+   (`SKIP_DECODE=1` skips it); each is its own result, never pooled. Both are packed into one file as soon as they
+   finish: `results/gpu/omni-gpu-<stamp>-confirmations.tar.gz`;
+6. the six organisms with this card inside, each as **1, 10, 100 and 1,000 copies** on one clock (3, 3, 2 and 1
+   repetitions), about 25 hours; the 1,000-copy stacks need a longer step than 2 s, measured on the machine and stated
+   in the receipt (`SKIP_HIL=1` skips this stage);
 7. one packed file: `== send this one file back: results/gpu/omni-gpu-<stamp>.tar.gz`, with the label each table chose
    by rule.
 
@@ -3173,7 +3176,122 @@ Add `--strict-replicas`:
 *Paired runs, receipts, rules written before the runs, and every result to date with its evidence class.*
 
 
-## 37. The Dossier: Every Result in One Place
+## 37. How to Read the Results
+
+
+
+This chapter teaches you to read every table Omni-Compass produces. You do not need to know Kubernetes or GPUs to
+follow it. Read the five ideas first, then go to the table you have in front of you.
+
+### The five ideas behind every table
+
+1. **Native, and native with Omni-Compass on top.** Omni-Compass never runs a machine by itself. Every result compares
+   a system running alone ("native": Kubernetes alone, the card's own firmware alone, a building's own controller
+   alone) with the same system with Omni-Compass sitting on top of it. Same machine, same work, same moment: the only
+   difference is Omni-Compass.
+2. **Paired runs.** Each comparison is run many times ("repetitions" or "runs"), each time with both arms on the same
+   seed (the same pattern of work). Each repetition gives one difference; the table reports the average difference.
+3. **The 95% interval.** Next to each average is a range, for example `+0.092% (+0.090 to +0.093)`. It means: if we
+   ran this again and again, the true answer would land inside that range 95 times out of 100.
+   - If the whole range is on one side of zero, the difference is **proven** (the table says "yes" or "significant").
+   - If the range crosses zero, the difference is **not proven**: it could be noise.
+4. **Better is not always "up".** For energy, response time, failures, machines and time over the line, **lower is
+   better**, so a minus sign is good. For work per energy and work done, **higher is better**, so a plus sign is good.
+   Every table says which.
+5. **Evidence class.** Every result is marked with how it was measured:
+   - **T**: a theorem;
+   - **V**: verified in code;
+   - **S**: a model (simulation);
+   - **L**: live software (real Kubernetes);
+   - **P**: a physical meter (a real card's own power meter).
+
+   Only **P** speaks for hardware energy.
+
+### The words in the tables
+
+| Word | What it means | Better is |
+|---|---|---|
+| Work per energy | work done for each unit of energy (requests per kilojoule on a card) | higher |
+| Energy (J, Wh) | the energy used | lower |
+| Work, requests served | how much was done; both arms must serve the same work | equal |
+| Response time, median (p50) | half of the answers were faster than this | lower |
+| Response time, p95 | 95 of 100 answers were faster than this: the slow answers, what service promises are written on | lower |
+| Response time, p99 | 99 of 100 answers were faster than this: the slowest answers | lower |
+| Time over the line, violations (pp) | the share of time the service was past its promise, in percentage points | lower |
+| Failed requests, not served | answers that never came | zero |
+| Machines in service, node-hours | how many machines were kept on, and for how long | lower |
+| Band first | the founder's rule: no win unless time over the line is no higher than native's | "held" |
+| Knobs handed back, restored | at the end every setting Omni-Compass touched was put back exactly | True / yes |
+| Label | the verdict, chosen by a rule written before the run, never by hand | see each table |
+
+### The GPU card (`results/gpu/run-<stamp>/GPU_REPS.md`)
+
+One card, three arms, many repetitions:
+- **native**: the card's firmware alone;
+- **watch**: Omni-Compass running and deciding but writing nothing. It must equal native: this proves Omni-Compass
+  watching costs nothing;
+- **omni**: Omni-Compass on top, moving the card's clock ceiling and power limit.
+
+Read it in this order:
+1. **The verdict line** at the top, one of: *better, proven*; *worse, proven*; *not proven*; *better on energy, fails
+   the service guardrail*.
+2. **Work per energy** (requests per kilojoule): the headline. A plus sign with a range wholly above zero is a proven
+   gain.
+3. **Requests served** must be equal in every arm. More energy saved by serving less work would be cheating; the bench
+   checks it.
+4. **p95 and p99**: the slow answers. With the verdict rule (`omnicompass/verdict.py`), Omni-Compass never takes a step
+   that makes a request more than 2% slower.
+5. **Writes and restore**: how many settings were changed, and that every arm ended at the card's own limit.
+
+The file `omni-gpu-<stamp>-confirmations.tar.gz` holds two such tables: compute-bound work (matrix products) and AI
+token generation (memory-bound work).
+
+### The card inside the six organisms (`results/hil/run-<stamp>/HIL.md`)
+
+The real card is wired into each of the six organisms (the four realms, the four stacked, the whole tower) at four
+sizes (1, 10, 100 and 1,000 copies). Each row is one size, one organism and one part:
+- **stacks (model)**: the simulated machines (evidence S);
+- **card (meter)**: the real card, its own meter (evidence P);
+- **both**: the two added together.
+
+The second table lists the card's own receipts for every arm: its energy, requests served, p95, and its power limit at
+the start and at the end, which must be equal.
+
+### Real Kubernetes (`results/live/LIVE_REPS_<n>.md`)
+
+Each set is 10 paired repetitions on a real Kubernetes cluster (kind): native Kubernetes (its HPA and scheduler)
+against the same Kubernetes with Omni-Compass on top. Read:
+1. **worker nodes in service** and **node-hours**: how many machines were kept busy. Minus is better.
+2. **response time p95 and p99**: minus is faster.
+3. **failed requests**: must be zero on both sides.
+4. **CPU used with Omni's own**: Omni-Compass's own cost included; "no" in the significant column means it costs
+   nothing measurable overall.
+5. **The label** at the bottom, by the rule written before the run.
+
+Energy on kind is a declared model, not a meter: kind keeps every machine powered.
+
+### The six organisms grid (`results/scale/GRID.md`)
+
+Columns are **size × runs**: 1, 10, 100 and 1,000 clusters, each at 1, 10, 100 and 1,000 paired runs. Rows are the six
+organisms. There is one table each for work per energy, energy, time over the line and work done. Read a cell as
+"with Omni-Compass on top, against native, at this size, over this many runs". Cells that are still computing say so;
+1,000 runs at 1,000 clusters is beyond the machines available and says so.
+
+### Kubernetes at scale (`KWOK.md`, from the `kwok-scale` workflow)
+
+Real Kubernetes at 50, 500 and 1,000 nodes (KWOK nodes: real Kubernetes objects with no machines behind them):
+- **decision time** is how long Omni-Compass takes to decide, at that size;
+- **memory** is what it uses;
+- **master switch** must read "yes": everything handed back.
+
+### Where to start
+
+1. `STATE_OF_PLAY.md`: one page, every result and how strong it is.
+2. `docs/DOSSIER.md`: every result with its chart.
+3. This chapter, next to the table in front of you.
+4. `DISCLOSURES.md`: what a result is and is not.
+
+## 38. The Dossier: Every Result in One Place
 
 
 
@@ -3298,7 +3416,7 @@ Every raw result folder carries its `SHA256SUMS.txt`; the rules for each run wer
 - 1,000 runs at 1,000× (needs a larger machine).
 
 
-## 38. Paired Runs and Receipts on Your Own System
+## 39. Paired Runs and Receipts on Your Own System
 
 
 1. **Paired runs.** Run your service the same way twice, once native and once with Omni-Compass on top, back to back
@@ -3319,7 +3437,7 @@ Every raw result folder carries its `SHA256SUMS.txt`; the rules for each run wer
 organism on one clock. Real Kubernetes runs on GitHub's machines (workflow `benchmark-reps`).
 
 
-## 39. Evidence Classes and How to Read a Result
+## 40. Evidence Classes and How to Read a Result
 
 
 | Class | Rung | What it is | What it can show |
@@ -3333,7 +3451,7 @@ Read every number with its class beside it. A simulation number is never quoted 
 receipt's energy line is modelled, the receipt says so.
 
 
-## 40. Results to Date
+## 41. Results to Date
 
 
 | Result | Class | Source |
@@ -3348,7 +3466,7 @@ receipt's energy line is modelled, the receipt says so.
 ---
 
 
-## 41. The Pilot Protocol and Kit
+## 42. The Pilot Protocol and Kit
 
 ### Pilot Protocol
 
@@ -3408,7 +3526,7 @@ Guarded control follows `docs/PILOT_PROTOCOL.md`: one loop at a time, the kill s
 
 The kit is exercised end to end on kind by the `live-shadow` workflow.
 
-## 42. The GPU Bench
+## 43. The GPU Bench
 
 
 
@@ -3528,7 +3646,7 @@ undone. The card's own energy counter (NVML) and its ECC and retired-page counte
 workload's `--sim` mode. The stand-in has no real power physics, so its numbers mean nothing; it proves the script,
 the controls and the validity checks work.
 
-## 43. The GPU Preregistration
+## 44. The GPU Preregistration
 
 
 
@@ -3875,7 +3993,7 @@ The outcomes, arms, guardrails, analysis and validity rules are unchanged, excep
 
   That is a model; the next trial is the card's own meter.
 
-## 44. The Realms Preregistration
+## 45. The Realms Preregistration
 
 
 
@@ -4132,7 +4250,20 @@ over the line is at or under native): 1.0, 0.8, 0.75, 0.7, 0.65 and 0.6 on the t
 Every knob was handed back. The grid runs at 100× and 1,000× now on GitHub were started on round 3's law. They are
 recorded as round 3's result, and the grid is rerun on round 6's law.
 
-## 45. The Bowl Law on Real Kubernetes: Preregistration
+### Round 5, amended (2026-10-03, before any round-5 run on the corrected law)
+
+The whole stacks with the real card inside run at four sizes, as the six-organism grid does: each organism as 1, 10, 100
+and 1,000 copies governed together on one clock, with the one real card inside as one more muscle of its NVIDIA GPU
+family, native against Omni on top. Repetitions by size: 3, 3, 2 and 1 (seeds from 6000).
+
+The step is 2 s of wall clock wherever the simulation keeps up. A size whose step takes longer gets a longer step:
+1.5 times the measured time per muscle on that machine, times its muscles. The card's request stream runs for the same
+240 steps, so the card and the stacks stay on one clock. The step of every size is in the receipt. At 1,000 copies the
+card is one muscle among hundreds of thousands, so its watts are a small share of the organism's; that is the
+arithmetic of one card in a large stack, and the card's own meter is reported apart from the stacks. Everything else is
+as round 5. The two GPU confirmations now run before this stage, so the most important results are in hand first.
+
+## 46. The Bowl Law on Real Kubernetes: Preregistration
 
 
 
@@ -4218,7 +4349,7 @@ Where no machine passes, the pool stays as the cluster runs it alone. The HPA ta
 the operator's target up to the operator's own, never looser than native. Every trial is in the audit. The next set
 runs with this verdict; sets 26 and 27 ran before it and stay as they ran.
 
-## 46. The Evidence Ledger
+## 47. The Evidence Ledger
 
 
 
@@ -4326,7 +4457,7 @@ Nothing here is deleted when a later result looks better.
 | S | Right-sizing against VPA: p95 +15%, memory (OOM) kills +531%. | `docs/BENCHMARK_REPORT.md` |
 | — | Reported in the external master-build report (not reproducible from this repository): on fresh scenarios Karpenter+VPA sometimes used less modelled energy than Omni, while Omni had lower churn and fewer request-induced evictions. Kept here so it is not lost; to be re-run here before it is cited. | external |
 
-## 47. The Claims Register
+## 48. The Claims Register
 
 
 
@@ -4365,7 +4496,7 @@ Every claim, its evidence status and the command that reproduces it. Simulation 
 | C13 | Decision components (autoscalers, power agents, paging, Terraform as controller) consume about 0.02% of fleet CPU; idle capacity is 92% of fleet CPU at 8% utilization. | Modeled from published figures and stated assumptions | `python benchmarks/fleet_overhead.py` |
 | C14 | Behaviour on production systems. | Not established; requires the pilot protocol | `docs/PILOT_PROTOCOL.md` |
 
-## 48. The Benchmark Report
+## 49. The Benchmark Report
 
 
 
@@ -4876,7 +5007,7 @@ python tools/full_report.py ... && python pilot/bench_pdf.py docs/BENCHMARK_REPO
 - **Paired bootstrap CI**: resampling the per-scenario differences to get a 95% interval for the mean difference.
 - **Pre-registration**: freezing code and parameters, with hashes, before running the test data.
 
-## 49. The Referee Report
+## 50. The Referee Report
 
 
 
@@ -5315,7 +5446,7 @@ GitHub Actions workflow 'benchmark' (commit message tag [bench]): live A vs B on
 python tools/abc_report.py && python pilot/bench_pdf.py docs/OMNICOMPASS_ABC_REPORT.md docs/OMNICOMPASS_ABC_REPORT.pdf
 ```
 
-## 50. Comparison with Existing Controllers
+## 51. Comparison with Existing Controllers
 
 
 
@@ -5398,7 +5529,7 @@ the customer's own system, with the same paired method.
 
 Where a row above is wrong or out of date, correct it from the maker's own publication.
 
-## 51. The State of Play
+## 52. The State of Play
 
 
 
@@ -5540,7 +5671,7 @@ against 861-889 MHz on its own. Corrected (amendments 6 and 7); the corrected go
 *What a receipt is worth, how the license is priced against it, how the code is sealed, and how Omni-Compass came to be.*
 
 
-## 52. Where the Value Comes From
+## 53. Where the Value Comes From
 
 
 Every system runs with room it does not use: GPUs boost to the top of their clock range and are knocked back by their
@@ -5560,7 +5691,7 @@ machines, the response times and the failures, so nothing is hidden.
 ---
 
 
-## 53. The Economics of a Receipt
+## 54. The Economics of a Receipt
 
 
 Run the stack native and print the receipt. Run the same stack with Omni-Compass and print the receipt. The difference
@@ -5580,7 +5711,7 @@ The value a customer sees comes in three forms, each on its own line of the rece
 The babysitting tax - the people and tools kept on the clock to set caps, answer pages and turn knobs back after a run
 or a crash - is the cost Omni-Compass removes by holding the knobs and returning them itself.
 
-## 54. The Buyer Edition
+## 55. The Buyer Edition
 
 
 
@@ -5826,7 +5957,7 @@ python tools/protocol_bench.py 100
 live: push a commit whose message contains [reps], [levers] or [shadow]
 ```
 
-## 55. Due Diligence
+## 56. Due Diligence
 
 
 
@@ -5859,7 +5990,7 @@ Answers reference the Claims Register (C-numbers) and the Technical Manual.
 **Was it tuned on the test data?** No. Law, shield and baselines were frozen and fingerprinted before the held-out seeds 346410161 and 360555127 (results/PREREGISTRATION.json).
 **Where does it fail?** Backlog violations against current autoscaling (C11); the engine-dynamics ablation (Manual Chapter 8); open obligations (Manual Chapter 10).
 
-## 56. License and Commercial Terms
+## 57. License and Commercial Terms
 
 
 The software and this manual are licensed under the Omni-Compass Evaluation License (`LICENSE`): evaluation and
@@ -5870,7 +6001,7 @@ LLC and paid for. Patent applications, copyright registrations and trademark app
 terms in `CONTRIBUTING.md`, which assign their rights to The Omni-Compass LLC.
 
 
-## 57. Licensing: Questions and Answers
+## 58. Licensing: Questions and Answers
 
 
 
@@ -5914,7 +6045,7 @@ time; a signed Enterprise License governs its own term (`DISCLOSURES.md`, sectio
 
 **Who do I contact?** The Omni-Compass LLC, www.omni-compass.com.
 
-## 58. Third-Party Notices
+## 59. Third-Party Notices
 
 
 
@@ -5935,7 +6066,7 @@ Omni-Compass Evaluation License changes those terms. Installed versions are thos
 Kubernetes, kind, `kubectl`, the NVIDIA driver and `nvidia-smi` are not distributed with Omni-Compass; it calls them
 where an operator has installed them. Their names are the property of their owners (`DISCLOSURES.md`, section 1).
 
-## 59. Repository Standards
+## 60. Repository Standards
 
 
 
@@ -5967,7 +6098,7 @@ The files the leading repositories carry, the open ones such as Kubernetes and t
 
 Files present at the commit this page describes; `python3 verify.py` checks the ones the results depend on.
 
-## 60. Python, C++ and the Seal
+## 61. Python, C++ and the Seal
 
 
 The laws are twinned: each has a Python version and a C++20 version that give the same answers, proven by a parity
@@ -5992,7 +6123,7 @@ test passes. `verify.py` fails, naming the file, if any sealed file changes afte
 ---
 
 
-## 61. The Founder's Working Notes
+## 62. The Founder's Working Notes
 
 
 
@@ -6185,7 +6316,7 @@ are sourced.
 4. **Aim the chip at about 5% more finished work on the same bill**, cap unchanged and temperature no worse, or at
    fewer joules for the same work. The buyer chooses, and the receipt prints which.
 
-## 62. History
+## 63. History
 
 
 

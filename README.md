@@ -7,6 +7,8 @@ execution layer.
 
 The Omni-Compass LLC · [www.omni-compass.com](https://www.omni-compass.com) · Topics: `omni-compass` `governor` `control-plane` `kubernetes` `autoscaling` `gpu` `energy-efficiency` `work-per-energy` `data-center` `power-management` `control-theory` `source-available`
 
+**New to these tables?** [`docs/HOW_TO_READ_THE_RESULTS.md`](docs/HOW_TO_READ_THE_RESULTS.md) explains every column of every result, in plain words. The full grid of the six organisms at 1, 10, 100 and 1,000 clusters is [`results/scale/GRID.md`](results/scale/GRID.md) (`python3 tools/grid.py` rebuilds it).
+
 **Read first: [`DISCLOSURES.md`](DISCLOSURES.md).** Every declaration, disclosure and disclaimer is made there once,
 including the wiring declaration: Omni-Compass acts only through the wires it is given, it cannot be slapped on, and if
 your paired receipts differ from the published benchmarks in direction, the first presumption is wiring (manual,
