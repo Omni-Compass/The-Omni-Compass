@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-88e552a178b5",
- "written_at_commit": "88e552a178b50a188f0383973b4e0259bbe23ac0",
- "written_at": "2026-10-03T09:57:05+00:00",
+ "release_id": "omni-compass-fd7ad30f3164",
+ "written_at_commit": "fd7ad30f316461135253953532ad230f9ee6bef2",
+ "written_at": "2026-10-03T17:03:13+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -135,8 +135,8 @@
    "tools/pool_scale.py": "d2a6c9e97af364d67e375d136a81ee441ce40d0f3ddc616f780b11d136a4b2b3",
    "scripts/scale_ladder.sh": "8a5bf85660fcca478f3c7e81366861768f32c144c59f8639febc2b46d2a66baf",
    ".github/workflows/six.yml": "63c9efef73eaa233bb59a3ca7b6372727d8cef2fe8b4658296be4ef21f5ea35b",
-   "results/scale/GRID.md": "46b6dc7ae6e76c010c71094ac84f715a49701363a712401d3bbb39515d581fb8",
-   "tools/grid.py": "bbee2688fa0cca931eb6a02292ca6819e4138e361623d1f03017152cd41d64d8",
+   "results/scale/GRID.md": "215acd88722ac2394e2c6b89d4aed6c1f6dbda6ea98dcd17f303a8b1f47cc89d",
+   "tools/grid.py": "1f14503b1f1e48181fcaf81e717ac9fc5cf273c131d998b73d20f51883ea1fbc",
    "results/scale/receipts/round6-1x.md": "c5bd2cb0140bb753ba332f4643b5f2ae65662cd1021b265a6e1d0848f323003a",
    "results/scale/receipts/round6-10x.md": "e00811d818b6a93d9438e800931f757de4aa2b99e851ac0da82341d63aa531e6",
    "docs/HOW_TO_READ_THE_RESULTS.md": "79eebcb62f3a4037299f890a5ce7036976ccdc8aa85c869527a8dc8972446c10"
@@ -220,7 +220,7 @@
  "physical_meter_results": "NVIDIA A10 on Lambda, 2026-10-02, 10 paired runs (results/gpu/run-20261002T082232Z/GPU_REPS.md): work per energy +3.6% (proven), p95 +58.5%, label energy improvement with service tradeoff; the governor corrected in GPU amendments 6 and 7 has not yet run on a card",
  "verification_receipt": {
   "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "042ef3c8c4513436a8c6a52ed1d5da6d8acbf2f0cea1ab2f89dd269167c909b2",
+  "sha256": "a8d18ff8b59ebb4e75cc3712ef0837df14479c2d52d3091575e064d2879636ec",
   "passed": true
  }
 }

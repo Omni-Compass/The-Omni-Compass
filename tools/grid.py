@@ -54,6 +54,8 @@ def main():
         if sc == 1000 and r == 1000:
             return "not run"
         c = data.get(sc, {}).get((r, org))
+        if c is None and sc == 1000 and r == 100:
+            return "not run yet"
         if c is None:
             return "running"
         v = c[k]
@@ -69,7 +71,9 @@ def main():
          "1,000 runs are the first N of the same set, so each block nests inside the next. Built by `tools/grid.py` from "
          "the saved receipts in `results/scale/receipts/`. How to read it: `docs/HOW_TO_READ_THE_RESULTS.md`.", "",
          "Sources:"] + [f"- {sc}x: {sources[sc]}" if sc in sources else f"- {sc}x: running on GitHub" for sc in SIZES] + [
-         "- 1,000 runs at 1,000 clusters is not run: about 6,000 machine-hours, beyond the machines available.", ""]
+         "- 1,000 runs at 1,000 clusters is not run: about 6,000 machine-hours, beyond the machines available.",
+         "- 100 runs at 1,000 clusters is not run yet: about 650 runner-hours (one run of the four stacked at 1,000 copies "
+         "takes 2 to 3 hours); the 1-run and 10-run cells at 1,000 clusters are complete.", ""]
     for k, title, note in (("wpe", "Work per energy, with Omni-Compass on top against native", "higher is better"),
                            ("energy", "Energy, with Omni-Compass on top against native", "lower is better"),
                            ("viol", "Time over the service line, with Omni-Compass on top minus native (percentage points)",
