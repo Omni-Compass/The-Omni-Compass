@@ -41,6 +41,7 @@ GROUPS = {
     "bowl_law": ["omnicompass/bowl.py", "omnicompass/verdict.py", "tests/test_verdict.py", "omnicompass/master.py", "tools/omni_switch.py", "tests/test_master_switch.py", "realms/bowl_arm.py", "omni_controller/gpu_bowl.py", "tools/gpu_wire_check.py",
                  "realms/gpu_card.py", "results/sim/gpu_two_wire/RESULT.json"],
     "gpu_rented_run": ["scripts/gpu_rented_run.sh", "tools/run_hil.py", "tests/fake_gpu/nvidia-smi"],
+    "kwok_scale": ["scripts/kwok_scale.sh", "deploy/kwok/kubectl_kwok.sh", "tools/kwok_report.py", ".github/workflows/kwok-scale.yml"],
     "six_organisms": ["tools/run_scale.py", "tools/pool_scale.py", "scripts/scale_ladder.sh", ".github/workflows/six.yml",
                       "results/scale/GRID.md"],
     "license": ["LICENSE", "NOTICE", "DISCLOSURES.md", "LICENSING_FAQ.md", "THIRD_PARTY_NOTICES.md", "PATENTS.md",
