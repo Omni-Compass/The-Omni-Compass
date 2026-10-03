@@ -398,3 +398,10 @@ power cap underneath are measured on the one-card machine (amendment 9) and are 
 one-card machine (amendment 9, the six organisms at 1x, 10x, 100x and 1,000x, repetitions 3, 3, 2, 1 by size, the
 adaptive step), each organism on its own card at the same time (organism i on card i; with fewer cards than
 organisms, the next organism waits for a card). Each organism's receipt is its own; nothing is pooled across organisms.
+
+**The pooled design** (`POOLED=1`, written before any trial on several cards): every stage of the whole design, with
+the repetitions pooled across the cards. Each card runs one smoke round; 3 repetitions of the compute confirmation and
+3 of the AI token generation confirmation (24 paired repetitions per test on 8 cards, pooled and labelled by the same
+rule, each card's own table beside it); 2 repetitions of each power cap load (16 per load); the six organisms with the
+card inside, one repetition per size, each organism on its own card; then one model across every card, 3 repetitions;
+the fault drill once. Arm durations are those of the whole design.
