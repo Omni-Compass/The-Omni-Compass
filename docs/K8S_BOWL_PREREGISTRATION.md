@@ -165,6 +165,12 @@ that is gone, more pods answer neither, so the target is the operator's own: fai
 card, where fail up is the card's own clock and limit. The machine reflex (one machine more past the wall) is unchanged.
 Set 31 F is the same fault test, arms, load, duration and rule; set 31 the same without faults.
 
+**Set 31 and set 31 F** (runs 37110007121 and 37110005322, commit `0a38e76`; `results/live/LIVE_REPS_31.md`,
+`results/live/FAULTS_31.md`). Set 31 F: the bowl law's HPA replicas under faults **−1.1%** (not significant): the extra
+pods are gone. Nothing significantly worse in either arm; recovery faster than native from every fault (bowl law,
+machine down −49%). Set 31: nothing significantly worse; the bowl law's machines −10.4%, p95 −66.0%, p99 −73.0%, time over
+the line −99.4%, HPA replicas −44.5%, pods started 0 against native's 4.3, total CPU −6.1%.
+
 ## The bill on a real cloud (written before its run)
 
 The question a buyer pays for: the same work, a smaller bill? On kind every machine stays powered, so a machine given
