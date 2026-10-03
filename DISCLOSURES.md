@@ -36,7 +36,16 @@ and every report point here. Where any other page seems to say more than this pa
 6. No result is a promise of a saving on any other system. No dollar figure in this repository is a measured result.
    Nothing here is a vendor certification, a safety certification, legal advice or investment advice.
 
-## 3. The wiring declaration
+## 3. The rule Omni-Compass keeps on every muscle
+
+Omni-Compass sits on top of a muscle that already works and moves its settings only to save energy, and only where it
+measures that the muscle loses at most **2%** in any measure: work done, response time (median, p95 or p99), time over
+the service line, or the machine's own cost of running Omni-Compass. Where no move passes that test, Omni-Compass leaves
+the muscle exactly as it runs alone. On a live system the verdict (`omnicompass/verdict.py`) measures it with paired
+trials on the muscle itself before every step. Every result reports each measure, and where one is worse at all, by
+however little, the result says so and by how much.
+
+## 4. The wiring declaration
 
 **Omni-Compass acts only through the wires it is given.** It reads the meters it is pointed at and moves the settings
 it is allowed to move. If a reading is the wrong one, slow, or blind; if a lever is the wrong one, already owned by
@@ -61,7 +70,7 @@ Therefore:
    reads back every write, and returns every lever to the value it read before its first write when it stops or when the
    OFF switch is used. These protect the machine; they do not make a wrong wiring right.
 
-## 4. Safety and responsibility
+## 5. Safety and responsibility
 
 1. Run watch mode first; run the wire check before any write; keep the master OFF switch (`python3 tools/omni_switch.py off`, the
    whole harness at once) in reach at every level, and use it at the first sign of anything wrong, a suspected breach included.
@@ -72,7 +81,7 @@ Therefore:
 4. The software is provided "as is", without warranty of any kind, as stated in `LICENSE`. The operator is responsible
    for its use on their systems.
 
-## 5. Nothing is set in stone
+## 6. Nothing is set in stone
 
 1. The software, the law's settings, the benchmarks, the results, the documents, the licensing terms and this page may
    change at any time, without notice. The version in the repository's `main` branch at a given commit is the version
@@ -82,13 +91,13 @@ Therefore:
    `docs/DOSSIER.md`, section 8).
 3. A signed Omni-Compass Enterprise License governs its own terms for its own term.
 
-## 6. Privacy and data
+## 7. Privacy and data
 
 Omni-Compass contains no telemetry. It sends nothing to The Omni-Compass LLC or anyone else, and makes no network
 connection of its own except to the systems an operator points it at. Its logs and receipts stay on the operator's
 machines.
 
-## 7. Where everything is
+## 8. Where everything is
 
 | Question | Page |
 |---|---|

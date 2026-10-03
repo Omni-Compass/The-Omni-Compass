@@ -285,6 +285,8 @@ def main():
     test_gpu_bench.main(); check("GPU bench: watch writes nothing, limit never below draw x 1.3, read-back, blind and SLO reflexes, kill restores; paired run validity", True)
     from tests import test_gpu_bowl
     test_gpu_bowl.main(); check("two-wire GPU governor: races while work waits, never slower than the card on its own while busy, lid never under its own busy draw, fail up past the line, restores", True)
+    from tests import test_api_proxy
+    test_api_proxy.main(); check("controller reads through one kubectl proxy: kubectl's own output shape, missing objects are errors, anything else goes to kubectl", True)
     from tests import test_master_switch
     test_master_switch.main(); check("master switch: one OFF stops every governor at once and hands every setting back; nothing starts while OFF; ON allows a start", True)
     from tests import test_verdict

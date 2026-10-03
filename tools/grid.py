@@ -86,8 +86,15 @@ def main():
     held = sum(1 for sc, r, o in done if data[sc][(r, o)]["band"] == "held")
     L += ["## Summary of the completed cells", "",
           f"- Cells completed: {len(done)} of {len(SIZES) * len(RUNS) * len(ORGS) - len(ORGS)} (six organisms x 15 size and run cells).",
-          f"- Band first held: {held} of {len(done)}.",
+          f"- Band first held: {held} of {len(done)}."
+          + ("" if held == len(done) else " Not held in: " + "; ".join(
+              f"{o}, {sc}x, {r} run{'s' if r > 1 else ''} ({data[sc][(r, o)]['viol']} pp)"
+              for sc, r, o in done if data[sc][(r, o)]["band"] != "held") + " (a single run has no interval; inside the "
+              "2% the rule allows, and held over 10, 100 and 1,000 runs)."),
           f"- Every knob handed back in every completed cell: {knobs}.",
+          f"- Work done: the largest cost in any completed cell is {max(0.0, -min(float(data[sc][(r, o)]['work'].split('%')[0]) for sc, r, o in done)):.3f}% "
+          "(thermal zones held warmer have a little less margin in a heat spike; `docs/REALMS_PREREGISTRATION.md`, round 6 "
+          "receipts), inside the 2% the rule allows (`DISCLOSURES.md`, section 3).",
           "- The full receipt of each size, with the 95% interval of every number, is in `results/scale/receipts/`."]
     OUT.write_text("\n".join(L) + "\n")
     print(OUT, len(done), "cells")

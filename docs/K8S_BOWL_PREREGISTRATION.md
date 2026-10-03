@@ -83,3 +83,22 @@ it are set against 200 served just before and against the cluster as it first ra
 Where no machine passes, the pool stays as the cluster runs it alone. The HPA target's cover is unchanged: from 60% of
 the operator's target up to the operator's own, never looser than native. Every trial is in the audit. The next set
 runs with this verdict; sets 26 and 27 ran before it and stay as they ran.
+
+## Set 28 and set 29 (2026-10-03, set 29 written before its run)
+
+Set 28 (run 37087620193, commit `24666d7`) ran the bowl law with the verdict. With Omni-Compass on top against native:
+- machines in service −4.7%;
+- p95 −65.3%, p99 −68.6%;
+- pods waiting 0;
+- failed requests 0.
+
+Total CPU including Omni-Compass's own came out **+2.2%** (+0.003 to +0.042 cores), more than the 2% the one rule
+allows (`DISCLOSURES.md`, section 3). The cause is the controller's own cost: 0.063 cores, mostly a new kubectl process
+for every read, about 20 a minute. The bowl law with the verdict freed only 0.040 cores of work. The allocation law in
+the same set: machines −29.6%, p95 −58.0%, total CPU including its own −1.2% (not significant). Set 28's receipt is
+`results/live/LIVE_REPS_28.md`, published with this section.
+
+**Set 29** runs the same arms, load, duration, outcomes and rule as set 28. One thing changes: the controller reads
+through one `kubectl proxy` started once, under the same least-privilege identity, so a read is a local HTTP request
+instead of a new kubectl process (`omni_controller/controller.py`, `Kube`; writes are unchanged; `tests/test_api_proxy.py`).
+The label also requires total CPU including Omni-Compass's own to be no more than 2% above native.

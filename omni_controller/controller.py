@@ -58,11 +58,114 @@ def to_milli(v: str) -> float:
     return float(v) * 1000.0
 
 
+# the reads the controller makes, as API paths (group/version, plural, namespaced): through one `kubectl proxy` started
+# once (the same identity as every kubectl call), a read costs a local HTTP request instead of a new kubectl process
+REST = {"nodes": ("api/v1", "nodes", False), "node": ("api/v1", "nodes", False),
+        "pods": ("api/v1", "pods", True), "pod": ("api/v1", "pods", True),
+        "configmap": ("api/v1", "configmaps", True), "configmaps": ("api/v1", "configmaps", True),
+        "resourcequota": ("api/v1", "resourcequotas", True),
+        "deployment": ("apis/apps/v1", "deployments", True), "deployments": ("apis/apps/v1", "deployments", True),
+        "statefulset": ("apis/apps/v1", "statefulsets", True),
+        "jobs": ("apis/batch/v1", "jobs", True), "job": ("apis/batch/v1", "jobs", True),
+        "hpa": ("apis/autoscaling/v2", "horizontalpodautoscalers", True)}
+
+
+def milli_cpu(q):
+    """A metrics-API CPU quantity (n, u, m or cores) as kubectl top prints it: millicores."""
+    q = str(q)
+    if q.endswith("n"):
+        return f"{int(int(q[:-1]) / 1e6)}m"
+    if q.endswith("u"):
+        return f"{int(int(q[:-1]) / 1e3)}m"
+    if q.endswith("m"):
+        return q
+    return f"{int(float(q) * 1000)}m"
+
+
 class Kube:
-    def __init__(self, kubectl: str = "kubectl", dry_run: bool = False, audit=None):
+    def __init__(self, kubectl: str = "kubectl", dry_run: bool = False, audit=None, proxy: bool = False):
         self.kubectl, self.dry_run, self.audit = kubectl, dry_run, audit
+        self.base = None
+        if proxy:
+            self._start_proxy()
+
+    def _start_proxy(self):
+        import atexit
+        p = subprocess.Popen([self.kubectl, "proxy", "--port=0"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        line = p.stdout.readline()                 # "Starting to serve on 127.0.0.1:PORT"
+        if "serve on" not in line:
+            p.kill()
+            return                                 # no proxy: every read stays a kubectl call, as before
+        self.base = "http://" + line.strip().split()[-1]
+        self.proxy_proc = p
+        atexit.register(p.terminate)
+
+    def _rest(self, args):
+        """The read through the proxy, in kubectl's own output shape, or None when it is not one the proxy serves."""
+        import urllib.parse, urllib.request, urllib.error
+        a = list(args)
+        if not a:
+            return None
+        verb, rest = a[0], a[1:]
+        if verb not in ("get", "top") or not rest:
+            return None
+        kind, rest = rest[0], rest[1:]
+        ns, name, sel, fsel, out, allns = None, None, None, None, None, False
+        i = 0
+        while i < len(rest):
+            t = rest[i]
+            if t == "-A":
+                allns = True
+            elif t == "-n":
+                ns = rest[i + 1]; i += 1
+            elif t == "-l":
+                sel = rest[i + 1]; i += 1
+            elif t.startswith("--field-selector="):
+                fsel = t.split("=", 1)[1]
+            elif t == "-o":
+                out = rest[i + 1]; i += 1
+            elif t == "--no-headers":
+                pass
+            elif t.startswith("-"):
+                return None                        # a flag the proxy path does not translate: use kubectl
+            elif name is None:
+                name = t
+            else:
+                return None
+            i += 1
+        if verb == "top":
+            if kind not in ("nodes", "pods") or name:
+                return None
+            path = "apis/metrics.k8s.io/v1beta1/" + ("nodes" if kind == "nodes" else (f"namespaces/{ns}/pods" if ns else "pods"))
+        else:
+            if kind not in REST or out not in ("json", "name"):
+                return None
+            group, plural, namespaced = REST[kind]
+            path = f"{group}/" + (f"namespaces/{ns or 'default'}/" if namespaced and not allns else "") + plural
+            if name:
+                path += "/" + name
+        q = {k: v for k, v in (("labelSelector", sel), ("fieldSelector", fsel)) if v}
+        url = f"{self.base}/{path}" + ("?" + urllib.parse.urlencode(q) if q else "")
+        try:
+            with urllib.request.urlopen(url, timeout=30) as r:
+                body = json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            raise subprocess.CalledProcessError(1, [self.kubectl, *args], stderr=f"API {e.code} for {path}")
+        if verb == "top":
+            if kind == "nodes":
+                return "".join(f"{it['metadata']['name']} {milli_cpu(it['usage']['cpu'])} 0% 0Mi 0%\n" for it in body.get("items", []))
+            return "".join(f"{it['metadata']['name']} {milli_cpu(sum(int(milli_cpu(c['usage']['cpu'])[:-1]) for c in it['containers']) / 1000)} 0Mi\n"
+                           for it in body.get("items", []))
+        if out == "name":
+            single = REST[kind][1][:-1]
+            return "".join(f"{single}/{it['metadata']['name']}\n" for it in body.get("items", [body] if name else []))
+        return body
 
     def get(self, *args):
+        if self.base:
+            r = self._rest(args)
+            if r is not None:
+                return r
         out = subprocess.run([self.kubectl, *args], capture_output=True, text=True, check=True).stdout
         return json.loads(out) if "-o" in args and "json" in args else out
 
@@ -124,7 +227,7 @@ class Controller:
     def __init__(self, a, kube: Kube | None = None):
         self.a = a
         self.log = open(a.audit, "a") if a.audit else None
-        self.k = kube or Kube(a.kubectl, a.dry_run, self.audit)
+        self.k = kube or Kube(a.kubectl, a.dry_run, self.audit, proxy=not getattr(a, "no_api_proxy", False))
         self.k.audit = self.audit
         self.g = Governor(law=mode_law("fleet")); self.g.set_mode(OBSERVE)
         # the machine organ's own engine view: fed with machine-attributable pressure only (pods waiting for a place)
@@ -601,6 +704,7 @@ def parser():
     ap.add_argument("--kubectl", default="kubectl")
     ap.add_argument("--audit", default="omni_audit.jsonl")
     ap.add_argument("--kill-file", default="/tmp/omni.kill")
+    ap.add_argument("--no-api-proxy", action="store_true", help="read through a new kubectl process every time instead of one kubectl proxy (the controller's own cost is higher)")
     ap.add_argument("--restore-only", action="store_true", help="put every setting back from the records on the objects and exit (the watchdog's way back)")
     ap.add_argument("--node-scale-cmd", default="")
     ap.add_argument("--min-nodes", type=int, default=1)

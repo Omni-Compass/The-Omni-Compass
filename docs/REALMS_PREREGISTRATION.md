@@ -267,3 +267,18 @@ The step is 2 s of wall clock wherever the simulation keeps up. A size whose ste
 card is one muscle among hundreds of thousands, so its watts are a small share of the organism's; that is the
 arithmetic of one card in a large stack, and the card's own meter is reported apart from the stacks. Everything else is
 as round 5. The two GPU confirmations now run before this stage, so the most important results are in hand first.
+
+## Round 6 receipts and the one rule (2026-10-03)
+
+At 1x and 10x (1,000 paired runs each) every organism is labelled superior within guardrails, with band first held and
+every knob handed back (`results/scale/receipts/`, `results/scale/GRID.md`). At 1,000 runs the intervals are narrow
+enough to show one cost: work done is lower by 0.0001% to 0.001%, wholly below zero in several organisms. Its cause was
+measured on the Physics organism, muscle by muscle. It is the thermal zones: a room held warmer keeps a little less
+margin, so a sudden heat spike puts it over its limit for a few extra seconds inside a step that already counts as
+over the line.
+
+Limiting how far a room may drift (half, a quarter, none of the way toward its warm end; 40 paired seeds) does not
+remove it until the setpoint is held native, and then the Physics organism uses more energy than native. The cost is
+therefore disclosed and judged by the one rule now written for every muscle (`DISCLOSURES.md`, section 3): at most 2% in
+any measure, only where energy is saved. The largest work cost in the grid is 0.007% in a single run and 0.001% over
+1,000 runs, far inside it.
