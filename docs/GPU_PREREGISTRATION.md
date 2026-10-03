@@ -303,3 +303,44 @@ The outcomes, arms, guardrails, analysis and validity rules are unchanged. The O
   the line; the 95th percentile at or past the line, or any failed request, is past the wall (fail up).
 - **The model's report summarises ratios on the log scale** (`tools/run_gpu_card.py`): the arithmetic mean of per-seed
   percentages let one seed (+240%) stand for twenty.
+
+## Amendment 8 (2026-10-03, before any further trial)
+
+The outcomes, arms, guardrails, analysis and validity rules are unchanged, except as stated here.
+
+- **Omni-Compass moves the card only where it measures that the card is no worse for it** (`omnicompass/verdict.py`, in
+  `omni_controller/gpu_bowl.py` and `realms/gpu_card.py`). While the service is calm, the governor runs a paired trial:
+  - first the ceiling at the top until 30 requests are measured;
+  - then one 15 MHz step past the deepest step already allowed, until 30 more are measured.
+
+  Each request's cost is the card's own time on it: the workload's new `service_ms` column, start to done, with the
+  wait in the queue left out. The step is allowed if its median cost is at most **2%** above the median at the top.
+  Otherwise it is refused and not tried again for 900 decisions. The bowl may move the ceiling only between the top and
+  the deepest allowed step. Where no step passes, the ceiling stays at the top and the card runs as it does alone. Every
+  trial and every judgement is in the audit (`verdict`, `verdict_state`, `verdict_deepest_step`).
+- **One law, no profiles.** The service and batch profiles are removed. The law is: down gain 0.0125, the bowl's center
+  0.4, the speed floor at the card's own busy clock, and the verdict's allowance of 2%. The batch profile paced past the
+  2% allowance, so it is gone.
+- **Why 2%** (the card model, 20 paired seeds):
+  - an allowance of 0 leaves the card native on every workload, because every clock step down adds some time to a
+    request, and saves nothing;
+  - 2% is the smallest allowance that saves energy, and it is below what a person or a service contract can notice.
+- **A second workload, AI token generation** (`tools/gpu_workload.py --kind decode`): fp16 matrix-times-vector over
+  1 GiB of weights per pass, batch one, so each pass streams every weight from memory, as token generation does. It runs
+  as a second confirmation of the same design (10 repetitions × 3 arms × 600 s) after the compute-bound one
+  (`scripts/gpu_rented_run.sh`; `SKIP_DECODE=1` skips it). It is labelled by the same rule and reported as its own
+  result, never pooled.
+- **Every comparison is a base alone against the same base with Omni on top.** The model's report
+  (`tools/run_gpu_card.py`) runs two bases:
+  - the card's own firmware, alone and with Omni on top;
+  - an operator's fixed 105 W power cap, alone and with Omni on top.
+
+  The old one-wire governor is removed as an arm (it was Omni's own earlier version).
+- **On the modelled card, before any trial** (`results/sim/gpu_two_wire/`, firmware alone against firmware with Omni on
+  top; tuning seeds 5000-5009, fresh seeds 5100-5109):
+  - compute-bound work: work per energy +0.70% (tuning) and +0.48% (fresh); median +1.56% and +1.47%; p95, p99 and
+    time over the line unchanged within their intervals;
+  - AI token generation: work per energy +3.36% and +3.86%; median +0.55% and +0.70%; p95 +0.29% and +0.26%; time over
+    the line 0.
+
+  That is a model; the next trial is the card's own meter.

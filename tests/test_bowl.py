@@ -75,7 +75,7 @@ def main():
     assert p.write(125.0) is None and p.restore() and p.v == 120.0   # theirs now: left alone, not restored over
 
     # the card: deterministic, both wires restored, and the bowl writes nothing on the native arm
-    a, c = run(5000, "bowl", duration=120.0), run(5000, "bowl", duration=120.0)
+    a, c = run(5000, "omni", duration=120.0), run(5000, "omni", duration=120.0)
     assert a == c and a["restored"] and a["writes"] > 0
     assert run(5000, "native", duration=120.0)["writes"] == 0
     print("PASS test_bowl: band and cushions, smooth bounded signed force, fail up, settles at the center without "

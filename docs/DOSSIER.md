@@ -2,7 +2,7 @@
 
 > **PROPRIETARY - EVALUATION AND SIMULATION USE ONLY.** Copyright (c) 2026 The Omni-Compass LLC. This is not open-source software (`SPDX-License-Identifier: LicenseRef-OmniCompass-Evaluation-1.0`). Any commercial use, commercialization, monetization, production use, redistribution, hosted service or incorporation into a product requires a signed, paid **Omni-Compass Enterprise License** from The Omni-Compass LLC. Patent applications, copyright registrations and trademark applications covering the Omni-Compass engine, its mathematics and its software have been filed in the United States by The Omni-Compass LLC. See [`LICENSE`](../LICENSE).
 
-Every mechanism, harness, receipt and result, read from the files named beside it. Built by `tools/dossier.py` at commit `badfba4`. Evidence classes: **T** theorem, **V** verified in code, **S** a model, **L** live software (real Kubernetes), **P** a physical meter. A model is not a meter, and a model written by the people who wrote the law is not an independent test; where a result is a model it says so.
+Every mechanism, harness, receipt and result, read from the files named beside it. Built by `tools/dossier.py` at commit `9ec6e50`. Evidence classes: **T** theorem, **V** verified in code, **S** a model, **L** live software (real Kubernetes), **P** a physical meter. A model is not a meter, and a model written by the people who wrote the law is not an independent test; where a result is a model it says so.
 
 ## 1. The mechanism, and proof that it is the one that ran
 
@@ -53,19 +53,20 @@ The card is one more muscle of each organism, governed by the same bowl law as t
 
 In every organism the card served the same requests with none lost; its p95 rose from about 500 ms to 600-935 ms under the governor of that run (the same wiring fault).
 
-## 3. The corrected GPU governor on the modelled card (evidence class S)
+## 3. The GPU governor on the modelled card: each base alone, and with Omni on top (evidence class S)
 
-Two profiles of one governor (`omni_controller/gpu_bowl.py`, the same law in `realms/gpu_card.py`): **service**, the default and the benchmark's arm (down gain 0.0125, the bowl's center 0.4, the speed floor 3% above the card's own busy clock), and **batch** (down gain 0.015, center 0.5, the floor at the card's own busy clock). It races at full speed while work waits, never runs slower than the card does on its own while busy, never sets the lid under the card's own busy draw, and reads response time only.
+Omni-Compass never runs the card. It sits on the card's own firmware (or on an operator's power cap) and moves the clock ceiling and the power limit, which that base already accepts (`omni_controller/gpu_bowl.py`, the same law in `realms/gpu_card.py`). A step down is taken only after a paired trial on the card shows it adds at most 2% to the card's own time on a request (`omnicompass/verdict.py`); where no step passes, the card runs as it does alone.
 
 ![The modelled card](dossier/gpu_model.png)
 
-| Profile | Work per energy (tuning / fresh) | Energy | p95 (lower is faster) |
-|---|---:|---:|---:|
-| Service | +6.9% / +3.8% | -6.4% / -3.7% | -5.9% / -2.3% |
-| Batch | +8.1% / +4.2% | -7.5% / -4.1% | +7.0% / -2.3% |
-| The earlier one-wire governor | +0.1% / +0.1% | -0.1% / -0.1% | +0.8% / +1.8% |
+| Work | Base | Energy (tuning / fresh) | Median response | p95 | p99 |
+|---|---|---:|---:|---:|---:|
+| Compute-bound | firmware + Omni vs firmware alone | -0.70% / -0.48% | +1.56% / +1.47% | -0.84% / +0.01% | -0.09% / +0.02% |
+| Compute-bound | 105 W cap + Omni vs the cap alone | -0.10% / -0.24% | -1.27% / -1.30% | -0.01% / -0.17% | -0.00% / -0.13% |
+| AI token generation | firmware + Omni vs firmware alone | -3.25% / -3.72% | +0.55% / +0.70% | +0.29% / +0.26% | +0.02% / -0.52% |
+| AI token generation | 105 W cap + Omni vs the cap alone | -2.09% / -2.37% | +0.07% / +0.12% | +0.00% / +0.03% | +0.00% / +0.06% |
 
-Source: `results/sim/gpu_two_wire/RESULT.md` and `fresh/RESULT.md`. How the service settings were chosen, with every setting tried and the rule, is amendment 7 of `docs/GPU_PREREGISTRATION.md`.
+Source: `results/sim/gpu_two_wire/RESULT.md` and `fresh/RESULT.md`. The rule, and why the allowance is 2%, is amendment 8 of `docs/GPU_PREREGISTRATION.md`.
 
 ## 4. Real Kubernetes (evidence class L)
 

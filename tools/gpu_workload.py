@@ -3,7 +3,11 @@
 # Omni-Compass Enterprise License. See LICENSE.
 """The pinned GPU workload for scripts/gpu_paired.sh: a fixed stream of inference-like requests served by one GPU.
 
-Each request is --iters fp16 matrix products of size --n x --n on the GPU (synchronised, so its time is the GPU's time).
+Each request is --iters passes of one of two kernels on the GPU (synchronised, so its time is the GPU's time):
+  --kind matmul   fp16 matrix products of size --n x --n: compute-bound, its speed follows the core clock
+  --kind decode   fp16 matrix times one vector, the weights --n x --n x --layers (by default 8192 x 8192 x 8, 1 GiB):
+                  each pass streams every weight from the card's memory once, as AI token generation does at batch one,
+                  so its speed follows the memory, not the core clock
 Requests arrive open-loop on a schedule fixed by --seed: Poisson arrivals whose rate steps through --phases, each phase a
 share of the GPU's own capacity measured by `calibrate` at full power before any arm runs. Every arm therefore receives
 exactly the same requests at exactly the same moments; what differs is only how the GPU is governed.
@@ -11,7 +15,8 @@ exactly the same requests at exactly the same moments; what differs is only how 
   calibrate  times --calib requests back to back at the current (start) power limit and writes calib.json:
              iters (chosen so one request takes about --target-ms), service_ms, and every setting below
   run        serves the schedule for --duration seconds, then --drain seconds for requests still queued, and writes
-             latency.csv  (elapsed_seconds, latency_ms, ok)  live, one row per finished request
+             latency.csv  (elapsed_seconds, latency_ms, ok, service_ms)  live, one row per finished request; service_ms
+                          is the card's own time on the request (start to done, the wait in the queue left out)
              requests.csv (arrival_s, start_s, done_s, latency_ms, ok)
              summary.json (requests, served, not served, t0_epoch: the wall clock at time 0, the settings)
 Any other workload (vLLM, TensorRT-LLM, an MLPerf inference harness) plugs into the bench through WORKLOAD_CMD
@@ -25,15 +30,25 @@ import argparse, json, queue, random, sys, threading, time
 from pathlib import Path
 
 
-def gpu_kernel(n, device):
+def gpu_kernel(n, device, kind="matmul", layers=8):
     import torch
-    a = torch.randn(n, n, device=device, dtype=torch.float16)
-    b = torch.randn(n, n, device=device, dtype=torch.float16)
+    if kind == "decode":
+        w = [torch.randn(n, n, device=device, dtype=torch.float16) for _ in range(layers)]
+        x = torch.randn(n, 1, device=device, dtype=torch.float16)
 
-    def run(iters):
-        for _ in range(iters):
-            torch.matmul(a, b)
-        torch.cuda.synchronize(device)
+        def run(iters):
+            for _ in range(iters):
+                for m in w:
+                    torch.matmul(m, x)
+            torch.cuda.synchronize(device)
+    else:
+        a = torch.randn(n, n, device=device, dtype=torch.float16)
+        b = torch.randn(n, n, device=device, dtype=torch.float16)
+
+        def run(iters):
+            for _ in range(iters):
+                torch.matmul(a, b)
+            torch.cuda.synchronize(device)
     run(3)
     return run
 
@@ -45,7 +60,7 @@ def sim_kernel(service_ms):
 
 
 def calibrate(a):
-    run = sim_kernel(a.sim_ms) if a.sim else gpu_kernel(a.n, a.device)
+    run = sim_kernel(a.sim_ms) if a.sim else gpu_kernel(a.n, a.device, a.kind, a.layers)
     iters = 10
     t = time.perf_counter(); run(iters); one = (time.perf_counter() - t) * 1000.0
     iters = max(1, round(iters * a.target_ms / max(one, 1e-3)))
@@ -53,7 +68,7 @@ def calibrate(a):
     for _ in range(a.calib):
         t = time.perf_counter(); run(iters); ts.append((time.perf_counter() - t) * 1000.0)
     ts.sort()
-    c = {"iters": iters, "service_ms": ts[len(ts) // 2], "n": a.n, "seed": a.seed, "phases": a.phases,
+    c = {"iters": iters, "service_ms": ts[len(ts) // 2], "n": a.n, "kind": a.kind, "layers": a.layers, "seed": a.seed, "phases": a.phases,
          "target_ms": a.target_ms, "sim": bool(a.sim)}
     Path(a.out).mkdir(parents=True, exist_ok=True)
     (Path(a.out) / "calib.json").write_text(json.dumps(c, indent=1))
@@ -80,10 +95,11 @@ def arrivals(c, duration):
 
 def serve(a):
     c = json.loads(Path(a.calib_file).read_text())
-    run = sim_kernel(c["service_ms"] * 10.0 / c["iters"]) if c["sim"] else gpu_kernel(c["n"], a.device)
+    run = (sim_kernel(c["service_ms"] * 10.0 / c["iters"]) if c["sim"]
+           else gpu_kernel(c["n"], a.device, c.get("kind", "matmul"), c.get("layers", 8)))
     sched = arrivals(c, a.duration)
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
-    lat = open(out / "latency.csv", "w"); lat.write("elapsed_seconds,latency_ms,ok\n"); lat.flush()
+    lat = open(out / "latency.csv", "w"); lat.write("elapsed_seconds,latency_ms,ok,service_ms\n"); lat.flush()
     q, rows, t0 = queue.Queue(), [], time.perf_counter()
     t0_epoch = time.time()                   # the wall clock at t0, so the bench can line requests up with its meters
     end = a.duration + a.drain
@@ -100,7 +116,7 @@ def serve(a):
             done = time.perf_counter() - t0
             ms = (done - arr) * 1000.0
             rows.append((arr, now, done, ms, 1))
-            lat.write(f"{done:.3f},{ms:.3f},1\n"); lat.flush()
+            lat.write(f"{done:.3f},{ms:.3f},1,{(done - now) * 1000.0:.3f}\n"); lat.flush()
 
     th = threading.Thread(target=worker, daemon=True); th.start()
     for arr in sched:
@@ -130,7 +146,9 @@ def main(argv=None):
     ap.add_argument("--out", default="gpu_run")
     ap.add_argument("--calib-file", default="")
     ap.add_argument("--device", default="cuda:0")
-    ap.add_argument("--n", type=int, default=4096)
+    ap.add_argument("--kind", choices=["matmul", "decode"], default="matmul", help="compute-bound matrix products, or memory-bound token generation")
+    ap.add_argument("--n", type=int, default=None, help="matrix size (default 4096 for matmul, 8192 for decode)")
+    ap.add_argument("--layers", type=int, default=8, help="decode: weight matrices streamed per pass")
     ap.add_argument("--target-ms", type=float, default=50.0)
     ap.add_argument("--calib", type=int, default=40)
     ap.add_argument("--seed", type=int, default=20260928)
@@ -140,6 +158,8 @@ def main(argv=None):
     ap.add_argument("--sim", action="store_true")
     ap.add_argument("--sim-ms", type=float, default=20.0)
     a = ap.parse_args(argv)
+    if a.n is None:
+        a.n = 8192 if a.kind == "decode" else 4096
     calibrate(a) if a.cmd == "calibrate" else serve(a)
 
 

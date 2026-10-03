@@ -20,9 +20,13 @@ Every decision (--interval seconds):
   race      while the card is saturated (utilization at or over --race-util: work is waiting), the ceiling goes to the
             top and the lid to the start limit, so a burst is served at full speed; the bowl paces only the slack
   force     the bowl: pull to the center, push against what is rising, tanh-bounded; past the 0.95 wall: fail up
-  profile   service (default): down gain 0.0125, the bowl's center at 0.4 and the speed floor 3% above the card's own
-            busy clock, so the slow answers stay at native or faster; batch: down gain 0.015, center 0.5, floor at the
-            card's own busy clock, more saved, for work nobody waits on answer by answer
+  verdict   how far the ceiling may go (omnicompass/verdict.py): while the service is calm, a paired trial: the ceiling
+            at the top until --verdict-samples requests are measured, then one 15 MHz step past the deepest step
+            already allowed until as many again are measured; the card's own time on each request (the workload's
+            service_ms, the wait in the queue left out) is compared: at most --allow slower and the step is allowed,
+            slower than that and it is refused and not tried again for --verdict-recheck decisions. Where no step
+            passes, the ceiling stays at the top: the card runs as it does alone
+  law       down gain 0.0125, the bowl's center at 0.4, the speed floor at the card's own busy clock (amendment 8)
   write     up wire: the ceiling moves by the force (fast up, gently down), inside its cover: from the card's own busy
             clock (never slower than native while there is work) to the top; down wire: the lid at the card's own busy
             draw plus --lid-headroom, never under it and never over the start limit, inside the declared envelope;
@@ -48,16 +52,17 @@ import subprocess
 import sys
 import time
 
+from omnicompass import master
 from omnicompass.bowl import Band, Bowl, clamp
+from omnicompass.verdict import Verdict
 from omni_controller.gpu_governor import query, snapshot, throttle, slowed, WriteFailed, SNAPSHOT
 from omni_controller.muscles import latency_sense, latency_window
 
 
-# each profile: the down gain (share of the top clock per unit of force), the bowl's center (where it holds the response
-# time, 0 the bare service time and 1 the line), and the speed floor (a share above the card's own busy clock)
-# (docs/GPU_PREREGISTRATION.md, amendment 7)
-PROFILES = {"service": {"down": 0.0125, "center": 0.4, "floor": 1.03},
-            "batch": {"down": 0.015, "center": 0.5, "floor": 1.0}}
+# the law (docs/GPU_PREREGISTRATION.md, amendment 8): the down gain (share of the top clock per unit of force), the bowl's
+# center (where it holds the response time, 0 the bare service time and 1 the line) and the speed floor (a share of the
+# card's own busy clock); the same in realms/gpu_card.py
+LAW = {"down": 0.0125, "center": 0.4, "floor": 1.0}
 
 
 def smi_run(smi, args):
@@ -109,17 +114,21 @@ class GpuBowl:
         self.ceiling = self.top            # where the bowl holds the ceiling (continuous)
         self.written_ceiling = self.top    # what the card was last told
         self.busy_clk, self.busy_draw = [], []    # the card on its own: busy clock and busy draw, ceiling at the top
-        self.prof = dict(PROFILES[a.profile])
+        self.prof = dict(LAW)
         if a.down_gain is not None:
             self.prof["down"] = a.down_gain
+        self.verdict = Verdict(tolerance=a.allow, min_samples=a.verdict_samples, probe_every=a.verdict_every,
+                               recheck=a.verdict_recheck)
+        self.svc_t = None                  # elapsed_seconds of the last request whose service time the verdict has seen
         self.brain = Bowl(Band(0.0, 1.0, center=self.prof["center"]), dt=a.interval, tau=2.0 * a.interval, kp=1.0, smooth=0.3)
         self.brain.kd *= 3.0
         self.audit({"snapshot": {str(self.g): {"limit_w": self.start, "min_limit_w": s[self.g]["min"],
                                                "enforced_w": s[self.g]["enforced"] if self.enforced_ok else None,
                                                "clock_top_mhz": self.top,
                                                **{f: snap[f][str(self.g)] for f in SNAPSHOT}}},
-                    "engine": "bowl, two wires", "mode": a.mode, "profile": a.profile,
-                    "profile_settings": self.prof,
+                    "engine": "bowl, two wires", "mode": a.mode, "law": self.prof,
+                    "verdict": {"allow": a.allow, "samples": a.verdict_samples, "every": a.verdict_every,
+                                "recheck": a.verdict_recheck},
                     "covers": {"clock_mhz": [round(self.c_lo), round(self.top)], "power_w": [self.floor_w, self.start]}})
         if a.mode == "cap" and snap["power.management"][str(self.g)].lower() != "enabled":
             self.audit({"refused": "power management not Enabled: a written limit would not bind"})
@@ -144,6 +153,26 @@ class GpuBowl:
             if ls["fail"] or ls["p95"] >= a.slo_ms:
                 resp = max(resp, 1.0)
         return resp, ls
+
+    def service_costs(self):
+        """The card's own time (ms) on each request finished since the last decision (the workload's service_ms)."""
+        import csv
+        try:
+            rows = list(csv.DictReader(open(self.a.latency_file)))
+        except (OSError, TypeError):
+            return []
+        out, last = [], self.svc_t
+        for row in rows:
+            t, svc = row.get("elapsed_seconds"), row.get("service_ms")
+            if row.get("ok") != "1" or not t or not svc:
+                continue
+            t = float(t)
+            if last is None or t > last:
+                out.append(float(svc))
+                self.svc_t = t if self.svc_t is None else max(self.svc_t, t)
+        if last is None:                   # the first read only finds where the file stands
+            return []
+        return out
 
     def learn(self, r):
         """The card on its own: while the ceiling is at the top and the card is busy, its clock and draw are native's."""
@@ -210,6 +239,13 @@ class GpuBowl:
         thr = throttle(a.smi, [g]) if r is not None else None
         heat = slowed((thr or {}).get(g))
         saturated = r is not None and r["util"] >= a.race_util
+        # the verdict: the card's own time on the requests since the last decision, at the step the ceiling stood at;
+        # then the deepest step the bowl may use now, or the step a trial needs
+        self.verdict.observe(self.service_costs())
+        calm = p is not None and p < self.brain.band.wall_high and not saturated
+        deepest, trial, ev = self.verdict.tick(calm)
+        if ev:
+            self.audit({"verdict": ev, "state": self.verdict.state, "deepest_step": self.verdict.allowed})
         if p is None or p >= self.brain.band.wall_high or saturated:
             # fail up past the wall or blind; and race while work waits (the card saturated: a queue is forming), so a
             # burst is always served at full speed and the bowl paces only the slack between bursts
@@ -217,11 +253,18 @@ class GpuBowl:
                 self.brain.force(p)
             ceiling, lid = self.top, self.start
             who = "blind_fail_up" if p is None else "fail_up" if p >= self.brain.band.wall_high else "race"
+        elif trial:
+            self.brain.force(p)
+            ceiling = self.top - deepest * a.min_change_mhz
+            lid = self.start
+            who = "verdict_trial"
         else:
             F = self.brain.force(p)
             # the speed floor: never under the clock the card reaches on its own while busy (until that is learned,
             # the top), so work waiting on the card is never served slower than native
             c_floor = self.top if n_clk is None else max(self.c_lo, min(self.top, n_clk * self.prof["floor"]))
+            # and never past the deepest step the verdict has allowed (none allowed: the ceiling stays at the top)
+            c_floor = max(c_floor, self.top - deepest * a.min_change_mhz)
             # the ceiling moves in whole clock steps, as the card's own clock does: the force times the gain (a share
             # of the top clock per unit of force) rounded to whole --min-change-mhz steps; a pull under half a step
             # moves nothing and is not stored up, so a calm card is paced only when the pull is clearly down
@@ -245,7 +288,8 @@ class GpuBowl:
                "position": None if p is None else round(p, 4), "velocity": round(self.brain.v, 4),
                "latency_p95_ms": None if not ls else ls.get("p95"),
                "ceiling_mhz": round(ceiling), "want_w": int(lid), "decided_by": who,
-               "native_busy_clock_mhz": n_clk, "native_busy_draw_w": n_draw}}}
+               "native_busy_clock_mhz": n_clk, "native_busy_draw_w": n_draw,
+               "verdict_state": self.verdict.state, "verdict_deepest_step": self.verdict.allowed}}}
         self.audit(rec)
         self.ceiling = ceiling
         if abs(ceiling - self.written_ceiling) >= a.min_change_mhz or (ceiling >= self.top and self.written_ceiling < self.top):
@@ -299,11 +343,12 @@ def parser():
     ap.add_argument("--learn-samples", type=int, default=15, help="busy readings of the card on its own before the bowl may lower anything")
     ap.add_argument("--floor-w", type=float, default=0.0, help="the declared envelope's lowest watts")
     ap.add_argument("--clock-min-share", type=float, default=0.35, help="the clock ceiling's cover: lowest share of the top")
-    ap.add_argument("--profile", choices=sorted(PROFILES), default="service",
-                    help="service (default): paces down gently enough that the slow answers are never slower than native; "
-                         "batch: paces harder, for work nobody waits on answer by answer (higher saving, p95 cost disclosed)")
+    ap.add_argument("--allow", type=float, default=0.02, help="the most a ceiling step may add to the card's own time on a request")
+    ap.add_argument("--verdict-samples", type=int, default=30, help="requests measured at native and at the trial step")
+    ap.add_argument("--verdict-every", type=int, default=8, help="decisions between trials")
+    ap.add_argument("--verdict-recheck", type=int, default=900, help="decisions before a refused step is tried again")
     ap.add_argument("--up-gain", type=float, default=0.10, help="share of the top clock moved per unit of force, up")
-    ap.add_argument("--down-gain", type=float, default=None, help="share of the top clock moved per unit of force, down (default: the profile's)")
+    ap.add_argument("--down-gain", type=float, default=None, help="share of the top clock moved per unit of force, down (default: the law's)")
     ap.add_argument("--lid-headroom", type=float, default=0.10, help="the lid above the draw the ceiling takes")
     ap.add_argument("--min-change-mhz", type=float, default=15.0)
     ap.add_argument("--min-change-w", type=float, default=3.0)
@@ -312,13 +357,15 @@ def parser():
 
 def main(argv=None):
     a = parser().parse_args(argv)
+    master.refuse_if_off("GPU governor (two wires)")
     gov = GpuBowl(a)
+    master.register("GPU governor (two wires)")
     stop = {"now": False}
     signal.signal(signal.SIGTERM, lambda *_: stop.__setitem__("now", True))
     t0 = time.time()
     failed = False
     try:
-        while not stop["now"] and not os.path.exists(a.kill_file) and (a.duration <= 0 or time.time() - t0 < a.duration):
+        while not stop["now"] and not os.path.exists(a.kill_file) and not master.is_off() and (a.duration <= 0 or time.time() - t0 < a.duration):
             try:
                 gov.step()
             except WriteFailed as e:
@@ -327,7 +374,7 @@ def main(argv=None):
             except Exception as e:  # noqa: BLE001  a failed decision is logged; the kill path still runs
                 gov.audit({"error": f"{type(e).__name__}: {e}"})
             end = time.time() + a.interval
-            while time.time() < end and not stop["now"] and not os.path.exists(a.kill_file):
+            while time.time() < end and not stop["now"] and not os.path.exists(a.kill_file) and not master.is_off():
                 time.sleep(0.2)
     finally:
         ok = gov.restore()

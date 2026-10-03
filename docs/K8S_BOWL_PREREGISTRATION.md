@@ -70,3 +70,16 @@ Bowl arm, aligned with the GPU governor, against native: machines in service -15
 p95 -65.5% (-311.8 to -156.1 ms), p99 -72.6%, failed requests 0 on both: **better on machines within the band**
 (`results/live/LIVE_REPS_27.md`, run 37071353971, commit `d46c959`). The allocation law in the same set: machines
 -36.6%, p95 -53.1%.
+
+## The verdict in the live controller (2026-10-03, before any further set)
+
+The bowl law gives a machine back only where it measures that the service is no worse for it
+(`omnicompass/verdict.py`, stepwise, in `omni_controller/controller.py`). While the service is calm (inside the bowl,
+no pod waiting, no breach), one more machine is given back on trial. The response times of 200 requests served without
+it are set against 200 served just before and against the cluster as it first ran on its own:
+- at most 2% slower than both: the machine stays given back;
+- slower than that: it is taken back and not tried again for 120 decisions.
+
+Where no machine passes, the pool stays as the cluster runs it alone. The HPA target's cover is unchanged: from 60% of
+the operator's target up to the operator's own, never looser than native. Every trial is in the audit. The next set
+runs with this verdict; sets 26 and 27 ran before it and stay as they ran.

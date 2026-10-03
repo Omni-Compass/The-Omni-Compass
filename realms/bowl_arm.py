@@ -9,8 +9,10 @@ reads as past the wall (fail up). The bowl's force moves the knob: a positive fo
 protection, a negative force gives it back, each knob inside its own cover. At the kill every knob returns to native.
 
 Knob by plant (the override key the plant already obeys, its native value, its cover, and which way is "more"):
-  compute_pool   power: limit share 0.4-1; replicas-type: the HPA target 0.5-0.95 (lower is more pods); machine pools:
-                 one machine released while the force is clearly down; admission: native
+  compute_pool   power: limit share 0.4-1; replicas-type: the HPA target held at native (loosening it past the
+                 operator's own costs the service time, the same rule as the card's speed floor); machine pools: one
+                 machine released while the force is clearly down and the machines left cover the recent peak with
+                 margin (RELEASE_MARGIN); admission: native
   thermal_zone   setpoint between the band's stress (colder, more cooling) and calm ends; units: one released while the
                  force is clearly down; power: 0.5-1
   energy_storage reserve between the band's ends (a lower reserve gives the battery to the site); power: native
@@ -22,6 +24,7 @@ from __future__ import annotations
 from omnicompass.bowl import Band, Bowl, clamp
 
 UP, DOWN, RELEASE = 0.10, 0.02, -0.2
+RELEASE_MARGIN = 0.6     # a machine goes back only when the rest covers the recent peak at 0.6 of the plant's own release level
 
 
 def position(plant) -> float:
@@ -38,14 +41,16 @@ def position(plant) -> float:
 
 
 def release_safe(plant) -> bool:
-    """A discrete unit goes back only when what is left covers the recent peak (the plant's own release window)."""
+    """A discrete unit goes back only when what is left covers the recent peak (the plant's own release window), with
+    RELEASE_MARGIN of headroom on a machine pool: a machine boots in minutes, so a burst that arrives after a release
+    is served late until it is back."""
     P = plant.P
     if plant.template == "compute_pool":
         from .plants import RELEASE_WINDOW, RELEASE_FRAC
         n = plant.n
         return (n > P["n_min"] and not plant.pending and plant.Q <= 0.0
                 and len(plant.ahist) == RELEASE_WINDOW * P["startup_steps"]
-                and max(plant.ahist) / ((n - 1) * plant.mu(plant.cap)) <= RELEASE_FRAC * 0.95)
+                and max(plant.ahist) / ((n - 1) * plant.mu(plant.cap)) <= RELEASE_FRAC * 0.95 * RELEASE_MARGIN)
     u = plant.units_on
     return u > 1 and plant.T <= plant.setpoint() and plant.qc_cmd_avg / ((u - 1) * P["q_unit_w"]) <= 0.8
 
@@ -60,7 +65,7 @@ def lever(plant, knob):
             return ("power", 1.0, 0.4, 1.0, 1)
         if P.get("ca"):
             return ("release", None, 0, 0, 0)
-        return ("target", P["target"], P["target"], 0.95, -1)
+        return None                                            # the HPA target is held at the operator's own
     if t == "thermal_zone":
         if knob == "setpoint":
             return ("setpoint", P["t_set"], min(P["stress"], P["calm"]), max(P["stress"], P["calm"]), -1)

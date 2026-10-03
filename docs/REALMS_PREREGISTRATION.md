@@ -219,3 +219,38 @@ pinned request stream; its own power.draw is heat in the organism's thermal zone
 - **Outcomes:** work per energy, work, energy and violations, Omni against native, for three parts kept apart: the
   simulated stacks (evidence S), the card (its own meter, evidence P), and both added (the card as one more plant,
   its joules added to the stacks'). Labels by the round 3 rule.
+
+## Round 6: the compute pools inside the band (2026-10-03, before any round-6 seed)
+
+Round 3's rule (band first) was not held on the organisms: the bowl law spent 0.20 to 0.29 points more time over the
+service line than native in every completed cell of the grid (`results/scale/GRID.md`). The cause was measured on the
+whole tower (seeds 7000-7003), muscle by muscle:
+- **compute pools giving a machine back** (42 muscles): +1.77 points of their own time over the line;
+- **the HPA target set looser than the operator's** (249 muscles): +0.22 points;
+- the process and thermal setpoints, which save the most energy, added none.
+
+Two changes, both in `realms/bowl_arm.py`, everything else as round 3:
+1. **The HPA target is held at the operator's own.** Loosening it past native costs the service time. This is the same
+   rule as the card's speed floor and the live controller's cover.
+2. **A machine goes back only when the machines left cover the recent peak at 0.6 of the plant's own release level**
+   (`RELEASE_MARGIN`). A machine boots in minutes, so a burst that arrives after a release is served late until the
+   machine is back.
+
+**How 0.6 was chosen** (10 paired seeds per organism; the rule is the most work per energy whose whole interval of time
+over the line is at or under native): 1.0, 0.8, 0.75, 0.7, 0.65 and 0.6 on the tower; 0.65 and 0.6 on the other five.
+- 0.65 failed on Physics, the upper end of its interval +0.001;
+- 0.6 held on all six.
+
+**Checked on 20 paired seeds (7000-7019), before this round's official seeds:**
+
+| Organism | Work per energy | Time over the line | Work done |
+|---|---|---|---|
+| Compute | +0.095% | −0.017 pp | unchanged within its interval (−0.001% to +0.000%) |
+| Physics | +0.086% | −0.011 pp | unchanged within its interval (−0.001% to +0.000%) |
+| Energy | +0.201% | −0.031 pp | unchanged within its interval (−0.001% to +0.000%) |
+| Distribution | +0.090% | −0.015 pp | unchanged within its interval (−0.001% to +0.000%) |
+| The four stacked | +0.153% | −0.022 pp | unchanged within its interval (−0.001% to +0.000%) |
+| The whole tower | +0.194% | −0.010 pp | unchanged within its interval (−0.001% to +0.000%) |
+
+Every knob was handed back. The grid runs at 100× and 1,000× now on GitHub were started on round 3's law. They are
+recorded as round 3's result, and the grid is rerun on round 6's law.

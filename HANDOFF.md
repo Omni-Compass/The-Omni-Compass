@@ -45,9 +45,9 @@ and 1,000 runs. Examples used: 1,000 runs at 1x = runs_per_shard 100, 10 shards;
 ## Results so far
 
 - Real Kubernetes, sets 23 and 24: about a third fewer machines, responses about 60% faster, zero failed requests.
-- Real GPU (A10): work per energy +3.6% (proven), p95 +58.5% worse (wiring, corrected in GPU amendments 6-7). Modelled card, corrected governor (`results/sim/gpu_two_wire/`): service profile +6.9% / +3.8% with p95 faster; old one-wire +0.1%. Read `DISCLOSURES.md` first.
+- Real GPU (A10): work per energy +3.6% (proven), p95 +58.5% worse (wiring, corrected in GPU amendments 6-7). Modelled card, firmware alone vs firmware with Omni on top (`results/sim/gpu_two_wire/`, the verdict with a 2% allowance): AI token generation energy −3.3% / −3.7%, median under +1%; compute-bound energy −0.7% / −0.5%. Read `DISCLOSURES.md` first.
 - Six organisms, 1,000 runs at 1x (GitHub): work per energy +0.21% to +0.30%, every knob handed back; time over the
-  service line about +0.2 points above native in every organism (not yet a win by the band-first rule).
+  service line about +0.2 points above native in every organism (not a win by the band-first rule). Round 6 (`docs/REALMS_PREREGISTRATION.md`) found the cause and corrects it; checked on 20 paired seeds per organism, every organism now spends less time over the line than native with work per energy +0.09% to +0.20%; the grid is rerun on it.
 - The real card on Lambda: running (first valid run on the two-wire engine); results come back as the tar.gz.
 
 ## Open work

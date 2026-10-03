@@ -14,8 +14,11 @@
 # 4. if smoke is valid: the whole stacks with this card inside (tools/run_hil.py: the four realms and the whole tower
 #    of 656 and the four stacked with duplicates, native and Omni, 3 repetitions, about 5.5 hours; SKIP_HIL=1 skips it), then the preregistered
 #    confirmation, 10 repetitions x 3 arms x 600 s (about 6 hours), on the same committed code (STOP_AFTER_SMOKE=1
-#    stops after step 3);
-# 5. packs both result folders into one file to send back, and prints the label the table chose by rule.
+#    stops after step 3), on the pinned compute-bound workload (matrix products);
+# 5. the second preregistered confirmation, the same 10 x 3 x 600 s on AI token generation (the decode workload:
+#    every weight streamed from memory once per pass, batch one), about 6 hours more (SKIP_DECODE=1 skips it). Each
+#    workload is its own result, never pooled;
+# 6. packs every result folder into one file to send back, and prints the label each table chose by rule.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 SMI="${NVIDIA_SMI:-nvidia-smi}"; PY="${PYTHON:-python3}"; GPU="${GPU:-0}"
@@ -83,8 +86,18 @@ else
   confirm_rc=$?
   set -e
   PACK+=("results/gpu/run-$STAMP")
-  $PY -c "import json,sys; h=json.load(open(sys.argv[1])).get('headline',{}); print('RESULT, BY RULE:', h.get('verdict','(no verdict)'))" \
+  $PY -c "import json,sys; h=json.load(open(sys.argv[1])).get('headline',{}); print('RESULT, BY RULE (compute-bound):', h.get('verdict','(no verdict)'))" \
     "results/gpu/run-$STAMP/GPU_REPS.json" 2>/dev/null || echo "no table produced (exit $confirm_rc)"
+  if [ -z "${SKIP_DECODE:-}" ]; then
+    echo "== second confirmation: AI token generation (preregistered: 10 repetitions, 600 s per arm, frozen code)"
+    set +e
+    PHASE=confirm WORKLOAD_ARGS="--kind decode" OUT="results/gpu/run-$STAMP-decode" bash scripts/gpu_paired.sh
+    decode_rc=$?
+    set -e
+    PACK+=("results/gpu/run-$STAMP-decode")
+    $PY -c "import json,sys; h=json.load(open(sys.argv[1])).get('headline',{}); print('RESULT, BY RULE (AI token generation):', h.get('verdict','(no verdict)'))" \
+      "results/gpu/run-$STAMP-decode/GPU_REPS.json" 2>/dev/null || echo "no table produced (exit $decode_rc)"
+  fi
 fi
 tar czf "results/gpu/omni-gpu-$STAMP.tar.gz" "${PACK[@]}"
 echo "== send this one file back: results/gpu/omni-gpu-$STAMP.tar.gz"

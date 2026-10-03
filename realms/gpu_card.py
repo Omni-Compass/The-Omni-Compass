@@ -16,18 +16,23 @@ The firmware (native, what ships on the card), 50 times a second
   hammer    while the draw is over the power limit, or the chip is over its slowdown temperature, drop three bins
   So the clock saws against the limit for as long as the work keeps coming: up a bin, knocked down three, up again.
 
-The arms
+The work
+  memb      the share of a request's time at the top clock spent waiting on memory, which does not speed up with the
+            clock: 0 is compute-bound work (large matrix products, the bench's pinned workload), 0.85 is typical of AI
+            token generation (each token streams the model's weights from memory). The card serves 1 / ((1 - memb) / f
+            + memb) of its top speed
+
+The arms: each base alone, and the same base with Omni-Compass on top (Omni never runs the card itself)
   native    the card as shipped: power limit 150 W, clock ceiling at the top, firmware alone
-  preset    a fixed efficiency preset: power limit 105 W (70%), as an operator would set and leave
-  old       the shipped one-wire governor (omni_controller/gpu_governor.py, its defaults): the frozen engine's
-            power_cap through the shield (draw x 1.3, 70% share floor, device minimum), the busy gate (smoothed
-            utilization 0.5, band 0.1), the response-time reflex (p95 over 30 s against the line, clear after 3
-            decisions), 5 W minimum change, every 2 s, the power limit only
-  bowl      Omni-Compass through two wires (omnicompass/bowl.py): the clock ceiling is the up wire (how high boost may
-            push), the power limit is the down wire (the lid, set just above what the ceiling draws, inside its cover
-            of 105-150 W, never under the card's own busy draw). The bowl's reading is the response time as a position between the bare service time (0)
-            and the service line (1); the brain pulls it to the center. Both wires are restored to their snapshot at
-            90% of the run, and the run checks they were.
+  omni      native + Omni-Compass on top, through two wires (omnicompass/bowl.py): the clock ceiling is the up wire (how
+            high boost may push), the power limit is the down wire (the lid, set just above what the ceiling draws,
+            never under the card's own busy draw). The bowl's reading is the response time as a position between the
+            bare service time (0) and the service line (1); the brain pulls it to the center. The verdict
+            (omnicompass/verdict.py) decides how far the ceiling may go: a step down is allowed only after a paired
+            trial shows it costs each request at most ALLOW of the card's own time on it; where no step passes, the
+            ceiling stays where the firmware has it. Both wires are restored to their snapshot at 90% of the run
+  cap       a fixed power cap set by the operator and left (105 W, 70%), firmware alone under it
+  cap_omni  the cap + Omni-Compass on top: the same law, the lid never above the operator's cap
 """
 from __future__ import annotations
 
@@ -35,9 +40,8 @@ import math
 import random
 from typing import Dict
 
-from omnicompass.adapter import Governor
 from omnicompass.bowl import Band, Bowl, Plug, clamp
-from omni_controller.gpu_governor import shield_limit, busy_gate
+from omnicompass.verdict import Verdict
 
 TICK = 0.02                 # firmware period, s
 DECIDE = 1.0                # brain period, s
@@ -50,9 +54,11 @@ T_SLOW = 87.0
 MU = 100.0                  # requests per second at the top clock
 LIMIT_DEFAULT, LIMIT_MIN = 150.0, 105.0
 SLO_S = 10.0 / MU           # the service line: ten bare service times (as the GPU bench sets it)
-# the profiles of omni_controller/gpu_bowl.py: down gain, the bowl's center, the speed floor above the card's own busy clock
-PROFILES = {"bowl": {"down": 0.0125, "center": 0.4, "floor": 1.03}, "bowl_batch": {"down": 0.015, "center": 0.5, "floor": 1.0}}
-DOWN = {k: v["down"] for k, v in PROFILES.items()}
+# the law of omni_controller/gpu_bowl.py (docs/GPU_PREREGISTRATION.md, amendment 8): up and down gains (share of the top
+# clock per unit of force), the bowl's center, the speed floor (a share of the card's own busy clock), the verdict's
+# allowance (the most a step may add to the card's own time on a request) and how often it runs a trial (decisions)
+UP, DOWN, CENTER, FLOOR, ALLOW, PROBE_EVERY = 0.10, 0.0125, 0.4, 1.0, 0.02, 8
+OMNI = ("omni", "cap_omni")
 SATURATED = 0.95            # busy share over a decision at which work is waiting: race, never pace
 
 
@@ -65,8 +71,9 @@ def power(f, busy, T):
 
 
 class Card:
-    def __init__(self, seed: int, duration: float):
+    def __init__(self, seed: int, duration: float, memb: float = 0.0):
         r = random.Random(seed)
+        self.memb = memb
         n = int(duration / TICK)
         phase = r.uniform(0, 2 * math.pi)
         self.lam, left, amp, z = [], 0, 0.0, 0.0
@@ -90,20 +97,24 @@ class Card:
         self.last_dir = 0
         self.window = []         # response times this decision period
         self.bwin = []           # busy shares this decision period
+        self.swin = []           # the card's own time per request this decision period (the wait in the queue left out)
 
     def tick(self):
         k = self.k
         a = self.lam[k] * TICK
-        cap = self.f * MU * TICK
+        sp = 1.0 / ((1.0 - self.memb) / self.f + self.memb)
+        cap = sp * MU * TICK
         served = min(self.Q + a, cap)
         self.Q += a - served
         busy = served / cap if cap > 0 else 1.0
         P = power(self.f, busy, self.T)
         self.T += (P - (self.T - T_AMB) / R_TH) * TICK / C_TH
-        w = self.Q / (self.f * MU) + 1.0 / (self.f * MU)
+        w = self.Q / (sp * MU) + 1.0 / (sp * MU)
         self.resp.append((w, a))
         self.window.append(w)
         self.bwin.append(busy)
+        if a > 0:
+            self.swin.extend([1.0 / (sp * MU)] * max(1, int(round(a))))
         m = self.m
         self.last_p, self.last_busy = P, busy
         m["energy_j"] += P * TICK; m["served"] += served; m["arrived"] += a
@@ -150,8 +161,8 @@ class CeilingPlug(Plug):
 
 class LimitPlug(Plug):
     """The down wire: the power limit, the lid (nvidia-smi -pl on a real card), whole watts."""
-    def __init__(self, card):
-        super().__init__(LIMIT_MIN, LIMIT_DEFAULT, tolerance=0.5)
+    def __init__(self, card, top=LIMIT_DEFAULT):
+        super().__init__(LIMIT_MIN, top, tolerance=0.5)
         self.card = card
 
     def _read_service(self):
@@ -164,78 +175,62 @@ class LimitPlug(Plug):
         self.card.limit = float(round(v))
 
 
-def run(seed: int, arm: str, duration: float = 600.0, center: float = 0.5) -> Dict:
-    card = Card(seed, duration)
+def run(seed: int, arm: str, duration: float = 600.0, memb: float = 0.0) -> Dict:
+    card = Card(seed, duration, memb)
     per = int(DECIDE / TICK)
     kill = int(0.9 * card.n)
     restored = True
-    up = down = brain = None
-    if arm == "preset":
-        card.limit = LIMIT_MIN
-    if arm in DOWN:
-        up, down = CeilingPlug(card), LimitPlug(card)
+    up = down = brain = vd = None
+    base_limit = LIMIT_MIN if arm in ("cap", "cap_omni") else LIMIT_DEFAULT
+    card.limit = base_limit
+    events = {"trials": 0, "allowed": 0, "refused": 0}
+    if arm in OMNI:
+        up, down = CeilingPlug(card), LimitPlug(card, top=base_limit)
         up.attach(); down.attach()
-        brain = Bowl(Band(lo=0.0, hi=1.0, center=PROFILES[arm]["center"]), dt=DECIDE, tau=2.0, kp=1.0, authority=1.0, smooth=0.3)
+        brain = Bowl(Band(lo=0.0, hi=1.0, center=CENTER), dt=DECIDE, tau=2.0, kp=1.0, authority=1.0, smooth=0.3)
         brain.kd *= 3.0                                  # the push: three times the damping that only stops the slosh,
                                                          # so a rising load is met before it reaches the wall
-    if arm == "old":
-        gov, lp_hist, util_avg, gated = Governor(), [], None, False
-        old_per = int(2.0 / TICK)
-    learn_f, learn_p = [], []          # the card on its own while busy, ceiling at the top: its clock and its draw
+        vd = Verdict(tolerance=ALLOW, probe_every=PROBE_EVERY)
+    learn_f, learn_p = [], []          # the card under its base while busy, ceiling at the top: its clock and its draw
     for k in range(card.n):
-        if brain is not None and card.ceiling >= 1.0 and card.limit >= LIMIT_DEFAULT and card.last_busy >= 0.9:
+        if brain is not None and card.ceiling >= 1.0 and card.limit >= base_limit and card.last_busy >= 0.9:
             learn_f.append(card.f); learn_p.append(card.last_p)
-        if arm == "old" and k % old_per == 0 and k:
-            if k >= kill:
-                card.limit = LIMIT_DEFAULT                       # the kill: the limit read at start
-            else:
-                recent = card.resp[-int(30.0 / TICK):]
-                tot = sum(a for _, a in recent) or 1.0
-                acc, p95 = 0.0, recent[-1][0]
-                for w, a in sorted(recent):
-                    acc += a
-                    if acc >= 0.95 * tot:
-                        p95 = w; break
-                lp = max(0.0, p95 / SLO_S - 1.0)
-                lp_hist.append(lp)
-                clean = len(lp_hist) >= 3 and all(x == 0.0 for x in lp_hist[-3:])
-                gov.current_cap = min(1.0, card.limit / LIMIT_DEFAULT)
-                d = gov.step({"queue_ratio": min(2.0, lp), "load_ratio": card.last_busy,
-                              "power_stress": card.last_p / LIMIT_DEFAULT, "thermal": card.T / 83.0,
-                              "network_stress": 0.0, "drift_ratio": 0.0, "stale": 0.0, "security_block": 0.0}, 0)
-                cap = float(d["power_cap"]) if clean else 1.0
-                want, _ = shield_limit(cap, card.last_p, LIMIT_DEFAULT, 100.0, 0.3, 0.70, clean)
-                util_avg, gated = busy_gate(util_avg, card.last_busy, gated, 0.5, 0.1)
-                if gated:
-                    want = int(LIMIT_DEFAULT)
-                want = max(want, int(LIMIT_MIN))
-                if abs(want - card.limit) >= 5.0 or (want == LIMIT_DEFAULT and card.limit != want):
-                    card.limit = float(want)
         if brain is not None and k % per == 0 and k:
             if k >= kill:
                 if k - per < kill:
                     restored = up.restore() and down.restore()
             else:
                 F = brain.force(up.read())
-                # the speed floor: never under the clock the card reaches on its own while busy (the top until 15
-                # busy readings are in), so waiting work is never served slower than native
+                # the speed floor: never under the clock the card reaches under its base while busy (the top until 15
+                # busy readings are in), so waiting work is never served slower than the base
                 f_nat = sorted(learn_f[-10000:])[len(learn_f[-10000:]) // 2] if len(learn_f) >= 15 else 1.0
-                p_nat = sorted(learn_p[-10000:])[int(0.9 * (len(learn_p[-10000:]) - 1))] if len(learn_p) >= 15 else LIMIT_DEFAULT
+                p_nat = sorted(learn_p[-10000:])[int(0.9 * (len(learn_p[-10000:]) - 1))] if len(learn_p) >= 15 else base_limit
                 b = card.bwin
                 saturated = bool(b) and sum(b) / len(b) >= SATURATED
+                # the verdict: what the last decision's requests cost the card at the step it stood at, then how far
+                # the ceiling may go now (or the step a trial needs)
+                vd.observe(card.swin)
+                deepest, trial, ev = vd.tick(brain.p < brain.band.wall_high and not saturated)
+                if ev:
+                    key = {"trial": "trials", "step allowed": "allowed"}.get(ev["verdict"], "refused" if "refused" in ev["verdict"] else None)
+                    if key:
+                        events[key] += 1
                 if brain.p >= brain.band.wall_high or saturated:
                     # fail up past the wall; and race while work waits (the card saturated: a queue is forming), so a
                     # burst is always served at full speed; the bowl paces only the slack between bursts
                     c = up.write(1.0)
+                elif trial:
+                    c = up.write(1.0 - deepest * BIN)
                 else:
-                    g = 0.10 if F > 0 else DOWN[arm]             # up fast (service first), down by the profile
-                    c = up.write(max(min(1.0, f_nat * PROFILES[arm]["floor"]), card.ceiling + g * F))
+                    g = UP if F > 0 else DOWN                    # up fast (service first), down gently
+                    c_lo = max(min(1.0, f_nat * FLOOR), 1.0 - deepest * BIN)
+                    c = up.write(max(c_lo, card.ceiling + g * F))
                 # the lid just above what the ceiling draws fully busy, never under the card's own busy draw
                 lid = max(power(c, 1.0, card.T), p_nat) * 1.06
                 down.write(lid)
-            card.window, card.bwin = [], []
+            card.window, card.bwin, card.swin = [], [], []
         elif k % per == 0:
-            card.window, card.bwin = [], []
+            card.window, card.bwin, card.swin = [], [], []
         card.tick()
     m = dict(card.m)
     n = card.n
@@ -256,4 +251,5 @@ def run(seed: int, arm: str, duration: float = 600.0, center: float = 0.5) -> Di
             "reversals_per_s": m["reversals"] / duration, "clock_mean": mean_f,
             "clock_jitter": math.sqrt(max(0.0, m["f_sq"] / n - mean_f ** 2)), "t_peak": m["t_peak"],
             "t_mean": m["t_sum"] / n, "backlog_end": card.Q, "restored": restored,
-            "writes": (up.writes + down.writes) if up else 0}
+            "writes": (up.writes + down.writes) if up else 0, "verdict_steps_allowed": vd.allowed if vd else 0,
+            "verdict_events": events}

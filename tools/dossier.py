@@ -198,21 +198,23 @@ def main():
           "600-935 ms under the governor of that run (the same wiring fault).", ""]
 
     # ------------------------------------------------------------------ 3. GPU model
+    KEYS = ("work_per_kj", "energy_j", "p50_ms", "p95_ms", "p99_ms")
+
     def model(path):
-        res = json.loads(path.read_text())["arms"]
+        work = json.loads(path.read_text())["work"]
         out = {}
-        for arm in ("old", "bowl", "bowl_batch"):
-            if arm not in res:
-                continue
-            for k in ("work_per_kj", "energy_j", "p95_ms"):
-                r = [math.log(x[k] / n[k]) for x, n in zip(res[arm], res["native"]) if x[k] > 0 and n[k] > 0]
-                out[(arm, k)] = 100 * (math.exp(sum(r) / len(r)) - 1)
+        for memb, arms in work.items():
+            for base, top in (("native", "omni"), ("cap", "cap_omni")):
+                for k in KEYS:
+                    r = [math.log(x[k] / n[k]) for x, n in zip(arms[top], arms[base]) if x[k] > 0 and n[k] > 0]
+                    out[(memb, top, k)] = 100 * (math.exp(sum(r) / len(r)) - 1)
         return out
     a = model(ROOT / "results" / "sim" / "gpu_two_wire" / "RESULT.json")
     b = model(ROOT / "results" / "sim" / "gpu_two_wire" / "fresh" / "RESULT.json")
-    labels = ["Service:\nwork/energy", "Service:\np95", "Batch:\nwork/energy", "Batch:\np95"]
-    va = [a[("bowl", "work_per_kj")], a[("bowl", "p95_ms")], a[("bowl_batch", "work_per_kj")], a[("bowl_batch", "p95_ms")]]
-    vb = [b[("bowl", "work_per_kj")], b[("bowl", "p95_ms")], b[("bowl_batch", "work_per_kj")], b[("bowl_batch", "p95_ms")]]
+    WORKN = (("0.0", "Compute-bound"), ("0.85", "AI token generation"))
+    labels = [f"{w}:\n{g}" for _, w in WORKN for g in ("energy", "median", "p95")]
+    pick = [(m, "omni", k) for m, _ in WORKN for k in ("energy_j", "p50_ms", "p95_ms")]
+    va, vb = [a[x] for x in pick], [b[x] for x in pick]
     fig, ax = plt.subplots(figsize=(8, 3.6), dpi=160); fig.patch.set_facecolor(SURF)
     xs = range(len(labels))
     ax.bar([x - 0.17 for x in xs], va, width=0.32, color=SERIES[0], edgecolor=SURF, linewidth=2, label="seeds 5000-5009")
@@ -221,23 +223,23 @@ def main():
         ax.annotate(f"{v:+.1f}%", (x - 0.17, v), xytext=(0, 4 if v >= 0 else -12), textcoords="offset points", ha="center", fontsize=8)
     for x, v in zip(xs, vb):
         ax.annotate(f"{v:+.1f}%", (x + 0.17, v), xytext=(0, 4 if v >= 0 else -12), textcoords="offset points", ha="center", fontsize=8)
-    ax.set_xticks(list(xs)); ax.set_xticklabels(labels, fontsize=8, color=INK2)
-    style(ax, "The corrected two-wire governor on the modelled card (geometric means over 10 seeds)", "change against native (%)")
+    ax.set_xticks(list(xs)); ax.set_xticklabels(labels, fontsize=7, color=INK2)
+    style(ax, "The card's firmware with Omni on top, against the firmware alone (model, geometric means)", "change (%)")
     ax.legend(fontsize=8, frameon=False)
     fig.tight_layout(); fig.savefig(FIG / "gpu_model.png", facecolor=SURF); plt.close(fig)
-    L += ["## 3. The corrected GPU governor on the modelled card (evidence class S)", "",
-          "Two profiles of one governor (`omni_controller/gpu_bowl.py`, the same law in `realms/gpu_card.py`): **service**, "
-          "the default and the benchmark's arm (down gain 0.0125, the bowl's center 0.4, the speed floor 3% above the card's "
-          "own busy clock), and **batch** (down gain 0.015, center 0.5, the floor at the card's own busy clock). It races at "
-          "full speed while work waits, never runs slower than the card does on its own while busy, never sets the lid under "
-          "the card's own busy draw, and reads response time only.", "",
+    L += ["## 3. The GPU governor on the modelled card: each base alone, and with Omni on top (evidence class S)", "",
+          "Omni-Compass never runs the card. It sits on the card's own firmware (or on an operator's power cap) and moves the "
+          "clock ceiling and the power limit, which that base already accepts (`omni_controller/gpu_bowl.py`, the same law "
+          "in `realms/gpu_card.py`). A step down is taken only after a paired trial on the card shows it adds at most 2% to "
+          "the card's own time on a request (`omnicompass/verdict.py`); where no step passes, the card runs as it does alone.", "",
           "![The modelled card](dossier/gpu_model.png)", "",
-          "| Profile | Work per energy (tuning / fresh) | Energy | p95 (lower is faster) |", "|---|---:|---:|---:|",
-          f"| Service | {a[('bowl', 'work_per_kj')]:+.1f}% / {b[('bowl', 'work_per_kj')]:+.1f}% | {a[('bowl', 'energy_j')]:+.1f}% / {b[('bowl', 'energy_j')]:+.1f}% | {a[('bowl', 'p95_ms')]:+.1f}% / {b[('bowl', 'p95_ms')]:+.1f}% |",
-          f"| Batch | {a[('bowl_batch', 'work_per_kj')]:+.1f}% / {b[('bowl_batch', 'work_per_kj')]:+.1f}% | {a[('bowl_batch', 'energy_j')]:+.1f}% / {b[('bowl_batch', 'energy_j')]:+.1f}% | {a[('bowl_batch', 'p95_ms')]:+.1f}% / {b[('bowl_batch', 'p95_ms')]:+.1f}% |",
-          f"| The earlier one-wire governor | {a[('old', 'work_per_kj')]:+.1f}% / {b[('old', 'work_per_kj')]:+.1f}% | {a[('old', 'energy_j')]:+.1f}% / {b[('old', 'energy_j')]:+.1f}% | {a[('old', 'p95_ms')]:+.1f}% / {b[('old', 'p95_ms')]:+.1f}% |",
-          "", "Source: `results/sim/gpu_two_wire/RESULT.md` and `fresh/RESULT.md`. How the service settings were chosen, "
-          "with every setting tried and the rule, is amendment 7 of `docs/GPU_PREREGISTRATION.md`.", ""]
+          "| Work | Base | Energy (tuning / fresh) | Median response | p95 | p99 |", "|---|---|---:|---:|---:|---:|"]
+    for m, w in WORKN:
+        for top, base in (("omni", "firmware + Omni vs firmware alone"), ("cap_omni", "105 W cap + Omni vs the cap alone")):
+            L.append(f"| {w} | {base} | " + " | ".join(f"{a[(m, top, k)]:+.2f}% / {b[(m, top, k)]:+.2f}%"
+                                                         for k in ("energy_j", "p50_ms", "p95_ms", "p99_ms")) + " |")
+    L += ["", "Source: `results/sim/gpu_two_wire/RESULT.md` and `fresh/RESULT.md`. The rule, and why the allowance is 2%, is "
+          "amendment 8 of `docs/GPU_PREREGISTRATION.md`.", ""]
 
     # ------------------------------------------------------------------ 4. Kubernetes
     K = [("22", 31.0, 61.0, -0.9, "results/live/LIVE_REPS_22.md"), ("23", 28.7, 62.2, -1.0, "results/live/LIVE_REPS_23.md"),

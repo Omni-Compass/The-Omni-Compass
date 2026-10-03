@@ -1,40 +1,75 @@
-# The two-wire GPU card, in simulation
+# The GPU card in simulation: each base alone, and with Omni-Compass on top
 
-Evidence class **S** (a model, not a meter). Seeds 5000-5009, 600 s each, commit `05eab70`, 2026-10-02 22:04 UTC. Model and arms: `realms/gpu_card.py`; the law: `omnicompass/bowl.py`. The frozen engine is not used here; this is the bowl law as its own arm.
+Evidence class **S** (a model, not a meter). Seeds 5000-5009, 600 s each, commit `9ec6e50`, 2026-10-03 01:03 UTC. Model: `realms/gpu_card.py`; the law: `omnicompass/bowl.py` and the verdict `omnicompass/verdict.py`.
 
-- **native**: the card as shipped, 150 W limit, firmware boost up a bin and hammer down three at the limit;
-- **preset**: a fixed 105 W limit (70%), set and left, as an operator would;
-- **old governor**: the shipped one-wire GPU governor (its defaults), the power limit only;
-- **bowl**: Omni through two wires, the clock ceiling (up) and the power limit (down, the lid), pulling the service position (response time) to the middle of its bowl, racing at full speed while the card is saturated and never pacing under the clock or the draw the card reaches on its own while busy (amendment 6); both wires restored to their snapshot at 90% of the run. **Service** profile (the default and the benchmark's arm): down gain 0.0125, bowl center 0.4, speed floor 3% above the card's own busy clock; **batch** profile: down gain 0.015, center 0.5, floor at the card's own busy clock, for work nobody waits on answer by answer.
+Omni-Compass never runs the card. It sits on top of what already runs it (the card's own firmware, or an operator's power cap) and moves two settings that base already accepts: the clock ceiling and the power limit. A step down is taken only after a paired trial on the card shows it adds at most 2% to the card's own time on a request; where no step passes, Omni leaves the base exactly as it was. Every comparison below is a base alone against the same base with Omni on top, on the same seeds and the same requests.
 
-## Mean over seeds
+## Compute-bound work (matrix products)
 
-| Gauge | Native | Preset | Old governor | Bowl, service | Bowl, batch |
-|---|---:|---:|---:|---:|---:|
-| work per energy (requests per kJ) | 432.1 | 498.0 | 432.3 | 461.8 | 467.4 |
-| energy (J) | 68760 | 59412 | 68725 | 64371 | 63622 |
-| requests served | 29719 | 29592 | 29719 | 29719 | 29719 |
-| response, median (ms) | 10.1 | 306.5 | 10.1 | 11.9 | 12.1 |
-| response, 95th percentile (ms) | 122.1 | 6942.1 | 122.2 | 118.7 | 123.4 |
-| response, 99th percentile (ms) | 602.0 | 8221.0 | 602.0 | 582.0 | 587.5 |
-| time over the service line (%) | 2.80% | 40.30% | 2.80% | 2.78% | 2.86% |
-| hammer blows per second | 0.95 | 8.39 | 1.03 | 0.67 | 0.65 |
-| clock reversals per second | 1.80 | 16.33 | 1.94 | 1.30 | 1.29 |
-| clock, mean share of top | 0.984 | 0.777 | 0.983 | 0.867 | 0.844 |
-| clock, standard deviation | 0.041 | 0.178 | 0.043 | 0.060 | 0.080 |
-| temperature, peak (C) | 75.4 | 64.1 | 75.4 | 73.7 | 73.6 |
-| temperature, mean (C) | 66.6 | 61.8 | 66.6 | 64.2 | 63.8 |
+### Mean over seeds
 
-## Paired against native (ratios: geometric mean over seeds with its 95% interval; time over the line: mean difference)
-
-| Gauge | Preset | Old governor | Bowl, service | Bowl, batch |
+| Gauge | The card's firmware alone | Firmware + Omni on top | A fixed 105 W power cap alone | The cap + Omni on top |
 |---|---:|---:|---:|---:|
-| work per energy | +15.2% (+13.9% to +16.6%) | +0.1% (+0.0% to +0.1%) | +6.9% (+5.4% to +8.3%) | +8.1% (+6.2% to +10.1%) |
-| energy | -13.6% (-14.5% to -12.6%) | -0.1% (-0.1% to -0.0%) | -6.4% (-7.7% to -5.1%) | -7.5% (-9.1% to -5.9%) |
-| time over the line (pp) | +37.50 (+31.22 to +43.79) | +0.00 (+0.00 to +0.00) | -0.03 (-0.05 to +0.00) | +0.06 (-0.06 to +0.18) |
-| response p95 | +13233.8% (+5341.2% to +32575.1%) | +0.8% (-1.0% to +2.5%) | -5.9% (-15.3% to +4.5%) | +7.0% (-4.8% to +20.3%) |
-| hammer blows | +809.3% (+671.2% to +972.2%) | +9.0% (+6.5% to +11.5%) | -31.5% (-44.0% to -16.2%) | -32.1% (-42.9% to -19.2%) |
+| work per energy (requests per kJ) | 432.1 | 435.2 | 498.0 | 498.5 |
+| energy (J) | 68760 | 68282 | 59412 | 59352 |
+| requests served | 29719 | 29719 | 29592 | 29592 |
+| response, median (ms) | 10.1 | 10.2 | 306.5 | 306.2 |
+| response, 95th percentile (ms) | 122.1 | 122.9 | 6942.1 | 6941.8 |
+| response, 99th percentile (ms) | 602.0 | 602.0 | 8221.0 | 8220.7 |
+| time over the service line (%) | 2.80% | 2.80% | 40.30% | 40.28% |
+| hammer blows per second | 0.95 | 0.89 | 8.39 | 8.34 |
+| clock reversals per second | 1.80 | 1.70 | 16.33 | 16.24 |
+| clock, mean share of top | 0.984 | 0.972 | 0.777 | 0.775 |
+| clock, standard deviation | 0.041 | 0.039 | 0.178 | 0.176 |
+| temperature, peak (C) | 75.4 | 75.1 | 64.1 | 64.1 |
+| temperature, mean (C) | 66.6 | 66.4 | 61.8 | 61.7 |
 
-Both wires back at their snapshot after the kill on every seed: True. Requests served are the same work on every arm (the stream is the seed's); a backlog left at the end is in the JSON.
+### With Omni on top against the same base alone (ratios: geometric mean over seeds, 95% interval; time over the line: mean difference)
 
-A model written by the same people who wrote the law is not an independent test. The card's power curve (dynamic power rising with clock times voltage squared) is the textbook shape, not a measurement of any product. The number that counts is a rented card's own meter.
+| Gauge | firmware + Omni on top vs the card's firmware alone | the cap + Omni on top vs a fixed 105 W power cap alone |
+|---|---:|---:|
+| work per energy | +0.70% (+0.54% to +0.86%) | +0.10% (+0.02% to +0.18%) |
+| energy | -0.70% (-0.85% to -0.54%) | -0.10% (-0.18% to -0.02%) |
+| response, median | +1.56% (+1.12% to +2.01%) | -1.27% (-3.80% to +1.33%) |
+| response, p95 | -0.84% (-4.10% to +2.52%) | -0.01% (-0.02% to +0.01%) |
+| response, p99 | -0.09% (-0.37% to +0.20%) | -0.00% (-0.01% to +0.01%) |
+| time over the line (pp) | -0.001 (-0.010 to +0.008) | -0.020 (-0.061 to +0.021) |
+| requests served | +0.00% (-0.00% to +0.00%) | +0.00% (-0.00% to +0.00%) |
+
+Verdict over all Omni runs: 51 trials, 28 steps allowed, 20 refused. Both wires back at their snapshot after the kill on every seed: True.
+
+## AI token generation (85% of each request waiting on memory)
+
+### Mean over seeds
+
+| Gauge | The card's firmware alone | Firmware + Omni on top | A fixed 105 W power cap alone | The cap + Omni on top |
+|---|---:|---:|---:|---:|
+| work per energy (requests per kJ) | 433.8 | 448.8 | 500.4 | 511.2 |
+| energy (J) | 68505 | 66290 | 59393 | 58164 |
+| requests served | 29726 | 29726 | 29726 | 29726 |
+| response, median (ms) | 10.0 | 10.1 | 10.2 | 10.2 |
+| response, 95th percentile (ms) | 10.1 | 10.2 | 10.7 | 10.7 |
+| response, 99th percentile (ms) | 11.5 | 11.5 | 41.7 | 41.7 |
+| time over the service line (%) | 0.02% | 0.02% | 0.10% | 0.10% |
+| hammer blows per second | 0.85 | 0.68 | 7.89 | 6.97 |
+| clock reversals per second | 1.65 | 1.35 | 15.40 | 13.63 |
+| clock, mean share of top | 0.989 | 0.961 | 0.893 | 0.872 |
+| clock, standard deviation | 0.025 | 0.038 | 0.104 | 0.090 |
+| temperature, peak (C) | 75.2 | 74.3 | 64.2 | 64.2 |
+| temperature, mean (C) | 66.5 | 65.3 | 61.8 | 61.1 |
+
+### With Omni on top against the same base alone (ratios: geometric mean over seeds, 95% interval; time over the line: mean difference)
+
+| Gauge | firmware + Omni on top vs the card's firmware alone | the cap + Omni on top vs a fixed 105 W power cap alone |
+|---|---:|---:|
+| work per energy | +3.36% (+0.62% to +6.17%) | +2.13% (+0.80% to +3.48%) |
+| energy | -3.25% (-5.81% to -0.62%) | -2.09% (-3.37% to -0.79%) |
+| response, median | +0.55% (-0.08% to +1.18%) | +0.07% (-0.09% to +0.23%) |
+| response, p95 | +0.29% (+0.06% to +0.53%) | +0.00% (+0.00% to +0.00%) |
+| response, p99 | +0.02% (-0.02% to +0.05%) | +0.00% (+0.00% to +0.00%) |
+| time over the line (pp) | +0.000 (+0.000 to +0.000) | +0.000 (+0.000 to +0.000) |
+| requests served | +0.00% (+0.00% to +0.00%) | +0.00% (+0.00% to +0.00%) |
+
+Verdict over all Omni runs: 255 trials, 235 steps allowed, 20 refused. Both wires back at their snapshot after the kill on every seed: True.
+
+Requests served are the same work in every arm (the stream is the seed's); a backlog left at the end is in the JSON. A model written by the same people who wrote the law is not an independent test. The card's power curve (dynamic power rising with clock times voltage squared) is the textbook shape, not a measurement of any product. The number that counts is a rented card's own meter.

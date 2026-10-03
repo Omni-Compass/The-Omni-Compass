@@ -504,16 +504,19 @@ Every `--interval` seconds (default 2) it reads the card's own meters and the re
   draw; until 15 such readings are in, neither wire moves;
 - **races while work waits**: at 95% utilization or more, the ceiling to the top and the lid to the start limit;
 - **paces the slack**: the mean response time of the last 5 s, between a tenth of `--slo-ms` and `--slo-ms`, held at
-  the profile's center; the ceiling moves in whole 15 MHz steps, never under the card's own busy clock (times the
-  profile's floor), and the lid never under the card's own busy draw plus 10%, never over the start limit;
+  the bowl's center (0.4); the ceiling moves in whole 15 MHz steps, never under the card's own busy clock, and the lid
+  never under the card's own busy draw plus 10%, never over the start limit;
+- **asks the card first (the verdict)**: before the ceiling may go one step lower, a paired trial measures the card's own
+  time on each request (the workload's `service_ms`) at the top and at that step; the step is allowed only if it adds
+  at most `--allow` (2%). Where no step passes, the ceiling stays at the top: the card runs as it does alone, and the
+  audit says so (`verdict_state: left native`);
 - **fails up** when p95 reaches `--slo-ms`, a request fails, the feed goes blind or the card reports a heat slowdown.
 
-`--profile service` (the default; down gain 0.0125, center 0.4, floor 3% above the card's own busy clock) keeps the
-slowest answers at native or faster; `--profile batch` (0.015, 0.5, floor at the card's own clock) saves more for work
-nobody waits on answer by answer, at a p95 cost. The one-wire governor (`omni_controller.gpu_governor`, power limit
-only) remains available.
-Pass: work per energy up; requests served equal; p95 at native or faster (service profile); every row of section 8.5
-reads "wired right".
+One law, no profiles: down gain 0.0125, center 0.4, floor at the card's own busy clock, allowance 2% (GPU
+preregistration, amendment 8). The workload must write `service_ms` (the card's own time per request) in its latency
+file, as `tools/gpu_workload.py` does; without it no step is ever allowed and the card stays native.
+Pass: work per energy up or equal; requests served equal; no request more than 2% slower at the median, p95 and p99
+at native or within 2%; every row of section 8.5 reads "wired right".
 
 **Level 6 - CPU clock and power. WRITES.** On bare metal, add to the controller:
 `--cpufreq-policy-root /sys/devices/system/cpu/cpufreq --cpufreq-require-schedutil --rapl-cmd "<prints CPU package watts>"`.
@@ -546,8 +549,13 @@ budget (`hardware/site_exchange.py`) run in simulation today. Batteries are desi
 ## 11. The OFF Switch, the Rules, and the Log
 
 **The rules Omni-Compass keeps on your system.**
-1. One OFF switch, in a human hand: the kill file (or `OMNI_KILL=1`, or SIGTERM to the GPU governor) returns every
-   setting to its recorded original, reads each back, and stops all action.
+1. **The master switch, for the whole harness, in a human hand:** `python3 tools/omni_switch.py off` turns every
+   Omni-Compass governor on the machine off at once (the Kubernetes controller and the GPU governors). Each puts every
+   setting it ever wrote back to the value it read before its first write, reads it back and exits; the command waits
+   until all have, and says so. While the switch is OFF, no governor will start. `python3 tools/omni_switch.py on` allows
+   them to be started again (nothing restarts by itself); `status` shows the switch and every governor running. Use it
+   the moment anything looks wrong, including a suspected breach. Each governor also keeps its own switch for one
+   muscle at a time: the kill file (or `OMNI_KILL=1`, or SIGTERM to the GPU governor).
 2. It records before it acts (annotations on Kubernetes objects; the `snapshot` line in the GPU audit).
 3. It watches before it writes.
 4. It never acts blind.
@@ -622,9 +630,9 @@ receipt's energy line is modelled, the receipt says so.
 | Real Kubernetes, set 27 (10 paired runs, the bowl law aligned with the GPU governor): machines -15.9%, p95 -65.5%, failed requests 0, better on machines within the band; set 26 (10 paired runs, three arms): the allocation law machines -35.8%, p95 -55.4%; the bowl law machines -17.2%, p95 -64.8%, failed requests 0, better on machines within the band by its preregistered rule; set 25: machines -32.3%, p95 -57.3% | L | `results/live/LIVE_REPS_25.md`, `results/live/LIVE_REPS_26.md`, `results/live/LIVE_REPS_27.md` |
 | Real Kubernetes, set 24 (10 paired runs): machines in service -31.6%, p95 response -60.1%, p99 -64.1%, HPA replicas -38.6%, failed requests 0 on both, total CPU including Omni-Compass's own -1.8% (not significant) | L | `results/live/LIVE_REPS_24.md` (GitHub run 36983865216) |
 | Real Kubernetes, set 23 (10 paired runs): p95 -62.2%, replicas -36.6%, machines in service -28.7%, failed requests 0 | L | `results/live/LIVE_REPS_23.md` |
-| Modelled GPU card, corrected governor: service profile +6.9% / +3.8% work per energy with p95 5.9% / 2.3% faster than native (tuning / fresh seeds); batch profile +8.1% / +4.2% with p95 +7.0% / -2.3%; one-wire governor +0.1%; both wires restored every run | S | `results/sim/gpu_two_wire/` |
+| Modelled GPU card, the card's firmware alone against the firmware with Omni on top (the verdict, 2% allowance), tuning / fresh seeds: compute-bound work, energy -0.70% / -0.48%, median +1.56% / +1.47%, p95 and p99 unchanged within their intervals; AI token generation, energy -3.25% / -3.72%, median +0.55% / +0.70%, p95 +0.29% / +0.26%; both wires restored every run | S | `results/sim/gpu_two_wire/` |
 | Six organisms, 1,000 paired runs each at 1x and at 10x size: work per energy +0.30% / +0.29% (compute), +0.23% / +0.22% (physics), +0.21% / +0.20% (energy), +0.25% / +0.24% (distribution), +0.21% / +0.21% (four stacked), +0.22% / +0.22% (whole tower); every knob handed back; time over the service line +0.19 to +0.27 points above native in every cell, so the band-first rule is not yet met. 100x and 1,000x running | S | `results/scale/GRID.md` |
-| Real GPU (NVIDIA A10), first confirmation, 10 paired runs, the card's own meter: work per energy +3.6% (proven), energy -3.5%, same requests, none lost, every write read back and restored; p95 response +58.5% worse, so the label by rule is energy improvement with service tradeoff. The cause was governor wiring, corrected (service profile, amendments 6-7); the corrected governor is next on a card | P | `results/gpu/run-20261002T082232Z/GPU_REPS.md` |
+| Real GPU (NVIDIA A10), first confirmation, 10 paired runs, the card's own meter: work per energy +3.6% (proven), energy -3.5%, same requests, none lost, every write read back and restored; p95 response +58.5% worse, so the label by rule is energy improvement with service tradeoff. The cause was governor wiring, corrected (amendments 6-8); the corrected governor is next on a card | P | `results/gpu/run-20261002T082232Z/GPU_REPS.md` |
 
 ---
 

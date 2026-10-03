@@ -63,7 +63,8 @@ Therefore:
 
 ## 4. Safety and responsibility
 
-1. Run watch mode first; run the wire check before any write; keep the OFF switch in reach at every level.
+1. Run watch mode first; run the wire check before any write; keep the master OFF switch (`python3 tools/omni_switch.py off`, the
+   whole harness at once) in reach at every level, and use it at the first sign of anything wrong, a suspected breach included.
 2. Omni-Compass is a supervisory governor. The machines' own controls (firmware, autoscalers, safety systems) stay in
    place and keep their own protections; Omni-Compass sets only values they already accept.
 3. Do not connect Omni-Compass to safety-critical systems (vehicles, medical devices, grid protection, life safety)

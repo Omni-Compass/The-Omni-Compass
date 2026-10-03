@@ -81,7 +81,7 @@ pip install -r requirements.txt
 nvidia-smi                 # should show your GPU
 ```
 
-## 4. The whole test, one command (about 12 hours)
+## 4. The whole test, one command (about 18 hours)
 
 ```bash
 sudo nohup bash scripts/gpu_rented_run.sh > run.log 2>&1 &
@@ -93,10 +93,15 @@ It runs, in order, and stops at the first failure:
 2. the **wire check**, which must end `WIRED RIGHT` (manual, section 8.4);
 3. the smoke test, about 40 minutes, never counted;
 4. the six organisms with this card inside, about 5½ hours (`SKIP_HIL=1` skips it);
-5. the preregistered confirmation: 10 repetitions × native / watch / Omni, 600 s each, the governor's **service**
-   profile, about 6 hours;
-6. one packed file: `== send this one file back: results/gpu/omni-gpu-<stamp>.tar.gz`, with the label the table chose
+5. the preregistered confirmation on compute-bound work: 10 repetitions × native / watch / Omni, 600 s each, about
+   6 hours;
+6. the second preregistered confirmation on AI token generation (memory-bound), the same design, about 6 hours
+   (`SKIP_DECODE=1` skips it); each is its own result, never pooled;
+7. one packed file: `== send this one file back: results/gpu/omni-gpu-<stamp>.tar.gz`, with the label each table chose
    by rule.
+
+To stop everything at any moment: `sudo python3 tools/omni_switch.py off` turns every Omni-Compass governor off and
+hands the card back to its own settings.
 
 Do not start it twice and do not use the card for anything else while it runs.
 

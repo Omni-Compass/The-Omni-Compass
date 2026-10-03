@@ -15,10 +15,10 @@ it measurably makes services answer faster, on about a third fewer machines, wit
 machine stays powered, so energy there is a declared model. On a real card (NVIDIA A10 on Lambda, the card's own meter,
 10 paired runs, `results/gpu/run-20261002T082232Z/GPU_REPS.md`) the first governor saved energy (+3.6% work per energy,
 proven) but made the slowest answers 58.5% slower, so its label by rule is energy improvement with service tradeoff.
-The cause was the governor's wiring, corrected in GPU amendments 6 and 7; the corrected governor has not yet run on a
+The cause was the governor's wiring, corrected in GPU amendments 6 to 8; the corrected governor has not yet run on a
 card, so no real-hardware result inside the band exists yet. In the models, the bowl law on every muscle of the six organisms gives +0.20% to +0.30% work
 per energy at every size and run count completed, but it spends more time over the service line than native in every
-cell, so the band-first rule is not yet held. Closing that is the open work on the engine.
+cell, so the band-first rule was not held. Round 6 (`docs/REALMS_PREREGISTRATION.md`) found the cause and corrects it; checked on 20 paired seeds per organism, every organism now spends less time over the line than native with work per energy +0.09% to +0.20%; the grid is rerun on it.
 
 ## Measured on real systems: the newest set, Omni-Compass against Kubernetes as it runs today
 

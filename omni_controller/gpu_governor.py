@@ -58,6 +58,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from omnicompass import master
 from omnicompass.adapter import Governor, mode_law, AUTOPILOT, OBSERVE, observe_vector, assimilate, ASSIMILATION
 from omnicompass.core import U_AUTHORITY, State
 from omni_controller.muscles import latency_sense
@@ -496,13 +497,15 @@ def parser():
 
 def main(argv=None):
     a = parser().parse_args(argv)
+    master.refuse_if_off("GPU governor (one wire)")
     gov = GpuGovernor(a)
+    master.register("GPU governor (one wire)")
     stop = {"now": False}
     signal.signal(signal.SIGTERM, lambda *_: stop.__setitem__("now", True))
     t0 = time.time()
     failed = warned = False
     try:
-        while not stop["now"] and not gov.killed() and (a.duration <= 0 or time.time() - t0 < a.duration):
+        while not stop["now"] and not gov.killed() and not master.is_off() and (a.duration <= 0 or time.time() - t0 < a.duration):
             try:
                 gov.step()
             except WriteFailed as e:   # the actuator refused: the arm ends here, never carries on as if watching
@@ -514,7 +517,7 @@ def main(argv=None):
                 print("omni-gpu: another writer changed the power limit; observing only", file=sys.stderr, flush=True)
                 warned = True
             end = time.time() + a.interval
-            while time.time() < end and not stop["now"] and not gov.killed():
+            while time.time() < end and not stop["now"] and not gov.killed() and not master.is_off():
                 time.sleep(0.2)
     finally:
         ok = gov.restore()
