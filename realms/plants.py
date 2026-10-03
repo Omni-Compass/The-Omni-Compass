@@ -56,6 +56,7 @@ from __future__ import annotations
 
 import math
 import random
+from array import array
 from typing import Dict, Optional
 
 KNOBS = ("capacity", "setpoint", "power", "admission")
@@ -190,11 +191,37 @@ def _motion_substeps(n, dt, theta, omega, integ, Tm, backlog, dwell, pos, mv_on,
             tau_peak, hot, done)
 
 
+_SHARED: Dict[tuple, dict] = {}
+
+
+def _shared(P: dict) -> dict:
+    """One parameter table for every plant with the same parameters (the copies of a muscle in a stack of 1,000): no
+    plant writes to its table, so they share it."""
+    try:
+        key = tuple(sorted(P.items()))
+        hash(key)
+    except TypeError:
+        return dict(P)
+    return _SHARED.setdefault(key, dict(P))
+
+
+def pack(p: "Plant") -> "Plant":
+    """A plant made, packed for a large organism: its exogenous series (arrivals, load, sun, the motion axes' tasks and
+    disturbances) as machine arrays instead of lists of Python numbers, the same values in a quarter of the room, and
+    its random source dropped (every plant draws its series when it is made, never while it runs)."""
+    for name in ("lam", "load", "pv", "tau_d", "arrivals"):
+        v = getattr(p, name, None)
+        if isinstance(v, list):
+            setattr(p, name, array("q" if all(type(x) is int for x in v) else "d", v))
+    p.rng = None
+    return p
+
+
 class Plant:
     template = ""
 
     def __init__(self, P: dict, seed: int, steps: int):
-        self.P = dict(P)
+        self.P = _shared(P)
         self.rng = random.Random(seed)
         self.steps = steps
         self.k = 0

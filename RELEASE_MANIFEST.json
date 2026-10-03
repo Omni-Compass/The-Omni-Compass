@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-80fdeff73ce6",
- "written_at_commit": "80fdeff73ce63be0ad54fcad366bc3f94907fd49",
- "written_at": "2026-10-03T08:22:07+00:00",
+ "release_id": "omni-compass-441db0370ce2",
+ "written_at_commit": "441db0370ce28b48a27fe9b82b19fc9667c5ccef",
+ "written_at": "2026-10-03T09:17:45+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -134,7 +134,7 @@
    "tools/run_scale.py": "013b684e2092f3445063c3fa2faad07bac12dd35682eddb8fe6d92f0188cf02b",
    "tools/pool_scale.py": "d2a6c9e97af364d67e375d136a81ee441ce40d0f3ddc616f780b11d136a4b2b3",
    "scripts/scale_ladder.sh": "8a5bf85660fcca478f3c7e81366861768f32c144c59f8639febc2b46d2a66baf",
-   ".github/workflows/six.yml": "0679958c974a474c2862bf814cc262faf4e1f453a8ddb7ed367b8092f776ad48",
+   ".github/workflows/six.yml": "63c9efef73eaa233bb59a3ca7b6372727d8cef2fe8b4658296be4ef21f5ea35b",
    "results/scale/GRID.md": "46b6dc7ae6e76c010c71094ac84f715a49701363a712401d3bbb39515d581fb8",
    "tools/grid.py": "bbee2688fa0cca931eb6a02292ca6819e4138e361623d1f03017152cd41d64d8",
    "results/scale/receipts/round6-1x.md": "c5bd2cb0140bb753ba332f4643b5f2ae65662cd1021b265a6e1d0848f323003a",
@@ -164,12 +164,12 @@
   },
   "realms": {
    "realms/catalog.csv": "9b085801dfb4b99dd4af001683900e0b9428af460a8d3119d9f23d386c45f2d7",
-   "realms/plants.py": "9c3048e4940886c382154ac2c9a91ab39dead2a2fcb3a3010f4f68b841950312",
+   "realms/plants.py": "8d0bbe96c1fb3d63253cbb2820b72d6992db40780b7e801bc454d876ebd28612",
    "realms/presets.py": "ce84402f90061259f78c5cae7dddd3b840a1d17086bde116e1d810bcd6503e59",
-   "realms/harness.py": "a8c0d3473a8f401999e6fd9acaef134f4647563e9cf808196a44ad65275baeaa",
+   "realms/harness.py": "56490080a6eef944512531de208ded8bca99d4184dbec2509b14cc3b5fced784",
    "tools/realms_catalog.py": "29f9de22733d54bb31fa5becc2108f8ade8ba6165ff82f4223971bd171074c2d",
    "tools/run_realms.py": "05e6167730222e6c7202570ec11ad4926496fd7213f17ebd1ebc5ba6bd1bbde6",
-   "docs/REALMS_PREREGISTRATION.md": "d8c8946666f6378bcaf37aa814c72561fd438f6835ccea9f37fa77d050237443"
+   "docs/REALMS_PREREGISTRATION.md": "6014577d551b76f61b9a90325b7021c494701db1de6271912d1e64ddf4adb473"
   }
  },
  "live_evidence": {
@@ -220,7 +220,7 @@
  "physical_meter_results": "NVIDIA A10 on Lambda, 2026-10-02, 10 paired runs (results/gpu/run-20261002T082232Z/GPU_REPS.md): work per energy +3.6% (proven), p95 +58.5%, label energy improvement with service tradeoff; the governor corrected in GPU amendments 6 and 7 has not yet run on a card",
  "verification_receipt": {
   "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "4daac43fd67f56c8adc5796e2367120f60f2c67938f2d34adf5b96efa5bef19f",
+  "sha256": "4ed215f9276bf23a238e3191e7e37b823f0d43f2be9558378e3d9c90f3b4688f",
   "passed": true
  }
 }

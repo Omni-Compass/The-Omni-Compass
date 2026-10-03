@@ -2,6 +2,8 @@ name: six
 # The six organisms, native and Omni (tools/run_scale.py): the four realms, the four stacked with every duplicate kept
 # (1,226), and the whole tower (656). Each organism is split into shards on separate runners (10 by default); the
 # shards are pooled into one receipt (tools/pool_scale.py). Total runs per organism = shards x runs_per_shard.
+# For the largest sizes, per_shard sets the runs per runner by organism (a runner's job ends at 6 hours; one run of the
+# four stacked at 1,000 copies takes 2 to 3), and runs the total: shards are cut so every organism reaches it.
 # Started by hand (Actions -> six -> Run workflow) or by a commit message containing [six].
 on:
   workflow_dispatch:
@@ -10,17 +12,47 @@ on:
       scale: {description: "Copies of each organism on one clock (1, 10, 100, ...)", default: "1"}
       shards: {description: "Shard numbers, as a JSON list", default: "[0,1,2,3,4,5,6,7,8,9]"}
       orgs: {description: "Organisms, as a JSON list of numbers 1-6", default: '["1","2","3","4","5","6"]'}
-      workers: {description: "Processes per runner (fewer for the largest sizes, which need the memory)", default: "4"}
+      workers: {description: "Processes per runner (fewer for the largest sizes, which need the memory); a number, or JSON by organism, e.g. {\"5\":1,\"6\":2}", default: "4"}
+      per_shard: {description: "Optional: runs per runner by organism, as JSON, e.g. {\"1\":5,\"5\":2}; with it, runs is the total per organism", default: ""}
+      runs: {description: "With per_shard: total paired runs per organism", default: "100"}
   push:
 jobs:
-  shard:
+  plan:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[six]')
+    runs-on: ubuntu-latest
+    outputs: {matrix: "${{ steps.p.outputs.matrix }}"}
+    steps:
+      - id: p
+        env:
+          ORGS: ${{ github.event.inputs.orgs || '["1","2","3","4","5","6"]' }}
+          SHARDS: ${{ github.event.inputs.shards || '[0,1,2,3,4,5,6,7,8,9]' }}
+          N: ${{ github.event.inputs.runs_per_shard || '100' }}
+          PER: ${{ github.event.inputs.per_shard || '' }}
+          RUNS: ${{ github.event.inputs.runs || '100' }}
+          W: ${{ github.event.inputs.workers || '4' }}
+        run: |
+          python3 - >> "$GITHUB_OUTPUT" <<'PY'
+          import json, os
+          orgs = json.loads(os.environ["ORGS"]); inc = []
+          if os.environ["PER"].strip():
+              per, total = json.loads(os.environ["PER"]), int(os.environ["RUNS"])
+              for o in orgs:
+                  n = int(per.get(o, per.get(str(o), 10)))
+                  inc += [{"org": o, "shard": i, "first": i * n, "n": min(n, total - i * n)} for i in range(-(-total // n))]
+          else:
+              n = int(os.environ["N"])
+              inc = [{"org": o, "shard": s, "first": s * n, "n": n} for o in orgs for s in json.loads(os.environ["SHARDS"])]
+          w = json.loads(os.environ["W"])
+          for x in inc:
+              x["w"] = int(w.get(x["org"], w.get(str(x["org"]), 1))) if isinstance(w, dict) else int(w)
+          print("matrix=" + json.dumps({"include": inc}))
+          PY
+  shard:
+    needs: plan
     strategy:
       fail-fast: false
       max-parallel: 20
-      matrix:
-        org: ${{ fromJSON(github.event.inputs.orgs || '["1","2","3","4","5","6"]') }}
-        shard: ${{ fromJSON(github.event.inputs.shards || '[0,1,2,3,4,5,6,7,8,9]') }}
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
@@ -29,16 +61,15 @@ jobs:
         with: {python-version: "3.12"}
       - run: pip install -r requirements.txt
       - run: |
-          N="${{ github.event.inputs.runs_per_shard || '100' }}"
-          python3 tools/run_scale.py --runs "$N" --first $(( ${{ matrix.shard }} * N )) --scale "${{ github.event.inputs.scale || '1' }}" \
+          python3 tools/run_scale.py --runs "${{ matrix.n }}" --first "${{ matrix.first }}" --scale "${{ github.event.inputs.scale || '1' }}" \
             --organisms "${{ matrix.org }}" --out "part-${{ matrix.org }}-${{ matrix.shard }}" \
-            --workers "${{ github.event.inputs.workers || '4' }}"
+            --workers "${{ matrix.w }}"
       - uses: actions/upload-artifact@v4
         if: always()
         with: {name: "part-${{ matrix.org }}-${{ matrix.shard }}", path: "part-${{ matrix.org }}-${{ matrix.shard }}"}
   receipts:
     needs: shard
-    if: always()
+    if: always() && needs.shard.result != 'skipped'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

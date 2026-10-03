@@ -31,7 +31,7 @@ from typing import Dict, List
 
 from omnicompass.adapter import Governor, OBSERVE
 from omnicompass.nervous_system import from_governor
-from .plants import TEMPLATES, ThermalZone, EnergyStorage
+from .plants import TEMPLATES, ThermalZone, EnergyStorage, pack
 from .bowl_arm import bowl_apply
 from .presets import STEPS_SINGLE, ORGANISM_STEPS, CAL_SEED, params_for
 
@@ -201,9 +201,12 @@ class Body:
 
     def __init__(self, rows, seed, nominal="calibrated"):
         self.rows = rows
-        self.plants = [make_plant(r, seed, organism=True) for r in rows]
-        if nominal == "calibrated":
-            for p, w in zip(self.plants, calibrate_organism(rows)):
+        # the calibration run first, then this body: one organism in memory at a time (1,000 copies of the four stacked
+        # is 1.2 million plants). Each plant is packed as it is made (plants.pack): the same numbers, a quarter of the room
+        cal = calibrate_organism(rows) if nominal == "calibrated" else None
+        self.plants = [pack(make_plant(r, seed, organism=True)) for r in rows]
+        if cal is not None:
+            for p, w in zip(self.plants, cal):
                 p.nominal_w = max(w, 1.0)
         self.knobs = [r["knob"] for r in rows]
         self.paced = [p for p, r in zip(self.plants, rows) if r["knob"] == "admission"

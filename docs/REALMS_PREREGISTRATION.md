@@ -282,3 +282,20 @@ remove it until the setpoint is held native, and then the Physics organism uses 
 therefore disclosed and judged by the one rule now written for every muscle (`DISCLOSURES.md`, section 3): at most 2% in
 any measure, only where energy is saved. The largest work cost in the grid is 0.007% in a single run and 0.001% over
 1,000 runs, far inside it.
+
+### The 1,000-copy size: memory and sharding (2026-10-03, before its re-run)
+
+The first 1,000-copy run (six run 37090435347) stopped twice at the same point: every organism larger than physics
+and robotics ran out of memory about 3 minutes in (the four stacked at 1,000 copies is 1.2 million plants; at 33 KB a
+plant, and with the calibration organism built while the result organism was still held, it needed over 40 GB on a
+16 GB runner). Three changes, none of which changes a number:
+- the calibration run is made before the organism, so one organism is in memory at a time (`realms/harness.py`, `Body`);
+- each plant is packed as it is made: its exogenous series as machine arrays, its random source dropped (every plant
+  draws its series when it is made, never while it runs), plants with the same parameters sharing one table
+  (`realms/plants.py`, `pack`, `_shared`);
+- the six workflow sizes its shards by organism (`per_shard`, `workers` by organism), because one run of the four
+  stacked at 1,000 copies takes 2 to 3 hours and a runner's job ends at 6.
+
+Same outputs: four organisms, two seeds each, at 1x to 3x, byte-identical before and after. A plant now takes 6.7 KB;
+the four stacked at 1,000 copies needs about 9 GB. The re-run: 10 runs per organism at 1,000 copies (the 1-run and
+10-run cells); 100 runs at 1,000 copies follows when the runners allow it (about 650 runner-hours).
