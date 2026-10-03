@@ -183,12 +183,14 @@ def hil():
     """The whole stacks with the card inside: one organism, one repetition, fast clock; valid and handed back."""
     d = Path(tempfile.mkdtemp()); state(d, limit={"0": 150.0}, default=150, max=150, draw_w=140.0)
     r = subprocess.run([sys.executable, str(ROOT / "tools" / "run_hil.py"), "--out", str(d / "hil"), "--reps", "1",
-                        "--step-s", "0.03", "--interval", "0.3", "--drain", "1", "--organisms", "distribution_specialized"],
+                        "--step-s", "0.03", "--interval", "0.3", "--drain", "1", "--organisms", "distribution_specialized",
+                        "--scales", "1,10"],
                        cwd=ROOT, env=dict(os.environ, NVIDIA_SMI=SMI, SIM="1", WORKLOAD_ARGS="--calib 5 --target-ms 20"),
                        capture_output=True, text=True, timeout=900)
     assert r.returncode == 0, r.stdout[-2000:] + r.stderr[-1500:]
     out = json.loads((d / "hil" / "HIL.json").read_text())
-    assert not out["problems"] and {"sim", "card", "all"} <= set(out["results"]["distribution_specialized"])
+    assert not out["problems"] and all({"sim", "card", "all"} <= set(out["results"][f"{sc}x/distribution_specialized"])
+                                       for sc in (1, 10))
     assert (d / "hil" / "SHA256SUMS.txt").exists()
 
 
