@@ -81,6 +81,16 @@ def main():
     assert ns and ns[-1] == 7 or c.a.max_nodes < 7, f"fail up: node commands {ns}"
     print(f"hot: target 50 -> {target_now(st)} at once (fail up), node command {ns}")
 
+    # the fault is over: responses back inside the band, nothing waiting. The operator's own target returns at once,
+    # inside the autoscaler's window, so the extra pods last only as long as the fault
+    lat = probe(t, 50.0)
+    for k in range(1, 4):
+        c.step()
+        if target_now(st) == 50:
+            break
+    assert target_now(st) == 50, f"fault over: target {target_now(st)}, expected the operator's 50 back at once"
+    print(f"fault over: target back to 50 after {k} decision(s), inside the autoscaler's window")
+
     # blind: a probe file older than twice its window reads as past the wall
     t = tempfile.mkdtemp(); st = cluster(t); lat = probe(t, 50.0)
     old = time.time() - 600; os.utime(lat, (old, old))

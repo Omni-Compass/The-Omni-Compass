@@ -137,3 +137,17 @@ For each fault the report (`tools/live_reps.py`, "The fault test") gives the tim
 until responses stay under the line for 30 s straight, at most 300 s) and the share of samples over the line or failed
 in the 300 s after it, paired against native over 10 repetitions. All the usual gauges are reported as well, now
 including the share of response samples over the line (`pilot/bench_report.py`). Lower is better in each.
+
+**The fault test, first run** (run 37094604580, commit `a149d4e`; `results/live/FAULTS.md`). Omni-Compass on top
+recovered faster than native from every fault (allocation law: machine down −29%, runaway pod −35%, spike −7%; bowl
+law: −14%, −17%, −6%), p95 −53% and −55%, p99 −27% (not significant) and −57%. One measure was worse: with the bowl law,
+**HPA replicas +8.2%** (+0.41 to +0.99, significant), with CPU and machines unchanged and no energy saved, so outside
+the one rule (`DISCLOSURES.md`, section 3). The cause: past the wall the bowl lowers the HPA target at once (more pods,
+the faster recovery), then handed the operator's target back step by step and held each step for the autoscaler's
+window, so the extra pods outlived the fault.
+
+**The change, written before the re-run** (`omni_controller/controller.py`, the bowl's push and pull on the HPA target;
+`tests/test_bowl_controller.py`, "fault over"): once the responses are back inside the band (the bowl's position under
+its center), the response line is clean and no pod is waiting, the operator's own target returns at once and is not
+held by the window. More pods only while the fault lasts. The re-run is the same fault test, arms, load, duration and
+rule (set 30 F); set 30 runs the same code without faults, to show nothing else moved.

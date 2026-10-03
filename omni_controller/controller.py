@@ -644,6 +644,7 @@ class Controller:
                 # the same promise in queue terms: busy = target x request / limit. While convey() gives the pods a
                 # limit g times the operator's, the target that keeps each pod exactly as busy is g times higher
                 want = int(round(100 * min(rho, orig / 100.0) * self._gain(h)))
+                back = False
                 if self.bowl is not None:
                     # the bowl's push and pull on the target, inside its cover [60% of the operator's, the operator's]
                     # (in queue terms, times the conveyed gain): a lower target is more pods, so the up force lowers it
@@ -651,6 +652,10 @@ class Controller:
                     x = self.bowl_x.get((ns, name), hi_t)
                     if self.bowl.p >= self.bowl.band.wall_high:
                         x = lo_t                                         # fail up: the most pods the cover allows, at once
+                    elif x < hi_t and self.bowl.p < self.bowl.band.center and obs["slo_clean"] and s["pending"] == 0:
+                        # the fault is over: responses back inside the band, nothing waiting. The extra pods were for
+                        # the fault only, so the operator's own target returns at once, not step by step
+                        x = hi_t; back = True
                     else:
                         F_ = bowl_rec["force"]
                         x = x - (BOWL_UP if F_ > 0 else BOWL_DOWN) * F_ * (hi_t - lo_t)
@@ -667,7 +672,8 @@ class Controller:
                 # target at once
                 win = float(((h["spec"].get("behavior") or {}).get("scaleDown") or {}).get("stabilizationWindowSeconds", 300))
                 last = self.target_at.get((ns, name))
-                if obs["slo_clean"] and last is not None and time.time() - last < win:
+                # handing the operator's own target back is never held: it is where native stands
+                if obs["slo_clean"] and last is not None and time.time() - last < win and not back:
                     continue
                 self.target_at[(ns, name)] = time.time()
                 self.changed.setdefault((ns, name), int(h["metadata"].get("annotations", {}).get(ANNOTATION, cur)))

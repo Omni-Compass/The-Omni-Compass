@@ -1,8 +1,8 @@
 {
  "release": "Omni-Compass",
- "release_id": "omni-compass-16332d310f60",
- "written_at_commit": "16332d310f6095b2cebff09bded9ffc8e7a14f29",
- "written_at": "2026-10-03T06:33:14+00:00",
+ "release_id": "omni-compass-0b3dbe631b8a",
+ "written_at_commit": "0b3dbe631b8a6a9460217b0db05019167398c683",
+ "written_at": "2026-10-03T06:53:29+00:00",
  "canonical_engine": "symmetric_verified (docs/CANONICAL_ENGINE.md)",
  "mechanism_id": "0784d5d499ea6bfde322b83bb8f071bb76ee3e7fc049c40a6c308941d7816f5d",
  "mechanism_configuration": "symmetric_verified",
@@ -22,14 +22,14 @@
  "fingerprints": {
   "engine_sha256": "bd615f156169f6794b41439c4ce0726deb6a0b620fac76e072d24b357ab8b0a4",
   "cpp_sha256": "d7deead6f47d54d5b68e08b98db5e15ab54c7fbac8e7b9c24ee64cb1538a8c5c",
-  "controller_sha256": "4476e8a74f5c31ceecf3030dae5a08e4d0fdc866dd7bfabcee0fcfb39e6f8951",
+  "controller_sha256": "b491dcc3fb7266fb6b976c0dae981643ef22186612e2acbe7e334f47d4a8a2a9",
   "observation_map_sha256": "f3904a61c94d47f8fd783ca5d85792ce0f6e8ae7ccf827456fd9526d6c24ba8b",
   "authority_map_sha256": "7a39f51cc43a594da52ac7d549f0eb3554cbeff24ba10db642770cebc146f1c6",
   "actuator_map_sha256": "8b3ca00878c08850801ccfda3dce4e424d1baebcb486a95f2acdb13c8ced8934",
   "shield_sha256": "88de572557295e04eb1341e64de16b68d74e4f8fa7c2e8bbe9c1d9c0416ea6f5",
   "gpu_protocol_sha256": "8cf5ffdc0bdca5b9bdabb0aae687f4132dee544f08ae37ea8b7880a013693760",
   "preregistration_sha256": "ca3e0ab0f1374881ac6e4f1f5e6229eb9d8449382ae5abfc8efe9c325df9cd5d",
-  "test_suite_sha256": "afafa171fee5df9ecfa39dcd6ad5b33338bddedccf687a667deba0eb6edd4188"
+  "test_suite_sha256": "43a3b8d42e91733db895c6d60e8fde7a9a5dde4814bd563dae7bf80773ea68b1"
  },
  "files": {
   "canonical_engine": {
@@ -90,7 +90,7 @@
   },
   "live_set_26": {
    "results/live/LIVE_REPS_26.md": "643291e75fdf88bf79e9b46e2e4194aaab7c96b0acd7ad37440f40f7d9b3c9d7",
-   "docs/K8S_BOWL_PREREGISTRATION.md": "6b54fdeee8aad32ca75df9032f44c6c38d8471f2b65ed10094a8bf34505fd90b"
+   "docs/K8S_BOWL_PREREGISTRATION.md": "6c8e44f10f69d228d36d6b33010d1a233dd8b0eed114ce6d0f5e12c02955f21c"
   },
   "live_set_27": {
    "results/live/LIVE_REPS_27.md": "c356cbfb8546b1599ddc9d15f490895a2e1cddebd9c84c2c6f105ceacb54471a"
@@ -218,7 +218,7 @@
  "physical_meter_results": "NVIDIA A10 on Lambda, 2026-10-02, 10 paired runs (results/gpu/run-20261002T082232Z/GPU_REPS.md): work per energy +3.6% (proven), p95 +58.5%, label energy improvement with service tradeoff; the governor corrected in GPU amendments 6 and 7 has not yet run on a card",
  "verification_receipt": {
   "file": "results/VERIFY_RECEIPT.txt",
-  "sha256": "d43fcefa773b42a3143b9da9bba93f23f4e3e3c5a082900f42ec0ba9e97946b5",
+  "sha256": "0a7618966a37ec850b5e6ef046cafb11b1542e15763be3fda300a54f8127ad76",
   "passed": true
  }
 }
