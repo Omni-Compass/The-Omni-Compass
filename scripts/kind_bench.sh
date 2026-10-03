@@ -137,6 +137,12 @@ load_pid=$!
 # drain that moves a pod is seen exactly as a client sees it: kube-proxy sends the request to another ready endpoint.
 INTERVAL=5 DURATION="$DURATION" python scripts/latency_probe.py "$PROBE_URL" "$OUT_DIR/latency.csv" &
 probe_pid=$!
+fault_pid=""
+if [ -n "${FAULTS:-}" ]; then
+  # the fault test: the same faults at the same moments in every arm (scripts/kind_faults.sh)
+  OUT_DIR="$OUT_DIR" DURATION="$DURATION" PROBE_PID="$probe_pid" bash scripts/kind_faults.sh > "$OUT_DIR/faults.out" 2>&1 &
+  fault_pid=$!
+fi
 # every start of a serving pod, timed exactly: the API server's own record of each pod from creation to Ready, streamed
 # for the whole measured window (pilot/bench_report.py pod_starts), in every arm alike
 date -u +%s > "$OUT_DIR/window_start.txt"
@@ -161,6 +167,7 @@ ACTIVE_ONLY=1 INTERVAL=15 DURATION="$DURATION" POWER_CMD="bash scripts/kind_powe
   bash fleet/capture/kube_capture.sh
 wait "$load_pid" || true
 wait "$probe_pid" || true
+[ -n "$fault_pid" ] && { wait "$fault_pid" || true; }
 date -u +%s > "$OUT_DIR/window_end.txt"
 kill "$watch_pid" 2>/dev/null || true; wait "$watch_pid" 2>/dev/null || true
 kubectl get pods -n default -l run=php-apache -o json > "$OUT_DIR/pods_end.json"

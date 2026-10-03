@@ -117,3 +117,18 @@ Omni-Compass's own, and machines in service. For each Omni-Compass arm it names 
 whose p95 is at or under Omni-Compass's, and that setting's extra replicas, CPU and machines over Omni-Compass. If no
 native setting tried reaches it, the report says so and gives the lowest native p95. 10 repetitions, 900 measured
 seconds per arm, fixed-rate load.
+
+## The fault test (written before its run)
+
+Health, security and the babysitting a cluster needs, measured. Every arm (native; native with Omni-Compass on top,
+the allocation law; native with Omni-Compass on top, the bowl law with the verdict) meets the same four faults at the
+same moments (`scripts/kind_faults.sh`, `FAULTS=1`):
+1. at 15% of the run, a worker machine dies (its kind container is stopped) and comes back two minutes later;
+2. at 35%, traffic triples for two minutes;
+3. at 55%, a pod with no CPU limit burns CPU for two minutes;
+4. at 75%, the response-time probe goes blind for one minute.
+
+For each fault the report (`tools/live_reps.py`, "The fault test") gives the time to recover (from the fault's start
+until responses stay under the line for 30 s straight, at most 300 s) and the share of samples over the line or failed
+in the 300 s after it, paired against native over 10 repetitions. All the usual gauges are reported as well, now
+including the share of response samples over the line (`pilot/bench_report.py`). Lower is better in each.

@@ -12,7 +12,7 @@ python pilot/bench_report.py --native bench_native/capture.csv --omni bench_omni
 """
 from __future__ import annotations
 
-import argparse, json, sys
+import argparse, json, os, sys
 from pathlib import Path
 
 import numpy as np
@@ -99,7 +99,7 @@ def pod_starts(d):
 
 LOWER_BETTER = {"worker nodes in service, mean", "node-hours", "power (W), mean", "power (W), peak", "energy (Wh)",
                 "energy, parked workers still on at idle power (Wh)",
-                "energy per core-hour (Wh)", "node-hours per core-hour", "pending pods, pod-minutes", "pending pods, peak",
+                "energy per core-hour (Wh)", "node-hours per core-hour", "time over the response line (% of samples)", "pending pods, pod-minutes", "pending pods, peak",
                 "HPA shortfall (desired > current), minutes", "HPA replicas, mean", "pods started", "pod start wait, total (s)",
                 "pod start wait, mean (s)", "response time (ms), mean", "response time (ms), median",
                 "response time (ms), 95th percentile", "response time (ms), 99th percentile", "failed requests (%)"}
@@ -114,7 +114,9 @@ def latency(path):
     ok = np.array([float(x["latency_ms"]) for x in r if x["ok"] == "1"]); n = len(r)
     if not len(ok):
         return {"requests timed": float(n), "failed requests (%)": 100.0}
-    return {"requests timed": float(n), "response time (ms), mean": float(ok.mean()),
+    slo = float(os.environ.get("SLO_MS", 500))
+    return {"requests timed": float(n), "time over the response line (% of samples)": 100.0 * float((ok > slo).sum() + (n - len(ok))) / max(n, 1),
+            "response time (ms), mean": float(ok.mean()),
             "response time (ms), median": float(np.percentile(ok, 50)), "response time (ms), 95th percentile": float(np.percentile(ok, 95)),
             "response time (ms), 99th percentile": float(np.percentile(ok, 99)),
             "failed requests (%)": 100.0 * (n - len(ok)) / max(n, 1)}

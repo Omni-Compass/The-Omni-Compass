@@ -9,6 +9,7 @@ on:
       duration_s: {description: "Measured seconds per run", default: "900"}
       arms: {description: "Arms, in rotation order", default: "native omni"}
       loadgen: {description: "closed (waits for answers) or open (fixed rate, equal work)", default: "closed"}
+      faults: {description: "1: the fault test (a machine dies, a traffic spike, a runaway pod, a blind probe; scripts/kind_faults.sh)", default: ""}
   push:
 jobs:
   run:
@@ -32,6 +33,7 @@ jobs:
           ARMS: ${{ github.event.inputs.arms || 'native omni' }}
           DURATION: ${{ github.event.inputs.duration_s || '900' }}
           CLOSURE: tuning/GLOBAL_LEAGUE_PREREGISTRATION.json
+          FAULTS: ${{ github.event.inputs.faults || '' }}
           LOADGEN: ${{ github.event.inputs.loadgen || (contains(github.event.head_commit.message, '[open-load]') && 'open' || 'closed') }}
       - uses: actions/upload-artifact@v4
         if: always()

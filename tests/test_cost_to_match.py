@@ -46,8 +46,19 @@ def main():
     LR.main(str(t))
     assert json.loads((t / "LIVE_REPS.json").read_text())["cost_to_match"]["bowl"] is None
     assert "no native setting tried reached it" in (t / "LIVE_REPS.md").read_text()
+    # the fault table: one run per arm, a fault at t0+100 s; native stays over the line 120 s, Omni 30 s
+    import time as _t
+    f = Path(tempfile.mkdtemp())
+    for arm, bad in (("native", 120), ("bowl", 30)):
+        d = f / f"bench-{arm}-1"; d.mkdir()
+        (d / "window_start.txt").write_text("1000\n")
+        rows = ["elapsed_seconds,latency_ms,ok"] + [f"{t},{900 if 100 <= t < 100 + bad else 100},1" for t in range(0, 600, 5)]
+        (d / "latency.csv").write_text("\n".join(rows) + "\n")
+        (d / "faults.log").write_text("1100 machine down: kind-worker6\n1220 machine back: kind-worker6\n")
+    tab = "\n".join(LR.fault_table(f, ["native", "bowl"]))
+    assert "| machine down | native | 120 |" in tab and "| machine down | bowl | 30 |" in tab and "-90 s" in tab, tab
     print("PASS cost to match: every arm listed, the cheapest native setting that reaches Omni-Compass's p95 and its extra "
-          "pods, CPU and machines, and a plain statement when none reaches it")
+          "pods, CPU and machines, and a plain statement when none reaches it; fault recovery times paired against native")
 
 
 if __name__ == "__main__":

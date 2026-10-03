@@ -13,7 +13,7 @@ from pilot.bench_report import gauges, latency, pod_starts, LOWER_BETTER
 
 T95 = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262}
 KEYS = ["worker nodes in service, mean", "node-hours", "energy, parked workers still on at idle power (Wh)", "energy (Wh)", "response time (ms), mean", "response time (ms), 95th percentile",
-        "response time (ms), 99th percentile", "failed requests (%)", "pending pods, pod-minutes", "utilisation (used / allocatable)",
+        "response time (ms), 99th percentile", "time over the response line (% of samples)", "failed requests (%)", "pending pods, pod-minutes", "utilisation (used / allocatable)",
         "CPU used (cores), mean", "Omni's own CPU (cores), mean", "CPU used with Omni's own (cores), mean",
         "energy per core-hour (Wh)", "HPA replicas, mean",
         "pods started", "pod start wait, total (s)", "pod start wait, mean (s)"]
@@ -46,6 +46,71 @@ def arm_gauges(d):
     g["Omni's own CPU (cores), mean"] = own
     g["CPU used with Omni's own (cores), mean"] = g.get("CPU used (cores), mean", float("nan")) + own
     return g
+
+
+FAULTS = (("machine down", "machine back"), ("spike:", "spike over"), ("runaway pod started", "runaway pod removed"),
+          ("probe blind", "probe back"))
+
+
+def fault_windows(d, slo):
+    """Per fault in this run (faults.log, scripts/kind_faults.sh): time to recover (until 30 s straight under the line,
+    from the fault's start, at most 300 s) and the share of samples over the line or failed in the 300 s after it."""
+    import os
+    try:
+        t0 = float(open(d / "window_start.txt").read().split()[0])
+        rows = list(csv.DictReader(open(d / "latency.csv")))
+        ev = [(float(l.split()[0]), l.split(" ", 1)[1].strip()) for l in open(d / "faults.log") if l.strip()]
+    except (OSError, ValueError, IndexError):
+        return {}
+    smp = [(t0 + float(r["elapsed_seconds"]), r.get("ok") == "1" and float(r["latency_ms"]) <= slo) for r in rows]
+    out = {}
+    for start_key, _ in FAULTS:
+        st = [t for t, txt in ev if txt.startswith(start_key)]
+        if not st:
+            continue
+        s0 = st[0]
+        win = [(t, good) for t, good in smp if s0 <= t <= s0 + 300]
+        over = 100.0 * sum(1 for _, g in win if not g) / max(len(win), 1)
+        rec, run_start = 300.0, None
+        for t, g in win:
+            if g:
+                run_start = t if run_start is None else run_start
+                if t - run_start >= 30:
+                    rec = max(0.0, run_start - s0); break
+            else:
+                run_start = None
+        out[start_key.rstrip(":")] = {"recover_s": rec, "over_pct": over}
+    return out
+
+
+def fault_table(root, cols):
+    import os
+    slo = float(os.environ.get("SLO_MS", 500))
+    per = {}
+    for d in sorted(root.glob("bench-*-*")):
+        _, arm, rep = d.name.split("-", 2)
+        w = fault_windows(d, slo)
+        if w:
+            per.setdefault(arm, {})[rep] = w
+    if "native" not in per:
+        return []
+    L = ["## The fault test: the same faults at the same moments in every arm", "",
+         "Time to recover: from the fault's start until responses stay under the line for 30 seconds straight (at most 300 s). "
+         "Over the line: the share of response samples over the line or failed in the 300 seconds after the fault. Paired "
+         "means over the repetitions; lower is better in both.", "",
+         "| Fault | Arm | Time to recover (s) | Over the line (%) | Change in recovery against native |", "|---|---|---:|---:|---:|"]
+    for f, _ in FAULTS:
+        k = f.rstrip(":")
+        for a in [c for c in cols if c in per]:
+            reps = sorted(set(per[a]) & set(per["native"]))
+            vals = [(per[a][r][k], per["native"][r][k]) for r in reps if k in per[a][r] and k in per["native"][r]]
+            if not vals:
+                continue
+            rec = np.mean([v[0]["recover_s"] for v in vals]); ovr = np.mean([v[0]["over_pct"] for v in vals])
+            base = np.mean([v[1]["recover_s"] for v in vals])
+            ch = "" if a == "native" else (f"{(rec - base):+.0f} s" + (f" ({(rec - base) / base * 100:+.0f}%)" if base > 0 else ""))
+            L.append(f"| {k} | {a} | {rec:.0f} | {ovr:.1f} | {ch} |")
+    return L + [""]
 
 
 def main(root):
@@ -125,6 +190,9 @@ def main(root):
                      f"Omni-Compass's own, {extra(NODES):+.1f}% machines in service, against native with Omni-Compass on top.")
             out["cost_to_match"][o] = {"native_setting": best, "replicas_pct": extra(REP), "cpu_pct": extra(CPU), "machines_pct": extra(NODES)}
         L.append("")
+    faults = fault_table(root, cols)
+    if faults:
+        L += faults
     (root / "LIVE_REPS.json").write_text(json.dumps(out, indent=1)); (root / "LIVE_REPS.md").write_text("\n".join(L))
     print("\n".join(L))
 
