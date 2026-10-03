@@ -650,8 +650,14 @@ class Controller:
                     # (in queue terms, times the conveyed gain): a lower target is more pods, so the up force lowers it
                     g_ = self._gain(h); hi_t = orig * g_; lo_t = max(10.0, 0.6 * orig) * g_
                     x = self.bowl_x.get((ns, name), hi_t)
-                    if self.bowl.p >= self.bowl.band.wall_high:
+                    load = not any(blind.values()) and s["pending"] == 0 and not obs["slo_clean"]
+                    if self.bowl.p >= self.bowl.band.wall_high and load:
                         x = lo_t                                         # fail up: the most pods the cover allows, at once
+                    elif self.bowl.p >= self.bowl.band.wall_high:
+                        # past the wall, but not from load: a blind sense, or pods waiting for a machine that is gone.
+                        # More pods answer neither, so fail up is native's own target, as on the card, where fail up is
+                        # the card's own settings
+                        x = hi_t; back = x != self.bowl_x.get((ns, name), hi_t)
                     elif x < hi_t and self.bowl.p < self.bowl.band.center and obs["slo_clean"] and s["pending"] == 0:
                         # the fault is over: responses back inside the band, nothing waiting. The extra pods were for
                         # the fault only, so the operator's own target returns at once, not step by step

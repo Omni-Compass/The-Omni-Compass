@@ -91,15 +91,20 @@ def main():
     assert target_now(st) == 50, f"fault over: target {target_now(st)}, expected the operator's 50 back at once"
     print(f"fault over: target back to 50 after {k} decision(s), inside the autoscaler's window")
 
-    # blind: a probe file older than twice its window reads as past the wall
+    # blind: a probe file older than twice its window reads as past the wall: fail up, but more pods cannot answer a
+    # blind sense, so the HPA target stays the operator's own (as on the card, fail up is native's own settings)
     t = tempfile.mkdtemp(); st = cluster(t); lat = probe(t, 50.0)
     old = time.time() - 600; os.utime(lat, (old, old))
     c, marker = controller(t, lat)
     c.step()
-    assert target_now(st) == 30, f"blind: target {target_now(st)}"
-    print(f"blind: target 50 -> {target_now(st)} (a blind sense is past the wall)")
+    assert target_now(st) == 50, f"blind: target {target_now(st)}, expected the operator's own 50"
+    assert decisions(t)[-1]["bowl"]["position"] >= 0.95, "blind did not read as past the wall"
+    print(f"blind: past the wall, target stays the operator's {target_now(st)} (more pods cannot answer a blind sense)")
 
-    # restore: the kill switch hands the target back and removes the record
+    # restore: the kill switch hands the target back and removes the record (after a real breach moved it)
+    t = tempfile.mkdtemp(); st = cluster(t); lat = probe(t, 600.0)
+    c, marker = controller(t, lat); c.step()
+    assert target_now(st) == 30
     (Path(t) / "kill").write_text("1")
     c.step()
     S = json.loads(st.read_text())

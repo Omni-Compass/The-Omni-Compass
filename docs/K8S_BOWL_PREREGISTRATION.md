@@ -152,6 +152,19 @@ its center), the response line is clean and no pod is waiting, the operator's ow
 held by the window. More pods only while the fault lasts. The re-run is the same fault test, arms, load, duration and
 rule (set 30 F); set 30 runs the same code without faults, to show nothing else moved.
 
+**Set 30 and set 30 F** (runs 37105047258 and 37105046042, commit `acc1c4e`; `results/live/LIVE_REPS_30.md`,
+`results/live/FAULTS_30.md`). Set 30, no faults: nothing significantly worse in either arm; the bowl law's machines
+−9.9%, p95 −64.9%, time over the line −98.7%, HPA replicas −32.2%, total CPU −6.5%. Set 30 F: recovery faster than native
+from every fault in both arms; the bowl law's HPA replicas **+5.6%** (first run +8.2%), still significant, with CPU and
+machines unchanged. The allocation law, which recovers as fast or faster, held no extra pods (+2.0%, not significant).
+
+**The second change, written before set 31 F** (`omni_controller/controller.py`; `tests/test_bowl_controller.py`,
+"blind"). Past the wall, the bowl lowers the HPA target (more pods) only when the cause is load: the response line
+breached with every sense live and no pod waiting. Past the wall from a blind sense, or from pods waiting for a machine
+that is gone, more pods answer neither, so the target is the operator's own: fail up is native's own setting, as on the
+card, where fail up is the card's own clock and limit. The machine reflex (one machine more past the wall) is unchanged.
+Set 31 F is the same fault test, arms, load, duration and rule; set 31 the same without faults.
+
 ## The bill on a real cloud (written before its run)
 
 The question a buyer pays for: the same work, a smaller bill? On kind every machine stays powered, so a machine given
